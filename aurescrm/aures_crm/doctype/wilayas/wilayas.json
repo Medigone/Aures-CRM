@@ -2,37 +2,27 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:commune",
- "creation": "2024-08-13 13:16:44.610824",
+ "autoname": "field:wilaya",
+ "creation": "2024-08-13 13:51:55.268259",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "nom_complet_commune",
-  "commune",
   "wilaya",
+  "code",
   "region"
  ],
  "fields": [
   {
-   "fieldname": "commune",
+   "fieldname": "wilaya",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Commune",
+   "label": "Wilaya",
    "unique": 1
   },
   {
-   "fieldname": "wilaya",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Wilaya",
-   "options": "Wilayas"
-  },
-  {
-   "fieldname": "nom_complet_commune",
+   "fieldname": "code",
    "fieldtype": "Data",
-   "label": "Nom Complet",
-   "read_only": 1
+   "in_list_view": 1,
+   "label": "Code"
   },
   {
    "fieldname": "region",
@@ -45,10 +35,10 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-13 13:57:51.049060",
+ "modified": "2024-08-13 13:58:28.715550",
  "modified_by": "Administrator",
  "module": "Aures CRM",
- "name": "Communes",
+ "name": "Wilayas",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
@@ -65,10 +55,10 @@
    "write": 1
   }
  ],
- "search_fields": "wilaya,region",
+ "search_fields": "code,region",
  "show_title_field_in_link": 1,
- "sort_field": "commune",
+ "sort_field": "code",
  "sort_order": "DESC",
  "states": [],
- "title_field": "nom_complet_commune"
+ "title_field": "wilaya"
 }
