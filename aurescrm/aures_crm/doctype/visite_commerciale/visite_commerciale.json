@@ -1,0 +1,152 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-13 14:34:07.593727",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_jq1i",
+  "amended_from",
+  "status",
+  "column_break_yzkg",
+  "utilisateur",
+  "section_break_vdyx",
+  "date",
+  "client",
+  "opportunite",
+  "column_break_mbdo",
+  "commune",
+  "wilaya",
+  "region",
+  "notes_tab",
+  "notes",
+  "localisation_tab",
+  "gps_visite",
+  "carte"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_jq1i",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Visite Commerciale",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Programm\u00e9\nEn Cours\nTermin\u00e9\nAnnul\u00e9"
+  },
+  {
+   "fieldname": "column_break_yzkg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "utilisateur",
+   "fieldtype": "Data",
+   "label": "Utilisateur"
+  },
+  {
+   "fieldname": "section_break_vdyx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "opportunite",
+   "fieldtype": "Link",
+   "label": "Opportunit\u00e9",
+   "options": "Opportunity"
+  },
+  {
+   "fieldname": "column_break_mbdo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commune",
+   "fieldtype": "Link",
+   "label": "Commune",
+   "options": "Communes"
+  },
+  {
+   "fieldname": "wilaya",
+   "fieldtype": "Link",
+   "label": "Wilaya",
+   "options": "Wilayas"
+  },
+  {
+   "fieldname": "region",
+   "fieldtype": "Link",
+   "label": "R\u00e9gion",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "notes_tab",
+   "fieldtype": "Tab Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "localisation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Localisation"
+  },
+  {
+   "fieldname": "gps_visite",
+   "fieldtype": "Data",
+   "label": "GPS Visite"
+  },
+  {
+   "fieldname": "carte",
+   "fieldtype": "HTML",
+   "label": "Carte"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-08-13 14:39:09.076874",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Visite Commerciale",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
