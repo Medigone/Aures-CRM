@@ -18,6 +18,8 @@
   {
    "fieldname": "date",
    "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Date",
    "read_only": 1
   },
@@ -28,12 +30,16 @@
   {
    "fieldname": "utilisateur",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Utilisateur",
    "read_only": 1
   },
   {
    "fieldname": "client",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
    "read_only": 1
@@ -61,7 +67,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-14 01:24:21.358553",
+ "modified": "2024-08-14 11:45:28.619566",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appel Telephonique",
