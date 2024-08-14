@@ -6,10 +6,10 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_jq1i",
-  "amended_from",
   "status",
   "column_break_yzkg",
   "utilisateur",
+  "amended_from",
   "section_break_vdyx",
   "date",
   "client",
@@ -24,7 +24,11 @@
   "notes",
   "localisation_tab",
   "gps_visite",
-  "carte"
+  "carte",
+  "column_break_akso",
+  "heure_debut_visite",
+  "heure_fin_visite",
+  "duree_visite"
  ],
  "fields": [
   {
@@ -91,25 +95,31 @@
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "client.custom_commune",
    "fieldname": "commune",
    "fieldtype": "Link",
    "label": "Commune",
-   "options": "Communes"
+   "options": "Communes",
+   "read_only": 1
   },
   {
+   "fetch_from": "commune.wilaya",
    "fieldname": "wilaya",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Wilaya",
-   "options": "Wilayas"
+   "options": "Wilayas",
+   "read_only": 1
   },
   {
+   "fetch_from": "commune.region",
    "fieldname": "region",
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "R\u00e9gion",
-   "options": "Territory"
+   "options": "Territory",
+   "read_only": 1
   },
   {
    "fieldname": "notes_tab",
@@ -124,17 +134,19 @@
   {
    "fieldname": "localisation_tab",
    "fieldtype": "Tab Break",
-   "label": "Localisation"
+   "label": "Contr\u00f4le"
   },
   {
    "fieldname": "gps_visite",
    "fieldtype": "Data",
-   "label": "GPS Visite"
+   "label": "GPS Visite",
+   "read_only": 1
   },
   {
    "fieldname": "carte",
    "fieldtype": "HTML",
-   "label": "Carte"
+   "label": "Carte",
+   "read_only": 1
   },
   {
    "fieldname": "infos_produits_tab",
@@ -146,12 +158,35 @@
    "fieldtype": "Table",
    "label": "Produits",
    "options": "Produits Visite Commerciale"
+  },
+  {
+   "fieldname": "column_break_akso",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "heure_debut_visite",
+   "fieldtype": "Datetime",
+   "label": "Heure D\u00e9but Visite",
+   "read_only": 1
+  },
+  {
+   "fieldname": "heure_fin_visite",
+   "fieldtype": "Datetime",
+   "label": "Heure Fin Visite",
+   "read_only": 1
+  },
+  {
+   "description": "En Minutes",
+   "fieldname": "duree_visite",
+   "fieldtype": "Data",
+   "label": "Temps Visite",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-14 01:39:57.119686",
+ "modified": "2024-08-14 14:45:20.206102",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
