@@ -51,7 +51,8 @@
   {
    "fieldname": "raison_echec",
    "fieldtype": "Select",
-   "label": "Raison d'\u00e9chec"
+   "label": "Raison d'\u00e9chec",
+   "options": "\nRaison 1\nRaison 2"
   },
   {
    "fieldname": "column_break_bari",
@@ -106,7 +107,7 @@
    "read_only": 1
   },
   {
-   "fetch_from": "client.territory",
+   "fetch_from": "commune.region",
    "fieldname": "region",
    "fieldtype": "Link",
    "label": "R\u00e9gion",
@@ -245,7 +246,7 @@
    "link_fieldname": "opportunite"
   }
  ],
- "modified": "2024-08-15 14:56:42.319163",
+ "modified": "2024-08-15 18:14:27.934405",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",
