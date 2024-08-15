@@ -236,7 +236,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-15 14:20:57.223421",
+ "modified": "2024-08-15 14:27:25.989869",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",
@@ -257,5 +257,38 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Gray",
+   "title": "Prospection"
+  },
+  {
+   "color": "Blue",
+   "title": "Analyse des besoins"
+  },
+  {
+   "color": "Purple",
+   "title": "Identifier d\u00e9cideurs"
+  },
+  {
+   "color": "Cyan",
+   "title": "Proposition de valeur"
+  },
+  {
+   "color": "Yellow",
+   "title": "N\u00e9gociation/R\u00e9vision"
+  },
+  {
+   "color": "Orange",
+   "title": "Proposition/Devis"
+  },
+  {
+   "color": "Green",
+   "title": "Gagn\u00e9e"
+  },
+  {
+   "color": "Red",
+   "title": "Perdue"
+  }
+ ]
 }
