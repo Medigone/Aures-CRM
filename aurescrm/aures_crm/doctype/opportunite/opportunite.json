@@ -235,8 +235,17 @@
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2024-08-15 14:27:25.989869",
+ "links": [
+  {
+   "link_doctype": "Visite Commerciale",
+   "link_fieldname": "opportunite"
+  },
+  {
+   "link_doctype": "Appel Telephonique",
+   "link_fieldname": "opportunite"
+  }
+ ],
+ "modified": "2024-08-15 14:56:42.319163",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",

@@ -1,0 +1,34 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"CRM Accueil\",\"col\":12}}]",
+ "creation": "2024-08-15 15:02:30.805872",
+ "custom_blocks": [
+  {
+   "custom_block_name": "CRM Accueil",
+   "label": "CRM Accueil"
+  }
+ ],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "retail",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Accueil",
+ "links": [],
+ "modified": "2024-08-15 15:05:14.696739",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Accueil",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 1.0,
+ "shortcuts": [],
+ "title": "Accueil"
+}
