@@ -1,0 +1,524 @@
+[
+ {
+  "code": "01",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:13.953517",
+  "name": "ADRAR",
+  "region": null,
+  "wilaya": "ADRAR"
+ },
+ {
+  "code": "31",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:13.988268",
+  "name": "ORAN",
+  "region": null,
+  "wilaya": "ORAN"
+ },
+ {
+  "code": "16",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:13.993949",
+  "name": "ALGER",
+  "region": null,
+  "wilaya": "ALGER"
+ },
+ {
+  "code": "58",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.000607",
+  "name": "EL MENIAA",
+  "region": null,
+  "wilaya": "EL MENIAA"
+ },
+ {
+  "code": "57",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.007317",
+  "name": "EL MGHAIER",
+  "region": null,
+  "wilaya": "EL MGHAIER"
+ },
+ {
+  "code": "56",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.012305",
+  "name": "DJANET",
+  "region": null,
+  "wilaya": "DJANET"
+ },
+ {
+  "code": "55",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.021111",
+  "name": "TOUGGOURT",
+  "region": null,
+  "wilaya": "TOUGGOURT"
+ },
+ {
+  "code": "54",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.026946",
+  "name": "IN GUEZZAM",
+  "region": null,
+  "wilaya": "IN GUEZZAM"
+ },
+ {
+  "code": "53",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.031738",
+  "name": "IN SALAH",
+  "region": null,
+  "wilaya": "IN SALAH"
+ },
+ {
+  "code": "52",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.036885",
+  "name": "BENI ABBES",
+  "region": null,
+  "wilaya": "BENI ABBES"
+ },
+ {
+  "code": "51",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.041789",
+  "name": "OULED DJELLAL",
+  "region": null,
+  "wilaya": "OULED DJELLAL"
+ },
+ {
+  "code": "50",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.046538",
+  "name": "BORDJ BADJI MOKHTAR",
+  "region": null,
+  "wilaya": "BORDJ BADJI MOKHTAR"
+ },
+ {
+  "code": "49",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.052372",
+  "name": "TIMIMOUN",
+  "region": null,
+  "wilaya": "TIMIMOUN"
+ },
+ {
+  "code": "48",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.060465",
+  "name": "RELIZANE",
+  "region": null,
+  "wilaya": "RELIZANE"
+ },
+ {
+  "code": "47",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.068043",
+  "name": "GHARDAIA",
+  "region": null,
+  "wilaya": "GHARDAIA"
+ },
+ {
+  "code": "46",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.076160",
+  "name": "AIN TEMOUCHENT",
+  "region": null,
+  "wilaya": "AIN TEMOUCHENT"
+ },
+ {
+  "code": "45",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.082221",
+  "name": "NAAMA",
+  "region": null,
+  "wilaya": "NAAMA"
+ },
+ {
+  "code": "44",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.092208",
+  "name": "AIN DEFLA",
+  "region": null,
+  "wilaya": "AIN DEFLA"
+ },
+ {
+  "code": "43",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.098098",
+  "name": "MILA",
+  "region": null,
+  "wilaya": "MILA"
+ },
+ {
+  "code": "42",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.103895",
+  "name": "TIPAZA",
+  "region": null,
+  "wilaya": "TIPAZA"
+ },
+ {
+  "code": "41",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.110477",
+  "name": "SOUK AHRAS",
+  "region": null,
+  "wilaya": "SOUK AHRAS"
+ },
+ {
+  "code": "40",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.115711",
+  "name": "KHENCHELA",
+  "region": null,
+  "wilaya": "KHENCHELA"
+ },
+ {
+  "code": "39",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.120857",
+  "name": "EL OUED",
+  "region": null,
+  "wilaya": "EL OUED"
+ },
+ {
+  "code": "38",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.126348",
+  "name": "TISSEMSILT",
+  "region": null,
+  "wilaya": "TISSEMSILT"
+ },
+ {
+  "code": "37",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.131578",
+  "name": "TINDOUF",
+  "region": null,
+  "wilaya": "TINDOUF"
+ },
+ {
+  "code": "36",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.136154",
+  "name": "EL TARF",
+  "region": null,
+  "wilaya": "EL TARF"
+ },
+ {
+  "code": "35",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.140740",
+  "name": "BOUMERDES",
+  "region": null,
+  "wilaya": "BOUMERDES"
+ },
+ {
+  "code": "34",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.146144",
+  "name": "BORDJ BOU ARRERIDJ",
+  "region": null,
+  "wilaya": "BORDJ BOU ARRERIDJ"
+ },
+ {
+  "code": "33",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.152582",
+  "name": "ILLIZI",
+  "region": null,
+  "wilaya": "ILLIZI"
+ },
+ {
+  "code": "32",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.160734",
+  "name": "EL BAYADH",
+  "region": null,
+  "wilaya": "EL BAYADH"
+ },
+ {
+  "code": "30",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.170796",
+  "name": "OUARGLA",
+  "region": null,
+  "wilaya": "OUARGLA"
+ },
+ {
+  "code": "29",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.177242",
+  "name": "MASCARA",
+  "region": null,
+  "wilaya": "MASCARA"
+ },
+ {
+  "code": "28",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.182537",
+  "name": "M'SILA",
+  "region": null,
+  "wilaya": "M'SILA"
+ },
+ {
+  "code": "27",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.187663",
+  "name": "MOSTAGANEM",
+  "region": null,
+  "wilaya": "MOSTAGANEM"
+ },
+ {
+  "code": "26",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.193281",
+  "name": "MEDEA",
+  "region": null,
+  "wilaya": "MEDEA"
+ },
+ {
+  "code": "25",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.199588",
+  "name": "CONSTANTINE",
+  "region": null,
+  "wilaya": "CONSTANTINE"
+ },
+ {
+  "code": "24",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.208700",
+  "name": "GUELMA",
+  "region": null,
+  "wilaya": "GUELMA"
+ },
+ {
+  "code": "23",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.217001",
+  "name": "ANNABA",
+  "region": null,
+  "wilaya": "ANNABA"
+ },
+ {
+  "code": "22",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.223596",
+  "name": "SIDI BEL ABBES",
+  "region": null,
+  "wilaya": "SIDI BEL ABBES"
+ },
+ {
+  "code": "21",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.231830",
+  "name": "SKIKDA",
+  "region": null,
+  "wilaya": "SKIKDA"
+ },
+ {
+  "code": "20",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.238963",
+  "name": "SAIDA",
+  "region": null,
+  "wilaya": "SAIDA"
+ },
+ {
+  "code": "19",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.246798",
+  "name": "SETIF",
+  "region": null,
+  "wilaya": "SETIF"
+ },
+ {
+  "code": "18",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.254591",
+  "name": "JIJEL",
+  "region": null,
+  "wilaya": "JIJEL"
+ },
+ {
+  "code": "17",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.262860",
+  "name": "DJELFA",
+  "region": null,
+  "wilaya": "DJELFA"
+ },
+ {
+  "code": "15",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.270579",
+  "name": "TIZI OUZOU",
+  "region": null,
+  "wilaya": "TIZI OUZOU"
+ },
+ {
+  "code": "14",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.281518",
+  "name": "TIARET",
+  "region": null,
+  "wilaya": "TIARET"
+ },
+ {
+  "code": "13",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.287577",
+  "name": "TLEMCEN",
+  "region": null,
+  "wilaya": "TLEMCEN"
+ },
+ {
+  "code": "12",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.295871",
+  "name": "TEBESSA",
+  "region": null,
+  "wilaya": "TEBESSA"
+ },
+ {
+  "code": "11",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.303017",
+  "name": "TAMANRASSET",
+  "region": null,
+  "wilaya": "TAMANRASSET"
+ },
+ {
+  "code": "10",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.309393",
+  "name": "BOUIRA",
+  "region": null,
+  "wilaya": "BOUIRA"
+ },
+ {
+  "code": "09",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.315411",
+  "name": "BLIDA",
+  "region": null,
+  "wilaya": "BLIDA"
+ },
+ {
+  "code": "08",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.324264",
+  "name": "BECHAR",
+  "region": null,
+  "wilaya": "BECHAR"
+ },
+ {
+  "code": "07",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.332902",
+  "name": "BISKRA",
+  "region": null,
+  "wilaya": "BISKRA"
+ },
+ {
+  "code": "06",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.340775",
+  "name": "BEJAIA",
+  "region": null,
+  "wilaya": "BEJAIA"
+ },
+ {
+  "code": "05",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.350974",
+  "name": "BATNA",
+  "region": null,
+  "wilaya": "BATNA"
+ },
+ {
+  "code": "04",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.358998",
+  "name": "OUM EL BOUAGUI",
+  "region": null,
+  "wilaya": "OUM EL BOUAGUI"
+ },
+ {
+  "code": "03",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.365690",
+  "name": "LAGHOUAT",
+  "region": null,
+  "wilaya": "LAGHOUAT"
+ },
+ {
+  "code": "02",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.372328",
+  "name": "CHLEF",
+  "region": null,
+  "wilaya": "CHLEF"
+ }
+]

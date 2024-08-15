@@ -1,0 +1,35 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "<h5 class=\"card-title \">> <b>Mes statistiques</b></h5>\n<h6 class=\"card-subtitle mb-2 text-muted\">\n    <p>Statistiques du Mois</p>\n</h6>",
+  "modified": "2024-03-29 16:38:07.579830",
+  "name": "Mes stats",
+  "private": 0,
+  "roles": [],
+  "script": null,
+  "style": null
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "<div class=\"div\">\n<p class=\"nom\"></p>\n<h6 class=\"card-subtitle mb-2 text-muted\">\n<p class=\"some-class\" id=\"dateAffichee\"></p>\n</h6>\n</div>",
+  "modified": "2024-08-15 15:04:25.823793",
+  "name": "CRM Accueil",
+  "private": 0,
+  "roles": [],
+  "script": "// Récupérer la date du jour\nvar dateDuJour = new Date();\n\n// Obtenir les composants de la date\nvar jour = dateDuJour.getDate();\nvar mois = dateDuJour.getMonth() + 1; // Les mois commencent à 0, donc ajout de 1\nvar annee = dateDuJour.getFullYear();\nvar title = frappe.session.user_fullname;\n\n// Formater la date\nvar dateFormatee = jour + '/' + mois + '/' + annee;\n\n// Récupérer l'élément avec la classe \"some-class\" dans le framework Frappe\nvar someClassElement = root_element.querySelector('.some-class');\nvar nom = root_element.querySelector('.nom');\n\n// Mettre à jour le contenu de l'élément avec la date formatée\n\nnom.innerHTML = \"Bonjour <strong>\" + title + \"</strong>\";\nsomeClassElement.innerHTML = dateFormatee;\n",
+  "style": "        body {\r\n            font-family: 'Rubik', sans-serif;\r\n            height: 100% !important;\r\n            background-color: #f8f9fa !important;\r\n        }\r\n\r\n\r\n        #star {\r\n            margin-left: -5px !important;\r\n            vertical-align: bottom !important;\r\n            opacity: 0.5;\r\n        }\r\n\r\n\r\n        .more {\r\n            opacity: 0.5 !important;\r\n        }\r\n\r\n        .btn:hover {\r\n            color: black !important;\r\n        }\r\n\r\n        .vl {\r\n            margin: 0px !important;\r\n            width: 2px;\r\n            border-right: 1px solid #aaaaaa;\r\n            height: 25px;\r\n        }\r\n\r\n\r\n        #plus {\r\n            opacity: 0.8;\r\n        }\r\n\r\n\r\n        .card {\r\n            border-radius: 10px !important;\r\n        }\r\n\r\n        a:hover {\r\n            background-color: #ccc !important;\r\n        }\r\n\r\n\r\n\r\n        .btn-outlined:active {\r\n            color: #FFF;\r\n            border-color: #fff !important;\r\n        }\r\n\r\n\r\n        img {\r\n\r\n            cursor: pointer;\r\n            overflow: visible;\r\n        }\r\n\r\n        .btn:focus,\r\n        .btn:active {\r\n            outline: none !important;\r\n            box-shadow: none !important;\r\n        }\r\n\r\n\t.container{\r\n\t   margin-top:0px !important;\r\n\t}\r\n\t\r\n.div {\r\n    background-color: #f8f9fa;\r\n    border: 0.5px solid lightgray;\r\n    padding: 20px;\r\n    white-space: nowrap;\r\n    border-radius: 10px;\r\n}\r\n\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "<img src=\"/files/logo_archigo.svg\" width=\"150px\" height=\"40px\" alt=\"Archigo\">\n\n\n<br><br><p class=\"nom\"></p> \n<h6 class=\"card-subtitle mb-2 text-muted\">\n<p class=\"some-class\" id=\"dateAffichee\"></p>\n</h6>",
+  "modified": "2024-04-03 13:26:27.135284",
+  "name": "Accueil",
+  "private": 0,
+  "roles": [],
+  "script": "// Récupérer la date du jour\nvar dateDuJour = new Date();\n\n// Obtenir les composants de la date\nvar jour = dateDuJour.getDate();\nvar mois = dateDuJour.getMonth() + 1; // Les mois commencent à 0, donc ajout de 1\nvar annee = dateDuJour.getFullYear();\nvar title = frappe.session.user_fullname;\n\n// Formater la date\nvar dateFormatee = jour + '/' + mois + '/' + annee;\n\n// Récupérer l'élément avec la classe \"some-class\" dans le framework Frappe\nvar someClassElement = root_element.querySelector('.some-class');\nvar nom = root_element.querySelector('.nom');\n\n// Mettre à jour le contenu de l'élément avec la date formatée\n\nnom.innerHTML = \"Bonjour <strong>\" + title + \"</strong>\";\nsomeClassElement.innerHTML = dateFormatee;\n",
+  "style": "        body {\r\n            font-family: 'Rubik', sans-serif;\r\n            height: 100% !important;\r\n            background-color: #3F51B5 !important;\r\n        }\r\n\r\n\r\n        #star {\r\n            margin-left: -5px !important;\r\n            vertical-align: bottom !important;\r\n            opacity: 0.5;\r\n        }\r\n\r\n\r\n        .more {\r\n            opacity: 0.5 !important;\r\n        }\r\n\r\n        .btn:hover {\r\n            color: black !important;\r\n        }\r\n\r\n        .vl {\r\n            margin: 0px !important;\r\n            width: 2px;\r\n            border-right: 1px solid #aaaaaa;\r\n            height: 25px;\r\n        }\r\n\r\n\r\n        #plus {\r\n            opacity: 0.8;\r\n        }\r\n\r\n\r\n        .card {\r\n            border-radius: 10px !important;\r\n        }\r\n\r\n        a:hover {\r\n            background-color: #ccc !important;\r\n        }\r\n\r\n\r\n\r\n        .btn-outlined:active {\r\n            color: #FFF;\r\n            border-color: #fff !important;\r\n        }\r\n\r\n\r\n        img {\r\n\r\n            cursor: pointer;\r\n            overflow: visible;\r\n        }\r\n\r\n        .btn:focus,\r\n        .btn:active {\r\n            outline: none !important;\r\n            box-shadow: none !important;\r\n        }\r\n\r\n\t.container{\r\n\t   margin-top:0px !important;\r\n\t}\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n\t\r\n"
+ }
+]
