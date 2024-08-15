@@ -5,8 +5,11 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "date",
+  "status",
+  "column_break_ydue",
+  "section_break_bxto",
   "client",
+  "date",
   "column_break_wgjl",
   "utilisateur",
   "heure",
@@ -63,11 +66,26 @@
    "fieldname": "notes",
    "fieldtype": "Text Editor",
    "label": "Notes"
+  },
+  {
+   "default": "Nouveau",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Nouveau\nR\u00e9pondu\n\u00c0 Rappeler\nNon R\u00e9pondu"
+  },
+  {
+   "fieldname": "section_break_bxto",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_ydue",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-14 11:45:28.619566",
+ "modified": "2024-08-14 15:06:09.910875",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appel Telephonique",
@@ -88,5 +106,22 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Green",
+   "title": "R\u00e9pondu"
+  },
+  {
+   "color": "Orange",
+   "title": "\u00c0 Rappeler"
+  },
+  {
+   "color": "Red",
+   "title": "Non R\u00e9pondu"
+  }
+ ]
 }
