@@ -1,0 +1,47 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-15 14:14:15.056618",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "grammage",
+  "format"
+ ],
+ "fields": [
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "BG\nBBTB\nCC"
+  },
+  {
+   "fieldname": "grammage",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Grammage",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "format",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Format"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-08-15 14:16:37.269829",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Papier Opportunite",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

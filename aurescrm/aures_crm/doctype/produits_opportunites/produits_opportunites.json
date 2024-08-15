@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-15 14:10:59.455288",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "designation",
+  "format_fini",
+  "categorie",
+  "quantite"
+ ],
+ "fields": [
+  {
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "D\u00e9signation"
+  },
+  {
+   "fieldname": "format_fini",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Format Fini"
+  },
+  {
+   "fieldname": "categorie",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Cat\u00e9gorie",
+   "options": "Simple\nMoyenne\nComplexe"
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Quantit\u00e9",
+   "non_negative": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-08-15 14:13:02.108448",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Produits Opportunites",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

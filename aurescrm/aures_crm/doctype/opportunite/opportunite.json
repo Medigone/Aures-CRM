@@ -1,0 +1,261 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-15 13:58:01.340566",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "raison_echec",
+  "column_break_bari",
+  "date",
+  "utilisateur",
+  "section_break_xhgo",
+  "client",
+  "nom_client",
+  "column_break_jpst",
+  "commune",
+  "wilaya",
+  "region",
+  "section_break_onkn",
+  "type_procede",
+  "date_cloture_prevue",
+  "column_break_mrnm",
+  "probabilite",
+  "montant_prevu",
+  "infos_produit_tab",
+  "support_fourni",
+  "column_break_lrcn",
+  "fichier_joint",
+  "section_break_aylm",
+  "produits",
+  "section_break_xugf",
+  "papier",
+  "section_break_kilu",
+  "nombre_poses",
+  "produit_simple",
+  "column_break_ttpy",
+  "produit_compose",
+  "pelliculage",
+  "observations_tab",
+  "notes",
+  "liens_tab"
+ ],
+ "fields": [
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Prospection\nAnalyse des besoins\nIdentifier d\u00e9cideurs\nProposition de valeur\nN\u00e9gociation/R\u00e9vision\nProposition/Devis\nGagn\u00e9e\nPerdue"
+  },
+  {
+   "fieldname": "raison_echec",
+   "fieldtype": "Select",
+   "label": "Raison d'\u00e9chec"
+  },
+  {
+   "fieldname": "column_break_bari",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "utilisateur",
+   "fieldtype": "Data",
+   "label": "Utilisateur",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_xhgo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "label": "Nom Client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_jpst",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "client.custom_commune",
+   "fieldname": "commune",
+   "fieldtype": "Link",
+   "label": "Commune",
+   "options": "Communes",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "client.custom_wilaya",
+   "fieldname": "wilaya",
+   "fieldtype": "Link",
+   "label": "Wilaya",
+   "options": "Wilayas",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "client.territory",
+   "fieldname": "region",
+   "fieldtype": "Link",
+   "label": "R\u00e9gion",
+   "options": "Territory",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_onkn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "type_procede",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Proc\u00e9d\u00e9 1\nProc\u00e9d\u00e9 2\nProc\u00e9d\u00e9 3\nProc\u00e9d\u00e9 4\nProc\u00e9d\u00e9 5"
+  },
+  {
+   "fieldname": "date_cloture_prevue",
+   "fieldtype": "Date",
+   "label": "Date de cl\u00f4ture pr\u00e9vue"
+  },
+  {
+   "fieldname": "column_break_mrnm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "probabilite",
+   "fieldtype": "Int",
+   "label": "Probabilit\u00e9 (%)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "montant_prevu",
+   "fieldtype": "Currency",
+   "label": "Montant Pr\u00e9vu",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "fieldname": "observations_tab",
+   "fieldtype": "Tab Break",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "infos_produit_tab",
+   "fieldtype": "Tab Break",
+   "label": "Infos Produit"
+  },
+  {
+   "fieldname": "support_fourni",
+   "fieldtype": "Select",
+   "label": "Support fourni",
+   "options": "Trac\u00e9\nCotations\nModel\nProduit"
+  },
+  {
+   "fieldname": "column_break_lrcn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fichier_joint",
+   "fieldtype": "Attach",
+   "label": "Fichier Joint"
+  },
+  {
+   "fieldname": "section_break_aylm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "produits",
+   "fieldtype": "Table",
+   "label": "Produits",
+   "options": "Produits Opportunites"
+  },
+  {
+   "fieldname": "section_break_xugf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "papier",
+   "fieldtype": "Table",
+   "label": "Papier",
+   "options": "Papier Opportunite"
+  },
+  {
+   "fieldname": "section_break_kilu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "nombre_poses",
+   "fieldtype": "Int",
+   "label": "Nombre de poses",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "produit_simple",
+   "fieldtype": "Select",
+   "label": "Produit Simple",
+   "options": "\nOui\nNon"
+  },
+  {
+   "fieldname": "column_break_ttpy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "produit_compose",
+   "fieldtype": "Select",
+   "label": "Produit Compos\u00e9",
+   "options": "\nOui\nNon"
+  },
+  {
+   "fieldname": "pelliculage",
+   "fieldtype": "Select",
+   "label": "Pelliculage",
+   "options": "\nOui\nNon"
+  },
+  {
+   "fieldname": "liens_tab",
+   "fieldtype": "Tab Break",
+   "label": "Liens",
+   "show_dashboard": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-08-15 14:20:57.223421",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Opportunite",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
