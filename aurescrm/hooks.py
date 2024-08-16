@@ -233,5 +233,6 @@ fixtures = [
     "Communes",
     "Wilayas",
     "Territory",
-    "Document Naming Rule"
+    "Document Naming Rule",
+    "Client Script"
 ]
