@@ -40,7 +40,7 @@
   "modified": "2024-08-14 12:40:21.326894",
   "module": "Aures CRM",
   "name": "Carte Client",
-  "script": "frappe.ui.form.on('Customer', {\n    refresh(frm) {\n        if (frm.doc.custom_gps) {\n            const [latitude, longitude] = frm.doc.custom_gps.split(\", \");\n            const mapUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBhtddbDMEu4OoBJAxlfYADptjTspOqflw&q=${latitude},${longitude}&zoom=15`;\n\n            $(frm.fields_dict['custom_carte'].wrapper).html(`<iframe width=\"100%\" height=\"200\" frameborder=\"0\" style=\"border:1\" src=\"${mapUrl}\" allowfullscreen></iframe>`);\n        }\n    }\n});",
+  "script": "frappe.ui.form.on('Customer', {\n    refresh(frm) {\n        if (frm.doc.custom_gps) {\n            const [latitude, longitude] = frm.doc.custom_gps.split(\", \");\n            const mapUrl = `https://www.google.com/maps/embed/v1/place?key=key&q=${latitude},${longitude}&zoom=15`;\n\n            $(frm.fields_dict['custom_carte'].wrapper).html(`<iframe width=\"100%\" height=\"200\" frameborder=\"0\" style=\"border:1\" src=\"${mapUrl}\" allowfullscreen></iframe>`);\n        }\n    }\n});",
   "view": "Form"
  },
  {
