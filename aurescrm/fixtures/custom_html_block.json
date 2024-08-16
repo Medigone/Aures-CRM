@@ -24,6 +24,39 @@
  {
   "docstatus": 0,
   "doctype": "Custom HTML Block",
+  "html": "<div style=\"padding: 10px;\">\n    <h3>Liens</h3>\n    <table style=\"width: 100%; border-collapse: collapse;\">\n        <tr>\n            <td style=\"text-align: left;\">\n                <b>Clients</b>\n            </td>\n            <td style=\"text-align: left;\">\n                <button class=\"btn btn-primary btn-xs\" onclick=\"window.location.href='/app/customer/new'\" style=\"margin-right: 10px;\">+ Nouveau</button>\n                <button class=\"btn btn-secondary btn-xs\" onclick=\"window.location.href='/app/customer'\">&#9776; Liste</button>\n            </td>\n        </tr>\n        <tr>\n            <td style=\"text-align: left;\">\n                Opportunités\n            </td>\n            <td style=\"text-align: left;\">\n                <button class=\"btn btn-primary btn-xs\" onclick=\"window.location.href='/app/opportunite/new'\" style=\"margin-right: 10px;\">+ Nouveau</button>\n                <button class=\"btn btn-secondary btn-xs\" onclick=\"window.location.href='/app/opportunite'\">&#9776; Liste</button>\n            </td>\n        </tr>\n        <tr>\n            <td style=\"text-align: left;\">\n                Visites\n            </td>\n            <td style=\"text-align: left;\">\n                <button class=\"btn btn-primary btn-xs\" onclick=\"window.location.href='/app/visite-commerciale/new'\" style=\"margin-right: 10px;\">+ Nouveau</button>\n                <button class=\"btn btn-secondary btn-xs\" onclick=\"window.location.href='/app/visite-commerciale'\">&#9776; Liste</button>\n            </td>\n        </tr>\n        <tr>\n            <td style=\"text-align: left;\">\n                Appels\n            </td>\n            <td style=\"text-align: left;\">\n                <button class=\"btn btn-primary btn-xs\" onclick=\"window.location.href='/app/appel-telephonique/new'\" style=\"margin-right: 10px;\">+ Nouveau</button>\n                <button class=\"btn btn-secondary btn-xs\" onclick=\"window.location.href='/app/appel-telephonique'\">&#9776; Liste</button>\n            </td>\n        </tr>\n    </table>\n</div>\n",
+  "modified": "2024-08-15 18:02:21.194535",
+  "name": "Liens Acceuil",
+  "private": 0,
+  "roles": [],
+  "script": null,
+  "style": ".btn {\n    padding: 5px 10px;\n    border: none;\n    cursor: pointer;\n}\n\n.btn-primary {\n    background-color: #007bff;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #6c757d;\n    color: white;\n}\n\n.btn-xs {\n    padding: 1px 3px;\n    font-size: 0.75em;\n}\n\ntable {\n    width: 100%;\n}\n\ntd {\n    padding: 5px;\n}\n\ntd:nth-child(2) {\n    text-align: left;\n    padding-left: 10px; /* Ajuster l'espacement pour rapprocher les boutons du texte */\n}\n"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "<div style=\"padding: 10px;\">\n    <h3>Configuration</h3>\n    <ul>\n        <li>\n            <a href=\"/app/customer\">Clients →</a>\n            <button class=\"btn btn-primary btn-xs\">Liste</button>\n            <button class=\"btn btn-secondary btn-xs\">Nouveau</button>\n        </li>\n        <li>\n            <a href=\"/app/opportunite\">Opportunités →</a>\n            <button class=\"btn btn-primary btn-xs\">Liste</button>\n            <button class=\"btn btn-secondary btn-xs\">Nouveau</button>\n        </li>\n        <li>\n            <a href=\"/app/visite-commerciale\">Visites →</a>\n            <button class=\"btn btn-primary btn-xs\">Liste</button>\n            <button class=\"btn btn-secondary btn-xs\">Nouveau</button>\n        </li>\n        <li>\n            <a href=\"/app/appel-telephonique\">Appels →</a>\n            <button class=\"btn btn-primary btn-xs\">Liste</button>\n            <button class=\"btn btn-secondary btn-xs\">Nouveau</button>\n        </li>\n    </ul>\n</div>\n",
+  "modified": "2024-08-15 16:38:31.710388",
+  "name": "Configuration",
+  "private": 0,
+  "roles": [],
+  "script": null,
+  "style": ".btn {\n    padding: 5px 10px;\n    border: none;\n    cursor: pointer;\n}\n\n.btn-primary {\n    background-color: #007bff;\n    color: white;\n}\n\n.btn-secondary {\n    background-color: #6c757d;\n    color: white;\n}\n\n.btn-xs {\n    padding: 1px 3px;\n    font-size: 0.75em;\n}\n"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
+  "html": "<nav>\n  <div class=\"nav nav-tabs\" id=\"nav-tab\" role=\"tablist\">\n    <a class=\"nav-item nav-link active\" id=\"nav-home-tab\" data-toggle=\"tab\" href=\"#nav-home\" role=\"tab\" aria-controls=\"nav-home\" aria-selected=\"true\">Acceuil</a>\n    <a class=\"nav-item nav-link\" id=\"nav-profile-tab\" data-toggle=\"tab\" href=\"#nav-profile\" role=\"tab\" aria-controls=\"nav-profile\" aria-selected=\"false\">CRM</a>\n    <a class=\"nav-item nav-link\" id=\"nav-contact-tab\" data-toggle=\"tab\" href=\"#nav-contact\" role=\"tab\" aria-controls=\"nav-contact\" aria-selected=\"false\">Configuration</a>\n  </div>\n</nav>\n<div class=\"tab-content\" id=\"nav-tabContent\">\n  <div class=\"tab-pane fade show active\" id=\"nav-home\" role=\"tabpanel\" aria-labelledby=\"nav-home-tab\">...</div>\n  <div class=\"tab-pane fade\" id=\"nav-profile\" role=\"tabpanel\" aria-labelledby=\"nav-profile-tab\">...</div>\n  <div class=\"tab-pane fade\" id=\"nav-contact\" role=\"tabpanel\" aria-labelledby=\"nav-contact-tab\">...</div>\n</div>",
+  "modified": "2024-08-15 16:45:47.541187",
+  "name": "Test",
+  "private": 0,
+  "roles": [],
+  "script": null,
+  "style": null
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Custom HTML Block",
   "html": "<img src=\"/files/logo_archigo.svg\" width=\"150px\" height=\"40px\" alt=\"Archigo\">\n\n\n<br><br><p class=\"nom\"></p> \n<h6 class=\"card-subtitle mb-2 text-muted\">\n<p class=\"some-class\" id=\"dateAffichee\"></p>\n</h6>",
   "modified": "2024-04-03 13:26:27.135284",
   "name": "Accueil",

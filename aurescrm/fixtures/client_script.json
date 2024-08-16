@@ -1,0 +1,101 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 1,
+  "modified": "2024-08-14 01:14:53.145123",
+  "module": "Aures CRM",
+  "name": "Boutton Appeler",
+  "script": "frappe.ui.form.on('Customer', {\n    refresh: function(frm) {\n        // Button to call the customer and create/save an Appel Téléphonique\n        frm.add_custom_button(__('Appeler'), function() {\n            let phone_number = frm.doc.mobile_no;\n            if (phone_number) {\n                // Create a new 'Appel Téléphonique' record with the current user's full name\n                frappe.db.insert({\n                    doctype: 'Appel Telephonique',\n                    client: frm.doc.name,\n                    date: frappe.datetime.get_today(),\n                    heure: frappe.datetime.now_datetime(),\n                    utilisateur: frappe.user.full_name()\n                }).then(function(doc) {\n                    frappe.msgprint(__('Un nouvel appel téléphonique a été enregistré.'));\n                    // Navigate to the newly created document\n                    frappe.set_route('Form', 'Appel Telephonique', doc.name);\n                });\n\n                // Open phone interface with the number\n                window.location.href = 'tel:' + phone_number;\n            } else {\n                frappe.msgprint(__('Aucun numéro de téléphone mobile n\\'est défini pour ce client.'));\n            }\n        });\n\n        // Button to create a new Visite Commerciale\n        frm.add_custom_button(__('Créer Visite'), function() {\n            // Create a new 'Visite Commerciale' record with the current user's full name and date\n            frappe.db.insert({\n                doctype: 'Visite Commerciale',\n                client: frm.doc.name,\n                date: frappe.datetime.get_today(),\n                utilisateur: frappe.user.full_name()\n            }).then(function(doc) {\n                frappe.msgprint(__('Une nouvelle visite commerciale a été créée.'));\n                // Navigate to the newly created document\n                frappe.set_route('Form', 'Visite Commerciale', doc.name);\n            });\n        });\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 1,
+  "modified": "2024-08-14 12:04:44.391986",
+  "module": "Aures CRM",
+  "name": "Cacher boutons",
+  "script": "frappe.ui.form.on('Customer', {\n    refresh(frm) {\n        setTimeout(() => {\n            frm.remove_custom_button('Accounting Ledger', 'View');\n            frm.remove_custom_button('Accounts Receivable', 'View');\n            frm.remove_custom_button('Pricing Rule', 'Create');\n            frm.remove_custom_button('Get Customer Group Details', 'Actions');\n            \n        }, 10);\n    }\n});\n\n\n\n\n\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 1,
+  "modified": "2024-08-14 13:47:40.864126",
+  "module": "Aures CRM",
+  "name": "GPS Client",
+  "script": "frappe.ui.form.on('Customer', {\n    refresh(frm) {\n        // Ajouter un bouton dans la barre d'outils du formulaire\n        frm.add_custom_button('Récupérer GPS', function() {\n            // Vérifier si la géolocalisation est prise en charge\n            if (\"geolocation\" in navigator) {\n                navigator.geolocation.getCurrentPosition(function(position) {\n                    // Récupérer les coordonnées GPS\n                    const lat = position.coords.latitude;\n                    const lon = position.coords.longitude;\n                    const gpsCoords = `${lat}, ${lon}`;\n\n                    // Mettre à jour le champ 'custom_gps' avec les coordonnées GPS récupérées\n                    frm.set_value('custom_gps', gpsCoords);\n\n                    // Enregistrer automatiquement le document après la mise à jour du champ\n                    frm.save();\n\n                    // Optionnel : Afficher un message de succès\n                    //frappe.msgprint(`Coordonnées GPS récupérées et enregistrées : ${gpsCoords}`);\n                }, function(error) {\n                    // Gérer les erreurs\n                    frappe.msgprint(`Erreur lors de la récupération des coordonnées GPS : ${error.message}`);\n                }, {\n                    // Options de géolocalisation\n                    enableHighAccuracy: true,\n                    timeout: 5000,\n                    maximumAge: 0\n                });\n            } else {\n                frappe.msgprint(\"La géolocalisation n'est pas prise en charge par ce navigateur.\");\n            }\n        });\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 1,
+  "modified": "2024-08-14 12:40:21.326894",
+  "module": "Aures CRM",
+  "name": "Carte Client",
+  "script": "frappe.ui.form.on('Customer', {\n    refresh(frm) {\n        if (frm.doc.custom_gps) {\n            const [latitude, longitude] = frm.doc.custom_gps.split(\", \");\n            const mapUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBhtddbDMEu4OoBJAxlfYADptjTspOqflw&q=${latitude},${longitude}&zoom=15`;\n\n            $(frm.fields_dict['custom_carte'].wrapper).html(`<iframe width=\"100%\" height=\"200\" frameborder=\"0\" style=\"border:1\" src=\"${mapUrl}\" allowfullscreen></iframe>`);\n        }\n    }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Visite Commerciale",
+  "enabled": 1,
+  "modified": "2024-08-14 14:09:18.673937",
+  "module": "Aures CRM",
+  "name": "Debut Visite",
+  "script": "frappe.ui.form.on('Visite Commerciale', {\n    refresh: function(frm) {\n        // Vérifier si l'état du workflow est \"En Cours\" et que les champs ne sont pas encore mis à jour\n        if (frm.doc.status === \"En Cours\" && !frm.doc.gps_visite && !frm.doc.heure_debut_visite && !frm.doc.carte) {\n            // Mettre à jour le champ 'gps_visite' avec les coordonnées GPS actuelles\n            if (\"geolocation\" in navigator) {\n                navigator.geolocation.getCurrentPosition(function(position) {\n                    var latitude = position.coords.latitude;\n                    var longitude = position.coords.longitude;\n                    var gpsCoords = latitude + ', ' + longitude;\n                    var now = frappe.datetime.now_datetime();  // Récupérer la date et l'heure actuelles\n\n                    // Mettre à jour les champs\n                    frm.set_value('gps_visite', gpsCoords);\n                    frm.set_value('heure_debut_visite', now);  // Met à jour l'heure de la visite avec l'heure actuelle\n                    frm.set_value('carte', `https://www.google.com/maps?q=${latitude},${longitude}`);  // Génère un lien Google Maps\n                    frm.set_value('status', 'En Cours');  // Met à jour le champ 'status' pour refléter l'état actuel du workflow\n\n                    // Enregistrer automatiquement le document après mise à jour des champs\n                    frm.save();\n                }, function(error) {\n                    frappe.msgprint(__('Erreur lors de la récupération de la localisation : {0}', [error.message]));\n                }, {\n                    enableHighAccuracy: true,\n                    timeout: 5000,\n                    maximumAge: 0\n                });\n            } else {\n                frappe.msgprint(__('La géolocalisation n\\'est pas prise en charge par votre navigateur.'));\n            }\n        }\n\n        // Afficher la carte si les coordonnées GPS sont déjà disponibles\n        if (frm.doc.gps_visite) {\n            const [latitude, longitude] = frm.doc.gps_visite.split(\", \");\n            const mapUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBhtddbDMEu4OoBJAxlfYADptjTspOqflw&q=${latitude},${longitude}&zoom=15`;\n\n            $(frm.fields_dict['carte'].wrapper).html(`<iframe width=\"100%\" height=\"300\" frameborder=\"0\" style=\"border:0\" src=\"${mapUrl}\" allowfullscreen></iframe>`);\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Visite Commerciale",
+  "enabled": 1,
+  "modified": "2024-08-14 14:42:49.463302",
+  "module": "Aures CRM",
+  "name": "Fin Visite",
+  "script": "frappe.ui.form.on('Visite Commerciale', {\n    refresh: function(frm) {\n        // Vérifier si l'état du workflow est \"Terminé\" et que le champ 'heure_fin_visite' n'est pas encore mis à jour\n        if (frm.doc.status === \"Terminé\" && !frm.doc.heure_fin_visite) {\n            var now = frappe.datetime.now_datetime();  // Récupérer la date et l'heure actuelles\n\n            // Mettre à jour le champ 'heure_fin_visite' avec l'heure actuelle\n            frm.set_value('heure_fin_visite', now).then(function() {\n                // Calculer la durée entre 'heure_debut_visite' et 'heure_fin_visite'\n                if (frm.doc.heure_debut_visite && frm.doc.heure_fin_visite) {\n                    var start_time = moment(frm.doc.heure_debut_visite);\n                    var end_time = moment(frm.doc.heure_fin_visite);\n                    var duration = moment.duration(end_time.diff(start_time));\n                    var duration_in_minutes = Math.round(duration.asMinutes());  // Arrondir la durée à l'entier le plus proche\n\n                    // Mettre à jour le champ 'duree_visite' avec la durée calculée en minutes sans décimales\n                    frm.set_value('duree_visite', duration_in_minutes);\n                }\n\n                // Enregistrer automatiquement le document après mise à jour des champs\n                frm.save();\n            });\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 1,
+  "modified": "2024-08-14 15:29:38.107991",
+  "module": "Aures CRM",
+  "name": "Hide Customer Dashboard Elements",
+  "script": "frappe.ui.form.on('Customer', {\n    refresh: function(frm) {\n        // Masquer les éléments après un court délai pour s'assurer qu'ils sont chargés\n        frappe.after_ajax(function() {\n            const doctypes_to_hide = [\"Pre Sales\", \"Opportunity\", \"Quotation\"];\n            \n            doctypes_to_hide.forEach(doctype => {\n                $(frm.dashboard.wrapper).find(`[data-doctype=\"${doctype}\"]`).hide();\n            });\n        });\n    },\n    after_save: function(frm) {\n        // Assurez-vous de masquer les éléments après la sauvegarde\n        const doctypes_to_hide = [\"Pre Sales\", \"Opportunity\", \"Quotation\"];\n\n        doctypes_to_hide.forEach(doctype => {\n            $(frm.dashboard.wrapper).find(`[data-doctype=\"${doctype}\"]`).hide();\n        });\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Opportunite",
+  "enabled": 1,
+  "modified": "2024-08-15 14:25:10.937003",
+  "module": "Aures CRM",
+  "name": "Hide ID",
+  "script": "frappe.listview_settings['Opportunite'] = {\n    hide_name_column:true,\n}",
+  "view": "List"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Opportunite",
+  "enabled": 1,
+  "modified": "2024-08-16 15:09:15.026853",
+  "module": "Aures CRM",
+  "name": "Boutons",
+  "script": "frappe.ui.form.on('Opportunite', {\n    refresh: function(frm) {\n        // Button to call the customer and create/save an Appel Téléphonique\n        frm.add_custom_button(__('Appeler'), function() {\n            let phone_number = frm.doc.telephone_client;\n            if (phone_number) {\n                // Create a new 'Appel Téléphonique' record with the current user's full name\n                frappe.db.insert({\n                    doctype: 'Appel Telephonique',\n                    client: frm.doc.client,\n                    date: frappe.datetime.get_today(),\n                    heure: frappe.datetime.now_datetime(),\n                    utilisateur: frappe.user.full_name(),\n                    opportunite: frm.doc.name\n                }).then(function(doc) {\n                    frappe.msgprint(__('Un nouvel appel téléphonique a été enregistré.'));\n                    // Navigate to the newly created document\n                    frappe.set_route('Form', 'Appel Telephonique', doc.name);\n                });\n\n                // Open phone interface with the number\n                window.location.href = 'tel:' + phone_number;\n            } else {\n                frappe.msgprint(__('Aucun numéro de téléphone mobile n\\'est défini pour ce client.'));\n            }\n        });\n\n        // Button to create a new Visite Commerciale\n        frm.add_custom_button(__('Créer Visite'), function() {\n            // Create a new 'Visite Commerciale' record with the current user's full name and date\n            frappe.db.insert({\n                doctype: 'Visite Commerciale',\n                client: frm.doc.client,\n                date: frappe.datetime.get_today(),\n                utilisateur: frappe.user.full_name(),\n                opportunite: frm.doc.name\n            }).then(function(doc) {\n                frappe.msgprint(__('Une nouvelle visite commerciale a été créée.'));\n                // Navigate to the newly created document\n                frappe.set_route('Form', 'Visite Commerciale', doc.name);\n            });\n        });\n    }\n});\n",
+  "view": "Form"
+ }
+]
