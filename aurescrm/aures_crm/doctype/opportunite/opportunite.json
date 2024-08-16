@@ -61,11 +61,15 @@
   {
    "fieldname": "date",
    "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Date"
   },
   {
    "fieldname": "utilisateur",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Utilisateur",
    "read_only": 1
   },
@@ -76,6 +80,8 @@
   {
    "fieldname": "client",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer"
   },
@@ -102,6 +108,8 @@
    "fetch_from": "client.custom_wilaya",
    "fieldname": "wilaya",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Wilaya",
    "options": "Wilayas",
    "read_only": 1
@@ -110,6 +118,7 @@
    "fetch_from": "commune.region",
    "fieldname": "region",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "R\u00e9gion",
    "options": "Territory",
    "read_only": 1
@@ -121,6 +130,8 @@
   {
    "fieldname": "type_procede",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Type",
    "options": "Proc\u00e9d\u00e9 1\nProc\u00e9d\u00e9 2\nProc\u00e9d\u00e9 3\nProc\u00e9d\u00e9 4\nProc\u00e9d\u00e9 5"
   },
@@ -246,7 +257,7 @@
    "link_fieldname": "opportunite"
   }
  ],
- "modified": "2024-08-15 18:14:27.934405",
+ "modified": "2024-08-16 14:57:14.373096",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",
@@ -300,5 +311,6 @@
    "color": "Red",
    "title": "Perdue"
   }
- ]
+ ],
+ "track_changes": 1
 }
