@@ -13,6 +13,7 @@
   "section_break_xhgo",
   "client",
   "nom_client",
+  "telephone_client",
   "column_break_jpst",
   "commune",
   "wilaya",
@@ -244,6 +245,13 @@
    "fieldtype": "Tab Break",
    "label": "Liens",
    "show_dashboard": 1
+  },
+  {
+   "fetch_from": "client.mobile_no",
+   "fieldname": "telephone_client",
+   "fieldtype": "Data",
+   "label": "T\u00e9l\u00e9phone Client",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -258,7 +266,7 @@
    "link_fieldname": "opportunite"
   }
  ],
- "modified": "2024-08-16 14:58:56.329286",
+ "modified": "2024-08-16 15:04:41.310154",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",
