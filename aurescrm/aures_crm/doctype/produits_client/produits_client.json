@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-22 14:06:17.439013",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "marque_commerciale",
+  "designation",
+  "type_procede",
+  "quantite_annuelle"
+ ],
+ "fields": [
+  {
+   "fieldname": "marque_commerciale",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Marque Commerciale"
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "D\u00e9signation"
+  },
+  {
+   "fieldname": "type_procede",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type Proc\u00e9d\u00e9",
+   "options": "Proc\u00e9d\u00e9 1\nProc\u00e9d\u00e9 2\nProc\u00e9d\u00e9 3\nProc\u00e9d\u00e9 4\nProc\u00e9d\u00e9 5"
+  },
+  {
+   "fieldname": "quantite_annuelle",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Quantit\u00e9 Annuelle"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-08-22 14:09:42.215552",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Produits Client",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
