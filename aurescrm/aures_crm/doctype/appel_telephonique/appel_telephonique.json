@@ -74,6 +74,8 @@
    "default": "Nouveau",
    "fieldname": "status",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Statut",
    "options": "Nouveau\nR\u00e9pondu\n\u00c0 Rappeler\nNon R\u00e9pondu"
   },
@@ -95,13 +97,15 @@
   {
    "fieldname": "type",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Type",
    "options": "Prospection\nPrise de contact\nSuivi Visite\nSuivi Commande\nAppel de satisfaction\nR\u00e9activation client\nEnqu\u00eate"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-25 14:44:00.230219",
+ "modified": "2024-08-25 14:45:00.844084",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appel Telephonique",
