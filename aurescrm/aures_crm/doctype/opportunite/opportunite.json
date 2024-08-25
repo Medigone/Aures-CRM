@@ -6,10 +6,10 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
-  "raison_echec",
-  "column_break_bari",
   "date",
+  "column_break_bari",
   "utilisateur",
+  "nom_utilisateur",
   "section_break_xhgo",
   "client",
   "nom_client",
@@ -40,7 +40,10 @@
   "pelliculage",
   "observations_tab",
   "notes",
-  "liens_tab"
+  "liens_tab",
+  "\u00e9chec_tab",
+  "raison_echec",
+  "note_echec"
  ],
  "fields": [
   {
@@ -60,18 +63,21 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Date"
+   "label": "Date",
+   "read_only": 1
   },
   {
    "fieldname": "utilisateur",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Utilisateur",
+   "options": "User",
    "read_only": 1
   },
   {
@@ -84,7 +90,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Client",
-   "options": "Customer"
+   "options": "Customer",
+   "set_only_once": 1
   },
   {
    "fetch_from": "client.customer_name",
@@ -252,6 +259,23 @@
    "fieldtype": "Data",
    "label": "T\u00e9l\u00e9phone Client",
    "read_only": 1
+  },
+  {
+   "fetch_from": "utilisateur.full_name",
+   "fieldname": "nom_utilisateur",
+   "fieldtype": "Data",
+   "label": "Nom Utilisateur",
+   "read_only": 1
+  },
+  {
+   "fieldname": "\u00e9chec_tab",
+   "fieldtype": "Tab Break",
+   "label": "\u00c9chec"
+  },
+  {
+   "fieldname": "note_echec",
+   "fieldtype": "Text Editor",
+   "label": "Note d\u2019\u00e9chec"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -266,7 +290,7 @@
    "link_fieldname": "opportunite"
   }
  ],
- "modified": "2024-08-16 15:04:41.310154",
+ "modified": "2024-08-25 15:19:06.527772",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",
