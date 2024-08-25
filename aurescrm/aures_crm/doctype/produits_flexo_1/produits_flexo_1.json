@@ -26,28 +26,28 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type De support",
-   "options": "Opp Blanc\nOpp Blanc Metalis\u00e9\nOpp Transparent\nBopp Metalis\u00e9\nBopp Tranparent\nBopp Blanc Perl\u00e9\nBopp Transparent Matte\nPP Transparent\nPP Blanc\nPapier couch\u00e9\nPapier offset\nAluminium Opercule\nAluminium Blister\nPapier/Aluminium\nPapier/PE\nPVC Sleeve\nPet Sleeve\nPet Eclips\nBlanc EUH\nBlanc EUP\nTransparent ETH\nAdhesif Double Support\nPE Blanc\nPE Transparent\nAutre"
+   "options": "\nOpp Blanc\nOpp Blanc Metalis\u00e9\nOpp Transparent\nBopp Metalis\u00e9\nBopp Tranparent\nBopp Blanc Perl\u00e9\nBopp Transparent Matte\nPP Transparent\nPP Blanc\nPapier couch\u00e9\nPapier offset\nAluminium Opercule\nAluminium Blister\nPapier/Aluminium\nPapier/PE\nPVC Sleeve\nPet Sleeve\nPet Eclips\nBlanc EUH\nBlanc EUP\nTransparent ETH\nAdhesif Double Support\nPE Blanc\nPE Transparent\nAutre"
   },
   {
    "fieldname": "epaisseur",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Epaisseur",
-   "options": "Autre\n12\u00b5\n20\u00b5\n25\u00b5\n30\u00b5\n35\u00b5\n38\u00b5\n40\u00b5\n45\u00b5\n50\u00b5\n60\u00b5\n70grs\n80grs\n65grs\n110grs\n210grs"
+   "options": "\n12\u00b5\n20\u00b5\n25\u00b5\n30\u00b5\n35\u00b5\n38\u00b5\n40\u00b5\n45\u00b5\n50\u00b5\n60\u00b5\n70grs\n80grs\n65grs\n110grs\n210grs\nAutre"
   },
   {
    "fieldname": "diametre_interne_mandrin",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Diametre interne mandrin",
-   "options": "152 mm\n76 mm\n40 mm\nAutre"
+   "label": "Diametre Mandrin",
+   "options": "\n152 mm\n76 mm\n40 mm\nAutre"
   },
   {
    "fieldname": "sens_deroulement",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Sens de deroulement",
-   "options": "Droite\nGauche"
+   "options": "\nDroite\nGauche"
   },
   {
    "fieldname": "fiche_technique",
@@ -59,10 +59,10 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-08-25 17:00:04.390112",
+ "modified": "2024-08-25 17:16:50.469726",
  "modified_by": "Administrator",
  "module": "Aures CRM",
- "name": "Produits Flexo",
+ "name": "Produits Flexo 1",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

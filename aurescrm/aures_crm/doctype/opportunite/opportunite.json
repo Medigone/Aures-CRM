@@ -317,7 +317,7 @@
    "fieldname": "liste_produits_flexo",
    "fieldtype": "Table",
    "label": "Liste Produits Flexo",
-   "options": "Produits Flexo"
+   "options": "Produits Flexo 1"
   },
   {
    "fieldname": "vitesse_machine",
@@ -338,7 +338,7 @@
    "link_fieldname": "opportunite"
   }
  ],
- "modified": "2024-08-25 17:14:03.509884",
+ "modified": "2024-08-25 17:16:57.213216",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",
