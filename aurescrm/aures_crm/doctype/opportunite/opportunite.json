@@ -24,6 +24,14 @@
   "column_break_mrnm",
   "probabilite",
   "montant_prevu",
+  "flexo_tab",
+  "description_produit",
+  "column_break_ywgv",
+  "quantite_previsonnelle",
+  "column_break_bsrk",
+  "vitesse_machine",
+  "section_break_cfuq",
+  "liste_produits_flexo",
   "infos_produit_tab",
   "support_fourni",
   "column_break_lrcn",
@@ -140,8 +148,8 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Type",
-   "options": "Proc\u00e9d\u00e9 1\nProc\u00e9d\u00e9 2\nProc\u00e9d\u00e9 3\nProc\u00e9d\u00e9 4\nProc\u00e9d\u00e9 5"
+   "label": "Proc\u00e9d\u00e9",
+   "options": "FLEXO\nSALLE BLANCHE"
   },
   {
    "fieldname": "date_cloture_prevue",
@@ -276,6 +284,45 @@
    "fieldname": "note_echec",
    "fieldtype": "Text Editor",
    "label": "Note d\u2019\u00e9chec"
+  },
+  {
+   "fieldname": "flexo_tab",
+   "fieldtype": "Tab Break",
+   "label": "Flexo"
+  },
+  {
+   "fieldname": "description_produit",
+   "fieldtype": "Data",
+   "label": "Description Produit"
+  },
+  {
+   "fieldname": "quantite_previsonnelle",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 pr\u00e9visionnelle",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "vitesse_machine",
+   "fieldtype": "Data",
+   "label": "Vitesse Machine"
+  },
+  {
+   "fieldname": "column_break_ywgv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_bsrk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_cfuq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "liste_produits_flexo",
+   "fieldtype": "Table",
+   "label": "Liste Produits Flexo",
+   "options": "Produits Flexo"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -290,7 +337,7 @@
    "link_fieldname": "opportunite"
   }
  ],
- "modified": "2024-08-25 15:19:06.527772",
+ "modified": "2024-08-25 17:00:33.001073",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",
