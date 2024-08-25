@@ -1,8 +1,13 @@
 {
  "charts": [],
- "content": "[{\"id\":\"wTghJ7RrDv\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Appels</span>\",\"col\":12}}]",
+ "content": "[{\"id\":\"nuNikiULd3\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Appels\",\"col\":12}}]",
  "creation": "2024-08-25 14:23:07.515786",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "Menu Appels",
+   "label": "Menu Appels"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -13,7 +18,7 @@
  "is_hidden": 0,
  "label": "Appels",
  "links": [],
- "modified": "2024-08-25 14:25:22.799574",
+ "modified": "2024-08-25 15:55:00.701464",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appels",

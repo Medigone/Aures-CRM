@@ -1,8 +1,13 @@
 {
  "charts": [],
- "content": "[{\"id\":\"qCcdTUYlGX\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Visites</span>\",\"col\":12}}]",
+ "content": "[{\"id\":\"jIhouKomOM\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Visites\",\"col\":12}}]",
  "creation": "2024-08-25 14:23:31.031813",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "Menu Visites",
+   "label": "Menu Visites"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -13,7 +18,7 @@
  "is_hidden": 0,
  "label": "Visites",
  "links": [],
- "modified": "2024-08-25 14:25:14.065287",
+ "modified": "2024-08-25 15:56:49.562721",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visites",

@@ -1,8 +1,13 @@
 {
  "charts": [],
- "content": "[{\"id\":\"r3Qn78WSrD\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Opportunit\u00e9s</span>\",\"col\":12}}]",
+ "content": "[{\"id\":\"6IIJBdMFI3\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Opportunites\",\"col\":12}}]",
  "creation": "2024-08-25 14:22:43.355257",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "Menu Opportunites",
+   "label": "Menu Opportunites"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -13,7 +18,7 @@
  "is_hidden": 0,
  "label": "Opportunit\u00e9s",
  "links": [],
- "modified": "2024-08-25 14:25:30.247010",
+ "modified": "2024-08-25 15:56:30.144954",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunit\u00e9s",
