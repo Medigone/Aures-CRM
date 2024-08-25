@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
+  "type",
   "column_break_ydue",
   "opportunite",
   "section_break_bxto",
@@ -88,12 +89,19 @@
    "fieldname": "opportunite",
    "fieldtype": "Link",
    "label": "Opportunit\u00e9",
-   "options": "Opportunite"
+   "options": "Opportunite",
+   "search_index": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Prospection\nPrise de contact\nSuivi Visite\nSuivi Commande\nAppel de satisfaction\nR\u00e9activation client\nEnqu\u00eate"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-15 14:55:47.239755",
+ "modified": "2024-08-25 14:44:00.230219",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appel Telephonique",
