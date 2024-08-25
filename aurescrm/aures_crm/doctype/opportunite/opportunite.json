@@ -149,7 +149,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Proc\u00e9d\u00e9",
-   "options": "FLEXO\nSALLE BLANCHE"
+   "options": "Flexo 1\nFlexo 2\nFlexo 3\nOffset\nSalle Blanche\nExtrusion"
   },
   {
    "fieldname": "date_cloture_prevue",
@@ -288,7 +288,7 @@
   {
    "fieldname": "flexo_tab",
    "fieldtype": "Tab Break",
-   "label": "Flexo"
+   "label": "Flexo 1"
   },
   {
    "fieldname": "description_produit",
@@ -300,11 +300,6 @@
    "fieldtype": "Int",
    "label": "Quantit\u00e9 pr\u00e9visionnelle",
    "non_negative": 1
-  },
-  {
-   "fieldname": "vitesse_machine",
-   "fieldtype": "Data",
-   "label": "Vitesse Machine"
   },
   {
    "fieldname": "column_break_ywgv",
@@ -323,6 +318,12 @@
    "fieldtype": "Table",
    "label": "Liste Produits Flexo",
    "options": "Produits Flexo"
+  },
+  {
+   "fieldname": "vitesse_machine",
+   "fieldtype": "Int",
+   "label": "Vitesse Machine",
+   "non_negative": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -337,7 +338,7 @@
    "link_fieldname": "opportunite"
   }
  ],
- "modified": "2024-08-25 17:00:33.001073",
+ "modified": "2024-08-25 17:14:03.509884",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",
