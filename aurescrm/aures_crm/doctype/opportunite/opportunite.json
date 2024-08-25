@@ -26,9 +26,9 @@
   "montant_prevu",
   "flexo_tab",
   "description_produit",
+  "image_produit",
   "column_break_ywgv",
   "quantite_previsonnelle",
-  "column_break_bsrk",
   "vitesse_machine",
   "section_break_cfuq",
   "liste_produits_flexo",
@@ -306,10 +306,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_bsrk",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "section_break_cfuq",
    "fieldtype": "Section Break"
   },
@@ -324,6 +320,11 @@
    "fieldtype": "Int",
    "label": "Vitesse Machine",
    "non_negative": 1
+  },
+  {
+   "fieldname": "image_produit",
+   "fieldtype": "Attach",
+   "label": "Image Produit"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -338,7 +339,7 @@
    "link_fieldname": "opportunite"
   }
  ],
- "modified": "2024-08-25 17:16:57.213216",
+ "modified": "2024-08-25 17:20:00.965247",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",

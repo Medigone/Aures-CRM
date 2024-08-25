@@ -18,14 +18,14 @@
    "fieldname": "designation_produit",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "D\u00e9signation Produit",
+   "label": "D\u00e9signation",
    "options": "\nEtiquettes entourantes\nEtiquettes Sleeve\nEtiquettes Autocollantes\nEtiquettes IML\nEtuis Cornet\nEtuis Goblet\nOpercule 95\nOpercule 82\nOpercule 75\nOpercule 60\nBandroles\nAutre"
   },
   {
    "fieldname": "type_support",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Type De support",
+   "label": "Type Support",
    "options": "\nOpp Blanc\nOpp Blanc Metalis\u00e9\nOpp Transparent\nBopp Metalis\u00e9\nBopp Tranparent\nBopp Blanc Perl\u00e9\nBopp Transparent Matte\nPP Transparent\nPP Blanc\nPapier couch\u00e9\nPapier offset\nAluminium Opercule\nAluminium Blister\nPapier/Aluminium\nPapier/PE\nPVC Sleeve\nPet Sleeve\nPet Eclips\nBlanc EUH\nBlanc EUP\nTransparent ETH\nAdhesif Double Support\nPE Blanc\nPE Transparent\nAutre"
   },
   {
@@ -46,7 +46,7 @@
    "fieldname": "sens_deroulement",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Sens de deroulement",
+   "label": "Sens Deroulement",
    "options": "\nDroite\nGauche"
   },
   {
@@ -59,7 +59,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-08-25 17:16:50.469726",
+ "modified": "2024-08-25 17:17:54.576459",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Produits Flexo 1",
