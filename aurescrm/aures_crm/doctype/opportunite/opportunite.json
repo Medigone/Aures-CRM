@@ -186,6 +186,7 @@
   {
    "fieldname": "infos_produit_tab",
    "fieldtype": "Tab Break",
+   "hidden": 1,
    "label": "Infos Produit"
   },
   {
@@ -286,6 +287,7 @@
    "label": "Note d\u2019\u00e9chec"
   },
   {
+   "depends_on": "eval:doc.type_procede ==\"Flexo 1\"",
    "fieldname": "flexo_tab",
    "fieldtype": "Tab Break",
    "label": "Flexo 1"
@@ -339,7 +341,7 @@
    "link_fieldname": "opportunite"
   }
  ],
- "modified": "2024-08-25 17:20:00.965247",
+ "modified": "2024-08-26 11:01:18.648235",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Opportunite",
