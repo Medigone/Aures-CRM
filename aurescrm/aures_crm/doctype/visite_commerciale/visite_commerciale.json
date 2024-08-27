@@ -13,7 +13,6 @@
   "section_break_vdyx",
   "date",
   "client",
-  "opportunite",
   "column_break_mbdo",
   "commune",
   "wilaya",
@@ -84,13 +83,6 @@
    "label": "Client",
    "options": "Customer",
    "search_index": 1
-  },
-  {
-   "fieldname": "opportunite",
-   "fieldtype": "Link",
-   "label": "Opportunit\u00e9",
-   "options": "Opportunite",
-   "read_only": 1
   },
   {
    "fieldname": "column_break_mbdo",
@@ -188,7 +180,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-25 15:50:30.296925",
+ "modified": "2024-08-28 00:10:32.025402",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",

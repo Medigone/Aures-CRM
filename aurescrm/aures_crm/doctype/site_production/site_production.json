@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-28 00:14:28.561801",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "column_break_vgyr",
+  "section_break_soyt",
+  "title",
+  "procede",
+  "column_break_ppua",
+  "responsable_site",
+  "nom_responsable"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Titre"
+  },
+  {
+   "fieldname": "procede",
+   "fieldtype": "Select",
+   "label": "Proc\u00e9d\u00e9",
+   "options": "Flexo\nSalle Blanche"
+  },
+  {
+   "fieldname": "responsable_site",
+   "fieldtype": "Link",
+   "label": "Responsable Site",
+   "options": "User"
+  },
+  {
+   "fetch_from": "responsable_site.full_name",
+   "fieldname": "nom_responsable",
+   "fieldtype": "Data",
+   "label": "Nom Responsable"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Actif\nInactif\nEn Maintenance"
+  },
+  {
+   "fieldname": "column_break_vgyr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_soyt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_ppua",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-08-28 00:19:47.161516",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Site Production",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
