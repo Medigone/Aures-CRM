@@ -70,10 +70,10 @@
   "doctype": "Client Script",
   "dt": "Customer",
   "enabled": 1,
-  "modified": "2024-08-14 15:29:38.107991",
+  "modified": "2024-08-27 12:39:30.542601",
   "module": "Aures CRM",
   "name": "Hide Customer Dashboard Elements",
-  "script": "frappe.ui.form.on('Customer', {\n    refresh: function(frm) {\n        // Masquer les éléments après un court délai pour s'assurer qu'ils sont chargés\n        frappe.after_ajax(function() {\n            const doctypes_to_hide = [\"Pre Sales\", \"Opportunity\", \"Quotation\"];\n            \n            doctypes_to_hide.forEach(doctype => {\n                $(frm.dashboard.wrapper).find(`[data-doctype=\"${doctype}\"]`).hide();\n            });\n        });\n    },\n    after_save: function(frm) {\n        // Assurez-vous de masquer les éléments après la sauvegarde\n        const doctypes_to_hide = [\"Pre Sales\", \"Opportunity\", \"Quotation\"];\n\n        doctypes_to_hide.forEach(doctype => {\n            $(frm.dashboard.wrapper).find(`[data-doctype=\"${doctype}\"]`).hide();\n        });\n    }\n});\n",
+  "script": "",
   "view": "Form"
  },
  {
@@ -141,5 +141,16 @@
   "name": "Utilisateur Appel",
   "script": "frappe.ui.form.on('Appel Telephonique', {\n\tbefore_save: function(frm) {\n        if (!frm.doc.utilisateur) {  // Vérifie si le champ utilisateur est vide\n            frm.set_value('utilisateur', frm.doc.owner);  // Définit l'utilisateur avec le propriétaire initial (créateur)\n        }\n    }\n});",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 1,
+  "modified": "2024-08-27 14:09:02.431490",
+  "module": "Aures CRM",
+  "name": "Statut Customer",
+  "script": "frappe.listview_settings['Customer'].get_indicator = function(doc) {\n    if (doc.custom_status === 'Prospect') {\n        return [__('Prospect'), 'blue', 'custom_status,=,Prospect'];\n    } else if (doc.custom_status === 'Actif') {\n        return [__('Actif'), 'green', 'custom_status,=,Actif'];\n    } else if (doc.custom_status === 'Dormant') {\n        return [__('Dormant'), 'orange', 'custom_status,=,Dormant'];\n    } else if (doc.custom_status === 'Perdu') {\n        return [__('Perdu'), 'red', 'custom_status,=,Perdu'];\n    } else if (doc.custom_status === 'Exclu') {\n        return [__('Exclu'), 'gray', 'custom_status,=,Exclu'];\n    }\n};\n",
+  "view": "List"
  }
 ]
