@@ -115,6 +115,12 @@ app_license = "mit"
 # ---------------
 # Override standard doctype classes
 
+override_doctype_dashboards = {
+    "Customer": "aurescrm.custom_customer_dashboard.get_data"
+}
+
+
+
 # override_doctype_class = {
 # 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
