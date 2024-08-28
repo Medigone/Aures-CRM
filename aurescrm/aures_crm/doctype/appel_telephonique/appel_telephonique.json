@@ -12,8 +12,9 @@
   "nom_utilisateur",
   "section_break_bxto",
   "client",
-  "date",
+  "groupe_client",
   "column_break_wgjl",
+  "date",
   "heure",
   "section_break_yjpc",
   "notes",
@@ -102,11 +103,18 @@
    "fieldtype": "Data",
    "label": "Nom Utilisateur",
    "read_only": 1
+  },
+  {
+   "fetch_from": "client.customer_group",
+   "fieldname": "groupe_client",
+   "fieldtype": "Link",
+   "label": "Groupe de Client",
+   "options": "Customer Group"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-28 00:11:32.607152",
+ "modified": "2024-08-28 01:27:14.711055",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appel Telephonique",

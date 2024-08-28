@@ -7,9 +7,25 @@
   {
    "chart_name": "Visites par Proc\u00e9d\u00e9",
    "label": "Visites par Proc\u00e9d\u00e9"
+  },
+  {
+   "chart_name": "Visites par Utilisateur",
+   "label": "Visites par Utilisateur"
+  },
+  {
+   "chart_name": "Visites par Wilaya",
+   "label": "Visites par Wilaya"
+  },
+  {
+   "chart_name": "\u00c9volution Visites",
+   "label": "\u00c9volution Visites"
+  },
+  {
+   "chart_name": "Visites par Groupe Client",
+   "label": "Visites par Groupe Client"
   }
  ],
- "content": "[{\"id\":\"jIhouKomOM\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Visites\",\"col\":12}},{\"id\":\"WPsutyJJhu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"g1Yvnhuq8r\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"paYzM807-h\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Statut\",\"col\":6}},{\"id\":\"kPmgDapqT7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Proc\u00e9d\u00e9\",\"col\":6}}]",
+ "content": "[{\"id\":\"jIhouKomOM\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Visites\",\"col\":12}},{\"id\":\"WPsutyJJhu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"wkeLPJ7LfZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":3}},{\"id\":\"g1Yvnhuq8r\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"P4EmfgkTtj\",\"type\":\"chart\",\"data\":{\"chart_name\":\"\u00c9volution Visites\",\"col\":6}},{\"id\":\"paYzM807-h\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Statut\",\"col\":6}},{\"id\":\"JiqKKWi62Y\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Groupe Client\",\"col\":6}},{\"id\":\"e_lJ4FUeG6\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Utilisateur\",\"col\":6}},{\"id\":\"kPmgDapqT7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Proc\u00e9d\u00e9\",\"col\":6}},{\"id\":\"lztL-i7uqS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Wilaya\",\"col\":6}}]",
  "creation": "2024-08-25 14:23:31.031813",
  "custom_blocks": [
   {
@@ -27,7 +43,7 @@
  "is_hidden": 0,
  "label": "Visites",
  "links": [],
- "modified": "2024-08-28 01:02:03.389630",
+ "modified": "2024-08-28 01:21:21.115740",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visites",
@@ -44,6 +60,14 @@
    "doc_view": "List",
    "label": "Visites Commerciales",
    "link_to": "Visite Commerciale",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Clients",
+   "link_to": "Customer",
    "stats_filter": "[]",
    "type": "DocType"
   }

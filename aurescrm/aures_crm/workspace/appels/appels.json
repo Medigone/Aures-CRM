@@ -1,6 +1,27 @@
 {
- "charts": [],
- "content": "[{\"id\":\"nuNikiULd3\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Appels\",\"col\":12}}]",
+ "charts": [
+  {
+   "chart_name": "\u00c9volution Appels",
+   "label": "\u00c9volution Appels"
+  },
+  {
+   "chart_name": "Statut Appels",
+   "label": "Statut Appels"
+  },
+  {
+   "chart_name": "Type Appels",
+   "label": "Type Appels"
+  },
+  {
+   "chart_name": "Appels Par Utilisateur",
+   "label": "Appels Par Utilisateur"
+  },
+  {
+   "chart_name": "Appels Par Groupe Clients",
+   "label": "Appels Par Groupe Clients"
+  }
+ ],
+ "content": "[{\"id\":\"nuNikiULd3\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Appels\",\"col\":12}},{\"id\":\"rpe19Z3n-z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Appels T\u00e9l\u00e9phoniques \",\"col\":3}},{\"id\":\"U_8X6dqM_m\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":3}},{\"id\":\"-TyEDRbDf5\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"xQpP2lDlQa\",\"type\":\"chart\",\"data\":{\"chart_name\":\"\u00c9volution Appels\",\"col\":12}},{\"id\":\"TDjRiaLJrz\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Statut Appels\",\"col\":6}},{\"id\":\"JMSfGdOOar\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Type Appels\",\"col\":6}},{\"id\":\"vXvSU5HTOU\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Appels Par Utilisateur\",\"col\":6}},{\"id\":\"RYWAPWOI0O\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Appels Par Groupe Clients\",\"col\":6}}]",
  "creation": "2024-08-25 14:23:07.515786",
  "custom_blocks": [
   {
@@ -18,7 +39,7 @@
  "is_hidden": 0,
  "label": "Appels",
  "links": [],
- "modified": "2024-08-25 16:02:15.193810",
+ "modified": "2024-08-28 01:31:39.650460",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appels",
@@ -29,6 +50,23 @@
  "quick_lists": [],
  "roles": [],
  "sequence_id": 4.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Appels T\u00e9l\u00e9phoniques ",
+   "link_to": "Appel Telephonique",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Clients",
+   "link_to": "Customer",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
  "title": "Appels"
 }

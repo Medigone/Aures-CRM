@@ -1,6 +1,6 @@
 {
  "aggregate_function_based_on": "",
- "color": "#EC864B",
+ "color": "#4F9DD9",
  "creation": "2024-08-15 17:58:50.004513",
  "docstatus": 0,
  "doctype": "Number Card",
@@ -12,7 +12,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Visite Commerciale",
- "modified": "2024-08-15 18:00:58.522292",
+ "modified": "2024-08-28 01:35:54.843773",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",

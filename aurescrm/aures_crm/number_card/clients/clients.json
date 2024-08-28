@@ -1,6 +1,6 @@
 {
  "aggregate_function_based_on": "",
- "color": "#4F9DD9",
+ "color": "#29CD42",
  "creation": "2024-08-15 17:55:04.882741",
  "docstatus": 0,
  "doctype": "Number Card",
@@ -12,7 +12,7 @@
  "is_public": 1,
  "is_standard": 1,
  "label": "Clients",
- "modified": "2024-08-15 18:01:17.425046",
+ "modified": "2024-08-28 01:35:42.769091",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Clients",
