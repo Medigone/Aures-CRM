@@ -22,10 +22,12 @@
   "region",
   "flexo",
   "description_produit",
-  "image_produit",
+  "site_production",
   "column_break_mfjk",
   "quantite_previsonnelle",
   "vitesse_machine",
+  "column_break_oagh",
+  "image_produit",
   "section_break_isem",
   "liste_produits_flexo",
   "notes_tab",
@@ -236,12 +238,22 @@
    "fieldtype": "Link",
    "label": "Groupe de Client",
    "options": "Customer Group"
+  },
+  {
+   "fieldname": "site_production",
+   "fieldtype": "Link",
+   "label": "Site de production",
+   "options": "Site Production"
+  },
+  {
+   "fieldname": "column_break_oagh",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-28 01:18:17.730059",
+ "modified": "2024-08-28 11:01:23.795487",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
