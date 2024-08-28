@@ -43,7 +43,7 @@
  "is_hidden": 0,
  "label": "Visites",
  "links": [],
- "modified": "2024-08-28 01:21:21.115740",
+ "modified": "2024-08-28 01:50:44.148255",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visites",
@@ -52,7 +52,11 @@
  "parent_page": "Home",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Commercial"
+  }
+ ],
  "sequence_id": 5.0,
  "shortcuts": [
   {
