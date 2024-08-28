@@ -1,6 +1,15 @@
 {
- "charts": [],
- "content": "[{\"id\":\"jIhouKomOM\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Visites\",\"col\":12}}]",
+ "charts": [
+  {
+   "chart_name": "Visites par Statut",
+   "label": "Visites par Statut"
+  },
+  {
+   "chart_name": "Visites par Proc\u00e9d\u00e9",
+   "label": "Visites par Proc\u00e9d\u00e9"
+  }
+ ],
+ "content": "[{\"id\":\"jIhouKomOM\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Visites\",\"col\":12}},{\"id\":\"WPsutyJJhu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"g1Yvnhuq8r\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"paYzM807-h\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Statut\",\"col\":6}},{\"id\":\"kPmgDapqT7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Proc\u00e9d\u00e9\",\"col\":6}}]",
  "creation": "2024-08-25 14:23:31.031813",
  "custom_blocks": [
   {
@@ -18,7 +27,7 @@
  "is_hidden": 0,
  "label": "Visites",
  "links": [],
- "modified": "2024-08-25 16:02:15.239957",
+ "modified": "2024-08-28 01:02:03.389630",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visites",
@@ -29,6 +38,15 @@
  "quick_lists": [],
  "roles": [],
  "sequence_id": 5.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Visites Commerciales",
+   "link_to": "Visite Commerciale",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
  "title": "Visites"
 }

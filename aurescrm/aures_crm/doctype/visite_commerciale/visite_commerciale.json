@@ -7,18 +7,26 @@
  "field_order": [
   "section_break_jq1i",
   "status",
+  "amended_from",
   "column_break_yzkg",
   "utilisateur",
-  "amended_from",
+  "nom_utilisateur",
   "section_break_vdyx",
   "date",
   "client",
+  "type_procede",
   "column_break_mbdo",
   "commune",
   "wilaya",
   "region",
-  "infos_produits_tab",
-  "produits",
+  "flexo",
+  "description_produit",
+  "image_produit",
+  "column_break_mfjk",
+  "quantite_previsonnelle",
+  "vitesse_machine",
+  "section_break_isem",
+  "liste_produits_flexo",
   "notes_tab",
   "notes",
   "localisation_tab",
@@ -58,10 +66,11 @@
   },
   {
    "fieldname": "utilisateur",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Utilisateur",
+   "options": "User",
    "read_only": 1
   },
   {
@@ -82,7 +91,8 @@
    "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
-   "search_index": 1
+   "search_index": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "column_break_mbdo",
@@ -133,25 +143,13 @@
   {
    "fieldname": "gps_visite",
    "fieldtype": "Data",
-   "label": "GPS Visite",
-   "read_only": 1
+   "label": "GPS Visite"
   },
   {
    "fieldname": "carte",
    "fieldtype": "HTML",
    "label": "Carte",
    "read_only": 1
-  },
-  {
-   "fieldname": "infos_produits_tab",
-   "fieldtype": "Tab Break",
-   "label": "Infos Produits"
-  },
-  {
-   "fieldname": "produits",
-   "fieldtype": "Table",
-   "label": "Produits",
-   "options": "Produits Visite Commerciale"
   },
   {
    "fieldname": "column_break_akso",
@@ -175,12 +173,67 @@
    "fieldtype": "Data",
    "label": "Temps Visite",
    "read_only": 1
+  },
+  {
+   "fieldname": "description_produit",
+   "fieldtype": "Data",
+   "label": "Description Produit"
+  },
+  {
+   "fieldname": "image_produit",
+   "fieldtype": "Attach Image",
+   "label": "Image Produit"
+  },
+  {
+   "fieldname": "column_break_mfjk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quantite_previsonnelle",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 pr\u00e9visionnelle",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "vitesse_machine",
+   "fieldtype": "Int",
+   "label": "Vitesse Machine",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "section_break_isem",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "liste_produits_flexo",
+   "fieldtype": "Table",
+   "label": "Liste Produits Flexo",
+   "options": "Produits Flexo 1"
+  },
+  {
+   "depends_on": "eval:doc.type_procede ==\"Flexo\"",
+   "fieldname": "flexo",
+   "fieldtype": "Tab Break",
+   "label": "Flexo"
+  },
+  {
+   "fieldname": "type_procede",
+   "fieldtype": "Select",
+   "label": "Proc\u00e9d\u00e9",
+   "options": "Flexo\nOffset\nSalle Blanche\nExtrusion"
+  },
+  {
+   "fetch_from": "utilisateur.full_name",
+   "fieldname": "nom_utilisateur",
+   "fieldtype": "Data",
+   "label": "Nom Utilisateur",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-28 00:10:32.025402",
+ "modified": "2024-08-28 00:49:24.384125",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
@@ -204,7 +257,7 @@
  "sort_order": "DESC",
  "states": [
   {
-   "color": "Orange",
+   "color": "Blue",
    "title": "Nouveau"
   },
   {
@@ -212,7 +265,7 @@
    "title": "En Cours"
   },
   {
-   "color": "Blue",
+   "color": "Orange",
    "title": "Termin\u00e9"
   },
   {

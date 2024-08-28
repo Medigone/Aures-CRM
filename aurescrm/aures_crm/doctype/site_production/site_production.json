@@ -12,19 +12,28 @@
   "procede",
   "column_break_ppua",
   "responsable_site",
-  "nom_responsable"
+  "nom_responsable",
+  "localisation_tab",
+  "commune",
+  "wilaya",
+  "region",
+  "column_break_tobt",
+  "gps",
+  "carte"
  ],
  "fields": [
   {
    "fieldname": "title",
    "fieldtype": "Data",
-   "label": "Titre"
+   "label": "Nom"
   },
   {
    "fieldname": "procede",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Proc\u00e9d\u00e9",
-   "options": "Flexo\nSalle Blanche"
+   "options": "Flexo\nOffset\nSalle Blanche\nExtrusion"
   },
   {
    "fieldname": "responsable_site",
@@ -36,6 +45,7 @@
    "fetch_from": "responsable_site.full_name",
    "fieldname": "nom_responsable",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Nom Responsable"
   },
   {
@@ -55,11 +65,53 @@
   {
    "fieldname": "column_break_ppua",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "localisation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Localisation"
+  },
+  {
+   "fieldname": "commune",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Commune",
+   "options": "Communes"
+  },
+  {
+   "fetch_from": "commune.wilaya",
+   "fieldname": "wilaya",
+   "fieldtype": "Link",
+   "label": "Wilaya",
+   "options": "Wilayas",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "commune.region",
+   "fieldname": "region",
+   "fieldtype": "Link",
+   "label": "R\u00e9gion",
+   "options": "Territory",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_tobt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gps",
+   "fieldtype": "Data",
+   "label": "GPS"
+  },
+  {
+   "fieldname": "carte",
+   "fieldtype": "HTML",
+   "label": "Carte"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-28 00:19:47.161516",
+ "modified": "2024-08-28 00:31:09.357408",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Site Production",
@@ -78,7 +130,22 @@
    "write": 1
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Green",
+   "title": "Actif"
+  },
+  {
+   "color": "Red",
+   "title": "Inactif"
+  },
+  {
+   "color": "Yellow",
+   "title": "En Maintenance"
+  }
+ ],
+ "title_field": "title"
 }
