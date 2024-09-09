@@ -180,10 +180,10 @@
   "doctype": "Client Script",
   "dt": "Quotation",
   "enabled": 1,
-  "modified": "2024-09-09 11:34:13.828292",
+  "modified": "2024-09-09 12:45:29.898350",
   "module": "Aures CRM",
   "name": "Utilisateur Devis",
-  "script": "frappe.ui.form.on('Quotation', {\n\tbefore_save: function(frm) {\n        if (!frm.doc.utilisateur) {  // Vérifie si le champ utilisateur est vide\n            frm.set_value('utilisateur', frm.doc.owner);  // Définit l'utilisateur avec le propriétaire initial (créateur)\n        }\n    }\n});",
+  "script": "frappe.ui.form.on('Quotation', {\n\tbefore_save: function(frm) {\n        if (!frm.doc.utilisateur) {  // Vérifie si le champ utilisateur est vide\n            frm.set_value('custom_utilisateur', frm.doc.owner);  // Définit l'utilisateur avec le propriétaire initial (créateur)\n        }\n    }\n});",
   "view": "Form"
  },
  {
@@ -191,10 +191,10 @@
   "doctype": "Client Script",
   "dt": "Sales Order",
   "enabled": 1,
-  "modified": "2024-09-09 11:36:45.680629",
+  "modified": "2024-09-09 12:46:00.713161",
   "module": "Aures CRM",
   "name": "Utilisateur Commande",
-  "script": "frappe.ui.form.on('Sales Order', {\n\tbefore_save: function(frm) {\n        if (!frm.doc.utilisateur) {  // Vérifie si le champ utilisateur est vide\n            frm.set_value('utilisateur', frm.doc.owner);  // Définit l'utilisateur avec le propriétaire initial (créateur)\n        }\n    }\n});",
+  "script": "frappe.ui.form.on('Sales Order', {\n\tbefore_save: function(frm) {\n        if (!frm.doc.utilisateur) {  // Vérifie si le champ utilisateur est vide\n            frm.set_value('custom_utilisateur', frm.doc.owner);  // Définit l'utilisateur avec le propriétaire initial (créateur)\n        }\n    }\n});",
   "view": "Form"
  }
 ]
