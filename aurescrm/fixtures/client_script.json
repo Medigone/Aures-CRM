@@ -68,17 +68,6 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
-  "dt": "Customer",
-  "enabled": 1,
-  "modified": "2024-08-27 12:39:30.542601",
-  "module": "Aures CRM",
-  "name": "Hide Customer Dashboard Elements",
-  "script": "",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
   "dt": "Opportunite",
   "enabled": 1,
   "modified": "2024-08-15 14:25:10.937003",
@@ -114,10 +103,10 @@
   "doctype": "Client Script",
   "dt": "Customer",
   "enabled": 1,
-  "modified": "2024-08-25 16:26:17.406486",
+  "modified": "2024-08-28 00:12:45.793531",
   "module": "Aures CRM",
   "name": "Bouton Créer - Client",
-  "script": "frappe.ui.form.on('Customer', {\n    refresh: function(frm) {\n        // Bouton \"Créer Opportunité\" sous le menu \"Créer\"\n        frm.add_custom_button(__('Opportunité'), function() {\n            // Créer un nouvel enregistrement 'Opportunite' avec le nom complet de l'utilisateur actuel et la date\n            frappe.db.insert({\n                doctype: 'Opportunite',\n                client: frm.doc.name,\n                date: frappe.datetime.get_today(),\n                utilisateur: frappe.user.full_name()\n            }).then(function(doc) {\n                frappe.msgprint(__('Une nouvelle opportunité a été créée.'));\n                // Naviguer vers le document nouvellement créé\n                frappe.set_route('Form', 'Opportunite', doc.name);\n            });\n        }, __(\"Créer\"), true); // 'true' place ce bouton en première position\n    }\n});\n\n",
+  "script": "frappe.ui.form.on('Customer', {\n    refresh: function(frm) {\n        // Bouton \"Appeler\" sous le groupe \"Créer\"\n        frm.add_custom_button(__('Appel Téléphonique'), function() {\n            let phone_number = frm.doc.mobile_no;\n            if (phone_number) {\n                // Créer un nouvel enregistrement 'Appel Téléphonique' avec le nom complet de l'utilisateur actuel\n                frappe.db.insert({\n                    doctype: 'Appel Telephonique',\n                    client: frm.doc.name,\n                    date: frappe.datetime.get_today(),\n                    heure: frappe.datetime.now_datetime(),\n                    utilisateur: frappe.user.full_name(),\n                }).then(function(doc) {\n                    frappe.msgprint(__('Un nouvel appel téléphonique a été enregistré.'));\n                    // Naviguer vers le document nouvellement créé\n                    frappe.set_route('Form', 'Appel Telephonique', doc.name);\n                });\n\n                // Ouvrir l'interface téléphonique avec le numéro\n                window.location.href = 'tel:' + phone_number;\n            } else {\n                frappe.msgprint(__('Aucun numéro de téléphone mobile n\\'est défini pour ce client.'));\n            }\n        }, __(\"Créer\")); // Le bouton est ajouté au groupe \"Créer\"\n\n        // Bouton \"Créer Visite\" sous le groupe \"Créer\"\n        frm.add_custom_button(__('Visite Commerciale'), function() {\n            // Créer un nouvel enregistrement 'Visite Commerciale' avec le nom complet de l'utilisateur actuel et la date\n            frappe.db.insert({\n                doctype: 'Visite Commerciale',\n                client: frm.doc.name,\n                date: frappe.datetime.get_today(),\n                utilisateur: frappe.user.full_name(),\n            }).then(function(doc) {\n                frappe.msgprint(__('Une nouvelle visite commerciale a été créée.'));\n                // Naviguer vers le document nouvellement créé\n                frappe.set_route('Form', 'Visite Commerciale', doc.name);\n            });\n        }, __(\"Créer\")); // Le bouton est ajouté au groupe \"Créer\"\n    }\n});\n\n\n",
   "view": "Form"
  },
  {
@@ -152,5 +141,60 @@
   "name": "Statut Customer",
   "script": "frappe.listview_settings['Customer'].get_indicator = function(doc) {\n    if (doc.custom_status === 'Prospect') {\n        return [__('Prospect'), 'blue', 'custom_status,=,Prospect'];\n    } else if (doc.custom_status === 'Actif') {\n        return [__('Actif'), 'green', 'custom_status,=,Actif'];\n    } else if (doc.custom_status === 'Dormant') {\n        return [__('Dormant'), 'orange', 'custom_status,=,Dormant'];\n    } else if (doc.custom_status === 'Perdu') {\n        return [__('Perdu'), 'red', 'custom_status,=,Perdu'];\n    } else if (doc.custom_status === 'Exclu') {\n        return [__('Exclu'), 'gray', 'custom_status,=,Exclu'];\n    }\n};\n",
   "view": "List"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 1,
+  "modified": "2024-08-28 13:48:06.531356",
+  "module": "Aures CRM",
+  "name": "Calcul qualité Client",
+  "script": "frappe.ui.form.on('Customer', {\n    custom_qualité_fréquence: function(frm) {\n        valider_champ(frm, 'custom_qualité_fréquence');\n        calculer_moyenne(frm);\n    },\n    custom_qualité_interaction: function(frm) {\n        valider_champ(frm, 'custom_qualité_interaction');\n        calculer_moyenne(frm);\n    },\n    custom_qualité_paiements: function(frm) {\n        valider_champ(frm, 'custom_qualité_paiements');\n        calculer_moyenne(frm);\n    }\n});\n\nfunction valider_champ(frm, fieldname) {\n    let valeur = frm.doc[fieldname];\n    if (valeur < 0 || valeur > 10) {\n        frappe.msgprint(__('La valeur de {0} doit être comprise entre 0 et 10.', [fieldname]));\n        frm.set_value(fieldname, '');\n    }\n}\n\nfunction calculer_moyenne(frm) {\n    let freq = frm.doc.custom_qualité_fréquence || 0;\n    let interaction = frm.doc.custom_qualité_interaction || 0;\n    let paiements = frm.doc.custom_qualité_paiements || 0;\n\n    let moyenne = (freq + interaction + paiements) / 3;\n\n    // Convertir la moyenne en une valeur de type évaluation (0 à 1)\n    let evaluation = moyenne / 10;\n\n    // Mettre à jour le champ custom_qualité_client\n    frm.set_value('custom_qualité_client', evaluation);\n}\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Quotation",
+  "enabled": 1,
+  "modified": "2024-09-09 11:23:57.481621",
+  "module": "Aures CRM",
+  "name": "Cacher Bouton - Obtenir Articles",
+  "script": "frappe.ui.form.on('Quotation', {\n    onload_post_render(frm) {\n        // Retirer le bouton personnalisé \"Opportunity\" dans le groupe \"Get Items From\"\n        frm.remove_custom_button('Opportunity', 'Get Items From');\n    },\n    refresh(frm) {\n        setTimeout(() => {\n            // Tenter de supprimer à nouveau au cas où il est ajouté après le refresh\n            frm.remove_custom_button('Opportunity', 'Get Items From');\n        }, 500);\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Visite Commerciale",
+  "enabled": 1,
+  "modified": "2024-09-09 11:31:32.764325",
+  "module": "Aures CRM",
+  "name": "Utilisateur Visite",
+  "script": "frappe.ui.form.on('Visite Commerciale', {\n\tbefore_save: function(frm) {\n        if (!frm.doc.utilisateur) {  // Vérifie si le champ utilisateur est vide\n            frm.set_value('utilisateur', frm.doc.owner);  // Définit l'utilisateur avec le propriétaire initial (créateur)\n        }\n    }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Quotation",
+  "enabled": 1,
+  "modified": "2024-09-09 11:34:13.828292",
+  "module": "Aures CRM",
+  "name": "Utilisateur Devis",
+  "script": "frappe.ui.form.on('Quotation', {\n\tbefore_save: function(frm) {\n        if (!frm.doc.utilisateur) {  // Vérifie si le champ utilisateur est vide\n            frm.set_value('utilisateur', frm.doc.owner);  // Définit l'utilisateur avec le propriétaire initial (créateur)\n        }\n    }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 1,
+  "modified": "2024-09-09 11:36:45.680629",
+  "module": "Aures CRM",
+  "name": "Utilisateur Commande",
+  "script": "frappe.ui.form.on('Sales Order', {\n\tbefore_save: function(frm) {\n        if (!frm.doc.utilisateur) {  // Vérifie si le champ utilisateur est vide\n            frm.set_value('utilisateur', frm.doc.owner);  // Définit l'utilisateur avec le propriétaire initial (créateur)\n        }\n    }\n});",
+  "view": "Form"
  }
 ]

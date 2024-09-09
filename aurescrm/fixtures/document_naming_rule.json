@@ -66,12 +66,12 @@
  },
  {
   "conditions": [],
-  "counter": 23,
+  "counter": 30,
   "disabled": 0,
   "docstatus": 0,
   "doctype": "Document Naming Rule",
   "document_type": "Visite Commerciale",
-  "modified": "2024-08-27 13:06:37.812425",
+  "modified": "2024-09-09 11:35:56.004851",
   "name": "fdsudfl6bl",
   "prefix": "VC-.YY.-.MM.-",
   "prefix_digits": 4,
@@ -79,12 +79,12 @@
  },
  {
   "conditions": [],
-  "counter": 18,
+  "counter": 21,
   "disabled": 0,
   "docstatus": 0,
   "doctype": "Document Naming Rule",
   "document_type": "Appel Telephonique",
-  "modified": "2024-08-27 13:06:30.207623",
+  "modified": "2024-08-28 12:13:56.286875",
   "name": "fe6hevdsf0",
   "prefix": "AP-.YY.-.MM.-",
   "prefix_digits": 6,
@@ -101,6 +101,19 @@
   "name": "opis428idn",
   "prefix": "OP-.YY.-.MM.-",
   "prefix_digits": 4,
+  "priority": 0
+ },
+ {
+  "conditions": [],
+  "counter": 1,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Document Naming Rule",
+  "document_type": "Site Production",
+  "modified": "2024-08-28 00:28:35.447570",
+  "name": "vf9up1sqbf",
+  "prefix": "SP-",
+  "prefix_digits": 3,
   "priority": 0
  }
 ]
