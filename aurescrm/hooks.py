@@ -235,10 +235,10 @@ override_doctype_dashboards = {
 # }
 
 fixtures = [
-    {"dt": "Document Naming Rule"},
-    {"dt": "Client Script"},
-    {"dt": "Territory"},
-    {"dt": "Communes"},
-    {"dt": "Wilayas"},
-    {"dt": "Custom HTML Block"}
+    "Custom HTML Block",
+    "Communes",
+    "Wilayas",
+    "Territory",
+    "Document Naming Rule",
+    "Client Script",
 ]
