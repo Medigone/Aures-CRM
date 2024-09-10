@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2024-08-13 14:34:07.593727",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,6 +10,7 @@
   "status",
   "type_procede",
   "amended_from",
+  "naming_series",
   "column_break_yzkg",
   "utilisateur",
   "nom_utilisateur",
@@ -248,15 +250,24 @@
   {
    "fieldname": "column_break_oagh",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "fdsudfl6bl",
+   "fieldname": "naming_series",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "D\u00e9nomination",
+   "options": "Document Naming Rule"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-09 10:36:31.430145",
+ "modified": "2024-09-09 14:09:48.752079",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
