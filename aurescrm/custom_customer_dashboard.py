@@ -5,9 +5,18 @@ def get_data(**kwargs):
         "fieldname": "customer",
         "non_standard_fieldnames": {
             "Visite Commerciale": "client",  
-            "Appel Telephonique": "client",  
+            "Appel Telephonique": "client",
+            "Quotation": "party_name",
+            "Sales Order": "customer",
         },
         "transactions": [
-            {"items": ["Visite Commerciale", "Appel Telephonique"]},
+            {
+                "label": _("VENTES"),
+                "items": ["Quotation", "Sales Order"],
+            },
+            {
+                "label": _("CRM"),
+                "items": ["Visite Commerciale", "Appel Telephonique"],
+            },
         ],
     }
