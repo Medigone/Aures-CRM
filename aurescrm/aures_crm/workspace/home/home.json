@@ -9,7 +9,7 @@
    "label": "Mes Appels"
   }
  ],
- "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"CRM Accueil\",\"col\":12}},{\"id\":\"kNpnGXfgFB\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":4}},{\"id\":\"Gw7NzX-RRT\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visites Commerciales\",\"col\":4}},{\"id\":\"3exL6JTdTz\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Appels T\u00e9l\u00e9phoniques\",\"col\":4}},{\"id\":\"plQifUA49d\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ciGNmIAf7r\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":4}},{\"id\":\"V4-WoTIJyH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Visites Commerciales\",\"col\":4}},{\"id\":\"aRxVfH48NU\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Appels T\u00e9l\u00e9phoniques \",\"col\":4}},{\"id\":\"G1DlqIsILu\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BDhza_Ax11\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Mes Visites\",\"col\":6}},{\"id\":\"3msTKguV5B\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Mes Appels\",\"col\":6}}]",
+ "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"CRM Accueil\",\"col\":12}},{\"id\":\"kNpnGXfgFB\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":3}},{\"id\":\"E3xVmK9gh1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Commandes\",\"col\":3}},{\"id\":\"Gw7NzX-RRT\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"3exL6JTdTz\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Appels T\u00e9l\u00e9phoniques\",\"col\":3}},{\"id\":\"NHUfBg9vl9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BDhza_Ax11\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Mes Visites\",\"col\":6}},{\"id\":\"3msTKguV5B\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Mes Appels\",\"col\":6}}]",
  "creation": "2024-08-15 15:02:30.805872",
  "custom_blocks": [
   {
@@ -27,11 +27,15 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2024-08-28 02:24:01.608270",
+ "modified": "2024-09-12 10:50:30.739385",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",
  "number_cards": [
+  {
+   "label": "Total Commandes",
+   "number_card_name": "Total Commandes"
+  },
   {
    "label": "Clients",
    "number_card_name": "Clients"
@@ -55,31 +59,6 @@
   }
  ],
  "sequence_id": 1.0,
- "shortcuts": [
-  {
-   "color": "Green",
-   "doc_view": "List",
-   "label": "Clients",
-   "link_to": "Customer",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Blue",
-   "doc_view": "List",
-   "label": "Visites Commerciales",
-   "link_to": "Visite Commerciale",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Yellow",
-   "doc_view": "List",
-   "label": "Appels T\u00e9l\u00e9phoniques ",
-   "link_to": "Appel Telephonique",
-   "stats_filter": "[]",
-   "type": "DocType"
-  }
- ],
+ "shortcuts": [],
  "title": "Home"
 }
