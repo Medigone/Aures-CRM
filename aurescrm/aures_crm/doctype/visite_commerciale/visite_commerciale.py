@@ -20,7 +20,7 @@ def make_quotation_from_visite_commerciale(source_name, target_doc=None):
 
     # Utilise get_mapped_doc pour mapper Visite Commerciale vers Quotation
     target_doc = get_mapped_doc(
-        "visite Commerciale",  # Source DocType
+        "Visite Commerciale",  # Source DocType
         source_name,  # Le nom de la Visite Commerciale à mapper
         {
             "Visite Commerciale": {
@@ -48,4 +48,3 @@ def make_quotation_from_visite_commerciale(source_name, target_doc=None):
         target_doc.currency = customer[1]
 
     return target_doc
-
