@@ -1,0 +1,206 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-09-18 17:59:09.321331",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "raison_sociale",
+  "column_break_rzkb",
+  "industrie",
+  "section_break_obzn",
+  "phone_principal",
+  "fax",
+  "column_break_jiaz",
+  "email",
+  "contact_tab",
+  "nom_contact_principal",
+  "mobile",
+  "email_contact",
+  "localisation_tab",
+  "commune",
+  "wilaya",
+  "gps_principal",
+  "column_break_sxxq",
+  "commune_livraison",
+  "wilaya_livraison",
+  "gps_livraison",
+  "informations_administratives_tab",
+  "rc",
+  "nif",
+  "nis",
+  "satisfaction_client_tab",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "raison_sociale",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Raison Sociale"
+  },
+  {
+   "fieldname": "industrie",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Industrie",
+   "options": "Customer Group"
+  },
+  {
+   "fieldname": "phone_principal",
+   "fieldtype": "Data",
+   "label": "N\u00ba T\u00e9l\u00e9phone Principal",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "fax",
+   "fieldtype": "Data",
+   "label": "N\u00ba Fax",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "nom_contact_principal",
+   "fieldtype": "Data",
+   "label": "Nom Contact Principal"
+  },
+  {
+   "fieldname": "mobile",
+   "fieldtype": "Data",
+   "label": "N\u00b0 Mobile",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "email_contact",
+   "fieldtype": "Data",
+   "label": "Email Contact",
+   "options": "Email"
+  },
+  {
+   "fieldname": "commune",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Commune",
+   "options": "Communes"
+  },
+  {
+   "fieldname": "gps_principal",
+   "fieldtype": "Data",
+   "label": "Coordonn\u00e9es GPS"
+  },
+  {
+   "fieldname": "localisation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Localisation"
+  },
+  {
+   "fieldname": "contact_tab",
+   "fieldtype": "Tab Break",
+   "label": "Contact"
+  },
+  {
+   "fieldname": "column_break_sxxq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commune_livraison",
+   "fieldtype": "Link",
+   "label": "Commune Livraison",
+   "options": "Communes"
+  },
+  {
+   "fieldname": "gps_livraison",
+   "fieldtype": "Data",
+   "label": "Coordonn\u00e9es GPS Livraison"
+  },
+  {
+   "fieldname": "informations_administratives_tab",
+   "fieldtype": "Tab Break",
+   "label": "Informations Administratives"
+  },
+  {
+   "fieldname": "rc",
+   "fieldtype": "Data",
+   "label": "RC"
+  },
+  {
+   "fieldname": "nif",
+   "fieldtype": "Data",
+   "label": "NIF"
+  },
+  {
+   "fieldname": "nis",
+   "fieldtype": "Data",
+   "label": "NIS"
+  },
+  {
+   "fieldname": "satisfaction_client_tab",
+   "fieldtype": "Tab Break",
+   "label": "Satisfaction Client"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Rating",
+   "in_list_view": 1,
+   "label": "Note"
+  },
+  {
+   "fetch_from": "commune.wilaya",
+   "fieldname": "wilaya",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Wilaya",
+   "options": "Wilayas",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "commune_livraison.wilaya",
+   "fieldname": "wilaya_livraison",
+   "fieldtype": "Link",
+   "label": "Wilaya Livraison",
+   "options": "Wilayas",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rzkb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_obzn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_jiaz",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-09-18 18:26:04.337934",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Formulaire Client",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
