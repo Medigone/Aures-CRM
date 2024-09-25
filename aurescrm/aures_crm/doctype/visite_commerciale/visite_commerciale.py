@@ -4,18 +4,25 @@
 from frappe.model.document import Document
 import frappe
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import now_datetime  # Import pour gérer la date et l'heure
+from frappe.utils import now, get_datetime, now_datetime  # Import pour gérer la date et l'heure
 
 class VisiteCommerciale(Document):
     def before_save(self):
-        # Vérifie si le statut est "Terminé" et que 'heure_fin_visite' n'est pas encore défini
+        # 1. Vérifie si le champ 'utilisateur' est vide, et le remplit avec le créateur (owner) si nécessaire
+        if not self.utilisateur:
+            self.utilisateur = self.owner  # Définit 'utilisateur' avec le propriétaire initial (créateur)
+
+        # 2. Si le statut passe à "En Cours" et que 'heure_debut_visite' n'est pas encore définie, la mettre à jour
+        if self.status == "En Cours" and not self.heure_debut_visite:
+            now = frappe.utils.now()  # Récupère l'heure actuelle
+            self.heure_debut_visite = now  # Mise à jour du champ 'heure_debut_visite' avec l'heure actuelle
+
+        # 3. Si le statut est "Terminé" et que 'heure_fin_visite' n'est pas encore définie, la mettre à jour
         if self.status == "Terminé" and not self.heure_fin_visite:
-            now = now_datetime()
+            now = frappe.utils.now()  # Utilise frappe.utils.now() pour obtenir l'heure actuelle
+            self.heure_fin_visite = now  # Met à jour le champ 'heure_fin_visite'
 
-            # Met à jour le champ 'heure_fin_visite' avec l'heure actuelle
-            self.heure_fin_visite = now
-
-            # Si les champs 'heure_debut_visite' et 'heure_fin_visite' sont tous deux présents, calculer la durée
+            # 4. Calculer la durée entre 'heure_debut_visite' et 'heure_fin_visite' si elles sont toutes deux présentes
             if self.heure_debut_visite and self.heure_fin_visite:
                 start_time = frappe.utils.get_datetime(self.heure_debut_visite)
                 end_time = frappe.utils.get_datetime(self.heure_fin_visite)
