@@ -4,7 +4,7 @@
 from frappe.model.document import Document
 import frappe
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import now, get_datetime
+from frappe.utils import now, get_datetime, get_fullname  # Utilise la bonne fonction get_fullname
 
 class VisiteCommerciale(Document):
     def before_save(self):
@@ -14,7 +14,7 @@ class VisiteCommerciale(Document):
 
         # 2. Vérifie si le champ 'nom_utilisateur' est vide, et le remplit avec le full_name du créateur
         if not self.nom_utilisateur:
-            self.nom_utilisateur = frappe.get_fullname(self.owner)  # Définit 'nom_utilisateur' avec le full_name du créateur
+            self.nom_utilisateur = get_fullname(self.owner)  # Utilise get_fullname du module frappe.utils
 
         # 3. Si le statut passe à "En Cours" et que 'heure_debut_visite' n'est pas encore définie, la mettre à jour
         if self.status == "En Cours" and not self.heure_debut_visite:
