@@ -4,7 +4,7 @@
 from frappe.model.document import Document
 import frappe
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import now, get_datetime, now_datetime  # Import pour gérer la date et l'heure
+from frappe.utils import now, get_datetime
 
 class VisiteCommerciale(Document):
     def before_save(self):
@@ -12,17 +12,21 @@ class VisiteCommerciale(Document):
         if not self.utilisateur:
             self.utilisateur = self.owner  # Définit 'utilisateur' avec le propriétaire initial (créateur)
 
-        # 2. Si le statut passe à "En Cours" et que 'heure_debut_visite' n'est pas encore définie, la mettre à jour
+        # 2. Vérifie si le champ 'nom_utilisateur' est vide, et le remplit avec le full_name du créateur
+        if not self.nom_utilisateur:
+            self.nom_utilisateur = frappe.get_fullname(self.owner)  # Définit 'nom_utilisateur' avec le full_name du créateur
+
+        # 3. Si le statut passe à "En Cours" et que 'heure_debut_visite' n'est pas encore définie, la mettre à jour
         if self.status == "En Cours" and not self.heure_debut_visite:
             now = frappe.utils.now()  # Récupère l'heure actuelle
             self.heure_debut_visite = now  # Mise à jour du champ 'heure_debut_visite' avec l'heure actuelle
 
-        # 3. Si le statut est "Terminé" et que 'heure_fin_visite' n'est pas encore définie, la mettre à jour
+        # 4. Si le statut est "Terminé" et que 'heure_fin_visite' n'est pas encore définie, la mettre à jour
         if self.status == "Terminé" and not self.heure_fin_visite:
             now = frappe.utils.now()  # Utilise frappe.utils.now() pour obtenir l'heure actuelle
             self.heure_fin_visite = now  # Met à jour le champ 'heure_fin_visite'
 
-            # 4. Calculer la durée entre 'heure_debut_visite' et 'heure_fin_visite' si elles sont toutes deux présentes
+            # 5. Calculer la durée entre 'heure_debut_visite' et 'heure_fin_visite' si elles sont toutes deux présentes
             if self.heure_debut_visite and self.heure_fin_visite:
                 start_time = frappe.utils.get_datetime(self.heure_debut_visite)
                 end_time = frappe.utils.get_datetime(self.heure_fin_visite)
