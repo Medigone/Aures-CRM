@@ -1,6 +1,3 @@
-# Copyright (c) 2024, Medigo and contributors
-# For license information, please see license.txt
-
 from frappe.model.document import Document
 import frappe
 from frappe.model.mapper import get_mapped_doc
@@ -8,13 +5,15 @@ from frappe.utils import now, get_datetime, get_fullname  # Utilise la bonne fon
 
 class VisiteCommerciale(Document):
     def before_save(self):
-        # 1. Vérifie si le champ 'utilisateur' est vide, et le remplit avec le créateur (owner) si nécessaire
+
+        # 1. Vérifie si le champ 'utilisateur' est vide, et le remplit avec l'ID (email) de l'utilisateur connecté
         if not self.utilisateur:
-            self.utilisateur = self.owner  # Définit 'utilisateur' avec le propriétaire initial (créateur)
+            # Utilise frappe.session.user pour récupérer l'ID (email) de l'utilisateur actuellement connecté
+            self.utilisateur = frappe.session.user
 
         # 2. Vérifie si le champ 'nom_utilisateur' est vide, et le remplit avec le full_name du créateur
         if not self.nom_utilisateur:
-            self.nom_utilisateur = get_fullname(self.owner)  # Utilise get_fullname du module frappe.utils
+            self.nom_utilisateur = get_fullname(self.owner)  # Utilise get_fullname pour récupérer le nom complet de l'utilisateur
 
         # 3. Si le statut passe à "En Cours" et que 'heure_debut_visite' n'est pas encore définie, la mettre à jour
         if self.status == "En Cours" and not self.heure_debut_visite:

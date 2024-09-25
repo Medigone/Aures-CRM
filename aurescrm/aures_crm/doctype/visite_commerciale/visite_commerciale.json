@@ -76,7 +76,8 @@
    "in_standard_filter": 1,
    "label": "Utilisateur",
    "options": "User",
-   "read_only": 1
+   "read_only": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "section_break_vdyx",
@@ -228,8 +229,6 @@
    "options": "Flexo\nOffset\nSalle Blanche\nExtrusion"
   },
   {
-   "fetch_from": "utilisateur.full_name",
-   "fetch_if_empty": 1,
    "fieldname": "nom_utilisateur",
    "fieldtype": "Data",
    "label": "Nom Utilisateur",
@@ -264,7 +263,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-25 21:22:00.014321",
+ "modified": "2024-09-25 22:00:02.466491",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
