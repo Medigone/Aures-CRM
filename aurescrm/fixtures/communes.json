@@ -4374,15 +4374,6 @@
   "wilaya": "TIARET"
  },
  {
-  "commune": "TIZI-OUZOU",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:18.654206",
-  "name": "COM-000487",
-  "region": "Centre",
-  "wilaya": "TIZI OUZOU"
- },
- {
   "commune": "AIN-EL-HAMMAM",
   "docstatus": 0,
   "doctype": "Communes",
@@ -4784,15 +4775,6 @@
   "doctype": "Communes",
   "modified": "2024-08-14 13:01:19.319478",
   "name": "COM-000532",
-  "region": "Centre",
-  "wilaya": "TIZI OUZOU"
- },
- {
-  "commune": "DRAA-BEN-KHEDDA",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:19.331848",
-  "name": "COM-000533",
   "region": "Centre",
   "wilaya": "TIZI OUZOU"
  },
@@ -14011,5 +13993,23 @@
   "name": "COM-001557",
   "region": "Sud",
   "wilaya": "EL MENIAA"
+ },
+ {
+  "commune": "TIZI-OUZOU",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:18.654206",
+  "name": "COM-000487",
+  "region": "Centre",
+  "wilaya": "TIZI OUZOU"
+ },
+ {
+  "commune": "DRAA-BEN-KHEDDA",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:19.331848",
+  "name": "COM-000533",
+  "region": "Centre",
+  "wilaya": "TIZI OUZOU"
  }
 ]

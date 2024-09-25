@@ -3,8 +3,8 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Customer",
-  "enabled": 0,
-  "modified": "2024-08-23 14:22:44.537804",
+  "enabled": 1,
+  "modified": "2024-09-23 13:49:12.279807",
   "module": "Aures CRM",
   "name": "Boutton Appeler",
   "script": "frappe.ui.form.on('Customer', {\n    refresh: function(frm) {\n        // Button to call the customer and create/save an Appel Téléphonique\n        frm.add_custom_button(__('Appeler'), function() {\n            let phone_number = frm.doc.mobile_no;\n            if (phone_number) {\n                // Create a new 'Appel Téléphonique' record with the current user's full name\n                frappe.db.insert({\n                    doctype: 'Appel Telephonique',\n                    client: frm.doc.name,\n                    date: frappe.datetime.get_today(),\n                    heure: frappe.datetime.now_datetime(),\n                    utilisateur: frappe.user.full_name()\n                }).then(function(doc) {\n                    frappe.msgprint(__('Un nouvel appel téléphonique a été enregistré.'));\n                    // Navigate to the newly created document\n                    frappe.set_route('Form', 'Appel Telephonique', doc.name);\n                });\n\n                // Open phone interface with the number\n                window.location.href = 'tel:' + phone_number;\n            } else {\n                frappe.msgprint(__('Aucun numéro de téléphone mobile n\\'est défini pour ce client.'));\n            }\n        });\n\n        // Button to create a new Visite Commerciale\n        frm.add_custom_button(__('Créer Visite'), function() {\n            // Create a new 'Visite Commerciale' record with the current user's full name and date\n            frappe.db.insert({\n                doctype: 'Visite Commerciale',\n                client: frm.doc.name,\n                date: frappe.datetime.get_today(),\n                utilisateur: frappe.user.full_name()\n            }).then(function(doc) {\n                frappe.msgprint(__('Une nouvelle visite commerciale a été créée.'));\n                // Navigate to the newly created document\n                frappe.set_route('Form', 'Visite Commerciale', doc.name);\n            });\n        });\n    }\n});\n",
@@ -15,10 +15,10 @@
   "doctype": "Client Script",
   "dt": "Customer",
   "enabled": 1,
-  "modified": "2024-08-14 12:04:44.391986",
+  "modified": "2024-09-25 16:18:38.660043",
   "module": "Aures CRM",
   "name": "Cacher boutons",
-  "script": "frappe.ui.form.on('Customer', {\n    refresh(frm) {\n        setTimeout(() => {\n            frm.remove_custom_button('Accounting Ledger', 'View');\n            frm.remove_custom_button('Accounts Receivable', 'View');\n            frm.remove_custom_button('Pricing Rule', 'Create');\n            frm.remove_custom_button('Get Customer Group Details', 'Actions');\n            \n        }, 10);\n    }\n});\n\n\n\n\n\n\n",
+  "script": "frappe.ui.form.on('Customer', {\n    after_save: function(frm) {\n        hide_button(frm);\n    },\n    \n    onload: function(frm) {\n        hide_button(frm);\n    }\n});\n\nfunction hide_button(frm) {\n    setTimeout(() => {\n        frm.remove_custom_button('Accounting Ledger', 'View');\n        frm.remove_custom_button('Accounts Receivable', 'View');\n        frm.remove_custom_button('Pricing Rule', 'Create');\n        frm.remove_custom_button('Get Customer Group Details', 'Actions');\n    }, 10); // Ajuste le délai si nécessaire\n}\n\n\n\n\n\n\n",
   "view": "Form"
  },
  {

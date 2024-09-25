@@ -396,15 +396,6 @@
   "wilaya": "DJELFA"
  },
  {
-  "code": "15",
-  "docstatus": 0,
-  "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:14.270579",
-  "name": "TIZI OUZOU",
-  "region": null,
-  "wilaya": "TIZI OUZOU"
- },
- {
   "code": "14",
   "docstatus": 0,
   "doctype": "Wilayas",
@@ -520,5 +511,14 @@
   "name": "CHLEF",
   "region": null,
   "wilaya": "CHLEF"
+ },
+ {
+  "code": "15",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.270579",
+  "name": "TIZI OUZOU",
+  "region": null,
+  "wilaya": "TIZI OUZOU"
  }
 ]
