@@ -8,20 +8,23 @@
  "field_order": [
   "section_break_jq1i",
   "status",
-  "type_procede",
-  "amended_from",
-  "naming_series",
-  "column_break_yzkg",
-  "utilisateur",
-  "nom_utilisateur",
-  "section_break_vdyx",
   "date",
   "client",
   "groupe_client",
+  "column_break_yzkg",
+  "naming_series",
+  "utilisateur",
+  "nom_utilisateur",
+  "amended_from",
+  "section_break_vdyx",
+  "type_procede",
   "column_break_mbdo",
+  "localisation_tab",
   "commune",
   "wilaya",
   "region",
+  "column_break_fvmu",
+  "carte_client",
   "flexo",
   "description_produit",
   "site_production",
@@ -34,13 +37,14 @@
   "liste_produits_flexo",
   "notes_tab",
   "notes",
-  "localisation_tab",
-  "gps_visite",
-  "carte",
+  "controle_tab",
   "column_break_akso",
   "heure_debut_visite",
   "heure_fin_visite",
-  "duree_visite"
+  "duree_visite",
+  "column_break_thex",
+  "gps_visite",
+  "carte"
  ],
  "fields": [
   {
@@ -60,6 +64,7 @@
   {
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "in_standard_filter": 1,
    "label": "Statut",
    "options": "Nouveau\nEn Cours\nTermin\u00e9\nValid\u00e9\nAnnul\u00e9",
@@ -144,7 +149,7 @@
   {
    "fieldname": "localisation_tab",
    "fieldtype": "Tab Break",
-   "label": "Contr\u00f4le"
+   "label": "Localisation"
   },
   {
    "fieldname": "gps_visite",
@@ -259,12 +264,30 @@
    "hidden": 1,
    "label": "D\u00e9nomination",
    "options": "Document Naming Rule"
+  },
+  {
+   "fieldname": "controle_tab",
+   "fieldtype": "Tab Break",
+   "label": "Contr\u00f4le"
+  },
+  {
+   "fieldname": "column_break_fvmu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "carte_client",
+   "fieldtype": "HTML",
+   "label": "Carte Client"
+  },
+  {
+   "fieldname": "column_break_thex",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-25 23:13:51.556489",
+ "modified": "2024-09-26 13:06:39.371157",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
