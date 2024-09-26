@@ -1,23 +1,30 @@
 {
  "actions": [],
+ "allow_auto_repeat": 1,
  "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2024-08-13 14:34:07.593727",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_jq1i",
+  "section_break_bceu",
   "status",
   "date",
-  "client",
-  "groupe_client",
-  "column_break_yzkg",
-  "naming_series",
+  "type_visite",
+  "column_break_bntm",
   "utilisateur",
   "nom_utilisateur",
   "amended_from",
+  "section_break_jq1i",
+  "client",
+  "column_break_yzkg",
+  "groupe_client",
+  "naming_series",
   "section_break_vdyx",
-  "type_procede",
+  "flexo",
+  "offset",
+  "salle_blanche",
+  "extrusion",
   "column_break_mbdo",
   "localisation_tab",
   "commune",
@@ -25,8 +32,12 @@
   "region",
   "column_break_fvmu",
   "carte_client",
-  "flexo",
-  "description_produit",
+  "suivi_client_tab",
+  "devis",
+  "commande",
+  "tirage_blanc",
+  "flexo_tab",
+  "description_produit_flexo",
   "site_production",
   "column_break_mfjk",
   "quantite_previsonnelle",
@@ -35,6 +46,12 @@
   "image_produit",
   "section_break_isem",
   "liste_produits_flexo",
+  "offset_tab",
+  "description_produit_offset",
+  "salle_blanche_tab",
+  "description_produit_salb",
+  "extrusion_tab",
+  "description_produit_extr",
   "notes_tab",
   "notes",
   "controle_tab",
@@ -77,7 +94,6 @@
   {
    "fieldname": "utilisateur",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Utilisateur",
    "options": "User",
@@ -86,7 +102,8 @@
   },
   {
    "fieldname": "section_break_vdyx",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Proc\u00e9d\u00e9s"
   },
   {
    "fieldname": "date",
@@ -187,11 +204,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "description_produit",
-   "fieldtype": "Data",
-   "label": "Description Produit"
-  },
-  {
    "fieldname": "image_produit",
    "fieldtype": "Attach Image",
    "label": "Image Produit"
@@ -223,16 +235,10 @@
    "options": "Produits Flexo 1"
   },
   {
-   "depends_on": "eval:doc.type_procede ==\"Flexo\"",
+   "default": "0",
    "fieldname": "flexo",
-   "fieldtype": "Tab Break",
+   "fieldtype": "Check",
    "label": "Flexo"
-  },
-  {
-   "fieldname": "type_procede",
-   "fieldtype": "Select",
-   "label": "Proc\u00e9d\u00e9",
-   "options": "Flexo\nOffset\nSalle Blanche\nExtrusion"
   },
   {
    "fieldname": "nom_utilisateur",
@@ -266,6 +272,7 @@
    "options": "Document Naming Rule"
   },
   {
+   "depends_on": "eval: doc.status == 'Termin\u00e9' || doc.status == 'Valid\u00e9'",
    "fieldname": "controle_tab",
    "fieldtype": "Tab Break",
    "label": "Contr\u00f4le"
@@ -282,12 +289,112 @@
   {
    "fieldname": "column_break_thex",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "offset",
+   "fieldtype": "Check",
+   "label": "Offset"
+  },
+  {
+   "default": "0",
+   "fieldname": "salle_blanche",
+   "fieldtype": "Check",
+   "label": "Salle Blanche"
+  },
+  {
+   "default": "0",
+   "fieldname": "extrusion",
+   "fieldtype": "Check",
+   "label": "Extrusion"
+  },
+  {
+   "depends_on": "eval:doc.flexo ==1",
+   "fieldname": "flexo_tab",
+   "fieldtype": "Tab Break",
+   "label": "Flexo"
+  },
+  {
+   "fieldname": "section_break_bceu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "type_visite",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type Visite",
+   "options": "Prospection\nPr\u00e9sentation de produit\nN\u00e9gociation\nSuivi Client\nR\u00e9clamation client"
+  },
+  {
+   "fieldname": "column_break_bntm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description_produit_flexo",
+   "fieldtype": "Data",
+   "label": "Description Produit"
+  },
+  {
+   "depends_on": "eval:doc.offset ==1",
+   "fieldname": "offset_tab",
+   "fieldtype": "Tab Break",
+   "label": "Offset"
+  },
+  {
+   "fieldname": "description_produit_offset",
+   "fieldtype": "Data",
+   "label": "Description Produit"
+  },
+  {
+   "depends_on": "eval:doc.salle_blanche ==1",
+   "fieldname": "salle_blanche_tab",
+   "fieldtype": "Tab Break",
+   "label": "Salle Blanche"
+  },
+  {
+   "fieldname": "description_produit_salb",
+   "fieldtype": "Data",
+   "label": "Description Produit"
+  },
+  {
+   "depends_on": "eval:doc.extrusion ==1",
+   "fieldname": "extrusion_tab",
+   "fieldtype": "Tab Break",
+   "label": "Extrusion"
+  },
+  {
+   "fieldname": "description_produit_extr",
+   "fieldtype": "Data",
+   "label": "Description Produit"
+  },
+  {
+   "depends_on": "eval:doc.type_visite =='Suivi Client'",
+   "fieldname": "suivi_client_tab",
+   "fieldtype": "Tab Break",
+   "label": "Suivi Client"
+  },
+  {
+   "fieldname": "devis",
+   "fieldtype": "Link",
+   "label": "Devis",
+   "options": "Quotation"
+  },
+  {
+   "fieldname": "commande",
+   "fieldtype": "Link",
+   "label": "Commande",
+   "options": "Sales Order"
+  },
+  {
+   "fieldname": "tirage_blanc",
+   "fieldtype": "Data",
+   "label": "Tirage \u00e0 Blanc"
   }
  ],
- "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-26 13:06:39.371157",
+ "modified": "2024-09-26 13:55:41.168611",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
@@ -334,5 +441,6 @@
    "color": "Red",
    "title": "Annul\u00e9"
   }
- ]
+ ],
+ "track_changes": 1
 }
