@@ -372,7 +372,7 @@
    "depends_on": "eval:doc.type_visite =='Suivi Client'",
    "fieldname": "suivi_client_tab",
    "fieldtype": "Tab Break",
-   "label": "Suivi Client"
+   "label": "Documents"
   },
   {
    "fieldname": "devis",
@@ -394,7 +394,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-26 13:55:41.168611",
+ "modified": "2024-09-26 17:17:06.129851",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
