@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_events_in_timeline": 1,
  "allow_rename": 1,
  "creation": "2024-09-27 10:06:57.471528",
  "doctype": "DocType",
@@ -32,11 +33,15 @@
   {
    "fieldname": "date",
    "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Date"
   },
   {
    "fieldname": "client",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer"
   },
@@ -47,13 +52,16 @@
   {
    "fieldname": "utilisateur",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Utilisateur",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   },
   {
    "fieldname": "nom_utilisateur",
    "fieldtype": "Data",
-   "label": "Nom Utilisateur"
+   "label": "Nom Utilisateur",
+   "read_only": 1
   },
   {
    "fieldname": "status",
@@ -65,7 +73,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-27 10:13:18.365837",
+ "modified": "2024-09-27 10:22:16.397357",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Tirages Blanc",
@@ -82,6 +90,19 @@
    "role": "System Manager",
    "share": 1,
    "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Commercial",
+   "select": 1,
+   "share": 1,
    "write": 1
   }
  ],
