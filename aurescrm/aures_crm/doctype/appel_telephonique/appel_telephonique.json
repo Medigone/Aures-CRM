@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
+  "date_rappel",
   "type",
   "column_break_ydue",
   "utilisateur",
@@ -110,11 +111,17 @@
    "fieldtype": "Link",
    "label": "Groupe de Client",
    "options": "Customer Group"
+  },
+  {
+   "depends_on": "eval: doc.status == '\u00c0 Rappeler'",
+   "fieldname": "date_rappel",
+   "fieldtype": "Datetime",
+   "label": "Date Rappel"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-27 09:47:47.067266",
+ "modified": "2024-09-28 16:16:02.900608",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appel Telephonique",
