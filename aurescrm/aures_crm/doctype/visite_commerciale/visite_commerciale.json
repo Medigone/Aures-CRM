@@ -61,7 +61,9 @@
   "duree_visite",
   "column_break_thex",
   "gps_visite",
-  "carte"
+  "carte",
+  "articles_tab",
+  "articles"
  ],
  "fields": [
   {
@@ -390,11 +392,22 @@
    "fieldname": "tirage_blanc",
    "fieldtype": "Data",
    "label": "Tirage \u00e0 Blanc"
+  },
+  {
+   "fieldname": "articles_tab",
+   "fieldtype": "Tab Break",
+   "label": "Articles"
+  },
+  {
+   "fieldname": "articles",
+   "fieldtype": "Table",
+   "label": "Articles",
+   "options": "Articles Visite"
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-26 17:17:06.129851",
+ "modified": "2024-10-14 15:29:59.229850",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
