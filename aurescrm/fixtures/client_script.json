@@ -4,10 +4,10 @@
   "doctype": "Client Script",
   "dt": "Customer",
   "enabled": 1,
-  "modified": "2024-09-25 16:18:38.660043",
+  "modified": "2024-10-14 11:56:49.233941",
   "module": "Aures CRM",
   "name": "Cacher boutons",
-  "script": "frappe.ui.form.on('Customer', {\n    after_save: function(frm) {\n        hide_button(frm);\n    },\n    \n    onload: function(frm) {\n        hide_button(frm);\n    }\n});\n\nfunction hide_button(frm) {\n    setTimeout(() => {\n        frm.remove_custom_button('Accounting Ledger', 'View');\n        frm.remove_custom_button('Accounts Receivable', 'View');\n        frm.remove_custom_button('Pricing Rule', 'Create');\n        frm.remove_custom_button('Get Customer Group Details', 'Actions');\n    }, 10); // Ajuste le délai si nécessaire\n}\n\n\n\n\n\n\n",
+  "script": "frappe.ui.form.on('Customer', {\n    after_save: function(frm) {\n        hide_button(frm);\n    },\n    \n    onload: function(frm) {\n        hide_button(frm);\n    }\n});\n\nfunction hide_button(frm) {\n    setTimeout(() => {\n        // frm.remove_custom_button('Accounting Ledger', 'View');\n        // frm.remove_custom_button('Accounts Receivable', 'View');\n        // frm.remove_custom_button('Pricing Rule', 'Create');\n        frm.remove_custom_button('Get Customer Group Details', 'Actions');\n    }, 10); // Ajuste le délai si nécessaire\n}\n\n\n\n\n\n\n",
   "view": "Form"
  },
  {
