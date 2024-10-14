@@ -9,15 +9,17 @@ def get_data(**kwargs):
             "Quotation": "party_name",
             "Sales Order": "customer",
             "Item": "custom_client",
+            "BOM": "custom_client",
         },
         "transactions": [
             {
-                "label": _("VENTES"),
-                "items": ["Quotation", "Sales Order", "Item"],
+               
+                "items": ["Quotation", "Sales Order", "Item", "BOM"],
             },
             {
-                "label": _("CRM"),
+                
                 "items": ["Visite Commerciale", "Appel Telephonique"],
             },
+            
         ],
     }
