@@ -20,38 +20,18 @@
   "column_break_yzkg",
   "groupe_client",
   "naming_series",
-  "section_break_vdyx",
-  "flexo",
-  "offset",
-  "salle_blanche",
-  "extrusion",
-  "column_break_mbdo",
   "localisation_tab",
   "commune",
   "wilaya",
   "region",
   "column_break_fvmu",
   "carte_client",
+  "articles_tab",
+  "articles",
   "suivi_client_tab",
   "devis",
   "commande",
   "tirage_blanc",
-  "flexo_tab",
-  "description_produit_flexo",
-  "site_production",
-  "column_break_mfjk",
-  "quantite_previsonnelle",
-  "vitesse_machine",
-  "column_break_oagh",
-  "image_produit",
-  "section_break_isem",
-  "liste_produits_flexo",
-  "offset_tab",
-  "description_produit_offset",
-  "salle_blanche_tab",
-  "description_produit_salb",
-  "extrusion_tab",
-  "description_produit_extr",
   "notes_tab",
   "notes",
   "controle_tab",
@@ -61,9 +41,7 @@
   "duree_visite",
   "column_break_thex",
   "gps_visite",
-  "carte",
-  "articles_tab",
-  "articles"
+  "carte"
  ],
  "fields": [
   {
@@ -103,11 +81,6 @@
    "set_only_once": 1
   },
   {
-   "fieldname": "section_break_vdyx",
-   "fieldtype": "Section Break",
-   "label": "Proc\u00e9d\u00e9s"
-  },
-  {
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
@@ -123,10 +96,6 @@
    "options": "Customer",
    "search_index": 1,
    "set_only_once": 1
-  },
-  {
-   "fieldname": "column_break_mbdo",
-   "fieldtype": "Column Break"
   },
   {
    "fetch_from": "client.custom_commune",
@@ -206,43 +175,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "image_produit",
-   "fieldtype": "Attach Image",
-   "label": "Image Produit"
-  },
-  {
-   "fieldname": "column_break_mfjk",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "quantite_previsonnelle",
-   "fieldtype": "Int",
-   "label": "Quantit\u00e9 pr\u00e9visionnelle",
-   "non_negative": 1
-  },
-  {
-   "fieldname": "vitesse_machine",
-   "fieldtype": "Int",
-   "label": "Vitesse Machine",
-   "non_negative": 1
-  },
-  {
-   "fieldname": "section_break_isem",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "liste_produits_flexo",
-   "fieldtype": "Table",
-   "label": "Liste Produits Flexo",
-   "options": "Produits Flexo 1"
-  },
-  {
-   "default": "0",
-   "fieldname": "flexo",
-   "fieldtype": "Check",
-   "label": "Flexo"
-  },
-  {
    "fieldname": "nom_utilisateur",
    "fieldtype": "Data",
    "label": "Nom Utilisateur",
@@ -254,16 +186,6 @@
    "fieldtype": "Link",
    "label": "Groupe de Client",
    "options": "Customer Group"
-  },
-  {
-   "fieldname": "site_production",
-   "fieldtype": "Link",
-   "label": "Site de production",
-   "options": "Site Production"
-  },
-  {
-   "fieldname": "column_break_oagh",
-   "fieldtype": "Column Break"
   },
   {
    "default": "fdsudfl6bl",
@@ -293,30 +215,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "fieldname": "offset",
-   "fieldtype": "Check",
-   "label": "Offset"
-  },
-  {
-   "default": "0",
-   "fieldname": "salle_blanche",
-   "fieldtype": "Check",
-   "label": "Salle Blanche"
-  },
-  {
-   "default": "0",
-   "fieldname": "extrusion",
-   "fieldtype": "Check",
-   "label": "Extrusion"
-  },
-  {
-   "depends_on": "eval:doc.flexo ==1",
-   "fieldname": "flexo_tab",
-   "fieldtype": "Tab Break",
-   "label": "Flexo"
-  },
-  {
    "fieldname": "section_break_bceu",
    "fieldtype": "Section Break"
   },
@@ -331,44 +229,6 @@
   {
    "fieldname": "column_break_bntm",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "description_produit_flexo",
-   "fieldtype": "Data",
-   "label": "Description Produit"
-  },
-  {
-   "depends_on": "eval:doc.offset ==1",
-   "fieldname": "offset_tab",
-   "fieldtype": "Tab Break",
-   "label": "Offset"
-  },
-  {
-   "fieldname": "description_produit_offset",
-   "fieldtype": "Data",
-   "label": "Description Produit"
-  },
-  {
-   "depends_on": "eval:doc.salle_blanche ==1",
-   "fieldname": "salle_blanche_tab",
-   "fieldtype": "Tab Break",
-   "label": "Salle Blanche"
-  },
-  {
-   "fieldname": "description_produit_salb",
-   "fieldtype": "Data",
-   "label": "Description Produit"
-  },
-  {
-   "depends_on": "eval:doc.extrusion ==1",
-   "fieldname": "extrusion_tab",
-   "fieldtype": "Tab Break",
-   "label": "Extrusion"
-  },
-  {
-   "fieldname": "description_produit_extr",
-   "fieldtype": "Data",
-   "label": "Description Produit"
   },
   {
    "depends_on": "eval:doc.type_visite =='Suivi Client'",
@@ -407,7 +267,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-14 15:29:59.229850",
+ "modified": "2024-10-14 15:36:14.482207",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
