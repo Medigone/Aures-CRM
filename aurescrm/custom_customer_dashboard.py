@@ -8,6 +8,7 @@ def get_data(**kwargs):
             "Appel Telephonique": "client",
             "Quotation": "party_name",
             "Sales Order": "customer",
+            "Item": "custom_client",
         },
         "transactions": [
             {
