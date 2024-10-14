@@ -12,7 +12,7 @@ def get_data(**kwargs):
         "transactions": [
             {
                 "label": _("VENTES"),
-                "items": ["Quotation", "Sales Order"],
+                "items": ["Quotation", "Sales Order", "Item"],
             },
             {
                 "label": _("CRM"),
