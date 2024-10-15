@@ -6,7 +6,7 @@
   "modified": "2024-03-28 11:31:05.911769",
   "name": "Tous les territoires",
   "old_parent": null,
-  "parent_territory": null,
+  "parent_territory": "",
   "targets": [],
   "territory_manager": null,
   "territory_name": "Tous les territoires"
