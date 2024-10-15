@@ -80,6 +80,7 @@
    "set_only_once": 1
   },
   {
+   "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
@@ -260,7 +261,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-15 10:29:03.020980",
+ "modified": "2024-10-15 10:33:19.216473",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
