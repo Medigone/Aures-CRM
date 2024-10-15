@@ -18,15 +18,6 @@
   "wilaya": "ORAN"
  },
  {
-  "code": "16",
-  "docstatus": 0,
-  "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:13.993949",
-  "name": "ALGER",
-  "region": null,
-  "wilaya": "ALGER"
- },
- {
   "code": "58",
   "docstatus": 0,
   "doctype": "Wilayas",
@@ -234,15 +225,6 @@
   "wilaya": "EL TARF"
  },
  {
-  "code": "35",
-  "docstatus": 0,
-  "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:14.140740",
-  "name": "BOUMERDES",
-  "region": null,
-  "wilaya": "BOUMERDES"
- },
- {
   "code": "34",
   "docstatus": 0,
   "doctype": "Wilayas",
@@ -315,15 +297,6 @@
   "wilaya": "MEDEA"
  },
  {
-  "code": "25",
-  "docstatus": 0,
-  "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:14.199588",
-  "name": "CONSTANTINE",
-  "region": null,
-  "wilaya": "CONSTANTINE"
- },
- {
   "code": "24",
   "docstatus": 0,
   "doctype": "Wilayas",
@@ -367,15 +340,6 @@
   "name": "SAIDA",
   "region": null,
   "wilaya": "SAIDA"
- },
- {
-  "code": "19",
-  "docstatus": 0,
-  "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:14.246798",
-  "name": "SETIF",
-  "region": null,
-  "wilaya": "SETIF"
  },
  {
   "code": "18",
@@ -504,6 +468,42 @@
   "wilaya": "LAGHOUAT"
  },
  {
+  "code": "15",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.270579",
+  "name": "TIZI OUZOU",
+  "region": null,
+  "wilaya": "TIZI OUZOU"
+ },
+ {
+  "code": "35",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.140740",
+  "name": "BOUMERDES",
+  "region": null,
+  "wilaya": "BOUMERDES"
+ },
+ {
+  "code": "25",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.199588",
+  "name": "CONSTANTINE",
+  "region": null,
+  "wilaya": "CONSTANTINE"
+ },
+ {
+  "code": "19",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.246798",
+  "name": "SETIF",
+  "region": null,
+  "wilaya": "SETIF"
+ },
+ {
   "code": "02",
   "docstatus": 0,
   "doctype": "Wilayas",
@@ -513,12 +513,12 @@
   "wilaya": "CHLEF"
  },
  {
-  "code": "15",
+  "code": "16",
   "docstatus": 0,
   "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:14.270579",
-  "name": "TIZI OUZOU",
+  "modified": "2024-08-14 12:49:13.993949",
+  "name": "ALGER",
   "region": null,
-  "wilaya": "TIZI OUZOU"
+  "wilaya": "ALGER"
  }
 ]

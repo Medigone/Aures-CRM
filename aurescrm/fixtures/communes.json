@@ -261,15 +261,6 @@
   "wilaya": "CHLEF"
  },
  {
-  "commune": "TENES",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:12.864140",
-  "name": "COM-000030",
-  "region": "Ouest",
-  "wilaya": "CHLEF"
- },
- {
   "commune": "BENAIRIA",
   "docstatus": 0,
   "doctype": "Communes",
@@ -5130,15 +5121,6 @@
   "wilaya": "ALGER"
  },
  {
-  "commune": "DAR EL BEIDA",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:19.894557",
-  "name": "COM-000573",
-  "region": "Centre",
-  "wilaya": "ALGER"
- },
- {
   "commune": "BAB EZZOUAR",
   "docstatus": 0,
   "doctype": "Communes",
@@ -5355,15 +5337,6 @@
   "wilaya": "ALGER"
  },
  {
-  "commune": "ZERALDA",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:20.219629",
-  "name": "COM-000598",
-  "region": "Centre",
-  "wilaya": "ALGER"
- },
- {
   "commune": "SEHAOULA",
   "docstatus": 0,
   "doctype": "Communes",
@@ -5378,15 +5351,6 @@
   "doctype": "Communes",
   "modified": "2024-08-14 13:01:20.244979",
   "name": "COM-000600",
-  "region": "Centre",
-  "wilaya": "ALGER"
- },
- {
-  "commune": "BABA HESEN",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:20.253746",
-  "name": "COM-000601",
   "region": "Centre",
   "wilaya": "ALGER"
  },
@@ -5423,15 +5387,6 @@
   "doctype": "Communes",
   "modified": "2024-08-14 13:01:20.315747",
   "name": "COM-000605",
-  "region": "Centre",
-  "wilaya": "ALGER"
- },
- {
-  "commune": "CHERAGA",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:20.326337",
-  "name": "COM-000606",
   "region": "Centre",
   "wilaya": "ALGER"
  },
@@ -6048,15 +6003,6 @@
   "wilaya": "JIJEL"
  },
  {
-  "commune": "SETIF",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:21.175743",
-  "name": "COM-000675",
-  "region": "Est",
-  "wilaya": "SETIF"
- },
- {
   "commune": "AIN EL KEBIRA",
   "docstatus": 0,
   "doctype": "Communes",
@@ -6215,15 +6161,6 @@
   "doctype": "Communes",
   "modified": "2024-08-14 13:01:21.420928",
   "name": "COM-000693",
-  "region": "Est",
-  "wilaya": "SETIF"
- },
- {
-  "commune": "EL EULMA",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:21.431728",
-  "name": "COM-000694",
   "region": "Est",
   "wilaya": "SETIF"
  },
@@ -7956,15 +7893,6 @@
   "wilaya": "GUELMA"
  },
  {
-  "commune": "CONSTANTINE",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:24.377071",
-  "name": "COM-000887",
-  "region": "Est",
-  "wilaya": "CONSTANTINE"
- },
- {
   "commune": "HAMMA BOUZIANE",
   "docstatus": 0,
   "doctype": "Communes",
@@ -7997,15 +7925,6 @@
   "doctype": "Communes",
   "modified": "2024-08-14 13:01:24.519521",
   "name": "COM-000891",
-  "region": "Est",
-  "wilaya": "CONSTANTINE"
- },
- {
-  "commune": "EL KHROUB",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:24.531881",
-  "name": "COM-000892",
   "region": "Est",
   "wilaya": "CONSTANTINE"
  },
@@ -11025,15 +10944,6 @@
   "wilaya": "BOUMERDES"
  },
  {
-  "commune": "KHEMIS EL KHECHNA",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:29.010611",
-  "name": "COM-001228",
-  "region": "Centre",
-  "wilaya": "BOUMERDES"
- },
- {
   "commune": "EL KHARROUBA",
   "docstatus": 0,
   "doctype": "Communes",
@@ -14011,5 +13921,95 @@
   "name": "COM-000533",
   "region": "Centre",
   "wilaya": "TIZI OUZOU"
+ },
+ {
+  "commune": "DAR EL BEIDA",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:19.894557",
+  "name": "COM-000573",
+  "region": "Centre",
+  "wilaya": "ALGER"
+ },
+ {
+  "commune": "BABA HESEN",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:20.253746",
+  "name": "COM-000601",
+  "region": "Centre",
+  "wilaya": "ALGER"
+ },
+ {
+  "commune": "SETIF",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:21.175743",
+  "name": "COM-000675",
+  "region": "Est",
+  "wilaya": "SETIF"
+ },
+ {
+  "commune": "KHEMIS EL KHECHNA",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:29.010611",
+  "name": "COM-001228",
+  "region": "Centre",
+  "wilaya": "BOUMERDES"
+ },
+ {
+  "commune": "CONSTANTINE",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:24.377071",
+  "name": "COM-000887",
+  "region": "Est",
+  "wilaya": "CONSTANTINE"
+ },
+ {
+  "commune": "EL KHROUB",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:24.531881",
+  "name": "COM-000892",
+  "region": "Est",
+  "wilaya": "CONSTANTINE"
+ },
+ {
+  "commune": "CHERAGA",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:20.326337",
+  "name": "COM-000606",
+  "region": "Centre",
+  "wilaya": "ALGER"
+ },
+ {
+  "commune": "EL EULMA",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:21.431728",
+  "name": "COM-000694",
+  "region": "Est",
+  "wilaya": "SETIF"
+ },
+ {
+  "commune": "TENES",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:12.864140",
+  "name": "COM-000030",
+  "region": "Ouest",
+  "wilaya": "CHLEF"
+ },
+ {
+  "commune": "ZERALDA",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:20.219629",
+  "name": "COM-000598",
+  "region": "Centre",
+  "wilaya": "ALGER"
  }
 ]
