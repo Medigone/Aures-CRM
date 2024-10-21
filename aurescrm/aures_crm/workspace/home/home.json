@@ -3,13 +3,9 @@
   {
    "chart_name": "\u00c9volution Visites",
    "label": "Mes Visites"
-  },
-  {
-   "chart_name": "\u00c9volution Appels",
-   "label": "Mes Appels"
   }
  ],
- "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"CRM Accueil\",\"col\":12}},{\"id\":\"kNpnGXfgFB\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":3}},{\"id\":\"E3xVmK9gh1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Commandes\",\"col\":3}},{\"id\":\"Gw7NzX-RRT\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"3exL6JTdTz\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Appels T\u00e9l\u00e9phoniques\",\"col\":3}},{\"id\":\"NHUfBg9vl9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BDhza_Ax11\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Mes Visites\",\"col\":6}},{\"id\":\"3msTKguV5B\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Mes Appels\",\"col\":6}}]",
+ "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"CRM Accueil\",\"col\":12}},{\"id\":\"kNpnGXfgFB\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":4}},{\"id\":\"E3xVmK9gh1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Commandes\",\"col\":4}},{\"id\":\"Gw7NzX-RRT\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visites Commerciales\",\"col\":4}},{\"id\":\"BDhza_Ax11\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Mes Visites\",\"col\":12}}]",
  "creation": "2024-08-15 15:02:30.805872",
  "custom_blocks": [
   {
@@ -27,7 +23,7 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2024-09-12 10:50:30.739385",
+ "modified": "2024-10-21 22:44:37.989883",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",
@@ -43,10 +39,6 @@
   {
    "label": "Visites Commerciales",
    "number_card_name": "Visite Commerciale"
-  },
-  {
-   "label": "Appels T\u00e9l\u00e9phoniques",
-   "number_card_name": "Appels T\u00e9l\u00e9phoniques"
   }
  ],
  "owner": "Administrator",
