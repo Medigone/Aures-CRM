@@ -14,11 +14,7 @@ def get_data(**kwargs):
         "transactions": [
             {
                
-                "items": ["Quotation", "Sales Order"],
-            },
-            {
-                
-                "items": ["Visite Commerciale"],
+                "items": ["Quotation", "Sales Order", "Visite Commerciale"],
             },
             {
                

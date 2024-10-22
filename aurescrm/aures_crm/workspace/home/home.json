@@ -5,7 +5,7 @@
    "label": "Mes Visites"
   }
  ],
- "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"CRM Accueil\",\"col\":12}},{\"id\":\"kNpnGXfgFB\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":4}},{\"id\":\"E3xVmK9gh1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Commandes\",\"col\":4}},{\"id\":\"Gw7NzX-RRT\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visites Commerciales\",\"col\":4}},{\"id\":\"BDhza_Ax11\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Mes Visites\",\"col\":12}}]",
+ "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"CRM Accueil\",\"col\":12}},{\"id\":\"t7dXYhIYx1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Client\",\"col\":4}},{\"id\":\"u-qCrjMr6O\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Articles\",\"col\":4}},{\"id\":\"IwKB_K3AK-\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Commandes\",\"col\":4}},{\"id\":\"LOGYLjRf62\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"E3xVmK9gh1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Commandes\",\"col\":6}},{\"id\":\"Gw7NzX-RRT\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visites Commerciales\",\"col\":6}},{\"id\":\"BDhza_Ax11\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Mes Visites\",\"col\":12}}]",
  "creation": "2024-08-15 15:02:30.805872",
  "custom_blocks": [
   {
@@ -23,7 +23,7 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2024-10-21 22:44:37.989883",
+ "modified": "2024-10-22 16:51:12.865932",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",
@@ -31,10 +31,6 @@
   {
    "label": "Total Commandes",
    "number_card_name": "Total Commandes"
-  },
-  {
-   "label": "Clients",
-   "number_card_name": "Clients"
   },
   {
    "label": "Visites Commerciales",
@@ -51,6 +47,31 @@
   }
  ],
  "sequence_id": 1.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Client",
+   "link_to": "Customer",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Articles",
+   "link_to": "Item",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "label": "Commandes",
+   "link_to": "Sales Order",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
  "title": "Home"
 }
