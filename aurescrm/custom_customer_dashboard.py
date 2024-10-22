@@ -18,7 +18,7 @@ def get_data(**kwargs):
             },
             {
                 
-                "items": ["Visite Commerciale", "Appel Telephonique"],
+                "items": ["Visite Commerciale"],
             },
             {
                
