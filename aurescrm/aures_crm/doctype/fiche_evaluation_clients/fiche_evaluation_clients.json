@@ -1,0 +1,279 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-10-22 22:05:18.576808",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_break_thhr",
+  "date",
+  "column_break_xuwi",
+  "note_globale",
+  "section_break_qndw",
+  "raison_sociale",
+  "forme_juridique",
+  "commune",
+  "wilaya",
+  "column_break_bdvy",
+  "telephone",
+  "fax",
+  "email",
+  "tab_2_tab",
+  "q1",
+  "q11",
+  "q12",
+  "q2",
+  "q21",
+  "q22",
+  "q3",
+  "q31",
+  "q32",
+  "q4",
+  "q41",
+  "q42",
+  "q5",
+  "q51",
+  "q52",
+  "commantaires_tab",
+  "com",
+  "com1"
+ ],
+ "fields": [
+  {
+   "fieldname": "raison_sociale",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Raison Sociale",
+   "read_only": 1
+  },
+  {
+   "fieldname": "forme_juridique",
+   "fieldtype": "Select",
+   "label": "Forme juridique",
+   "options": "\nEI\nEURL\nSARL\nSPA\nSPAS\nSNC\nGR",
+   "read_only": 1
+  },
+  {
+   "fieldname": "commune",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Commune",
+   "options": "Communes",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "commune.wilaya",
+   "fetch_if_empty": 1,
+   "fieldname": "wilaya",
+   "fieldtype": "Link",
+   "label": "Wilaya",
+   "options": "Wilayas",
+   "read_only": 1
+  },
+  {
+   "fieldname": "telephone",
+   "fieldtype": "Data",
+   "label": "T\u00e9l\u00e9phone",
+   "options": "Phone",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fax",
+   "fieldtype": "Data",
+   "label": "Fax",
+   "options": "Phone",
+   "read_only": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email",
+   "options": "Email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "Questionnaire"
+  },
+  {
+   "fieldname": "q1",
+   "fieldtype": "Section Break",
+   "label": "Qualit\u00e9 du service client :"
+  },
+  {
+   "fieldname": "q11",
+   "fieldtype": "Select",
+   "label": "Notre \u00e9quipe a-t-elle r\u00e9pondu \u00e0 vos attentes ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "q12",
+   "fieldtype": "Select",
+   "label": "L'\u00e9quipe a-t-elle \u00e9t\u00e9 \u00e0 l'\u00e9coute de vos besoins et attentes ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "q2",
+   "fieldtype": "Section Break",
+   "label": "Qualit\u00e9 du produit :"
+  },
+  {
+   "fieldname": "q21",
+   "fieldtype": "Select",
+   "label": "Le produit correspond-il \u00e0 vos attentes ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "q22",
+   "fieldtype": "Select",
+   "label": "Comment \u00e9valueriez-vous la qualit\u00e9 globale du produit ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "q3",
+   "fieldtype": "Section Break",
+   "label": "Niveau des prix :"
+  },
+  {
+   "fieldname": "q31",
+   "fieldtype": "Select",
+   "label": "Comment \u00e9valueriez-vous le rapport qualit\u00e9/prix de nos produits ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "q32",
+   "fieldtype": "Select",
+   "label": "Estimez-vous que les prix sont comp\u00e9titifs par rapport \u00e0 d'autres offres sur le march\u00e9 ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bdvy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "q4",
+   "fieldtype": "Section Break",
+   "label": "D\u00e9lais de livraison :"
+  },
+  {
+   "fieldname": "q41",
+   "fieldtype": "Select",
+   "label": "Le produit a-t-il \u00e9t\u00e9 livr\u00e9 dans les d\u00e9lais annonc\u00e9s ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "q42",
+   "fieldtype": "Select",
+   "label": "\u00cates-vous satisfait de la qualit\u00e9 de la livraison ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "q5",
+   "fieldtype": "Section Break",
+   "label": "Satisfaction g\u00e9n\u00e9rale :"
+  },
+  {
+   "fieldname": "q51",
+   "fieldtype": "Select",
+   "label": "Quelle est votre satisfaction globale concernant votre exp\u00e9rience avec nous ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "q52",
+   "fieldtype": "Select",
+   "label": "Recommanderiez-vous nos produits et services ?",
+   "options": "\nTr\u00e8s insatisfait\nInsatisfait\nNeutre\nSatisfait\nTr\u00e8s satisfait",
+   "read_only": 1
+  },
+  {
+   "fieldname": "commantaires_tab",
+   "fieldtype": "Tab Break",
+   "label": "Commantaires"
+  },
+  {
+   "fieldname": "com",
+   "fieldtype": "Section Break",
+   "label": "Commentaires suppl\u00e9mentaires :"
+  },
+  {
+   "fieldname": "com1",
+   "fieldtype": "Text Editor",
+   "label": "Avez-vous des suggestions ou des commentaires pour nous aider \u00e0 nous am\u00e9liorer ?",
+   "read_only": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_qndw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_xuwi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "note_globale",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Note Globale",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Statut",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_thhr",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-10-23 00:54:25.729416",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Fiche Evaluation Clients",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Commercial"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

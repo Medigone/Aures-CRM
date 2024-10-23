@@ -129,6 +129,17 @@ override_doctype_dashboards = {
 # ---------------
 # Hook on document methods and events
 
+# aurescrm/hooks.py
+# dans hooks.py
+doc_events = {
+    "Fiche Evaluation Clients": {
+        "after_insert": "aurescrm.fiche_evaluation_client.calculate_global_score"
+    }
+}
+
+# aurescrm/hooks.py
+
+
 # doc_events = {
 # 	"*": {
 # 		"on_update": "method",
