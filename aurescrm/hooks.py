@@ -255,6 +255,5 @@ fixtures = [
     "Territory",
     "Customer Group",
     "Item Group",
-    "Document Naming Rule",
     "Client Script",
 ]
