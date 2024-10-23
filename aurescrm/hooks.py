@@ -134,6 +134,9 @@ override_doctype_dashboards = {
 doc_events = {
     "Fiche Evaluation Clients": {
         "after_insert": "aurescrm.fiche_evaluation_client.calculate_global_score"
+    },
+    "Customer": {
+        "before_save": "aurescrm.customer_hooks.uppercase_customer_name"
     }
 }
 
