@@ -250,10 +250,5 @@ doc_events = {
 
 fixtures = [
     "Custom HTML Block",
-    "Communes",
-    "Wilayas",
-    "Territory",
-    "Customer Group",
-    "Item Group",
     "Client Script",
 ]
