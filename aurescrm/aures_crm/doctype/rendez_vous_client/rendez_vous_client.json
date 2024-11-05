@@ -1,0 +1,124 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-11-05 18:09:41.856019",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "column_break_bakm",
+  "section_break_tgsn",
+  "date_heure",
+  "column_break_rppy",
+  "commercial",
+  "nom_commercial",
+  "section_break_skyj",
+  "client",
+  "column_break_uazy",
+  "statut_client",
+  "section_break_qzyu",
+  "details"
+ ],
+ "fields": [
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "En Attente\nReport\u00e9\nTermin\u00e9\nNon Honor\u00e9"
+  },
+  {
+   "fieldname": "section_break_skyj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "date_heure",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Date & Heure"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "client.custom_status",
+   "fieldname": "statut_client",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Statut Client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bakm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_uazy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_qzyu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "details",
+   "fieldtype": "HTML Editor",
+   "label": "D\u00e9tails"
+  },
+  {
+   "fieldname": "section_break_tgsn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_rppy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commercial",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Commercial",
+   "options": "User"
+  },
+  {
+   "fetch_from": "commercial.full_name",
+   "fieldname": "nom_commercial",
+   "fieldtype": "Data",
+   "label": "Nom Commercial",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_calendar_and_gantt": 1,
+ "links": [],
+ "modified": "2024-11-05 18:43:20.494466",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Rendez Vous Client",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "show_title_field_in_link": 1,
+ "sort_field": "date_heure",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "client"
+}
