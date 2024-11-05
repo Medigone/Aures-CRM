@@ -5,8 +5,8 @@
   "is_group": 1,
   "modified": "2024-03-28 11:31:05.911769",
   "name": "Tous les territoires",
-  "old_parent": null,
-  "parent_territory": "",
+  "old_parent": "Algeria",
+  "parent_territory": null,
   "targets": [],
   "territory_manager": null,
   "territory_name": "Tous les territoires"
@@ -51,18 +51,6 @@
   "docstatus": 0,
   "doctype": "Territory",
   "is_group": 0,
-  "modified": "2024-10-15 15:00:36.203706",
-  "name": "Ouest",
-  "old_parent": "Algeria",
-  "parent_territory": "Algeria",
-  "targets": [],
-  "territory_manager": null,
-  "territory_name": "Ouest"
- },
- {
-  "docstatus": 0,
-  "doctype": "Territory",
-  "is_group": 0,
   "modified": "2024-10-15 15:00:36.138052",
   "name": "Centre",
   "old_parent": "Algeria",
@@ -70,5 +58,17 @@
   "targets": [],
   "territory_manager": null,
   "territory_name": "Centre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Territory",
+  "is_group": 0,
+  "modified": "2024-10-15 15:00:36.203706",
+  "name": "Ouest",
+  "old_parent": "Algeria",
+  "parent_territory": "Algeria",
+  "targets": [],
+  "territory_manager": null,
+  "territory_name": "Ouest"
  }
 ]

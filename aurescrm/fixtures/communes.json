@@ -8280,15 +8280,6 @@
   "wilaya": "MEDEA"
  },
  {
-  "commune": "ZOUBIRIA",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:25.117492",
-  "name": "COM-000932",
-  "region": "Centre",
-  "wilaya": "MEDEA"
- },
- {
   "commune": "KSAR EL BOUKHARI",
   "docstatus": 0,
   "doctype": "Communes",
@@ -9880,15 +9871,6 @@
   "name": "COM-001109",
   "region": "Centre",
   "wilaya": "OUARGLA"
- },
- {
-  "commune": "ORAN",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:27.443944",
-  "name": "COM-001110",
-  "region": "Ouest",
-  "wilaya": "ORAN"
  },
  {
   "commune": "GDYEL",
@@ -13914,15 +13896,6 @@
   "wilaya": "TIZI OUZOU"
  },
  {
-  "commune": "DRAA-BEN-KHEDDA",
-  "docstatus": 0,
-  "doctype": "Communes",
-  "modified": "2024-08-14 13:01:19.331848",
-  "name": "COM-000533",
-  "region": "Centre",
-  "wilaya": "TIZI OUZOU"
- },
- {
   "commune": "DAR EL BEIDA",
   "docstatus": 0,
   "doctype": "Communes",
@@ -13977,6 +13950,24 @@
   "wilaya": "CONSTANTINE"
  },
  {
+  "commune": "ZOUBIRIA",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:25.117492",
+  "name": "COM-000932",
+  "region": "Centre",
+  "wilaya": "MEDEA"
+ },
+ {
+  "commune": "DRAA-BEN-KHEDDA",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:19.331848",
+  "name": "COM-000533",
+  "region": "Centre",
+  "wilaya": "TIZI OUZOU"
+ },
+ {
   "commune": "CHERAGA",
   "docstatus": 0,
   "doctype": "Communes",
@@ -13995,13 +13986,13 @@
   "wilaya": "SETIF"
  },
  {
-  "commune": "TENES",
+  "commune": "ORAN",
   "docstatus": 0,
   "doctype": "Communes",
-  "modified": "2024-08-14 13:01:12.864140",
-  "name": "COM-000030",
+  "modified": "2024-08-14 13:01:27.443944",
+  "name": "COM-001110",
   "region": "Ouest",
-  "wilaya": "CHLEF"
+  "wilaya": "ORAN"
  },
  {
   "commune": "ZERALDA",
@@ -14011,5 +14002,14 @@
   "name": "COM-000598",
   "region": "Centre",
   "wilaya": "ALGER"
+ },
+ {
+  "commune": "TENES",
+  "docstatus": 0,
+  "doctype": "Communes",
+  "modified": "2024-08-14 13:01:12.864140",
+  "name": "COM-000030",
+  "region": "Ouest",
+  "wilaya": "CHLEF"
  }
 ]

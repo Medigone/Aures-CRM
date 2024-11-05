@@ -9,15 +9,6 @@
   "wilaya": "ADRAR"
  },
  {
-  "code": "31",
-  "docstatus": 0,
-  "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:13.988268",
-  "name": "ORAN",
-  "region": null,
-  "wilaya": "ORAN"
- },
- {
   "code": "58",
   "docstatus": 0,
   "doctype": "Wilayas",
@@ -288,15 +279,6 @@
   "wilaya": "MOSTAGANEM"
  },
  {
-  "code": "26",
-  "docstatus": 0,
-  "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:14.193281",
-  "name": "MEDEA",
-  "region": null,
-  "wilaya": "MEDEA"
- },
- {
   "code": "24",
   "docstatus": 0,
   "doctype": "Wilayas",
@@ -468,6 +450,24 @@
   "wilaya": "LAGHOUAT"
  },
  {
+  "code": "35",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.140740",
+  "name": "BOUMERDES",
+  "region": null,
+  "wilaya": "BOUMERDES"
+ },
+ {
+  "code": "26",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.193281",
+  "name": "MEDEA",
+  "region": null,
+  "wilaya": "MEDEA"
+ },
+ {
   "code": "15",
   "docstatus": 0,
   "doctype": "Wilayas",
@@ -477,13 +477,13 @@
   "wilaya": "TIZI OUZOU"
  },
  {
-  "code": "35",
+  "code": "31",
   "docstatus": 0,
   "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:14.140740",
-  "name": "BOUMERDES",
+  "modified": "2024-08-14 12:49:13.988268",
+  "name": "ORAN",
   "region": null,
-  "wilaya": "BOUMERDES"
+  "wilaya": "ORAN"
  },
  {
   "code": "25",
@@ -504,15 +504,6 @@
   "wilaya": "SETIF"
  },
  {
-  "code": "02",
-  "docstatus": 0,
-  "doctype": "Wilayas",
-  "modified": "2024-08-14 12:49:14.372328",
-  "name": "CHLEF",
-  "region": null,
-  "wilaya": "CHLEF"
- },
- {
   "code": "16",
   "docstatus": 0,
   "doctype": "Wilayas",
@@ -520,5 +511,14 @@
   "name": "ALGER",
   "region": null,
   "wilaya": "ALGER"
+ },
+ {
+  "code": "02",
+  "docstatus": 0,
+  "doctype": "Wilayas",
+  "modified": "2024-08-14 12:49:14.372328",
+  "name": "CHLEF",
+  "region": null,
+  "wilaya": "CHLEF"
  }
 ]
