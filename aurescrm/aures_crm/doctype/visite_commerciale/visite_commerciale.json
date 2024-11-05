@@ -80,12 +80,12 @@
    "set_only_once": 1
   },
   {
-   "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Date"
+   "label": "Date",
+   "read_only": 1
   },
   {
    "fieldname": "client",
@@ -225,7 +225,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type Visite",
-   "options": "Prospection\nPr\u00e9sentation de produit\nN\u00e9gociation\nSuivi Client\nR\u00e9clamation client"
+   "options": "Prospection\nPr\u00e9sentation de produit\nN\u00e9gociation\nSuivi Client\nR\u00e9clamation client",
+   "read_only_depends_on": "eval:doc.status !=\"Nouveau\""
   },
   {
    "fieldname": "column_break_bntm",
@@ -262,7 +263,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-05 08:57:59.786032",
+ "modified": "2024-11-05 11:48:22.453648",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",

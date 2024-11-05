@@ -1,29 +1,29 @@
 from frappe.model.document import Document
 import frappe
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import now, get_datetime, get_fullname  # Utilise la bonne fonction get_fullname
+from frappe.utils import now, get_datetime, get_fullname, today  # Importez 'today'
 
 class VisiteCommerciale(Document):
     def before_save(self):
 
         # 1. Vérifie si le champ 'utilisateur' est vide, et le remplit avec l'ID (email) de l'utilisateur connecté
         if not self.utilisateur:
-            # Utilise frappe.session.user pour récupérer l'ID (email) de l'utilisateur actuellement connecté
             self.utilisateur = frappe.session.user
 
         # 2. Vérifie si le champ 'nom_utilisateur' est vide, et le remplit avec le full_name du créateur
         if not self.nom_utilisateur:
-            self.nom_utilisateur = get_fullname(self.owner)  # Utilise get_fullname pour récupérer le nom complet de l'utilisateur
+            self.nom_utilisateur = get_fullname(self.owner)
 
         # 3. Si le statut passe à "En Cours" et que 'heure_debut_visite' n'est pas encore définie, la mettre à jour
         if self.status == "En Cours" and not self.heure_debut_visite:
             now = frappe.utils.now()  # Récupère l'heure actuelle
-            self.heure_debut_visite = now  # Mise à jour du champ 'heure_debut_visite' avec l'heure actuelle
+            self.heure_debut_visite = now
+            self.date = today()  # Enregistre la date actuelle dans le champ 'date'
 
         # 4. Si le statut est "Terminé" et que 'heure_fin_visite' n'est pas encore définie, la mettre à jour
         if self.status == "Terminé" and not self.heure_fin_visite:
-            now = frappe.utils.now()  # Utilise frappe.utils.now() pour obtenir l'heure actuelle
-            self.heure_fin_visite = now  # Met à jour le champ 'heure_fin_visite'
+            now = frappe.utils.now()
+            self.heure_fin_visite = now
 
             # 5. Calculer la durée entre 'heure_debut_visite' et 'heure_fin_visite' si elles sont toutes deux présentes
             if self.heure_debut_visite and self.heure_fin_visite:
@@ -35,41 +35,3 @@ class VisiteCommerciale(Document):
 
                 # Arrondir la durée à l'entier le plus proche
                 self.duree_visite = round(duration_in_minutes)
-
-@frappe.whitelist()
-def make_quotation_from_visite_commerciale(source_name, target_doc=None):
-    # Fonction pour mapper les valeurs manquantes dans le Quotation
-    def set_missing_values(source, target):
-        target.quotation_to = "Customer"
-        # Tu peux définir ici d'autres valeurs par défaut ou calculées
-
-    # Utilise get_mapped_doc pour mapper Visite Commerciale vers Quotation
-    target_doc = get_mapped_doc(
-        "Visite Commerciale",  # Source DocType
-        source_name,  # Le nom de la Visite Commerciale à mapper
-        {
-            "Visite Commerciale": {
-                "doctype": "Quotation",  # Destination DocType
-                "field_map": {
-                    "client": "party_name",  # Mapping du champ client
-                },
-                "field_no_map": [
-                    "naming_series",  # Si tu veux ignorer certains champs dans la destination
-                ]
-            }
-        },
-        target_doc,
-        set_missing_values  # Appelle la fonction pour ajouter les valeurs manquantes
-    )
-
-    # Si nécessaire, applique des règles ou logiques spécifiques après le mappage
-    target_doc.run_method("set_missing_values")
-    target_doc.run_method("calculate_taxes_and_totals")
-
-    # Récupération de valeurs depuis Visite Commerciale pour compléter le Quotation
-    customer = frappe.db.get_value("Customer", {"name": target_doc.party_name}, ["default_price_list", "default_currency"])
-    if customer:
-        target_doc.selling_price_list = customer[0]
-        target_doc.currency = customer[1]
-
-    return target_doc
