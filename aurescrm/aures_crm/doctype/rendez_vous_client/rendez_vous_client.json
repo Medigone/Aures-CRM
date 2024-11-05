@@ -14,6 +14,7 @@
   "nom_commercial",
   "section_break_skyj",
   "client",
+  "raison_sociale",
   "column_break_uazy",
   "statut_client",
   "section_break_qzyu",
@@ -92,12 +93,19 @@
    "fieldtype": "Data",
    "label": "Nom Commercial",
    "read_only": 1
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fieldname": "raison_sociale",
+   "fieldtype": "Data",
+   "label": "Raison Sociale",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2024-11-05 18:43:20.494466",
+ "modified": "2024-11-05 18:48:47.274486",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Rendez Vous Client",
@@ -120,5 +128,5 @@
  "sort_field": "date_heure",
  "sort_order": "DESC",
  "states": [],
- "title_field": "client"
+ "title_field": "raison_sociale"
 }
