@@ -185,7 +185,8 @@
    "fieldname": "groupe_client",
    "fieldtype": "Link",
    "label": "Groupe de Client",
-   "options": "Customer Group"
+   "options": "Customer Group",
+   "read_only": 1
   },
   {
    "default": "fdsudfl6bl",
@@ -261,7 +262,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-15 10:33:19.216473",
+ "modified": "2024-11-05 08:57:59.786032",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
