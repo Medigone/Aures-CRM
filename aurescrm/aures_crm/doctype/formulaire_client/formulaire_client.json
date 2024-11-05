@@ -5,7 +5,11 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "status",
+  "column_break_gfpz",
+  "section_break_yhxa",
   "raison_sociale",
+  "est_client",
   "column_break_rzkb",
   "industrie",
   "section_break_obzn",
@@ -13,10 +17,6 @@
   "fax",
   "column_break_jiaz",
   "email",
-  "contact_tab",
-  "nom_contact_principal",
-  "mobile",
-  "email_contact",
   "localisation_tab",
   "commune",
   "wilaya",
@@ -25,6 +25,12 @@
   "commune_livraison",
   "wilaya_livraison",
   "gps_livraison",
+  "contact_tab",
+  "nom_contact_principal",
+  "departement",
+  "column_break_lgbf",
+  "mobile",
+  "email_contact",
   "informations_administratives_tab",
   "rc",
   "nif",
@@ -121,6 +127,7 @@
   {
    "fieldname": "informations_administratives_tab",
    "fieldtype": "Tab Break",
+   "hidden": 1,
    "label": "Informations Administratives"
   },
   {
@@ -139,6 +146,7 @@
    "label": "NIS"
   },
   {
+   "depends_on": "eval:doc.est_client==1",
    "fieldname": "satisfaction_client_tab",
    "fieldtype": "Tab Break",
    "label": "Satisfaction Client"
@@ -177,11 +185,40 @@
   {
    "fieldname": "column_break_jiaz",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "\u00c0 Contacter\nContact\u00e9"
+  },
+  {
+   "fieldname": "section_break_yhxa",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "departement",
+   "fieldtype": "Data",
+   "label": "D\u00e9partement"
+  },
+  {
+   "fieldname": "column_break_lgbf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "est_client",
+   "fieldtype": "Check",
+   "label": "Est d\u00e9j\u00e0 Client ?"
+  },
+  {
+   "fieldname": "column_break_gfpz",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-18 18:26:04.337934",
+ "modified": "2024-11-05 14:46:06.939120",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Formulaire Client",
