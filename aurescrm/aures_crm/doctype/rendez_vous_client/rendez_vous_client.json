@@ -27,7 +27,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "En Attente\nReport\u00e9\nTermin\u00e9\nNon Honor\u00e9"
+   "options": "En Attente\nConfirm\u00e9\nReport\u00e9\nTermin\u00e9\nNon Honor\u00e9"
   },
   {
    "fieldname": "section_break_skyj",
@@ -105,7 +105,7 @@
  "index_web_pages_for_search": 1,
  "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2024-11-05 18:48:47.274486",
+ "modified": "2024-11-05 19:41:38.753427",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Rendez Vous Client",
@@ -127,6 +127,27 @@
  "show_title_field_in_link": 1,
  "sort_field": "date_heure",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Gray",
+   "title": "En Attente"
+  },
+  {
+   "color": "Blue",
+   "title": "Confirm\u00e9"
+  },
+  {
+   "color": "Orange",
+   "title": "Report\u00e9"
+  },
+  {
+   "color": "Green",
+   "title": "Termin\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "Non Honor\u00e9"
+  }
+ ],
  "title_field": "raison_sociale"
 }
