@@ -10,6 +10,7 @@ def get_data(**kwargs):
             "Sales Order": "customer",
             "Item": "custom_client",
             "BOM": "custom_client",
+            "Rendez Vous Client": "client",
         },
         "transactions": [
             {
@@ -18,7 +19,7 @@ def get_data(**kwargs):
             },
             {
                
-                "items": ["Item", "BOM"],
+                "items": ["Item", "BOM", "Rendez Vous Client"],
             },
             
         ],
