@@ -11,8 +11,8 @@ class VisiteCommerciale(Document):
             self.utilisateur = frappe.session.user
 
         # 2. Vérifie si le champ 'nom_utilisateur' est vide, et le remplit avec le full_name du créateur
-        if not self.nom_utilisateur:
-            self.nom_utilisateur = get_fullname(self.owner)
+        # if not self.nom_utilisateur:
+        #     self.nom_utilisateur = get_fullname(self.owner)
 
         # 3. Si le statut passe à "En Cours" et que 'heure_debut_visite' n'est pas encore définie, la mettre à jour
         if self.status == "En Cours" and not self.heure_debut_visite:
