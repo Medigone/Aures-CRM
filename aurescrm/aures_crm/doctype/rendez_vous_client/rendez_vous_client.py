@@ -8,13 +8,15 @@ from frappe.model.document import Document
 class RendezVousClient(Document):
 	pass
 
+
 @frappe.whitelist()
-def creer_visite_commerciale(client, commercial):
-    # Créer le document Visite Commerciale avec l'ID utilisateur de 'commercial'
+def creer_visite_commerciale(client, commercial, date_heure):
+    # Créer le document Visite Commerciale avec les informations fournies
     visite_commerciale = frappe.get_doc({
         "doctype": "Visite Commerciale",
         "client": client,
-        "utilisateur": commercial  # On utilise directement l'ID utilisateur du champ commercial
+        "utilisateur": commercial,  # Utilisateur spécifié dans 'commercial'
+        "date_rdv": date_heure       # Transfert de la date et heure du rendez-vous
     })
     
     # Insérer le document en base de données
@@ -22,5 +24,6 @@ def creer_visite_commerciale(client, commercial):
     
     # Retourner le nom du document créé pour la redirection
     return visite_commerciale.name
+
 
 

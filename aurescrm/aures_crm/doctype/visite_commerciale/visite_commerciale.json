@@ -9,8 +9,9 @@
  "field_order": [
   "section_break_bceu",
   "status",
-  "date",
   "type_visite",
+  "date",
+  "date_rdv",
   "column_break_bntm",
   "utilisateur",
   "nom_utilisateur",
@@ -260,11 +261,17 @@
    "fieldtype": "Table",
    "label": "Articles",
    "options": "Articles Visite"
+  },
+  {
+   "fieldname": "date_rdv",
+   "fieldtype": "Datetime",
+   "label": "Date & Heure du RDV",
+   "read_only": 1
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-07 10:39:33.873900",
+ "modified": "2024-11-07 10:48:08.902492",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
