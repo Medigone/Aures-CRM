@@ -1,0 +1,128 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-28 15:57:47.790804",
+  "name": "Review",
+  "workflow_action_name": "Review"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-30 16:28:27.389664",
+  "name": "Pause",
+  "workflow_action_name": "Pause"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-30 16:29:00.699044",
+  "name": "Reprendre",
+  "workflow_action_name": "Reprendre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-30 16:29:56.623162",
+  "name": "Envoyer",
+  "workflow_action_name": "Envoyer"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-30 16:30:53.361843",
+  "name": "Réviser",
+  "workflow_action_name": "Réviser"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-30 16:32:52.716226",
+  "name": "Convertir",
+  "workflow_action_name": "Convertir"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-30 16:34:08.932468",
+  "name": "Perdue",
+  "workflow_action_name": "Perdue"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-28 15:57:47.788755",
+  "name": "Approve",
+  "workflow_action_name": "Approve"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-28 15:57:47.789958",
+  "name": "Reject",
+  "workflow_action_name": "Reject"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-30 16:28:03.841984",
+  "name": "Démarrer",
+  "workflow_action_name": "Démarrer"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-08-14 01:29:22.315064",
+  "name": "Terminer",
+  "workflow_action_name": "Terminer"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-09-27 10:31:38.854369",
+  "name": "Production",
+  "workflow_action_name": "Production"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-09-27 10:32:09.681732",
+  "name": "Livrer",
+  "workflow_action_name": "Livrer"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-09-27 10:32:52.633285",
+  "name": "Valider - Client",
+  "workflow_action_name": "Valider - Client"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-09-27 10:34:51.909337",
+  "name": "Rejeter - Client",
+  "workflow_action_name": "Rejeter - Client"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-09-27 10:35:50.676199",
+  "name": "Rejeter",
+  "workflow_action_name": "Rejeter"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-08-14 01:29:56.036850",
+  "name": "Valider",
+  "workflow_action_name": "Valider"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-03-30 15:40:39.174646",
+  "name": "Annuler",
+  "workflow_action_name": "Annuler"
+ }
+]

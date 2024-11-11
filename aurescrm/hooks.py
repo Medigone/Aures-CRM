@@ -253,4 +253,9 @@ fixtures = [
     "Client Script",
     "Document Naming Rule",
     "Workflow",
+    "Workflow State",
+    "Workflow Transition",
+    "Workflow Action",
+    "Workflow Action Master",
+    "Workflow Document State",
 ]

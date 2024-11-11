@@ -1,0 +1,173 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "question-sign",
+  "modified": "2024-03-28 15:57:47.768748",
+  "name": "Pending",
+  "style": "",
+  "workflow_state_name": "Pending"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-03-30 16:37:21.841732",
+  "name": "En Pause",
+  "style": "Info",
+  "workflow_state_name": "En Pause"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-03-30 16:52:48.329765",
+  "name": "Envoyée",
+  "style": "Primary",
+  "workflow_state_name": "Envoyée"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-03-30 16:21:30.904868",
+  "name": "En Révision",
+  "style": "",
+  "workflow_state_name": "En Révision"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-03-30 16:53:31.676640",
+  "name": "Convertie",
+  "style": "Success",
+  "workflow_state_name": "Convertie"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-03-30 16:54:18.322666",
+  "name": "Perdue",
+  "style": "Danger",
+  "workflow_state_name": "Perdue"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "remove",
+  "modified": "2024-09-27 10:40:20.471285",
+  "name": "Rejected",
+  "style": "Danger",
+  "workflow_state_name": "Rejected"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "modified": "2024-03-28 15:57:47.770287",
+  "name": "Approved",
+  "style": "Success",
+  "workflow_state_name": "Approved"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:45:07.654259",
+  "name": "Rejeté par Responsable",
+  "style": "Danger",
+  "workflow_state_name": "Rejeté par Responsable"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-08-14 01:36:43.494048",
+  "name": "En Cours",
+  "style": "Warning",
+  "workflow_state_name": "En Cours"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:48:40.328629",
+  "name": "Validé par Responsable",
+  "style": "Success",
+  "workflow_state_name": "Validé par Responsable"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:40:55.177449",
+  "name": "Validé par Client",
+  "style": "Success",
+  "workflow_state_name": "Validé par Client"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:41:05.711202",
+  "name": "Rejeté par Client",
+  "style": "Danger",
+  "workflow_state_name": "Rejeté par Client"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:46:16.595859",
+  "name": "Validé",
+  "style": "Success",
+  "workflow_state_name": "Validé"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:41:14.875330",
+  "name": "Terminé",
+  "style": "Success",
+  "workflow_state_name": "Terminé"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:40:32.259548",
+  "name": "En production",
+  "style": "Warning",
+  "workflow_state_name": "En production"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:40:44.813515",
+  "name": "Livré",
+  "style": "Warning",
+  "workflow_state_name": "Livré"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-03-30 15:44:16.122437",
+  "name": "Annulé",
+  "style": "Danger",
+  "workflow_state_name": "Annulé"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:39:51.841406",
+  "name": "Nouveau",
+  "style": "Info",
+  "workflow_state_name": "Nouveau"
+ }
+]

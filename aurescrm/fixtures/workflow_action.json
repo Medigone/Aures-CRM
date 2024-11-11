@@ -1,0 +1,506 @@
+[
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 11:27:48.717290",
+  "name": "6vrfc8k7c8",
+  "permitted_roles": [
+   {
+    "parent": "6vrfc8k7c8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0011",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 11:44:14.283752",
+  "name": "79felfibri",
+  "permitted_roles": [
+   {
+    "parent": "79felfibri",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0011",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 11:49:07.701854",
+  "name": "7cb502ij4k",
+  "permitted_roles": [
+   {
+    "parent": "7cb502ij4k",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0012",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 11:49:33.348003",
+  "name": "7cj5in7qis",
+  "permitted_roles": [
+   {
+    "parent": "7cj5in7qis",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0012",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 11:49:42.007227",
+  "name": "7cls6aunhi",
+  "permitted_roles": [
+   {
+    "parent": "7cls6aunhi",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0011",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Terminé"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 18:34:47.038791",
+  "name": "eq16511ck2",
+  "permitted_roles": [
+   {
+    "parent": "eq16511ck2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0013",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 18:40:24.997039",
+  "name": "etaqem7oq8",
+  "permitted_roles": [
+   {
+    "parent": "etaqem7oq8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0014",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 18:41:24.119564",
+  "name": "ett9ohuk5l",
+  "permitted_roles": [
+   {
+    "parent": "ett9ohuk5l",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0015",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 18:41:28.746919",
+  "name": "etun0lendm",
+  "permitted_roles": [
+   {
+    "parent": "etun0lendm",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0015",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 18:44:18.619244",
+  "name": "evjqdth0m9",
+  "permitted_roles": [
+   {
+    "parent": "evjqdth0m9",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0012",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Terminé"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-05 18:44:26.487914",
+  "name": "evm8vc2t27",
+  "permitted_roles": [
+   {
+    "parent": "evm8vc2t27",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0015",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Terminé"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-06 12:01:05.887663",
+  "name": "1v3kfuv83l",
+  "permitted_roles": [
+   {
+    "parent": "1v3kfuv83l",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0016",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-06 12:59:59.855199",
+  "name": "31jvd5p1ms",
+  "permitted_roles": [
+   {
+    "parent": "31jvd5p1ms",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0017",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:27:33.214053",
+  "name": "qk1kblgkup",
+  "permitted_roles": [
+   {
+    "parent": "qk1kblgkup",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0018",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:38:55.815529",
+  "name": "qqmuu4u1ah",
+  "permitted_roles": [
+   {
+    "parent": "qqmuu4u1ah",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0019",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:40:39.558720",
+  "name": "qrnbeepi83",
+  "permitted_roles": [
+   {
+    "parent": "qrnbeepi83",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0020",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:41:02.925050",
+  "name": "qrulo2duqv",
+  "permitted_roles": [
+   {
+    "parent": "qrulo2duqv",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0021",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:42:45.490728",
+  "name": "qsun716fbv",
+  "permitted_roles": [
+   {
+    "parent": "qsun716fbv",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0022",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:47:43.198945",
+  "name": "qvropr2fj4",
+  "permitted_roles": [
+   {
+    "parent": "qvropr2fj4",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0023",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:49:04.905440",
+  "name": "r0l9qnmt7g",
+  "permitted_roles": [
+   {
+    "parent": "r0l9qnmt7g",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0024",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:49:08.865365",
+  "name": "r0mgjrmvma",
+  "permitted_roles": [
+   {
+    "parent": "r0mgjrmvma",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0024",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:49:38.910847",
+  "name": "r0vt070q5t",
+  "permitted_roles": [
+   {
+    "parent": "r0vt070q5t",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0025",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-07 10:49:45.842300",
+  "name": "r1223h3bof",
+  "permitted_roles": [
+   {
+    "parent": "r1223h3bof",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0025",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2024-11-11 13:06:35.526080",
+  "name": "707j86cpu0",
+  "permitted_roles": [
+   {
+    "parent": "707j86cpu0",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-24-11-0026",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ }
+]
