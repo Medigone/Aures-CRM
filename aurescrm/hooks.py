@@ -252,4 +252,5 @@ fixtures = [
     "Custom HTML Block",
     "Client Script",
     "Document Naming Rule",
+    "Workflow",
 ]
