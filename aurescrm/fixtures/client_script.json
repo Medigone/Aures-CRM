@@ -213,10 +213,10 @@
   "doctype": "Client Script",
   "dt": "Rendez Vous Client",
   "enabled": 1,
-  "modified": "2024-11-05 18:41:02.712304",
+  "modified": "2024-11-07 10:46:11.558059",
   "module": "Aures CRM",
   "name": "Bouton créer visite",
-  "script": "frappe.ui.form.on('Rendez Vous Client', {\n    refresh: function(frm) {\n        \n        frm.add_custom_button(__('Visite Commerciale'), function() {\n            frappe.db.insert({\n                doctype: 'Visite Commerciale',\n                client: frm.doc.client,\n                utilisateur: frappe.user.full_name(),\n            }).then(function(doc) {\n                frappe.msgprint(__('Une nouvelle visite commerciale a été créée.'));\n                frappe.set_route('Form', 'Visite Commerciale', doc.name);\n            });\n        }, __(\"Créer\"));\n\n    }\n});\n",
+  "script": "// Script Client dans \"Rendez Vous Client\"\nfrappe.ui.form.on('Rendez Vous Client', {\n    refresh: function(frm) {\n        \n        frm.add_custom_button(__('Visite Commerciale'), function() {\n            frappe.call({\n                method: 'aurescrm.aures_crm.doctype.rendez_vous_client.rendez_vous_client.creer_visite_commerciale',  // Chemin complet\n                args: {\n                    client: frm.doc.client,\n                    commercial: frm.doc.commercial,    // Transmettez l'ID du champ 'commercial'\n                    date_heure: frm.doc.date_heure     // Transmettez la valeur du champ 'date_heure'\n                },\n                callback: function(r) {\n                    if (r.message) {\n                        frappe.msgprint(__('Une nouvelle visite commerciale a été créée.'));\n                        frappe.set_route('Form', 'Visite Commerciale', r.message);\n                    }\n                }\n            });\n        }, __(\"Créer\"));\n\n    }\n});\n",
   "view": "Form"
  },
  {

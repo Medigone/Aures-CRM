@@ -251,4 +251,5 @@ doc_events = {
 fixtures = [
     "Custom HTML Block",
     "Client Script",
+    "Document Naming Rule",
 ]
