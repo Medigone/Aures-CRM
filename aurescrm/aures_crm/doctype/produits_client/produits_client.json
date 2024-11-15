@@ -7,7 +7,6 @@
  "engine": "InnoDB",
  "field_order": [
   "marque_commerciale",
-  "designation",
   "type_procede",
   "quantite_annuelle"
  ],
@@ -18,12 +17,6 @@
    "in_list_view": 1,
    "label": "Marque Commerciale",
    "options": "Brand"
-  },
-  {
-   "fieldname": "designation",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "D\u00e9signation"
   },
   {
    "fieldname": "type_procede",
@@ -42,7 +35,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-11-15 12:11:35.447165",
+ "modified": "2024-11-15 12:13:52.202970",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Produits Client",
