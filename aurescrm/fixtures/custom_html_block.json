@@ -101,8 +101,8 @@
  {
   "docstatus": 0,
   "doctype": "Custom HTML Block",
-  "html": "<div class=\"div\">\n<img src=\"/files/Aures Transpa (1).png\" width=\"225px\" height=\"60px\" alt=\"Aures Emballages\">\n<p class=\"nom\"></p>\n<h6 class=\"card-subtitle mb-2 text-muted\">\n<p class=\"some-class\" id=\"dateAffichee\"></p>\n</h6>\n</div>",
-  "modified": "2024-11-11 13:32:06.410958",
+  "html": "<div class=\"div\">\n<img src=\"/files/logo_aures387df1.png\" width=\"225px\" height=\"60px\" alt=\"Aures Emballages\">\n<p class=\"nom\"></p>\n<h6 class=\"card-subtitle mb-2 text-muted\">\n<p class=\"some-class\" id=\"dateAffichee\"></p>\n</h6>\n</div>",
+  "modified": "2024-11-15 11:04:55.464214",
   "name": "CRM Accueil",
   "private": 0,
   "roles": [],

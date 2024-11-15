@@ -258,4 +258,5 @@ fixtures = [
     "Workflow Action",
     "Workflow Action Master",
     "Workflow Document State",
+    "Custom HTML Block",
 ]
