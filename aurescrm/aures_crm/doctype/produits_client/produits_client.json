@@ -14,9 +14,10 @@
  "fields": [
   {
    "fieldname": "marque_commerciale",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Marque Commerciale"
+   "label": "Marque Commerciale",
+   "options": "Brand"
   },
   {
    "fieldname": "designation",
@@ -41,7 +42,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-08-22 14:09:42.215552",
+ "modified": "2024-11-15 11:36:47.295829",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Produits Client",
