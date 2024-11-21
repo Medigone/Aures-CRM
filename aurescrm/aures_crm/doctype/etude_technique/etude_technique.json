@@ -166,6 +166,8 @@
    "label": "Support/Papier"
   },
   {
+   "fetch_from": "article.custom_support_fourni",
+   "fetch_if_empty": 1,
    "fieldname": "support_fourni",
    "fieldtype": "Select",
    "label": "Support fourni",
@@ -198,6 +200,8 @@
    "label": "Finitions"
   },
   {
+   "fetch_from": "article.custom_impression",
+   "fetch_if_empty": 1,
    "fieldname": "impression",
    "fieldtype": "Select",
    "label": "Impression",
@@ -205,17 +209,23 @@
   },
   {
    "default": "CMJN",
+   "fetch_from": "article.custom_nombre_de_couleurs",
+   "fetch_if_empty": 1,
    "fieldname": "nbr_couleurs",
    "fieldtype": "Data",
    "label": "Nbr. Couleurs"
   },
   {
+   "fetch_from": "article.custom_vernis",
+   "fetch_if_empty": 1,
    "fieldname": "vernis",
    "fieldtype": "Select",
    "label": "Vernis",
    "options": "Sans\nAcrylique\nUV\nS\u00e9lectif (Drip off)\nMat gras\nBlister"
   },
   {
+   "fetch_from": "article.custom_marquage_\u00e0_chaud",
+   "fetch_if_empty": 1,
    "fieldname": "marquage_chaud",
    "fieldtype": "Select",
    "label": "Marquage \u00e0 chaud",
@@ -232,10 +242,10 @@
   {
    "depends_on": "eval:doc.support_fourni==\"Fiche Technique\"",
    "fetch_from": "article.custom_fiche_technique_article",
+   "fetch_if_empty": 1,
    "fieldname": "fiche_technique",
    "fieldtype": "Attach",
-   "label": "Fiche Technique",
-   "mandatory_depends_on": "eval:doc.support_fourni==\"Fiche Technique\""
+   "label": "Fiche Technique"
   },
   {
    "depends_on": "eval:doc.papier ==\"Autres\"",
@@ -248,12 +258,15 @@
   },
   {
    "depends_on": "eval:doc.marquage_chaud ==\"Autres Couleurs\"",
+   "fetch_from": "article.custom_couleur_marquage_\u00e0_chaud",
+   "fetch_if_empty": 1,
    "fieldname": "couleur_marquage_\u00e0_chaud",
    "fieldtype": "Color",
-   "label": "Couleur Marquage \u00e0 chaud",
-   "mandatory_depends_on": "eval:doc.marquage_chaud ==\"Autres Couleurs\""
+   "label": "Couleur Marquage \u00e0 chaud"
   },
   {
+   "fetch_from": "article.custom_pelliculage",
+   "fetch_if_empty": 1,
    "fieldname": "pelliculage",
    "fieldtype": "Select",
    "label": "Pelliculage",
@@ -266,24 +279,32 @@
   },
   {
    "default": "0",
+   "fetch_from": "article.custom_gaufrage__estampage",
+   "fetch_if_empty": 1,
    "fieldname": "gaufrage_estampage",
    "fieldtype": "Check",
    "label": "Gaufrage / Estampage"
   },
   {
    "default": "0",
+   "fetch_from": "article.custom_fen\u00eatre",
+   "fetch_if_empty": 1,
    "fieldname": "fenetre",
    "fieldtype": "Check",
    "label": "Fen\u00eatre"
   },
   {
    "default": "0",
+   "fetch_from": "article.custom_braille",
+   "fetch_if_empty": 1,
    "fieldname": "braille",
    "fieldtype": "Check",
    "label": "Braille"
   },
   {
    "default": "0",
+   "fetch_from": "article.custom_massicot",
+   "fetch_if_empty": 1,
    "fieldname": "massicot",
    "fieldtype": "Check",
    "label": "Massicot"
@@ -293,6 +314,8 @@
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "article.custom_notice",
+   "fetch_if_empty": 1,
    "fieldname": "notice",
    "fieldtype": "Select",
    "label": "Notice",
@@ -300,6 +323,8 @@
   },
   {
    "depends_on": "eval:doc.braille ==1",
+   "fetch_from": "article.custom_texte_braille",
+   "fetch_if_empty": 1,
    "fieldname": "texte_braille",
    "fieldtype": "Data",
    "label": "Texte Braille",
@@ -328,7 +353,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-21 12:37:37.515573",
+ "modified": "2024-11-21 13:02:58.590168",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
@@ -349,5 +374,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
