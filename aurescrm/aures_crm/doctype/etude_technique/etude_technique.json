@@ -161,7 +161,6 @@
    "options": "User"
   },
   {
-   "collapsible": 1,
    "fieldname": "section_break_sazc",
    "fieldtype": "Section Break",
    "label": "Support/Papier"
@@ -194,7 +193,6 @@
    "options": "\n45\n50\n60\n70\n80\n90\n100\n130\n150\n200\n250\n270\n275\n290\n300\n305\n330\n350\n400\n450\n900"
   },
   {
-   "collapsible": 1,
    "fieldname": "section_break_xdjv",
    "fieldtype": "Section Break",
    "label": "Finitions"
@@ -262,7 +260,6 @@
    "options": "Sans\nBrillant\nMat\nLaminage"
   },
   {
-   "collapsible": 1,
    "fieldname": "options_section",
    "fieldtype": "Section Break",
    "label": "Options"
@@ -331,7 +328,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-21 12:28:23.347719",
+ "modified": "2024-11-21 12:30:10.480649",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
