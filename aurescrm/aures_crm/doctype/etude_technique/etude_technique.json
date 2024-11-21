@@ -22,6 +22,7 @@
   "nom_commercial",
   "section_break_jdgg",
   "article",
+  "image",
   "column_break_vhao",
   "quantite",
   "fiche_technique_tab",
@@ -317,12 +318,20 @@
   {
    "fieldname": "section_break_jdgg",
    "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "article.image",
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "hidden": 1,
+   "label": "Image Article"
   }
  ],
+ "image_field": "image",
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-21 12:12:04.949182",
+ "modified": "2024-11-21 12:28:23.347719",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
