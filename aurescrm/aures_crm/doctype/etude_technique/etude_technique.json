@@ -6,32 +6,55 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
-  "column_break_crbc",
+  "section_break_dojk",
   "date",
-  "section_break_6lif",
-  "client",
-  "raison_sociale",
-  "groupe_client",
-  "column_break_yftl",
+  "date_echeance",
+  "column_break_crbc",
   "utilisateur",
   "nom_utilisateur",
   "amended_from",
-  "article_tab",
+  "section_break_nivw",
+  "client",
+  "raison_sociale",
+  "column_break_cmms",
+  "groupe_client",
+  "commercial",
+  "nom_commercial",
+  "fiche_technique_tab",
   "article",
-  "categorie",
-  "support_fourni"
+  "column_break_vhao",
+  "quantite",
+  "section_break_sazc",
+  "support_fourni",
+  "fiche_technique",
+  "grammage",
+  "column_break_kuax",
+  "papier",
+  "papier_autre",
+  "section_break_xdjv",
+  "impression",
+  "vernis",
+  "pelliculage",
+  "notice",
+  "column_break_iyqe",
+  "nbr_couleurs",
+  "marquage_chaud",
+  "couleur_marquage_\u00e0_chaud",
+  "options_section",
+  "braille",
+  "texte_braille",
+  "fenetre",
+  "column_break_lduo",
+  "massicot",
+  "gaufrage_estampage"
  ],
  "fields": [
-  {
-   "fieldname": "section_break_6lif",
-   "fieldtype": "Section Break"
-  },
   {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Fiche Etude",
+   "options": "Etude Technique",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
@@ -40,41 +63,46 @@
    "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
-   "label": "Date"
+   "label": "Date",
+   "read_only": 1
   },
   {
    "fieldname": "client",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Client",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fetch_from": "client.customer_name",
    "fieldname": "raison_sociale",
    "fieldtype": "Data",
-   "label": "Raison Sociale"
+   "label": "Raison Sociale",
+   "read_only": 1
   },
   {
    "fetch_from": "client.customer_group",
    "fieldname": "groupe_client",
    "fieldtype": "Data",
-   "label": "Groupe Client"
-  },
-  {
-   "fieldname": "column_break_yftl",
-   "fieldtype": "Column Break"
+   "label": "Groupe Client",
+   "read_only": 1
   },
   {
    "fieldname": "utilisateur",
    "fieldtype": "Link",
-   "label": "Utilisateur",
-   "options": "User"
+   "in_list_view": 1,
+   "label": "Designer",
+   "options": "User",
+   "reqd": 1
   },
   {
    "fetch_from": "utilisateur.full_name",
    "fieldname": "nom_utilisateur",
    "fieldtype": "Data",
-   "label": "Nom Utilisateur"
+   "label": "Nom Designer",
+   "read_only": 1
   },
   {
    "fieldname": "status",
@@ -91,30 +119,198 @@
    "fieldtype": "Link",
    "label": "Article",
    "link_filters": "[[\"Item\",\"custom_proc\u00e9d\u00e9\",\"=\",\"Offset\"]]",
-   "options": "Item"
+   "options": "Item",
+   "search_index": 1
   },
   {
-   "fieldname": "article_tab",
-   "fieldtype": "Tab Break",
-   "label": "Article"
+   "fieldname": "section_break_nivw",
+   "fieldtype": "Section Break"
   },
   {
-   "fieldname": "categorie",
-   "fieldtype": "Select",
-   "label": "Categorie",
-   "options": "Simple\nEssai \u00e0 blanc\nComplexe"
+   "fieldname": "column_break_cmms",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "section_break_dojk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "date_echeance",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date d\u2019\u00e9ch\u00e9ance",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_vhao",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fieldname": "commercial",
+   "fieldtype": "Link",
+   "label": "Commercial",
+   "options": "User"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_sazc",
+   "fieldtype": "Section Break",
+   "label": "Support/Papier"
   },
   {
    "fieldname": "support_fourni",
    "fieldtype": "Select",
    "label": "Support fourni",
-   "options": "\nFiche Technique\nCotations\nModel\nProduit"
+   "options": "Cotations\nFiche Technique\nModel\nProduit"
+  },
+  {
+   "fieldname": "papier",
+   "fieldtype": "Select",
+   "label": "Papier",
+   "options": "BBTB\nB gris\nB Kraft\nG Gris\nPapier offset\nREH\nOpercule\nCouch\u00e9\nAutocollant\nContre Collage\nAutres"
+  },
+  {
+   "fieldname": "fiche_technique_tab",
+   "fieldtype": "Tab Break",
+   "label": "Fiche Technique"
+  },
+  {
+   "fieldname": "grammage",
+   "fieldtype": "Select",
+   "label": "Grammage",
+   "options": "45\n50\n60\n70\n80\n90\n100\n130\n150\n200\n250\n270\n275\n290\n300\n305\n330\n350\n400\n450\n900"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_xdjv",
+   "fieldtype": "Section Break",
+   "label": "Finitions"
+  },
+  {
+   "fieldname": "impression",
+   "fieldtype": "Select",
+   "label": "Impression ",
+   "options": "Quadri\nPantone\nQuadri +Pantone"
+  },
+  {
+   "default": "CMJN",
+   "fieldname": "nbr_couleurs",
+   "fieldtype": "Data",
+   "label": "Nbr. Couleurs"
+  },
+  {
+   "fieldname": "vernis",
+   "fieldtype": "Select",
+   "label": "Vernis",
+   "options": "Sans\nAcrylique\nUV\nS\u00e9lectif (Drip off)\nMat gras\nBlister"
+  },
+  {
+   "fieldname": "marquage_chaud",
+   "fieldtype": "Select",
+   "label": "Marquage  a chaud",
+   "options": "Sans\nDorure\nArgent\nAutres Couleurs"
+  },
+  {
+   "fieldname": "column_break_iyqe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_kuax",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.support_fourni==\"Fiche Technique\"",
+   "fieldname": "fiche_technique",
+   "fieldtype": "Attach",
+   "label": "Fiche Technique",
+   "mandatory_depends_on": "eval:doc.support_fourni==\"Fiche Technique\""
+  },
+  {
+   "depends_on": "eval:doc.papier ==\"Autres\"",
+   "fieldname": "papier_autre",
+   "fieldtype": "Data",
+   "label": "Papier Autre",
+   "mandatory_depends_on": "eval:doc.papier ==\"Autres\""
+  },
+  {
+   "depends_on": "eval:doc.marquage_chaud ==\"Autres Couleurs\"",
+   "fieldname": "couleur_marquage_\u00e0_chaud",
+   "fieldtype": "Color",
+   "label": "Couleur Marquage \u00e0 chaud",
+   "mandatory_depends_on": "eval:doc.marquage_chaud ==\"Autres Couleurs\""
+  },
+  {
+   "fieldname": "pelliculage",
+   "fieldtype": "Select",
+   "label": "Pelliculage",
+   "options": "Sans\nBrillant\nMat\nLaminage"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "options_section",
+   "fieldtype": "Section Break",
+   "label": "Options"
+  },
+  {
+   "default": "0",
+   "fieldname": "gaufrage_estampage",
+   "fieldtype": "Check",
+   "label": "Gaufrage / Estampage"
+  },
+  {
+   "default": "0",
+   "fieldname": "fenetre",
+   "fieldtype": "Check",
+   "label": "Fen\u00eatre"
+  },
+  {
+   "default": "0",
+   "fieldname": "braille",
+   "fieldtype": "Check",
+   "label": "Braille"
+  },
+  {
+   "default": "0",
+   "fieldname": "massicot",
+   "fieldtype": "Check",
+   "label": "Massicot"
+  },
+  {
+   "fieldname": "column_break_lduo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "notice",
+   "fieldtype": "Select",
+   "label": "Notice",
+   "options": "Pliage\nNon Pliage"
+  },
+  {
+   "depends_on": "eval:doc.braille ==1",
+   "fieldname": "texte_braille",
+   "fieldtype": "Data",
+   "label": "Texte Braille",
+   "mandatory_depends_on": "eval:doc.braille ==1"
+  },
+  {
+   "fetch_from": "commercial.full_name",
+   "fieldname": "nom_commercial",
+   "fieldtype": "Data",
+   "label": "Nom Commercial",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-23 15:14:48.710389",
+ "modified": "2024-11-21 11:20:08.876868",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
