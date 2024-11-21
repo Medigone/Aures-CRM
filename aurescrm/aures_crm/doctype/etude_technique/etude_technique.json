@@ -298,7 +298,7 @@
    "fieldname": "notice",
    "fieldtype": "Select",
    "label": "Notice",
-   "options": "Pliage\nNon Pliage"
+   "options": "\nPliage\nNon Pliage"
   },
   {
    "depends_on": "eval:doc.braille ==1",
@@ -322,7 +322,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-21 12:05:13.598504",
+ "modified": "2024-11-21 12:12:04.949182",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
