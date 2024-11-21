@@ -200,8 +200,8 @@
   {
    "fieldname": "impression",
    "fieldtype": "Select",
-   "label": "Impression ",
-   "options": "Quadri\nPantone\nQuadri +Pantone"
+   "label": "Impression",
+   "options": "\nQuadri\nPantone\nQuadri +Pantone"
   },
   {
    "default": "CMJN",
@@ -218,7 +218,7 @@
   {
    "fieldname": "marquage_chaud",
    "fieldtype": "Select",
-   "label": "Marquage  a chaud",
+   "label": "Marquage \u00e0 chaud",
    "options": "Sans\nDorure\nArgent\nAutres Couleurs"
   },
   {
@@ -328,7 +328,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-21 12:30:10.480649",
+ "modified": "2024-11-21 12:37:37.515573",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
