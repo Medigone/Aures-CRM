@@ -20,10 +20,11 @@
   "groupe_client",
   "commercial",
   "nom_commercial",
-  "fiche_technique_tab",
+  "section_break_jdgg",
   "article",
   "column_break_vhao",
   "quantite",
+  "fiche_technique_tab",
   "section_break_sazc",
   "support_fourni",
   "fiche_technique",
@@ -168,13 +169,13 @@
    "fieldname": "support_fourni",
    "fieldtype": "Select",
    "label": "Support fourni",
-   "options": "Cotations\nFiche Technique\nModel\nProduit"
+   "options": "\nCotations\nFiche Technique\nModel\nProduit"
   },
   {
    "fieldname": "papier",
    "fieldtype": "Select",
    "label": "Papier",
-   "options": "BBTB\nB gris\nB Kraft\nG Gris\nPapier offset\nREH\nOpercule\nCouch\u00e9\nAutocollant\nContre Collage\nAutres"
+   "options": "\nBBTB\nB gris\nB Kraft\nG Gris\nPapier offset\nREH\nOpercule\nCouch\u00e9\nAutocollant\nContre Collage\nAutres"
   },
   {
    "fieldname": "fiche_technique_tab",
@@ -185,7 +186,7 @@
    "fieldname": "grammage",
    "fieldtype": "Select",
    "label": "Grammage",
-   "options": "45\n50\n60\n70\n80\n90\n100\n130\n150\n200\n250\n270\n275\n290\n300\n305\n330\n350\n400\n450\n900"
+   "options": "\n45\n50\n60\n70\n80\n90\n100\n130\n150\n200\n250\n270\n275\n290\n300\n305\n330\n350\n400\n450\n900"
   },
   {
    "collapsible": 1,
@@ -227,6 +228,7 @@
   },
   {
    "depends_on": "eval:doc.support_fourni==\"Fiche Technique\"",
+   "fetch_from": "article.custom_fiche_technique_article",
    "fieldname": "fiche_technique",
    "fieldtype": "Attach",
    "label": "Fiche Technique",
@@ -305,12 +307,16 @@
    "fieldtype": "Data",
    "label": "Nom Commercial",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_jdgg",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-21 11:20:08.876868",
+ "modified": "2024-11-21 11:30:33.468384",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
