@@ -39,7 +39,7 @@
  "is_hidden": 0,
  "label": "Visites",
  "links": [],
- "modified": "2024-10-15 15:28:57.441678",
+ "modified": "2025-01-02 12:48:12.023421",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visites",
@@ -53,7 +53,7 @@
    "role": "Commercial"
   }
  ],
- "sequence_id": 3.0,
+ "sequence_id": 2.0,
  "shortcuts": [
   {
    "color": "Blue",
