@@ -1102,7 +1102,7 @@
    "creation": "2024-08-26 11:10:27.555466",
    "default": null,
    "depends_on": null,
-   "description": null,
+   "description": "Date d\u00e9but interaction avec Aures Emballages.",
    "docstatus": 0,
    "dt": "Customer",
    "fetch_from": null,
