@@ -1,0 +1,91 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-10 12:10:37.983319",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_break_soea",
+  "date_debut",
+  "column_break_bumm",
+  "date_fin",
+  "section_break_zpsp",
+  "lieu_devenement",
+  "column_break_ikjs",
+  "commune"
+ ],
+ "fields": [
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Brouillon\nProgramm\u00e9\nEn Cours\nTermin\u00e9\nReport\u00e9\nAnnul\u00e9"
+  },
+  {
+   "fieldname": "date_debut",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date D\u00e9but"
+  },
+  {
+   "fieldname": "date_fin",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date Fin"
+  },
+  {
+   "fieldname": "section_break_soea",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_bumm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_zpsp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "lieu_devenement",
+   "fieldtype": "Data",
+   "label": "Lieu d'\u00e9v\u00e8nement"
+  },
+  {
+   "fieldname": "column_break_ikjs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commune",
+   "fieldtype": "Link",
+   "label": "Commune",
+   "options": "Communes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-01-10 12:15:27.052730",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Evenements",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
