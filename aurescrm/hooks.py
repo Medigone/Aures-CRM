@@ -137,6 +137,9 @@ doc_events = {
     },
     "Customer": {
         "before_save": "aurescrm.customer_hooks.uppercase_customer_name"
+    },
+    "Item": {
+        "before_save": "aurescrm.utils.custom_item_naming"
     }
 }
 
