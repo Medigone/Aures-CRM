@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class EtudeTechnique(Document):
+class EtudeTechniqueOffset(Document):
 	pass
