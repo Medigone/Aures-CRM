@@ -24,31 +24,7 @@
   "article",
   "image",
   "column_break_vhao",
-  "quantite",
-  "fiche_technique_tab",
-  "section_break_sazc",
-  "support_fourni",
-  "fiche_technique",
-  "grammage",
-  "column_break_kuax",
-  "papier",
-  "papier_autre",
-  "section_break_xdjv",
-  "impression",
-  "vernis",
-  "pelliculage",
-  "notice",
-  "column_break_iyqe",
-  "nbr_couleurs",
-  "marquage_chaud",
-  "couleur_marquage_\u00e0_chaud",
-  "options_section",
-  "braille",
-  "texte_braille",
-  "fenetre",
-  "column_break_lduo",
-  "massicot",
-  "gaufrage_estampage"
+  "quantite"
  ],
  "fields": [
   {
@@ -56,7 +32,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Etude Technique",
+   "options": "Etude Technique Offset",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
@@ -120,7 +96,6 @@
    "fieldname": "article",
    "fieldtype": "Link",
    "label": "Article",
-   "link_filters": "[[\"Item\",\"custom_proc\u00e9d\u00e9\",\"=\",\"Offset\"]]",
    "options": "Item",
    "search_index": 1
   },
@@ -161,176 +136,6 @@
    "options": "User"
   },
   {
-   "fieldname": "section_break_sazc",
-   "fieldtype": "Section Break",
-   "label": "Support/Papier"
-  },
-  {
-   "fetch_from": "article.custom_support_fourni",
-   "fetch_if_empty": 1,
-   "fieldname": "support_fourni",
-   "fieldtype": "Select",
-   "label": "Support fourni",
-   "options": "\nCotations\nFiche Technique\nModel\nProduit"
-  },
-  {
-   "fetch_from": "article.custom_support",
-   "fetch_if_empty": 1,
-   "fieldname": "papier",
-   "fieldtype": "Select",
-   "label": "Papier",
-   "options": "\nBBTB\nB gris\nB Kraft\nG Gris\nPapier offset\nREH\nOpercule\nCouch\u00e9\nAutocollant\nContre Collage\nAutres"
-  },
-  {
-   "fieldname": "fiche_technique_tab",
-   "fieldtype": "Tab Break",
-   "label": "Fiche Technique"
-  },
-  {
-   "fetch_from": "article.custom_grammage",
-   "fetch_if_empty": 1,
-   "fieldname": "grammage",
-   "fieldtype": "Select",
-   "label": "Grammage",
-   "options": "\n45\n50\n60\n70\n80\n90\n100\n130\n150\n200\n250\n270\n275\n290\n300\n305\n330\n350\n400\n450\n900"
-  },
-  {
-   "fieldname": "section_break_xdjv",
-   "fieldtype": "Section Break",
-   "label": "Finitions"
-  },
-  {
-   "fetch_from": "article.custom_impression",
-   "fetch_if_empty": 1,
-   "fieldname": "impression",
-   "fieldtype": "Select",
-   "label": "Impression",
-   "options": "\nQuadri\nPantone\nQuadri +Pantone"
-  },
-  {
-   "default": "CMJN",
-   "fetch_from": "article.custom_nombre_de_couleurs",
-   "fetch_if_empty": 1,
-   "fieldname": "nbr_couleurs",
-   "fieldtype": "Data",
-   "label": "Nbr. Couleurs"
-  },
-  {
-   "fetch_from": "article.custom_vernis",
-   "fetch_if_empty": 1,
-   "fieldname": "vernis",
-   "fieldtype": "Select",
-   "label": "Vernis",
-   "options": "Sans\nAcrylique\nUV\nS\u00e9lectif (Drip off)\nMat gras\nBlister"
-  },
-  {
-   "fetch_from": "article.custom_marquage_\u00e0_chaud",
-   "fetch_if_empty": 1,
-   "fieldname": "marquage_chaud",
-   "fieldtype": "Select",
-   "label": "Marquage \u00e0 chaud",
-   "options": "Sans\nDorure\nArgent\nAutres Couleurs"
-  },
-  {
-   "fieldname": "column_break_iyqe",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_kuax",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.support_fourni==\"Fiche Technique\"",
-   "fetch_from": "article.custom_fiche_technique_article",
-   "fetch_if_empty": 1,
-   "fieldname": "fiche_technique",
-   "fieldtype": "Attach",
-   "label": "Fiche Technique"
-  },
-  {
-   "depends_on": "eval:doc.papier ==\"Autres\"",
-   "fetch_from": "article.custom_papier_autre",
-   "fetch_if_empty": 1,
-   "fieldname": "papier_autre",
-   "fieldtype": "Data",
-   "label": "Papier Autre",
-   "mandatory_depends_on": "eval:doc.papier ==\"Autres\""
-  },
-  {
-   "depends_on": "eval:doc.marquage_chaud ==\"Autres Couleurs\"",
-   "fetch_from": "article.custom_couleur_marquage_\u00e0_chaud",
-   "fetch_if_empty": 1,
-   "fieldname": "couleur_marquage_\u00e0_chaud",
-   "fieldtype": "Color",
-   "label": "Couleur Marquage \u00e0 chaud"
-  },
-  {
-   "fetch_from": "article.custom_pelliculage",
-   "fetch_if_empty": 1,
-   "fieldname": "pelliculage",
-   "fieldtype": "Select",
-   "label": "Pelliculage",
-   "options": "Sans\nBrillant\nMat\nLaminage"
-  },
-  {
-   "fieldname": "options_section",
-   "fieldtype": "Section Break",
-   "label": "Options"
-  },
-  {
-   "default": "0",
-   "fetch_from": "article.custom_gaufrage__estampage",
-   "fetch_if_empty": 1,
-   "fieldname": "gaufrage_estampage",
-   "fieldtype": "Check",
-   "label": "Gaufrage / Estampage"
-  },
-  {
-   "default": "0",
-   "fetch_from": "article.custom_fen\u00eatre",
-   "fetch_if_empty": 1,
-   "fieldname": "fenetre",
-   "fieldtype": "Check",
-   "label": "Fen\u00eatre"
-  },
-  {
-   "default": "0",
-   "fetch_from": "article.custom_braille",
-   "fetch_if_empty": 1,
-   "fieldname": "braille",
-   "fieldtype": "Check",
-   "label": "Braille"
-  },
-  {
-   "default": "0",
-   "fetch_from": "article.custom_massicot",
-   "fetch_if_empty": 1,
-   "fieldname": "massicot",
-   "fieldtype": "Check",
-   "label": "Massicot"
-  },
-  {
-   "fieldname": "column_break_lduo",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fetch_from": "article.custom_notice",
-   "fetch_if_empty": 1,
-   "fieldname": "notice",
-   "fieldtype": "Select",
-   "label": "Notice",
-   "options": "\nPliage\nNon Pliage"
-  },
-  {
-   "depends_on": "eval:doc.braille ==1",
-   "fetch_from": "article.custom_texte_braille",
-   "fetch_if_empty": 1,
-   "fieldname": "texte_braille",
-   "fieldtype": "Data",
-   "label": "Texte Braille",
-   "mandatory_depends_on": "eval:doc.braille ==1"
-  },
-  {
    "fetch_from": "commercial.full_name",
    "fieldname": "nom_commercial",
    "fieldtype": "Data",
@@ -353,7 +158,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-27 15:49:44.289898",
+ "modified": "2025-01-15 13:31:15.206494",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique Offset",
