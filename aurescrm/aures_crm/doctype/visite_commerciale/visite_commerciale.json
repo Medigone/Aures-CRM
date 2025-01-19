@@ -81,6 +81,7 @@
    "set_only_once": 1
   },
   {
+   "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
@@ -95,6 +96,7 @@
    "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
+   "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
   },
@@ -271,7 +273,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-07 10:48:08.902492",
+ "modified": "2025-01-19 13:40:11.483105",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
