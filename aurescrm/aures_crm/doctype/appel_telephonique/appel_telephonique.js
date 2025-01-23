@@ -6,3 +6,10 @@
 
 // 	},
 // });
+frappe.ui.form.on('Appel Telephonique', {
+	before_save: function(frm) {
+        if (!frm.doc.utilisateur) {  // Vérifie si le champ utilisateur est vide
+            frm.set_value('utilisateur', frm.doc.owner);  // Définit l'utilisateur avec le propriétaire initial (créateur)
+        }
+    }
+});
