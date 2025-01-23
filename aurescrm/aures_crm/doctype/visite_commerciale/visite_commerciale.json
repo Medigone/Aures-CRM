@@ -2,7 +2,7 @@
  "actions": [],
  "allow_auto_repeat": 1,
  "allow_rename": 1,
- "autoname": "naming_series:",
+ "autoname": "format:VC-{MM}-{YY}-{####}",
  "creation": "2024-08-13 14:34:07.593727",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -20,7 +20,6 @@
   "client",
   "column_break_yzkg",
   "groupe_client",
-  "naming_series",
   "articles_tab",
   "articles",
   "suivi_client_tab",
@@ -59,6 +58,7 @@
    "search_index": 1
   },
   {
+   "default": "Nouveau",
    "fieldname": "status",
    "fieldtype": "Select",
    "hidden": 1,
@@ -193,14 +193,6 @@
    "read_only": 1
   },
   {
-   "default": "fdsudfl6bl",
-   "fieldname": "naming_series",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "D\u00e9nomination",
-   "options": "Document Naming Rule"
-  },
-  {
    "depends_on": "eval: doc.status == 'Termin\u00e9' || doc.status == 'Valid\u00e9'",
    "fieldname": "controle_tab",
    "fieldtype": "Tab Break",
@@ -274,11 +266,11 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-22 17:12:28.935423",
+ "modified": "2025-01-23 12:27:11.514849",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
- "naming_rule": "By \"Naming Series\" field",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
