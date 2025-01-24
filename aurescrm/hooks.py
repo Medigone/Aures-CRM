@@ -254,8 +254,8 @@ doc_events = {
 
 fixtures = [
     #"Custom HTML Block",
-    "Role",
-    "Client Script",
+    # "Role",
+    # "Client Script",
     # "Document Naming Rule",
     # "Workflow",
     # "Workflow State",
