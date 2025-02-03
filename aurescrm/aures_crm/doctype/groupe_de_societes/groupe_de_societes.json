@@ -6,9 +6,10 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_pirp",
+  "html",
+  "section_break_utno",
   "raison_sociale",
   "image",
-  "html",
   "informations_administratives_tab",
   "rc",
   "nif",
@@ -24,7 +25,8 @@
   "wilaya",
   "region",
   "contacts_tab",
-  "liste_contact"
+  "liste_contact",
+  "connexions_tab"
  ],
  "fields": [
   {
@@ -140,6 +142,16 @@
    "fieldname": "html",
    "fieldtype": "HTML",
    "label": "tableau de bord"
+  },
+  {
+   "fieldname": "connexions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connexions",
+   "show_dashboard": 1
+  },
+  {
+   "fieldname": "section_break_utno",
+   "fieldtype": "Section Break"
   }
  ],
  "image_field": "image",
@@ -150,7 +162,7 @@
    "link_fieldname": "custom_groupe_de_soci\u00e9t\u00e9s"
   }
  ],
- "modified": "2025-02-03 17:45:46.805352",
+ "modified": "2025-02-03 21:42:23.292117",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Groupe de societes",
