@@ -166,7 +166,7 @@
  "index_web_pages_for_search": 1,
  "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2025-02-03 10:14:14.951504",
+ "modified": "2025-02-03 10:52:56.421974",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Evenements",
@@ -182,6 +182,13 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Commercial",
+   "select": 1,
    "write": 1
   }
  ],
