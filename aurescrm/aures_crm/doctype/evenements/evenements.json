@@ -163,8 +163,9 @@
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2025-02-03 09:51:24.780648",
+ "modified": "2025-02-03 09:55:59.691315",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Evenements",
@@ -186,7 +187,32 @@
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Gray",
+   "title": "Brouillon"
+  },
+  {
+   "color": "Light Blue",
+   "title": "Programm\u00e9"
+  },
+  {
+   "color": "Orange",
+   "title": "En Cours"
+  },
+  {
+   "color": "Green",
+   "title": "Termin\u00e9"
+  },
+  {
+   "color": "Yellow",
+   "title": "Report\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "Annul\u00e9"
+  }
+ ],
  "title_field": "title",
  "track_changes": 1
 }
