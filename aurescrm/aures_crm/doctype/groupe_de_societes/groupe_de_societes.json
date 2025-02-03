@@ -8,17 +8,22 @@
   "status",
   "section_break_pirp",
   "raison_sociale",
+  "informations_administratives_tab",
+  "rc",
+  "nif",
+  "nis",
+  "ai",
+  "column_break_iobc",
+  "fichier_rc",
+  "fichier_nif",
+  "fichier_nis",
+  "fichier_ai",
   "localisation_tab",
   "commune",
   "wilaya",
   "region",
   "contacts_tab",
-  "liste_contact",
-  "informations_administratives_tab",
-  "rc",
-  "nif",
-  "nis",
-  "ai"
+  "liste_contact"
  ],
  "fields": [
   {
@@ -98,11 +103,35 @@
    "fieldname": "ai",
    "fieldtype": "Data",
    "label": "N\u00ba AI"
+  },
+  {
+   "fieldname": "column_break_iobc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fichier_rc",
+   "fieldtype": "Attach",
+   "label": "Fichier RC"
+  },
+  {
+   "fieldname": "fichier_nif",
+   "fieldtype": "Attach",
+   "label": "Fichier NIF"
+  },
+  {
+   "fieldname": "fichier_nis",
+   "fieldtype": "Attach",
+   "label": "Fichier NIS"
+  },
+  {
+   "fieldname": "fichier_ai",
+   "fieldtype": "Attach",
+   "label": "Fichier AI"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-03 16:40:07.402759",
+ "modified": "2025-02-03 17:16:58.120354",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Groupe de societes",
