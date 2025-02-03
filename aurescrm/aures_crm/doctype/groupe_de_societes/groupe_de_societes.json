@@ -5,9 +5,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "status",
   "section_break_pirp",
   "raison_sociale",
+  "image",
+  "html",
   "informations_administratives_tab",
   "rc",
   "nif",
@@ -32,12 +33,6 @@
    "in_list_view": 1,
    "label": "Raison Sociale",
    "reqd": 1
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Statut",
-   "options": "Prospect\nActif\nDormant\nPerdu\nExclu"
   },
   {
    "fieldname": "localisation_tab",
@@ -69,8 +64,7 @@
    "in_list_view": 1,
    "label": "R\u00e9gion",
    "options": "Territory",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "section_break_pirp",
@@ -135,8 +129,20 @@
    "fieldname": "fichier_ai",
    "fieldtype": "Attach",
    "label": "Fichier AI"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "hidden": 1,
+   "label": "Image"
+  },
+  {
+   "fieldname": "html",
+   "fieldtype": "HTML",
+   "label": "tableau de bord"
   }
  ],
+ "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [
   {
@@ -144,7 +150,7 @@
    "link_fieldname": "custom_groupe_de_soci\u00e9t\u00e9s"
   }
  ],
- "modified": "2025-02-03 17:29:00.548201",
+ "modified": "2025-02-03 17:45:46.805352",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Groupe de societes",
