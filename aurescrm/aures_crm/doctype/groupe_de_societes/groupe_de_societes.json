@@ -29,7 +29,9 @@
   {
    "fieldname": "raison_sociale",
    "fieldtype": "Data",
-   "label": "Raison Sociale"
+   "in_list_view": 1,
+   "label": "Raison Sociale",
+   "reqd": 1
   },
   {
    "fieldname": "status",
@@ -45,24 +47,30 @@
   {
    "fieldname": "commune",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Commune",
-   "options": "Communes"
+   "options": "Communes",
+   "reqd": 1
   },
   {
    "fetch_from": "commune.wilaya",
    "fieldname": "wilaya",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Wilaya",
    "options": "Wilayas",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "fetch_from": "commune.region",
    "fieldname": "region",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "R\u00e9gion",
    "options": "Territory",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "fieldname": "section_break_pirp",
@@ -130,8 +138,13 @@
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-02-03 17:16:58.120354",
+ "links": [
+  {
+   "link_doctype": "Customer",
+   "link_fieldname": "custom_groupe_de_soci\u00e9t\u00e9s"
+  }
+ ],
+ "modified": "2025-02-03 17:29:00.548201",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Groupe de societes",
@@ -148,9 +161,22 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Commercial",
+   "select": 1,
+   "share": 1,
+   "write": 1
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "raison_sociale",
+ "track_changes": 1
 }
