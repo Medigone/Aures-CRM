@@ -7,3 +7,7 @@ from frappe.model.document import Document
 
 class Evenements(Document):
 	pass
+
+def validate(self):
+    if self.date_fin < self.date_debut:
+        frappe.throw("La Date Fin ne peut pas être antérieure à la Date Début")

@@ -8,6 +8,8 @@
   "status",
   "section_break_bzth",
   "title",
+  "column_break_jyyp",
+  "type_evenement",
   "section_break_soea",
   "date_debut",
   "column_break_bumm",
@@ -15,7 +17,18 @@
   "section_break_zpsp",
   "lieu_devenement",
   "column_break_ikjs",
-  "commune"
+  "description_tab",
+  "description",
+  "participants_internes_tab",
+  "liste_part_int",
+  "suivi_evenement_tab",
+  "satisfaction",
+  "column_break_ujjm",
+  "objectifs_atteints",
+  "section_break_scmy",
+  "commentaires_gen",
+  "lecons_apprises",
+  "ameliorations_futures"
  ],
  "fields": [
   {
@@ -31,14 +44,16 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Date D\u00e9but"
+   "label": "Date D\u00e9but",
+   "reqd": 1
   },
   {
    "fieldname": "date_fin",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Date Fin"
+   "label": "Date Fin",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_soea",
@@ -62,12 +77,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "commune",
-   "fieldtype": "Link",
-   "label": "Commune",
-   "options": "Communes"
-  },
-  {
    "fieldname": "section_break_bzth",
    "fieldtype": "Section Break"
   },
@@ -76,12 +85,86 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Titre"
+   "label": "Titre",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description_tab",
+   "fieldtype": "Tab Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description de l\u2019\u00e9v\u00e8nement"
+  },
+  {
+   "fieldname": "column_break_jyyp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type_evenement",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type d\u2019\u00e9v\u00e8nement",
+   "options": "Type Evenement",
+   "reqd": 1
+  },
+  {
+   "fieldname": "participants_internes_tab",
+   "fieldtype": "Tab Break",
+   "label": "Participants Internes"
+  },
+  {
+   "fieldname": "liste_part_int",
+   "fieldtype": "Table",
+   "label": "Liste Participants Internes",
+   "options": "Participants Evenement"
+  },
+  {
+   "fieldname": "suivi_evenement_tab",
+   "fieldtype": "Tab Break",
+   "label": "Suivi Post-\u00c9v\u00e9nement"
+  },
+  {
+   "fieldname": "satisfaction",
+   "fieldtype": "Rating",
+   "label": "Niveau de Satisfaction"
+  },
+  {
+   "fieldname": "column_break_ujjm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "objectifs_atteints",
+   "fieldtype": "Select",
+   "label": "Objectifs Atteints ?",
+   "options": "\nOui\nNon"
+  },
+  {
+   "fieldname": "section_break_scmy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "commentaires_gen",
+   "fieldtype": "Text Editor",
+   "label": "Commentaires G\u00e9n\u00e9raux"
+  },
+  {
+   "fieldname": "lecons_apprises",
+   "fieldtype": "Text Editor",
+   "label": "Le\u00e7ons Apprises"
+  },
+  {
+   "fieldname": "ameliorations_futures",
+   "fieldtype": "Text Editor",
+   "label": "Am\u00e9liorations Futures"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-03 09:24:56.757806",
+ "modified": "2025-02-03 09:51:24.780648",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Evenements",
@@ -104,5 +187,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }
