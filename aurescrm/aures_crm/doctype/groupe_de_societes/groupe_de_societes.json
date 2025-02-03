@@ -1,0 +1,127 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-03 16:26:58.446157",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_break_pirp",
+  "raison_sociale",
+  "localisation_tab",
+  "commune",
+  "wilaya",
+  "region",
+  "contacts_tab",
+  "liste_contact",
+  "informations_administratives_tab",
+  "rc",
+  "nif",
+  "nis",
+  "ai"
+ ],
+ "fields": [
+  {
+   "fieldname": "raison_sociale",
+   "fieldtype": "Data",
+   "label": "Raison Sociale"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Prospect\nActif\nDormant\nPerdu\nExclu"
+  },
+  {
+   "fieldname": "localisation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Localisation"
+  },
+  {
+   "fieldname": "commune",
+   "fieldtype": "Link",
+   "label": "Commune",
+   "options": "Communes"
+  },
+  {
+   "fetch_from": "commune.wilaya",
+   "fieldname": "wilaya",
+   "fieldtype": "Link",
+   "label": "Wilaya",
+   "options": "Wilayas",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "commune.region",
+   "fieldname": "region",
+   "fieldtype": "Link",
+   "label": "R\u00e9gion",
+   "options": "Territory",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_pirp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "contacts_tab",
+   "fieldtype": "Tab Break",
+   "label": "Contacts"
+  },
+  {
+   "fieldname": "liste_contact",
+   "fieldtype": "Table",
+   "label": "Liste Contacts",
+   "options": "Contact Client"
+  },
+  {
+   "fieldname": "informations_administratives_tab",
+   "fieldtype": "Tab Break",
+   "label": "Informations Administratives"
+  },
+  {
+   "fieldname": "rc",
+   "fieldtype": "Data",
+   "label": "N\u00ba RC"
+  },
+  {
+   "fieldname": "nif",
+   "fieldtype": "Data",
+   "label": "N\u00ba NIF"
+  },
+  {
+   "fieldname": "nis",
+   "fieldtype": "Data",
+   "label": "N\u00ba NIS"
+  },
+  {
+   "fieldname": "ai",
+   "fieldtype": "Data",
+   "label": "N\u00ba AI"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-03 16:40:07.402759",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Groupe de societes",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
