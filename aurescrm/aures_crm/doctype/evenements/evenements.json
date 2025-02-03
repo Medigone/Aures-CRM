@@ -165,7 +165,7 @@
  "index_web_pages_for_search": 1,
  "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2025-02-03 09:55:59.691315",
+ "modified": "2025-02-03 10:02:54.534759",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Evenements",
@@ -193,7 +193,7 @@
    "title": "Brouillon"
   },
   {
-   "color": "Light Blue",
+   "color": "Blue",
    "title": "Programm\u00e9"
   },
   {

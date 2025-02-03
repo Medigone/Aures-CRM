@@ -6,3 +6,12 @@
 
 // 	},
 // });
+frappe.views.calendar["Evenements"] = {
+    // mapping des champs
+    field_map: {
+        "start": "date_debut",    // champ de début
+        "end": "date_fin",       // champ de fin
+        "id": "name",            // identifiant unique
+        "title": "title"        // titre à afficher
+    }
+};
