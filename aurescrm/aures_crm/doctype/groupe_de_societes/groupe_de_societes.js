@@ -22,6 +22,8 @@ frappe.ui.form.on('Groupe de societes', {
                     if (response.message) {
                         let customers = response.message;
                         let customerData = [];
+                        let total_group_billed = 0;
+                        let total_group_outstanding = 0;
 
                         let promises = customers.map(customer => {
                             return new Promise(resolve => {
@@ -45,6 +47,10 @@ frappe.ui.form.on('Groupe de societes', {
                                                 outstanding_amount += invoice.outstanding_amount;
                                             });
                                         }
+
+                                        // Ajout des valeurs au total du groupe
+                                        total_group_billed += total_billed;
+                                        total_group_outstanding += outstanding_amount;
 
                                         customerData.push({
                                             customer_name: customer.customer_name,
@@ -76,6 +82,13 @@ frappe.ui.form.on('Groupe de societes', {
                                             <td>${format_currency(customer.outstanding_amount, frappe.defaults.get_default("currency"))}</td>
                                          </tr>`;
                             });
+
+                            // Ligne Total Groupe
+                            html += `<tr style="font-weight:bold;">
+                                        <td>Total Groupe</td>
+                                        <td>${format_currency(total_group_billed, frappe.defaults.get_default("currency"))}</td>
+                                        <td>${format_currency(total_group_outstanding, frappe.defaults.get_default("currency"))}</td>
+                                     </tr>`;
 
                             html += `</tbody></table>`;
 
