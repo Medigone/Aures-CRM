@@ -120,3 +120,47 @@ frappe.ui.form.on('Adresses de livraison', {
         });
     }
 });
+
+frappe.ui.form.on('Adresses de livraison', {
+    refresh: function(frm) {
+        if (frm.doc.gps) {
+            let parts = frm.doc.gps.split(',');
+            if (parts.length >= 2) {
+                let lat = parseFloat(parts[0].trim());
+                let lon = parseFloat(parts[1].trim());
+
+                // Créer le HTML pour le conteneur de la carte avec bordure fine et bords arrondis à 20px
+                let map_html = `<div id="leaflet-map" style="width: 100%; height: 300px; border: 1px solid #ccc; border-radius: 20px;"></div>`;
+                frm.set_df_property('carte', 'options', map_html);
+
+                // Initialiser la carte après un léger délai pour être sûr que le HTML a été injecté
+                setTimeout(function() {
+                    if (typeof L !== 'undefined') {
+                        // Si une carte a déjà été initialisée dans le conteneur, la supprimer
+                        if (frm.leaflet_map) {
+                            frm.leaflet_map.remove();
+                        }
+                        // Créer la carte et la centrer sur les coordonnées GPS
+                        frm.leaflet_map = L.map('leaflet-map').setView([lat, lon], 13);
+
+                        // Ajouter une couche de tuiles OpenStreetMap
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap contributors'
+                        }).addTo(frm.leaflet_map);
+
+                        // Ajouter un marqueur sur la position
+                        L.marker([lat, lon]).addTo(frm.leaflet_map)
+                            .bindPopup("Position actuelle")
+                            .openPopup();
+                    } else {
+                        frappe.msgprint("Leaflet n'est pas chargé.");
+                    }
+                }, 100);
+            } else {
+                frm.set_df_property('carte', 'options', "<p>Les coordonnées GPS ne sont pas correctes.</p>");
+            }
+        } else {
+            frm.set_df_property('carte', 'options', "<p>GPS non renseigné.</p>");
+        }
+    }
+});
