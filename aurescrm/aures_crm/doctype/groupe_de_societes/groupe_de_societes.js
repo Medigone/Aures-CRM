@@ -131,11 +131,11 @@ frappe.ui.form.on('Groupe de societes', {
                                         font-size: 12px;
                                     }
                                     thead {
-                                        background: #f3f4f6;
+                                        background: #f9fafb;
                                         border-bottom: 1px solid #e5e7eb;
                                     }
                                     th, td {
-                                        padding: 12px;
+                                        padding: 10px;
                                         text-align: left;
                                         border-bottom: 1px solid #e5e7eb;
                                     }
@@ -146,7 +146,7 @@ frappe.ui.form.on('Groupe de societes', {
                                         cursor: pointer;
                                     }
                                     tr:hover {
-                                        background: #eef2ff;
+                                        background: #f9fafb;
                                     }
                                     .col-number {
                                         width: 50px;
