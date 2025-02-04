@@ -33,7 +33,7 @@
    "fieldname": "raison_sociale",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Raison Sociale",
+   "label": "Nom du Groupe",
    "reqd": 1
   },
   {
@@ -162,7 +162,7 @@
    "link_fieldname": "custom_groupe_de_soci\u00e9t\u00e9s"
   }
  ],
- "modified": "2025-02-03 21:42:23.292117",
+ "modified": "2025-02-04 11:43:29.252756",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Groupe de societes",
