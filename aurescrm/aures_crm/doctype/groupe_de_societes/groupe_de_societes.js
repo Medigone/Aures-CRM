@@ -98,8 +98,8 @@ frappe.ui.form.on('Groupe de societes', {
                                         font-weight: bold;
                                     }
                                     .summary-icon {
-                                        width: 30px;
-                                        height: 30px;
+                                        width: 20px;
+                                        height: 20px;
                                         border-radius: 50%;
                                         background: #ffffff;
                                         border: 1px solid #d1d5db;
@@ -109,7 +109,7 @@ frappe.ui.form.on('Groupe de societes', {
                                         margin-right: 10px;
                                     }
                                     .summary-content {
-                                        font-size: 10px;
+                                        font-size: 12px;
                                     }
                                     .summary-content p {
                                         margin: 0;
@@ -183,8 +183,9 @@ frappe.ui.form.on('Groupe de societes', {
                                             <i class="fa fa-bar-chart" style="color: #ffffff;"></i>
                                         </div>
                                         <div class="summary-content">
-                                            <p>Chiffre d'Affaires</p>
-                                            ${format_currency(total_group_billed, frappe.defaults.get_default("currency"))}
+                                            <p>Chiffre d'Affaires Global :
+                                            <strong>${format_currency(total_group_billed, frappe.defaults.get_default("currency"))}</strong>
+                                            </p>
                                         </div>
                                     </div>
 
@@ -193,8 +194,9 @@ frappe.ui.form.on('Groupe de societes', {
                                             <i class="fa fa-balance-scale" style="color: #ffffff;"></i>
                                         </div>
                                         <div class="summary-content">
-                                            <p>Solde Actuel</p>
-                                            ${format_currency(total_group_outstanding, frappe.defaults.get_default("currency"))}
+                                            <p>Solde Global :
+                                            <strong>${format_currency(total_group_outstanding, frappe.defaults.get_default("currency"))}</strong>
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
