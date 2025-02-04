@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-04 19:44:02.766033",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "client",
+  "section_break_twtw",
+  "adresse_principale",
+  "column_break_bsgb",
+  "desactiver",
+  "section_break_evfr",
+  "commune",
+  "wilaya",
+  "region",
+  "column_break_jnzy",
+  "gps",
+  "carte"
+ ],
+ "fields": [
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "commune",
+   "fieldtype": "Link",
+   "label": "Commune",
+   "options": "Communes"
+  },
+  {
+   "fetch_from": "commune.wilaya",
+   "fieldname": "wilaya",
+   "fieldtype": "Link",
+   "label": "Wilaya",
+   "options": "Wilayas"
+  },
+  {
+   "fetch_from": "commune.region",
+   "fieldname": "region",
+   "fieldtype": "Link",
+   "label": "R\u00e9gion",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "column_break_bsgb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "adresse_principale",
+   "fieldtype": "Check",
+   "label": "Est Adresse Principale"
+  },
+  {
+   "fieldname": "section_break_evfr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_jnzy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_twtw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "desactiver",
+   "fieldtype": "Check",
+   "label": "D\u00e9sactiver"
+  },
+  {
+   "fieldname": "gps",
+   "fieldtype": "Data",
+   "label": "GPS"
+  },
+  {
+   "fieldname": "carte",
+   "fieldtype": "HTML",
+   "label": "Carte"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-04 20:05:35.627068",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Adresses de livraison",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
