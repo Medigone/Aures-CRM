@@ -55,7 +55,8 @@
    "default": "0",
    "fieldname": "adresse_principale",
    "fieldtype": "Check",
-   "label": "Est Adresse Principale"
+   "label": "Est Adresse Principale",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_evfr",
@@ -88,7 +89,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-04 20:19:40.971257",
+ "modified": "2025-02-04 22:11:39.514983",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Adresses de livraison",

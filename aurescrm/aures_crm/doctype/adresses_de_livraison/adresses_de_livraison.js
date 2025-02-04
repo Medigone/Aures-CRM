@@ -8,7 +8,7 @@
 // });
 frappe.ui.form.on('Adresses de livraison', {
     refresh(frm) {
-        // Bouton "Récupérer GPS Principal" dans le groupe "Localisation"
+        // Bouton "Récupérer GPS" dans le groupe "Localisation"
         frm.add_custom_button(__('Récupérer GPS'), function() {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(function(position) {
@@ -32,16 +32,13 @@ frappe.ui.form.on('Adresses de livraison', {
             }
         }, __('Localisation'));
 
-        // Bouton "Naviguer" dans le groupe "Localisation"
+        // Bouton "Itinéraire" dans le groupe "Localisation"
         frm.add_custom_button(__('Itinéraire'), function() {
-            // Vérifier si le champ 'gps' est renseigné
             if (frm.doc.gps) {
-                // Extrait les coordonnées GPS
                 const coords = frm.doc.gps.split(',');
                 if (coords.length >= 2) {
                     const lat = coords[0].trim();
                     const lon = coords[1].trim();
-                    // Ouvre Google Maps en mode navigation vers la position
                     const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
                     window.open(url, '_blank');
                 } else {
@@ -52,11 +49,74 @@ frappe.ui.form.on('Adresses de livraison', {
             }
         }, __('Localisation'));
 
-        // Bouton pour définir l'adresse comme principale (hors groupe)
+        // Bouton "Principale" (hors groupe) avec confirmation
         frm.add_custom_button(__('Principale'), function() {
-            frm.set_value('adresse_principale', 1);
-            frm.save();
-            frappe.msgprint("Adresse définie comme principale.");
+            // Vérifier que le client est renseigné
+            if (!frm.doc.client) {
+                frappe.msgprint("Veuillez d'abord renseigner le client.");
+                return;
+            }
+            // Rechercher les autres adresses principales pour ce client
+            frappe.call({
+                method: "frappe.client.get_list",
+                args: {
+                    doctype: "Adresses de livraison",
+                    filters: {
+                        client: frm.doc.client,
+                        adresse_principale: 1,
+                        name: ["!=", frm.doc.name]
+                    },
+                    fields: ["name"]
+                },
+                callback: function(response) {
+                    if (response.message && response.message.length > 0) {
+                        // Il existe déjà une adresse principale, on demande confirmation
+                        let d = new frappe.ui.Dialog({
+                            title: 'Confirmation de remplacement',
+                            fields: [
+                                {
+                                    label: "Une autre adresse principale existe déjà pour ce client.<br>Voulez-vous la remplacer par celle-ci ?",
+                                    fieldname: 'confirm',
+                                    fieldtype: 'Check',
+                                    default: 0,
+                                    reqd: 1
+                                }
+                            ],
+                            primary_action_label: 'Confirmer',
+                            primary_action: function(values) {
+                                if (values.confirm) {
+                                    // Remplacer les adresses principales existantes
+                                    response.message.forEach(function(doc) {
+                                        frappe.call({
+                                            method: "frappe.client.set_value",
+                                            args: {
+                                                doctype: "Adresses de livraison",
+                                                name: doc.name,
+                                                fieldname: "adresse_principale",
+                                                value: 0
+                                            }
+                                        });
+                                    });
+                                    // Définir cette adresse comme principale et sauvegarder
+                                    frm.set_value('adresse_principale', 1);
+                                    frm.save();
+                                    frappe.msgprint("Adresse définie comme principale.");
+                                    d.hide();
+                                } else {
+                                    d.hide();
+                                    frappe.msgprint("Veuillez cocher la case pour confirmer le remplacement.");
+                                }
+                            }
+                        });
+                        d.show();
+                    } else {
+                        // Aucune autre adresse principale trouvée, on définit directement
+                        frm.set_value('adresse_principale', 1);
+                        frm.save();
+                        frappe.msgprint("Adresse définie comme principale.");
+                    }
+                }
+            });
         });
     }
 });
