@@ -36,14 +36,16 @@
    "fieldname": "wilaya",
    "fieldtype": "Link",
    "label": "Wilaya",
-   "options": "Wilayas"
+   "options": "Wilayas",
+   "read_only": 1
   },
   {
    "fetch_from": "commune.region",
    "fieldname": "region",
    "fieldtype": "Link",
    "label": "R\u00e9gion",
-   "options": "Territory"
+   "options": "Territory",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_bsgb",
@@ -86,7 +88,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-04 20:05:35.627068",
+ "modified": "2025-02-04 20:19:40.971257",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Adresses de livraison",
