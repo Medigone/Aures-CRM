@@ -19,7 +19,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-03 09:34:40.256891",
+ "modified": "2025-02-04 11:36:51.490024",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Type Evenement",
@@ -36,6 +36,11 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Commercial",
+   "select": 1
   }
  ],
  "show_title_field_in_link": 1,
