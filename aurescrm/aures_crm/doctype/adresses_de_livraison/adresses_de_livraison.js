@@ -1,13 +1,11 @@
 // Copyright (c) 2025, Medigo and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("Adresses de livraison", {
-// 	refresh(frm) {
-
-// 	},
-// });
 frappe.ui.form.on('Adresses de livraison', {
     refresh(frm) {
+        // ----------------------------
+        // Boutons personnalisés
+        // ----------------------------
         // Bouton "Récupérer GPS" dans le groupe "Localisation"
         frm.add_custom_button(__('Récupérer GPS'), function() {
             if ("geolocation" in navigator) {
@@ -118,22 +116,20 @@ frappe.ui.form.on('Adresses de livraison', {
                 }
             });
         });
-    }
-});
 
-frappe.ui.form.on('Adresses de livraison', {
-    refresh: function(frm) {
+        // ----------------------------
+        // Affichage de la carte avec Leaflet
+        // ----------------------------
         if (frm.doc.gps) {
             let parts = frm.doc.gps.split(',');
             if (parts.length >= 2) {
                 let lat = parseFloat(parts[0].trim());
                 let lon = parseFloat(parts[1].trim());
-
                 // Créer le HTML pour le conteneur de la carte avec bordure fine et bords arrondis à 20px
                 let map_html = `<div id="leaflet-map" style="width: 100%; height: 300px; border: 1px solid #ccc; border-radius: 20px;"></div>`;
                 frm.set_df_property('carte', 'options', map_html);
 
-                // Initialiser la carte après un léger délai pour être sûr que le HTML a été injecté
+                // Initialiser la carte après un léger délai pour être sûr que le HTML est injecté
                 setTimeout(function() {
                     if (typeof L !== 'undefined') {
                         // Si une carte a déjà été initialisée dans le conteneur, la supprimer
@@ -148,10 +144,8 @@ frappe.ui.form.on('Adresses de livraison', {
                             attribution: '&copy; OpenStreetMap contributors'
                         }).addTo(frm.leaflet_map);
 
-                        // Ajouter un marqueur sur la position
-                        L.marker([lat, lon]).addTo(frm.leaflet_map)
-                            .bindPopup("Position actuelle")
-                            .openPopup();
+                        // Ajouter un marqueur sur la position sans popup
+                        L.marker([lat, lon]).addTo(frm.leaflet_map);
                     } else {
                         frappe.msgprint("Leaflet n'est pas chargé.");
                     }
