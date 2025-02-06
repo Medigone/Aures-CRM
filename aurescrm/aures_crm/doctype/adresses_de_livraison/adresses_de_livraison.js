@@ -16,8 +16,12 @@ frappe.ui.form.on('Adresses de livraison', {
                     
                     // Mettre à jour le champ 'gps' et enregistrer le document
                     frm.set_value('gps', gpsCoords);
-                    frm.save();
-                    frappe.msgprint(`Coordonnées GPS récupérées et enregistrées : ${gpsCoords}`);
+                    frm.save().then(() => {
+                        frappe.msgprint(`Coordonnées GPS récupérées et enregistrées : ${gpsCoords}`);
+                    }).catch(err => {
+                        console.error("Erreur GPS:", err);
+                        frappe.msgprint("Erreur lors de la sauvegarde après récupération du GPS.");
+                    });
                 }, function(error) {
                     frappe.msgprint(`Erreur lors de la récupération des coordonnées GPS : ${error.message}`);
                 }, {
@@ -54,6 +58,7 @@ frappe.ui.form.on('Adresses de livraison', {
                 frappe.msgprint("Veuillez d'abord renseigner le client.");
                 return;
             }
+            console.log("Docstatus avant action Principale :", frm.doc.docstatus);
             // Rechercher les autres adresses principales pour ce client
             frappe.call({
                 method: "frappe.client.get_list",
@@ -95,11 +100,15 @@ frappe.ui.form.on('Adresses de livraison', {
                                             }
                                         });
                                     });
-                                    // Définir cette adresse comme principale et sauvegarder
-                                    frm.set_value('adresse_principale', 1);
-                                    frm.save();
-                                    frappe.msgprint("Adresse définie comme principale.");
+                                    // Fermer le dialogue avant de sauvegarder
                                     d.hide();
+                                    frm.set_value('adresse_principale', 1);
+                                    frm.save().then(() => {
+                                        frappe.msgprint("Adresse définie comme principale.");
+                                    }).catch((err) => {
+                                        console.error("Erreur lors de la sauvegarde :", err);
+                                        frappe.msgprint("Erreur lors de la sauvegarde : " + err);
+                                    });
                                 } else {
                                     d.hide();
                                     frappe.msgprint("Veuillez cocher la case pour confirmer le remplacement.");
@@ -108,10 +117,13 @@ frappe.ui.form.on('Adresses de livraison', {
                         });
                         d.show();
                     } else {
-                        // Aucune autre adresse principale trouvée, on définit directement
                         frm.set_value('adresse_principale', 1);
-                        frm.save();
-                        frappe.msgprint("Adresse définie comme principale.");
+                        frm.save().then(() => {
+                            frappe.msgprint("Adresse définie comme principale.");
+                        }).catch((err) => {
+                            console.error("Erreur lors de la sauvegarde :", err);
+                            frappe.msgprint("Erreur lors de la sauvegarde : " + err);
+                        });
                     }
                 }
             });
@@ -132,19 +144,13 @@ frappe.ui.form.on('Adresses de livraison', {
                 // Initialiser la carte après un léger délai pour être sûr que le HTML est injecté
                 setTimeout(function() {
                     if (typeof L !== 'undefined') {
-                        // Si une carte a déjà été initialisée dans le conteneur, la supprimer
                         if (frm.leaflet_map) {
                             frm.leaflet_map.remove();
                         }
-                        // Créer la carte et la centrer sur les coordonnées GPS
                         frm.leaflet_map = L.map('leaflet-map').setView([lat, lon], 13);
-
-                        // Ajouter une couche de tuiles OpenStreetMap
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '&copy; OpenStreetMap contributors'
                         }).addTo(frm.leaflet_map);
-
-                        // Ajouter un marqueur sur la position sans popup
                         L.marker([lat, lon]).addTo(frm.leaflet_map);
                     } else {
                         frappe.msgprint("Leaflet n'est pas chargé.");
@@ -158,3 +164,4 @@ frappe.ui.form.on('Adresses de livraison', {
         }
     }
 });
+

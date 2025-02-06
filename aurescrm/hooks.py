@@ -141,6 +141,9 @@ doc_events = {
     "Item": {
         "before_save": "aurescrm.utils.custom_item_naming",
         "after_insert": "aurescrm.aures_crm.doctype.etude_technique_offset.etude_technique_offset.create_etude_technique_offset"
+    },
+    "Adresses de livraison": {
+        "before_save": "aurescrm.utils.custom_delivery_address_naming"
     }
 }
 
