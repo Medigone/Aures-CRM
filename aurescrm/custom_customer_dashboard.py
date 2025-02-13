@@ -11,11 +11,12 @@ def get_data(**kwargs):
             "Item": "custom_client",
             "BOM": "custom_client",
             "Rendez Vous Client": "client",
+            "Etude Technique Offset": "client",
         },
         "transactions": [
             {
                
-                "items": ["Visite Commerciale", "Rendez Vous Client"],
+                "items": ["Visite Commerciale", "Rendez Vous Client", "Appel Telephonique"],
             },
             {
                
@@ -23,7 +24,7 @@ def get_data(**kwargs):
             },
             {
                
-                "items": ["Item", "BOM"],
+                "items": ["Item", "Etude Technique Offset", "BOM"],
             },
             
         ],
