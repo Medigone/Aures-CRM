@@ -1507,7 +1507,7 @@
    "insert_after": "custom_dimension_fen\u00eatre",
    "is_system_generated": 0,
    "is_virtual": 0,
-   "label": "Epaisseur Fen\u00eatre",
+   "label": "Epaisseur Fen\u00eatre (Micronage)",
    "length": 0,
    "link_filters": null,
    "mandatory_depends_on": "",
