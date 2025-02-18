@@ -10,9 +10,10 @@
   "section_break_gdsu",
   "date",
   "client",
+  "article",
   "column_break_cqas",
-  "utilisateur",
-  "nom_utilisateur",
+  "id_commercial",
+  "commercial",
   "amended_from",
   "notes_tab",
   "observations"
@@ -27,7 +28,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Tirages Blanc",
+   "options": "Essai Blanc",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
@@ -54,25 +55,11 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "utilisateur",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Utilisateur",
-   "options": "User",
-   "read_only": 1
-  },
-  {
-   "fieldname": "nom_utilisateur",
-   "fieldtype": "Data",
-   "label": "Nom Utilisateur",
-   "read_only": 1
-  },
-  {
    "fieldname": "status",
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nValid\u00e9 par Responsable\nRejet\u00e9 par Responsable\nEn production\nLivr\u00e9\nValid\u00e9 par Client\nRejet\u00e9 par Client\nAnnul\u00e9"
+   "options": "Nouveau\nEn production\nTermin\u00e9\nAnnul\u00e9"
   },
   {
    "fieldname": "notes_tab",
@@ -83,15 +70,35 @@
    "fieldname": "observations",
    "fieldtype": "Text Editor",
    "label": "Observations"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "fieldname": "id_commercial",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "ID Commercial",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "commercial",
+   "fieldtype": "Data",
+   "label": "Commercial",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-27 11:08:17.858280",
+ "modified": "2025-02-18 15:14:13.137099",
  "modified_by": "Administrator",
  "module": "Aures CRM",
- "name": "Tirages Blanc",
+ "name": "Essai Blanc",
  "owner": "Administrator",
  "permissions": [
   {

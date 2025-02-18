@@ -5,7 +5,7 @@
 from frappe.model.document import Document
 import frappe
 
-class TiragesBlanc(Document):
+class EssaiBlanc(Document):
     def before_save(self):
         # 1. Vérifier si le champ 'utilisateur' est vide, et le remplir avec l'ID (email) du créateur (owner)
         if not self.utilisateur:

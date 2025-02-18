@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestTiragesBlanc(FrappeTestCase):
+class TestEssaiBlanc(FrappeTestCase):
 	pass
