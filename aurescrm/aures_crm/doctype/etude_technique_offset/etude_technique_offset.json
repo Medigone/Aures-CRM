@@ -189,7 +189,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-18 14:55:05.220222",
+ "modified": "2025-02-18 14:55:43.356522",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique Offset",
@@ -237,6 +237,5 @@
    "title": "Annul\u00e9e"
   }
  ],
- "track_changes": 1,
- "track_seen": 1
+ "track_changes": 1
 }
