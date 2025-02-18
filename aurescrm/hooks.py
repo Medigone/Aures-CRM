@@ -139,7 +139,7 @@ doc_events = {
         "before_save": "aurescrm.customer_hooks.uppercase_customer_name"
     },
     "Item": {
-        "before_save": "aurescrm.utils.custom_item_naming",
+        "autoname": "aurescrm.utils.custom_item_naming",
         "after_insert": "aurescrm.aures_crm.doctype.etude_technique_offset.etude_technique_offset.create_etude_technique_offset"
     },
     "Adresses de livraison": {

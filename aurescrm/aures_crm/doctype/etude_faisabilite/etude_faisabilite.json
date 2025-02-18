@@ -1,0 +1,183 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-18 12:35:08.861030",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_break_fkfa",
+  "date_creation",
+  "date_echeance",
+  "column_break_wies",
+  "id_commercial",
+  "commercial",
+  "section_break_uigs",
+  "est_creation",
+  "section_break_dazt",
+  "client",
+  "column_break_nktv",
+  "article",
+  "column_break_fglp",
+  "procede",
+  "tab_2_tab",
+  "taux_chutes",
+  "column_break_uilq",
+  "delai_realisation",
+  "column_break_ricr",
+  "devis",
+  "section_break_edky",
+  "observations"
+ ],
+ "fields": [
+  {
+   "default": "Nouveau",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Nouveau\nEn \u00e9tude\nR\u00e9alisable\nNon R\u00e9alisable\nDevis Pr\u00e9par\u00e9"
+  },
+  {
+   "fieldname": "section_break_fkfa",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "label": "Date Cr\u00e9ation",
+   "read_only": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_echeance",
+   "fieldtype": "Date",
+   "label": "Date \u00c9ch\u00e9ance"
+  },
+  {
+   "fieldname": "column_break_wies",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fieldname": "id_commercial",
+   "fieldtype": "Link",
+   "label": "ID Commercial",
+   "options": "User"
+  },
+  {
+   "fetch_from": "id_commercial.full_name",
+   "fieldname": "commercial",
+   "fieldtype": "Data",
+   "label": "Commercial",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_dazt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_nktv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_fglp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "article.custom_proc\u00e9d\u00e9",
+   "fieldname": "procede",
+   "fieldtype": "Select",
+   "label": "Proc\u00e9d\u00e9",
+   "options": "\nOffset\nFlexo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_uigs",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "est_creation",
+   "fieldtype": "Check",
+   "label": "Cr\u00e9ation"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "Faisabilit\u00e9"
+  },
+  {
+   "fieldname": "delai_realisation",
+   "fieldtype": "Duration",
+   "hide_seconds": 1,
+   "label": "D\u00e9lai de r\u00e9alisation"
+  },
+  {
+   "fieldname": "column_break_ricr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "devis",
+   "fieldtype": "Link",
+   "label": "Devis",
+   "options": "Quotation"
+  },
+  {
+   "fieldname": "section_break_edky",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Text Editor",
+   "label": "Observations"
+  },
+  {
+   "description": "En %",
+   "fieldname": "taux_chutes",
+   "fieldtype": "Int",
+   "label": "Taux de chutes",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_uilq",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-18 12:51:13.461372",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Etude Faisabilite",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
