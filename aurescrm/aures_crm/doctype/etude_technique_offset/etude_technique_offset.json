@@ -22,9 +22,11 @@
   "nom_commercial",
   "section_break_jdgg",
   "article",
-  "image",
+  "est_defaut",
   "column_break_vhao",
-  "quantite"
+  "quantite",
+  "observations_tab",
+  "observations"
  ],
  "fields": [
   {
@@ -85,7 +87,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Statut",
-   "options": "Nouveau\nEn Cours\nTermin\u00e9e\nRejet\u00e9e\nAnnul\u00e9e"
+   "options": "Nouveau\nPhase Trac\u00e9 technique\nValidation Trac\u00e9\nEssai Blanc\nValidation Essai\nPhase Maquette\nValidation Maquette\nTermin\u00e9e\nAnnul\u00e9e"
   },
   {
    "fieldname": "column_break_crbc",
@@ -146,18 +148,26 @@
    "fieldtype": "Section Break"
   },
   {
-   "fetch_from": "article.image",
-   "fieldname": "image",
-   "fieldtype": "Attach Image",
-   "hidden": 1,
-   "label": "Image Article"
+   "fieldname": "observations_tab",
+   "fieldtype": "Tab Break",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Text Editor",
+   "label": "Observations"
+  },
+  {
+   "default": "0",
+   "fieldname": "est_defaut",
+   "fieldtype": "Check",
+   "label": "Est D\u00e9faut"
   }
  ],
- "image_field": "image",
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-13 19:40:28.212748",
+ "modified": "2025-02-18 14:51:27.588199",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique Offset",
