@@ -7,14 +7,21 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
+  "section_break_jdcz",
+  "date_creation",
+  "column_break_hiwt",
+  "date_termine",
   "section_break_gdsu",
-  "date",
   "client",
-  "article",
+  "etude_technique",
   "column_break_cqas",
   "id_commercial",
   "commercial",
   "amended_from",
+  "section_break_vcuw",
+  "article",
+  "column_break_lhof",
+  "quantite",
   "notes_tab",
   "observations"
  ],
@@ -34,15 +41,6 @@
    "search_index": 1
   },
   {
-   "default": "Today",
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Date",
-   "read_only": 1
-  },
-  {
    "fieldname": "client",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -55,9 +53,12 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Nouveau",
    "fieldname": "status",
    "fieldtype": "Select",
    "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Statut",
    "options": "Nouveau\nEn production\nTermin\u00e9\nAnnul\u00e9"
   },
@@ -78,6 +79,7 @@
    "options": "Item"
   },
   {
+   "fetch_from": "client.custom_commercial_attribu\u00e9",
    "fieldname": "id_commercial",
    "fieldtype": "Link",
    "in_standard_filter": 1,
@@ -86,16 +88,63 @@
    "read_only": 1
   },
   {
+   "fetch_from": "id_commercial.full_name",
    "fieldname": "commercial",
    "fieldtype": "Data",
    "label": "Commercial",
+   "read_only": 1
+  },
+  {
+   "fieldname": "etude_technique",
+   "fieldtype": "Link",
+   "label": "Etude Technique",
+   "options": "Etude Technique Offset"
+  },
+  {
+   "fieldname": "section_break_jdcz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date Cr\u00e9ation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_vcuw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_lhof",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_hiwt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_termine",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date Termin\u00e9 ",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-18 15:14:13.137099",
+ "modified": "2025-02-18 15:22:22.628687",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Essai Blanc",
