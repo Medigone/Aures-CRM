@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-18 14:09:07.645677",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_break_rylr",
+  "date_creation",
+  "column_break_jjam",
+  "date_echeance",
+  "column_break_zkul",
+  "date_resolution",
+  "section_break_qnyd",
+  "client",
+  "type_reclamation",
+  "column_break_dses",
+  "id_commercial",
+  "commercial"
+ ],
+ "fields": [
+  {
+   "default": "Nouveau",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Nouveau\nEn Traitement\nTrait\u00e9\nEn retard\nNon Trait\u00e9\nAnnul\u00e9"
+  },
+  {
+   "fieldname": "section_break_rylr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "label": "Date cr\u00e9ation"
+  },
+  {
+   "fieldname": "column_break_jjam",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_echeance",
+   "fieldtype": "Date",
+   "label": "Date d\u2019\u00e9ch\u00e9ance"
+  },
+  {
+   "fieldname": "column_break_zkul",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_resolution",
+   "fieldtype": "Date",
+   "label": "Date R\u00e9solution"
+  },
+  {
+   "fieldname": "section_break_qnyd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "type_reclamation",
+   "fieldtype": "Select",
+   "label": "Type R\u00e9clamation"
+  },
+  {
+   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fieldname": "id_commercial",
+   "fieldtype": "Link",
+   "label": "ID Commercial",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "id_commercial.full_name",
+   "fieldname": "commercial",
+   "fieldtype": "Data",
+   "label": "Commercial",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dses",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-18 14:14:16.947712",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Reclamations Clients",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
