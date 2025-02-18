@@ -17,7 +17,9 @@
   "type_reclamation",
   "column_break_dses",
   "id_commercial",
-  "commercial"
+  "commercial",
+  "section_break_lzea",
+  "observations"
  ],
  "fields": [
   {
@@ -88,11 +90,20 @@
   {
    "fieldname": "column_break_dses",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_lzea",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Text Editor",
+   "label": "Observations"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-18 14:14:16.947712",
+ "modified": "2025-02-18 14:31:33.874565",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
