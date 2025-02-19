@@ -27,7 +27,7 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2025-01-08 09:51:01.933359",
+ "modified": "2025-02-19 16:48:08.979331",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",
@@ -48,6 +48,15 @@
  "roles": [
   {
    "role": "Commercial"
+  },
+  {
+   "role": "Coordination"
+  },
+  {
+   "role": "Superviseur CRM"
+  },
+  {
+   "role": "Administrateur Ventes"
   }
  ],
  "sequence_id": 1.0,

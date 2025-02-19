@@ -39,7 +39,7 @@
  "is_hidden": 0,
  "label": "Visites",
  "links": [],
- "modified": "2025-01-02 12:48:12.023421",
+ "modified": "2025-02-19 16:48:39.337647",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visites",
@@ -51,6 +51,12 @@
  "roles": [
   {
    "role": "Commercial"
+  },
+  {
+   "role": "Administrateur Ventes"
+  },
+  {
+   "role": "Superviseur CRM"
   }
  ],
  "sequence_id": 2.0,
