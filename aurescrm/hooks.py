@@ -265,7 +265,7 @@ scheduler_events = {
 
 fixtures = [
     # "Custom HTML Block",
-    # "Role",
+    "Role",
     # "Client Script",
     # "Document Naming Rule",
     # "Workflow",
