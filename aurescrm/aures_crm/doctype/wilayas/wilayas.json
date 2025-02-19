@@ -35,7 +35,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-13 13:58:28.715550",
+ "modified": "2025-02-19 15:12:12.181714",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Wilayas",
@@ -53,6 +53,13 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1
   }
  ],
  "search_fields": "code,region",

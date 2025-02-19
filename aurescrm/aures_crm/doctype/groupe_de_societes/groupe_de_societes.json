@@ -162,7 +162,7 @@
    "link_fieldname": "custom_groupe_de_soci\u00e9t\u00e9s"
   }
  ],
- "modified": "2025-02-04 11:43:29.252756",
+ "modified": "2025-02-19 15:11:10.296167",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Groupe de societes",
@@ -187,6 +187,24 @@
    "read": 1,
    "role": "Commercial",
    "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
    "share": 1,
    "write": 1
   }

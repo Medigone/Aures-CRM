@@ -105,7 +105,7 @@
  "index_web_pages_for_search": 1,
  "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2024-11-05 20:45:58.011242",
+ "modified": "2025-02-19 15:18:57.772417",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Rendez Vous Client",
@@ -125,8 +125,31 @@
   },
   {
    "create": 1,
+   "delete": 1,
    "read": 1,
    "role": "Commercial",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM",
    "select": 1,
    "write": 1
   }
