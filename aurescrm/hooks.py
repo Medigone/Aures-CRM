@@ -160,6 +160,14 @@ doc_events = {
 
 # Scheduled Tasks
 # ---------------
+scheduler_events = {
+    "cron": {
+        "0 2 * * *": [
+            "aurescrm.aures_crm.doctype.reclamations_clients.reclamations_clients.update_reclamations_status"
+        ]
+    }
+}
+
 
 # scheduler_events = {
 # 	"all": [

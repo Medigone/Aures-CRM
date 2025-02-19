@@ -6,6 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
+  "column_break_wwyp",
+  "column_break_yjon",
   "section_break_rylr",
   "date_creation",
   "column_break_jjam",
@@ -13,9 +15,10 @@
   "column_break_zkul",
   "date_resolution",
   "section_break_qnyd",
-  "client",
   "type_reclamation",
   "column_break_dses",
+  "client",
+  "column_break_tabj",
   "id_commercial",
   "commercial",
   "section_break_lzea",
@@ -26,8 +29,12 @@
    "default": "Nouveau",
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn Traitement\nTrait\u00e9\nEn retard\nNon Trait\u00e9\nAnnul\u00e9"
+   "options": "Nouveau\nEn Traitement\nTrait\u00e9\nEn Retard\nNon Trait\u00e9\nAnnul\u00e9"
   },
   {
    "fieldname": "section_break_rylr",
@@ -37,7 +44,11 @@
    "default": "Today",
    "fieldname": "date_creation",
    "fieldtype": "Date",
-   "label": "Date cr\u00e9ation"
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Date cr\u00e9ation",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_jjam",
@@ -46,7 +57,10 @@
   {
    "fieldname": "date_echeance",
    "fieldtype": "Date",
-   "label": "Date d\u2019\u00e9ch\u00e9ance"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date d\u2019\u00e9ch\u00e9ance",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_zkul",
@@ -55,7 +69,8 @@
   {
    "fieldname": "date_resolution",
    "fieldtype": "Date",
-   "label": "Date R\u00e9solution"
+   "label": "Date R\u00e9solution",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_qnyd",
@@ -64,18 +79,26 @@
   {
    "fieldname": "client",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Client",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "type_reclamation",
    "fieldtype": "Select",
-   "label": "Type R\u00e9clamation"
+   "label": "Type R\u00e9clamation",
+   "options": "\nQualit\u00e9\nRetards Livraison\nAutres",
+   "reqd": 1
   },
   {
    "fetch_from": "client.custom_commercial_attribu\u00e9",
    "fieldname": "id_commercial",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "ID Commercial",
    "options": "User",
    "read_only": 1
@@ -84,6 +107,7 @@
    "fetch_from": "id_commercial.full_name",
    "fieldname": "commercial",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Commercial",
    "read_only": 1
   },
@@ -99,11 +123,23 @@
    "fieldname": "observations",
    "fieldtype": "Text Editor",
    "label": "Observations"
+  },
+  {
+   "fieldname": "column_break_tabj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_wwyp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_yjon",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-18 14:31:33.874565",
+ "modified": "2025-02-19 11:58:52.294955",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
@@ -124,5 +160,30 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Orange",
+   "title": "En Traitement"
+  },
+  {
+   "color": "Green",
+   "title": "Trait\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "En Retard"
+  },
+  {
+   "color": "Yellow",
+   "title": "Non Trait\u00e9"
+  },
+  {
+   "color": "Gray",
+   "title": "Annul\u00e9"
+  }
+ ]
 }
