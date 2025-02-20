@@ -64,7 +64,7 @@
    "hidden": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn Cours\nTermin\u00e9\nValid\u00e9\nAnnul\u00e9",
+   "options": "Nouveau\nEn Cours\nTermin\u00e9\nAnnul\u00e9",
    "read_only": 1
   },
   {
@@ -179,6 +179,7 @@
   },
   {
    "fetch_from": "utilisateur.full_name",
+   "fetch_if_empty": 1,
    "fieldname": "nom_utilisateur",
    "fieldtype": "Data",
    "label": "Nom Utilisateur",
@@ -266,7 +267,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-19 15:18:05.513693",
+ "modified": "2025-02-20 09:55:54.435374",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
