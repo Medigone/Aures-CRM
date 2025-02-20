@@ -1,11 +1,15 @@
 {
  "charts": [],
- "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"E3xVmK9gh1\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Commandes\",\"col\":6}},{\"id\":\"Gw7NzX-RRT\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visites Commerciales\",\"col\":6}},{\"id\":\"3DPcSIEP-P\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Client\",\"col\":3}},{\"id\":\"qHrOX1lnA9\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Rendez-Vous Clients\",\"col\":3}},{\"id\":\"NMCpWOk-Oe\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"PcBUS7jBB1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Commande client\",\"col\":3}},{\"id\":\"tHRSF83c_a\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Liste Clients\",\"col\":12}}]",
+ "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"k8rpTiNcvA\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Test\",\"col\":12}},{\"id\":\"LBTw1LsSpK\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Liste Clients\",\"col\":12}}]",
  "creation": "2024-08-15 15:02:30.805872",
  "custom_blocks": [
   {
    "custom_block_name": "Accueil",
    "label": "Accueil"
+  },
+  {
+   "custom_block_name": "Boutons Accueil - Commercial",
+   "label": "Test"
   },
   {
    "custom_block_name": "Liste Clients",
@@ -22,20 +26,11 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2025-02-19 16:50:57.680115",
+ "modified": "2025-02-20 14:40:24.476791",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",
- "number_cards": [
-  {
-   "label": "Total Commandes",
-   "number_card_name": "Total Commandes"
-  },
-  {
-   "label": "Visites Commerciales",
-   "number_card_name": "Visite Commerciale"
-  }
- ],
+ "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
@@ -55,39 +50,6 @@
   }
  ],
  "sequence_id": 1.0,
- "shortcuts": [
-  {
-   "color": "Green",
-   "doc_view": "List",
-   "label": "Client",
-   "link_to": "Customer",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Red",
-   "doc_view": "List",
-   "label": "Commande client",
-   "link_to": "Sales Order",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Orange",
-   "doc_view": "List",
-   "label": "Visites Commerciales",
-   "link_to": "Visite Commerciale",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Yellow",
-   "doc_view": "List",
-   "label": "Rendez-Vous Clients",
-   "link_to": "Rendez Vous Client",
-   "stats_filter": "[]",
-   "type": "DocType"
-  }
- ],
+ "shortcuts": [],
  "title": "Home"
 }
