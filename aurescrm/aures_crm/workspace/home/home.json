@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"k8rpTiNcvA\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Test\",\"col\":12}},{\"id\":\"LBTw1LsSpK\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Liste Clients\",\"col\":12}}]",
+ "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"k8rpTiNcvA\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Test\",\"col\":12}},{\"id\":\"33SqNF-xJI\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":3}},{\"id\":\"Jn0NenZk9N\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Articles\",\"col\":3}},{\"id\":\"9yluIARaXw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visite Commerciale\",\"col\":3}},{\"id\":\"4b20dkDBjX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Rendez-vous\",\"col\":3}},{\"id\":\"LBTw1LsSpK\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Liste Clients\",\"col\":12}}]",
  "creation": "2024-08-15 15:02:30.805872",
  "custom_blocks": [
   {
@@ -26,11 +26,28 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2025-02-20 14:40:24.476791",
+ "modified": "2025-02-21 11:37:10.521828",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Articles",
+   "number_card_name": "Total Active Items"
+  },
+  {
+   "label": "Clients",
+   "number_card_name": "Active Customers"
+  },
+  {
+   "label": "Visite Commerciale",
+   "number_card_name": "Visite Commerciale"
+  },
+  {
+   "label": "Rendez-vous",
+   "number_card_name": "Rendez-vous"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
