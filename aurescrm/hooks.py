@@ -270,7 +270,6 @@ scheduler_events = {
 
 fixtures = [
     # "Custom HTML Block",
-    # "Role",
     # "Client Script",
     # "Document Naming Rule",
     # "Workflow",
@@ -279,6 +278,10 @@ fixtures = [
     # "Workflow Action",
     # "Workflow Action Master",
     # "Workflow Document State",
-    # "DocPerm",
+    "DocPerm",
     # "Workspace"
+    "Custom Role",
+    "Role",
+    
 ]
+
