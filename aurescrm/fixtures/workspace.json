@@ -723,7 +723,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:14.275953",
+  "modified": "2025-02-22 22:24:51.567369",
   "module": "CRM",
   "name": "CRM",
   "number_cards": [],
@@ -731,7 +731,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "CRM",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "CRM",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 17.0,
   "shortcuts": [
    {
@@ -3361,7 +3374,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:14.153194",
+  "modified": "2025-02-22 22:25:05.458779",
   "module": "Website",
   "name": "Website",
   "number_cards": [],
@@ -3369,7 +3382,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Website",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Website",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 16.0,
   "shortcuts": [
    {
@@ -4027,7 +4053,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:14.440611",
+  "modified": "2025-02-22 22:24:37.139853",
   "module": "Automation",
   "name": "Tools",
   "number_cards": [],
@@ -4035,7 +4061,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Tools",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Tools",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 18.0,
   "shortcuts": [
    {
@@ -4371,7 +4410,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:14.041673",
+  "modified": "2025-02-22 22:25:19.457287",
   "module": "Core",
   "name": "Users",
   "number_cards": [],
@@ -4379,7 +4418,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Users",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Users",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 15.0,
   "shortcuts": [
    {
@@ -4839,7 +4891,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:14.754275",
+  "modified": "2025-02-22 22:24:14.571881",
   "module": "Integrations",
   "name": "Integrations",
   "number_cards": [],
@@ -4847,7 +4899,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Integrations",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Integrations",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 20.0,
   "shortcuts": [],
   "title": "Integrations"
@@ -7839,7 +7904,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:13.428988",
+  "modified": "2025-02-22 22:26:40.060728",
   "module": "Assets",
   "name": "Assets",
   "number_cards": [],
@@ -7847,7 +7912,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Assets",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Assets",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 10.0,
   "shortcuts": [
    {
@@ -8245,7 +8323,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:13.788621",
+  "modified": "2025-02-22 22:25:54.457521",
   "module": "Projects",
   "name": "Projects",
   "number_cards": [],
@@ -8253,7 +8331,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Projects",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Projects",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 13.0,
   "shortcuts": [
    {
@@ -8657,7 +8748,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:13.907966",
+  "modified": "2025-02-22 22:25:34.495252",
   "module": "Support",
   "name": "Support",
   "number_cards": [],
@@ -8665,7 +8756,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Support",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Support",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 14.0,
   "shortcuts": [
    {
@@ -8967,7 +9071,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:13.681970",
+  "modified": "2025-02-22 22:26:09.784136",
   "module": "Quality Management",
   "name": "Quality",
   "number_cards": [],
@@ -8975,7 +9079,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Quality",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Quality",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 12.0,
   "shortcuts": [
    {
@@ -9613,7 +9730,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:13.547492",
+  "modified": "2025-02-22 22:26:25.220775",
   "module": "Manufacturing",
   "name": "Manufacturing",
   "number_cards": [],
@@ -9621,7 +9738,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Manufacturing",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Manufacturing",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 11.0,
   "shortcuts": [
    {
@@ -10148,42 +10278,6 @@
     "hidden": 0,
     "icon": null,
     "is_query_report": 0,
-    "label": "GoCardless Settings",
-    "link_count": 0,
-    "link_to": "GoCardless Settings",
-    "link_type": "DocType",
-    "onboard": 0,
-    "only_for": null,
-    "parent": "ERPNext Integrations",
-    "parentfield": "links",
-    "parenttype": "Workspace",
-    "report_ref_doctype": null,
-    "type": "Link"
-   },
-   {
-    "dependencies": null,
-    "description": null,
-    "hidden": 0,
-    "icon": null,
-    "is_query_report": 0,
-    "label": "Mpesa Settings",
-    "link_count": 0,
-    "link_to": "Mpesa Settings",
-    "link_type": "DocType",
-    "onboard": 0,
-    "only_for": null,
-    "parent": "ERPNext Integrations",
-    "parentfield": "links",
-    "parenttype": "Workspace",
-    "report_ref_doctype": null,
-    "type": "Link"
-   },
-   {
-    "dependencies": null,
-    "description": null,
-    "hidden": 0,
-    "icon": null,
-    "is_query_report": 0,
     "label": "Plaid Settings",
     "link_count": 0,
     "link_to": "Plaid Settings",
@@ -10197,7 +10291,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:14.859122",
+  "modified": "2025-02-22 22:23:45.334593",
   "module": "ERPNext Integrations",
   "name": "ERPNext Integrations",
   "number_cards": [],
@@ -10205,7 +10299,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "ERPNext Integrations",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "ERPNext Integrations",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 21.0,
   "shortcuts": [
    {
@@ -10979,7 +11086,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:14.577413",
+  "modified": "2025-02-22 22:24:00.379742",
   "module": "Setup",
   "name": "ERPNext Settings",
   "number_cards": [],
@@ -10987,7 +11094,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "ERPNext Settings",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "ERPNext Settings",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 19.0,
   "shortcuts": [
    {
@@ -11389,7 +11509,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:12.561493",
+  "modified": "2025-02-22 22:27:42.446279",
   "module": "Accounts",
   "name": "Payables",
   "number_cards": [],
@@ -11397,7 +11517,32 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Payables",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Payables",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Payables",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Payables",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Accounts User"
+   }
+  ],
   "sequence_id": 5.0,
   "shortcuts": [
    {
@@ -11805,7 +11950,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:12.727061",
+  "modified": "2025-02-22 22:27:21.629760",
   "module": "Accounts",
   "name": "Receivables",
   "number_cards": [],
@@ -11813,7 +11958,32 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Receivables",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Receivables",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   },
+   {
+    "parent": "Receivables",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Accounts Manager"
+   },
+   {
+    "parent": "Receivables",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Accounts User"
+   }
+  ],
   "sequence_id": 6.0,
   "shortcuts": [
    {
@@ -12343,7 +12513,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:12.860464",
+  "modified": "2025-02-22 22:26:54.914192",
   "module": "Accounts",
   "name": "Financial Reports",
   "number_cards": [],
@@ -12351,7 +12521,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Financial Reports",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Financial Reports",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 7.0,
   "shortcuts": [],
   "title": "Financial Reports"
@@ -13134,7 +13317,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:15.005939",
+  "modified": "2025-02-22 22:23:00.792275",
   "module": "Core",
   "name": "Build",
   "number_cards": [],
@@ -13142,7 +13325,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Build",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Build",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 22.0,
   "shortcuts": [
    {
@@ -13273,7 +13469,7 @@
   "is_hidden": 0,
   "label": "Welcome Workspace",
   "links": [],
-  "modified": "2023-07-28 20:15:32.222029",
+  "modified": "2025-02-22 22:28:01.383807",
   "module": "Core",
   "name": "Welcome Workspace",
   "number_cards": [],
@@ -13281,7 +13477,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": null,
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Welcome Workspace",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Welcome Workspace",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 22.0,
   "shortcuts": [],
   "title": "Welcome Workspace"

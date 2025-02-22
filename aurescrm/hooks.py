@@ -278,10 +278,10 @@ fixtures = [
     # "Workflow Action",
     # "Workflow Action Master",
     # "Workflow Document State",
-    "DocPerm",
-    # "Workspace"
-    "Custom Role",
-    "Role",
+    # "DocPerm",
+    "Workspace",
+    # "Custom Role",
+    # "Role",
     
 ]
 
