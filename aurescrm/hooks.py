@@ -136,7 +136,12 @@ doc_events = {
         "after_insert": "aurescrm.fiche_evaluation_client.calculate_global_score"
     },
     "Customer": {
-        "before_save": "aurescrm.customer_hooks.uppercase_customer_name"
+        "before_save": [
+            "aurescrm.customer_hooks.uppercase_customer_name",
+            "aurescrm.customer_hooks.set_default_commercial"
+        ],
+
+        # "on_update": "aurescrm.customer_hooks.create_user_permission"
     },
     "Item": {
         "autoname": "aurescrm.utils.custom_item_naming",

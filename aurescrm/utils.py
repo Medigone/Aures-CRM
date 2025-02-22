@@ -46,3 +46,4 @@ def custom_delivery_address_naming(doc, method):
         doc.name = f"{customer_id}-{next_number}"
     else:
         frappe.throw("Veuillez sélectionner un client pour générer un code pour l'adresse de livraison.")
+
