@@ -12541,7 +12541,7 @@
  },
  {
   "charts": [],
-  "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"k8rpTiNcvA\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial\",\"col\":12}},{\"id\":\"33SqNF-xJI\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":3}},{\"id\":\"Jn0NenZk9N\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Articles\",\"col\":3}},{\"id\":\"9yluIARaXw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visite Commerciale\",\"col\":3}},{\"id\":\"4b20dkDBjX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Rendez-vous\",\"col\":3}},{\"id\":\"LBTw1LsSpK\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Liste Clients\",\"col\":12}}]",
+  "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"k8rpTiNcvA\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial\",\"col\":12}},{\"id\":\"33SqNF-xJI\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":3}},{\"id\":\"Jn0NenZk9N\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Articles\",\"col\":3}},{\"id\":\"9yluIARaXw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visite Commerciale\",\"col\":3}},{\"id\":\"ZH7izKWdCR\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Reclamations Ouvertes\",\"col\":3}}]",
   "custom_blocks": [
    {
     "custom_block_name": "Actions Rapides - Commercial",
@@ -12556,13 +12556,6 @@
     "parent": "Home",
     "parentfield": "custom_blocks",
     "parenttype": "Workspace"
-   },
-   {
-    "custom_block_name": "Liste Clients",
-    "label": "Liste Clients",
-    "parent": "Home",
-    "parentfield": "custom_blocks",
-    "parenttype": "Workspace"
    }
   ],
   "docstatus": 0,
@@ -12574,7 +12567,7 @@
   "is_hidden": 0,
   "label": "Home",
   "links": [],
-  "modified": "2025-02-21 11:52:31.752287",
+  "modified": "2025-02-22 23:03:24.717782",
   "module": "Aures CRM",
   "name": "Home",
   "number_cards": [
@@ -12600,8 +12593,8 @@
     "parenttype": "Workspace"
    },
    {
-    "label": "Rendez-vous",
-    "number_card_name": "Rendez-vous",
+    "label": "Reclamations Ouvertes",
+    "number_card_name": "Reclamations Ouvertes",
     "parent": "Home",
     "parentfield": "number_cards",
     "parenttype": "Workspace"
