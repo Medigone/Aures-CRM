@@ -1,14 +1,9 @@
 // Copyright (c) 2025, Medigo and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("Etude Faisabilite", {
-// 	refresh(frm) {
-
-// 	},
-// });
 frappe.ui.form.on('Etude Faisabilite', {
     refresh: function(frm) {
-        // Appliquer le filtre au chargement
+        // Appliquer le filtre pour n'afficher que les articles liés au client
         frm.fields_dict.article.get_query = function(doc) {
             return {
                 filters: {
@@ -16,22 +11,7 @@ frappe.ui.form.on('Etude Faisabilite', {
                 }
             };
         };
-    },
 
-    client: function(frm) {
-        // Appliquer le filtre dès que le champ client change
-        frm.fields_dict.article.get_query = function(doc) {
-            return {
-                filters: {
-                    'custom_client': doc.client  // Filtrer les articles liés au client sélectionné
-                }
-            };
-        };
-    }
-});
-
-frappe.ui.form.on('Etude Faisabilite', {
-    refresh: function(frm) {
         // Vérifier si le statut est "Réalisable" et si un article est sélectionné
         if (frm.doc.status === "Réalisable" && frm.doc.article) {
             frm.add_custom_button('Créer Nomenclature', function() {
@@ -52,6 +32,17 @@ frappe.ui.form.on('Etude Faisabilite', {
 
             }, "Actions");
         }
+    },
+
+    client: function(frm) {
+        // Appliquer le filtre dès que le champ client change
+        frm.fields_dict.article.get_query = function(doc) {
+            return {
+                filters: {
+                    'custom_client': doc.client  // Filtrer les articles liés au client sélectionné
+                }
+            };
+        };
     },
 
     status: function(frm) {
