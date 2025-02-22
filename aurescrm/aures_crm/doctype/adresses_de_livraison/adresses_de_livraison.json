@@ -89,7 +89,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-19 15:10:16.138128",
+ "modified": "2025-02-22 21:35:30.318119",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Adresses de livraison",
@@ -109,7 +109,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -122,7 +121,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -133,17 +131,21 @@
    "write": 1
   },
   {
+   "create": 1,
    "read": 1,
-   "role": "Coordination"
+   "role": "Coordination",
+   "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Administrateur Ventes",
-   "share": 1
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",

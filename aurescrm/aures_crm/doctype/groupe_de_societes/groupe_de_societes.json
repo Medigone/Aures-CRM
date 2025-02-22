@@ -162,7 +162,7 @@
    "link_fieldname": "custom_groupe_de_soci\u00e9t\u00e9s"
   }
  ],
- "modified": "2025-02-22 18:20:09.154492",
+ "modified": "2025-02-22 21:39:28.658304",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Groupe de societes",
@@ -209,6 +209,7 @@
    "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,

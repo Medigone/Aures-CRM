@@ -120,7 +120,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-28 16:25:12.109463",
+ "modified": "2025-02-22 21:36:21.966587",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appel Telephonique",
@@ -140,13 +140,45 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "if_owner": 1,
    "read": 1,
    "report": 1,
    "role": "Commercial",
    "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Coordination",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
    "share": 1,
    "write": 1
   }
