@@ -12,20 +12,23 @@ def get_data(**kwargs):
             "BOM": "custom_client",
             "Rendez Vous Client": "client",
             "Etude Technique Offset": "client",
+            "Reclamations Clients": "client",
+            "Etude Faisabilite": "client",
         },
         "transactions": [
             {
                
-                "items": ["Visite Commerciale", "Rendez Vous Client", "Appel Telephonique"],
+                "items": ["Visite Commerciale", "Rendez Vous Client", "Appel Telephonique", "Reclamations Clients"],
             },
             {
                
-                "items": ["Quotation", "Sales Order"],
+                "items": ["Item", "Etude Faisabilite", "Quotation", "Sales Order"],
             },
             {
                
-                "items": ["Item", "Etude Technique Offset", "BOM"],
+                "items": ["Etude Technique Offset", "BOM"],
             },
+            
             
         ],
     }
