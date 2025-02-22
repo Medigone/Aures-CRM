@@ -158,7 +158,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-19 15:19:29.837166",
+ "modified": "2025-02-22 11:51:38.392310",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -192,5 +192,26 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Orange",
+   "title": "En \u00e9tude"
+  },
+  {
+   "color": "Green",
+   "title": "R\u00e9alisable"
+  },
+  {
+   "color": "Red",
+   "title": "Non R\u00e9alisable"
+  },
+  {
+   "color": "Green",
+   "title": "Devis Pr\u00e9par\u00e9"
+  }
+ ]
 }
