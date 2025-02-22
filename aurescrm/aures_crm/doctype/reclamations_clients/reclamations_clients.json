@@ -139,7 +139,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-19 15:09:05.631461",
+ "modified": "2025-02-22 18:21:54.622579",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
@@ -159,8 +159,10 @@
   },
   {
    "create": 1,
+   "if_owner": 1,
    "read": 1,
-   "role": "Commercial"
+   "role": "Commercial",
+   "select": 1
   },
   {
    "create": 1,
