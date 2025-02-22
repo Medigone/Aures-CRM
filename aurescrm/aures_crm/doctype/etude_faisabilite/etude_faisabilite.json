@@ -172,7 +172,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-22 18:14:21.626113",
+ "modified": "2025-02-22 18:15:55.307137",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -211,6 +211,11 @@
   {
    "read": 1,
    "role": "Commercial",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Superviseur CRM",
    "select": 1
   }
  ],
