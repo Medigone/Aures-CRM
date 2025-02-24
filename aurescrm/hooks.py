@@ -145,6 +145,7 @@ doc_events = {
     },
     "Item": {
         "autoname": "aurescrm.utils.custom_item_naming",
+        "before_save": "aurescrm.utils.format_item_fields"
         
     },
     "Adresses de livraison": {

@@ -47,3 +47,16 @@ def custom_delivery_address_naming(doc, method):
     else:
         frappe.throw("Veuillez sélectionner un client pour générer un code pour l'adresse de livraison.")
 
+
+import frappe
+
+def format_item_fields(doc, method):
+    """
+    - Convertit `item_code` en majuscules.
+    - Génère automatiquement `item_name` à partir de `item_code`.
+    """
+    if doc.item_code:
+        doc.item_code = doc.item_code.upper()
+
+        # Générer automatiquement item_name basé sur item_code
+        doc.item_name = doc.item_code  # `item_name` sera toujours égal à `item_code`
