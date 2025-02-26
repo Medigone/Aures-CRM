@@ -84,15 +84,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2024-08-14 01:36:43.494048",
-  "name": "En Cours",
-  "style": "Warning",
-  "workflow_state_name": "En Cours"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2024-09-27 10:48:40.328629",
   "name": "Validé par Responsable",
   "style": "Success",
@@ -120,24 +111,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2024-09-27 10:46:16.595859",
-  "name": "Validé",
-  "style": "Success",
-  "workflow_state_name": "Validé"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2024-09-27 10:41:14.875330",
-  "name": "Terminé",
-  "style": "Success",
-  "workflow_state_name": "Terminé"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2024-09-27 10:40:32.259548",
   "name": "En production",
   "style": "Warning",
@@ -156,6 +129,42 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2025-02-26 11:44:30.594355",
+  "name": "En étude",
+  "style": "Warning",
+  "workflow_state_name": "En étude"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-02-26 11:44:45.577838",
+  "name": "Réalisable",
+  "style": "Success",
+  "workflow_state_name": "Réalisable"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-02-26 11:44:38.799747",
+  "name": "Non Réalisable",
+  "style": "Danger",
+  "workflow_state_name": "Non Réalisable"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:46:16.595859",
+  "name": "Validé",
+  "style": "Success",
+  "workflow_state_name": "Validé"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2024-03-30 15:44:16.122437",
   "name": "Annulé",
   "style": "Danger",
@@ -169,5 +178,23 @@
   "name": "Nouveau",
   "style": "Info",
   "workflow_state_name": "Nouveau"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-08-14 01:36:43.494048",
+  "name": "En Cours",
+  "style": "Warning",
+  "workflow_state_name": "En Cours"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:41:14.875330",
+  "name": "Terminé",
+  "style": "Success",
+  "workflow_state_name": "Terminé"
  }
 ]

@@ -502,5 +502,131 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 11:47:43.218839",
+  "name": "a3ti7ehb1d",
+  "permitted_roles": [
+   {
+    "parent": "a3ti7ehb1d",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "lsfdbhoccq",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 11:47:48.093862",
+  "name": "e3dsh7venp",
+  "permitted_roles": [
+   {
+    "parent": "e3dsh7venp",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "lsfdbhoccq",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 11:47:51.874945",
+  "name": "e0a86ic9iv",
+  "permitted_roles": [
+   {
+    "parent": "e0a86ic9iv",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "lsfdbhoccq",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Non Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 11:48:05.324473",
+  "name": "pulvmb4ol5",
+  "permitted_roles": [
+   {
+    "parent": "pulvmb4ol5",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "sk83lkv3se",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 11:48:06.963229",
+  "name": "ssarnpjsv9",
+  "permitted_roles": [
+   {
+    "parent": "ssarnpjsv9",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "sk83lkv3se",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 11:48:08.530514",
+  "name": "0d65t3vo4p",
+  "permitted_roles": [
+   {
+    "parent": "0d65t3vo4p",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "sk83lkv3se",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
  }
 ]

@@ -270,19 +270,19 @@ scheduler_events = {
 # }
 
 fixtures = [
-    # "Custom HTML Block",
-    # "Client Script",
-    # "Document Naming Rule",
-    # "Workflow",
-    # "Workflow State",
-    # "Workflow Transition",
-    # "Workflow Action",
-    # "Workflow Action Master",
-    # "Workflow Document State",
-    # "DocPerm",
-    # "Workspace",
-    # "Custom Role",
-    # "Role",
+    "Custom HTML Block",
+    "Client Script",
+    "Document Naming Rule",
+    "Workflow",
+    "Workflow State",
+    "Workflow Transition",
+    "Workflow Action",
+    "Workflow Action Master",
+    "Workflow Document State",
+    "DocPerm",
+    "Workspace",
+    "Custom Role",
+    "Role",
     
 ]
 
