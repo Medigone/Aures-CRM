@@ -15,20 +15,22 @@ def get_data(**kwargs):
             "Reclamations Clients": "client",
             "Etude Faisabilite": "client",
             "Sales Invoice": "customer",
+            "Payment Entry": "party",
         },
         "transactions": [
             {
                
                 "items": ["Visite Commerciale", "Rendez Vous Client", "Appel Telephonique", "Reclamations Clients"],
             },
-            {
+             {
                
-                "items": ["Item", "Quotation", "Sales Order", "Sales Invoice"],
+                "items": ["Item", "BOM", "Etude Faisabilite", "Etude Technique"],
             },
             {
                
-                "items": ["Etude Technique", "BOM", "Etude Faisabilite"],
+                "items": ["Quotation", "Sales Order", "Sales Invoice", "Payment Entry"],
             },
+           
             
             
         ],
