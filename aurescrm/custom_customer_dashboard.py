@@ -19,19 +19,16 @@ def get_data(**kwargs):
         },
         "transactions": [
             {
-               
+                "label": _("Interactions Clients"),
                 "items": ["Visite Commerciale", "Rendez Vous Client", "Appel Telephonique", "Reclamations Clients"],
             },
-             {
-               
+            {
+                "label": _("Gestion des Produits et Études"),
                 "items": ["Item", "BOM", "Etude Faisabilite", "Etude Technique"],
             },
             {
-               
+                "label": _("Documents de Vente et Paiements"),
                 "items": ["Quotation", "Sales Order", "Sales Invoice", "Payment Entry"],
             },
-           
-            
-            
         ],
     }
