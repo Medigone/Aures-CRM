@@ -24,8 +24,6 @@
   "taux_chutes",
   "column_break_uilq",
   "delai_realisation",
-  "column_break_ricr",
-  "devis",
   "section_break_edky",
   "observations"
  ],
@@ -34,8 +32,9 @@
    "default": "Nouveau",
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn \u00e9tude\nR\u00e9alisable\nNon R\u00e9alisable\nDevis Pr\u00e9par\u00e9"
+   "options": "Nouveau\nEn \u00e9tude\nR\u00e9alisable\nNon R\u00e9alisable"
   },
   {
    "fieldname": "section_break_fkfa",
@@ -69,7 +68,8 @@
    "fieldname": "id_commercial",
    "fieldtype": "Link",
    "label": "ID Commercial",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   },
   {
    "fetch_from": "id_commercial.full_name",
@@ -100,6 +100,7 @@
    "fieldname": "article",
    "fieldtype": "Link",
    "in_filter": 1,
+   "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Article",
@@ -140,16 +141,6 @@
    "label": "D\u00e9lai de r\u00e9alisation"
   },
   {
-   "fieldname": "column_break_ricr",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "devis",
-   "fieldtype": "Link",
-   "label": "Devis",
-   "options": "Quotation"
-  },
-  {
    "fieldname": "section_break_edky",
    "fieldtype": "Section Break"
   },
@@ -172,7 +163,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-22 18:15:55.307137",
+ "modified": "2025-02-26 11:48:33.170708",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -221,26 +212,5 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [
-  {
-   "color": "Blue",
-   "title": "Nouveau"
-  },
-  {
-   "color": "Orange",
-   "title": "En \u00e9tude"
-  },
-  {
-   "color": "Green",
-   "title": "R\u00e9alisable"
-  },
-  {
-   "color": "Red",
-   "title": "Non R\u00e9alisable"
-  },
-  {
-   "color": "Green",
-   "title": "Devis Pr\u00e9par\u00e9"
-  }
- ]
+ "states": []
 }
