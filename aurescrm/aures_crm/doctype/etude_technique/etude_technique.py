@@ -3,11 +3,11 @@ from frappe.model.document import Document
 from datetime import datetime, timedelta
 
 
-class EtudeTechniqueOffset(Document):
+class EtudeTechnique(Document):
     pass
 
 
-# def create_etude_technique_offset(doc, method):
+# def create_etude_technique(doc, method):
 #     if doc.custom_procédé == "Offset":
 #         # Vérifiez si le client est renseigné
 #         if not doc.custom_client:

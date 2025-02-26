@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 
-frappe.ui.form.on('Etude Technique Offset', {
+frappe.ui.form.on('Etude Technique', {
     setup: function(frm) {
         frm.set_query('article', function() {
             return {
