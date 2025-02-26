@@ -628,5 +628,131 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 14:06:58.748523",
+  "name": "e9bst7sehu",
+  "permitted_roles": [
+   {
+    "parent": "e9bst7sehu",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Commercial"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00031",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "amine.melizi@intrapro.net",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 14:23:10.864152",
+  "name": "sjlnm86nt9",
+  "permitted_roles": [
+   {
+    "parent": "sjlnm86nt9",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00032",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "amine.melizi@intrapro.net",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 14:23:24.391914",
+  "name": "avoid7r251",
+  "permitted_roles": [
+   {
+    "parent": "avoid7r251",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00032",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 14:26:00.168942",
+  "name": "2gop070afu",
+  "permitted_roles": [
+   {
+    "parent": "2gop070afu",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00032",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Terminé"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 14:51:54.565796",
+  "name": "jvp4vg6l5v",
+  "permitted_roles": [
+   {
+    "parent": "jvp4vg6l5v",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00031",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-26 14:51:57.195782",
+  "name": "2efekrtj1i",
+  "permitted_roles": [
+   {
+    "parent": "2efekrtj1i",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00031",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Terminé"
  }
 ]
