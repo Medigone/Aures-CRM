@@ -4804,7 +4804,7 @@
    "_comments": null,
    "_liked_by": null,
    "_user_tags": null,
-   "creation": "2025-02-22 20:16:51.618733",
+   "creation": "2025-02-26 09:27:50.596894",
    "default_value": null,
    "doc_type": "Item",
    "docstatus": 0,
@@ -4812,7 +4812,7 @@
    "field_name": "disabled",
    "idx": 0,
    "is_system_generated": 0,
-   "modified": "2025-02-22 20:16:51.618733",
+   "modified": "2025-02-26 09:27:50.596894",
    "modified_by": "Administrator",
    "module": null,
    "name": "Item-disabled-permlevel",
@@ -4820,7 +4820,7 @@
    "property": "permlevel",
    "property_type": "Int",
    "row_name": null,
-   "value": "1"
+   "value": "0"
   },
   {
    "_assign": null,
