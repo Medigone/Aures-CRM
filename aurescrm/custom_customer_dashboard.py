@@ -14,6 +14,7 @@ def get_data(**kwargs):
             "Etude Technique": "client",
             "Reclamations Clients": "client",
             "Etude Faisabilite": "client",
+            "Sales Invoice": "customer",
         },
         "transactions": [
             {
@@ -22,11 +23,11 @@ def get_data(**kwargs):
             },
             {
                
-                "items": ["Item", "Etude Faisabilite", "Quotation", "Sales Order"],
+                "items": ["Item", "Quotation", "Sales Order", "Sales Invoice"],
             },
             {
                
-                "items": ["Etude Technique", "BOM"],
+                "items": ["Etude Technique", "BOM", "Etude Faisabilite"],
             },
             
             
