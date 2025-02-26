@@ -266,7 +266,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-22 18:22:50.049694",
+ "modified": "2025-02-26 14:04:49.815563",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
@@ -294,6 +294,7 @@
    "if_owner": 1,
    "read": 1,
    "role": "Commercial",
+   "submit": 1,
    "write": 1
   },
   {
@@ -310,7 +311,6 @@
    "write": 1
   },
   {
-   "delete": 1,
    "read": 1,
    "role": "Superviseur CRM",
    "select": 1
