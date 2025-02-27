@@ -139,7 +139,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-27 10:38:25.510702",
+ "modified": "2025-02-27 10:43:44.181841",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
@@ -154,15 +154,21 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
   {
    "create": 1,
-   "if_owner": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
    "read": 1,
-   "role": "Commercial",
+   "report": 1,
+   "role": "Administrateur Ventes",
    "select": 1,
+   "share": 1,
    "write": 1
   },
   {
@@ -172,23 +178,29 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Administrateur Ventes",
+   "role": "Coordination",
+   "select": 1,
    "share": 1,
    "write": 1
   },
   {
    "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Coordination",
+   "role": "Superviseur CRM",
    "select": 1,
+   "share": 1,
    "write": 1
   },
   {
    "create": 1,
+   "if_owner": 1,
    "read": 1,
-   "report": 1,
-   "role": "Superviseur CRM",
+   "role": "Commercial",
+   "select": 1,
    "write": 1
   }
  ],
