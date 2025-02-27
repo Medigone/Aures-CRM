@@ -3,17 +3,38 @@
 
 frappe.ui.form.on('Visite Commerciale', {
     refresh: function(frm) {
+        // Ajouter un bouton "Créer" avec un menu déroulant sous 'Créer'
+        frm.add_custom_button(__('Réclamation Client'), function() {
+            if (!frm.doc.client) {
+                frappe.msgprint(__('Veuillez sélectionner un client avant de créer une réclamation.'));
+                return;
+            }
+            frappe.new_doc('Reclamations Clients', {
+                client: frm.doc.client
+            });
+        }, __('Créer'));
+
+        // Ajouter un bouton "Article" sous "Créer" pour créer un nouvel article
+        frm.add_custom_button(__('Article'), function() {
+            if (!frm.doc.client) {
+                frappe.msgprint(__('Veuillez sélectionner un client avant de créer un article.'));
+                return;
+            }
+            frappe.new_doc('Item', {
+                custom_client: frm.doc.client
+            });
+        }, __('Créer'));
+
         // Initialiser la variable pour suivre l'affichage des erreurs de GPS
         if (frm.gps_error_shown === undefined) {
             frm.gps_error_shown = false;
         }
 
         // Récupérer les coordonnées GPS du client à partir du champ 'custom_gps' dans le Doctype Customer
-        if (frm.doc.client) {  // Assurez-vous qu'il y a un client associé
+        if (frm.doc.client) {  
             frappe.db.get_value('Customer', frm.doc.client, 'custom_gps').then(r => {
                 let gpsCoords = r.message.custom_gps;
                 if (gpsCoords) {
-                    // Si les coordonnées GPS du client existent, afficher la carte
                     updateCustomerMap(frm, gpsCoords);
                 } else {
                     frappe.msgprint(__('Aucune coordonnée GPS trouvée pour ce client.'));
@@ -23,20 +44,14 @@ frappe.ui.form.on('Visite Commerciale', {
 
         // Vérifier si l'état du workflow est "En Cours" et que le champ gps_visite est vide
         if (frm.doc.status === "En Cours" && !frm.doc.gps_visite) {
-            // Utiliser la géolocalisation si elle est disponible
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     ({ coords: { latitude, longitude } }) => {
                         const gpsCoords = `${latitude}, ${longitude}`;
-
-                        // Mettre à jour le champ 'gps_visite' et enregistrer automatiquement le document
                         frm.set_value('gps_visite', gpsCoords).then(() => frm.save());
-
-                        // Mettre à jour la carte pour la visite commerciale
                         updateMap(frm, gpsCoords);
                     },
                     () => {
-                        // Afficher un seul message d'erreur lorsque la géolocalisation échoue
                         if (!frm.gps_error_shown) {
                             frappe.msgprint(__('Erreur lors de la récupération de la localisation.'));
                             frm.gps_error_shown = true;
@@ -44,7 +59,6 @@ frappe.ui.form.on('Visite Commerciale', {
                     }
                 );
             } else {
-                // Afficher un seul message d'erreur si la géolocalisation n'est pas prise en charge
                 if (!frm.gps_error_shown) {
                     frappe.msgprint(__('La géolocalisation n\'est pas prise en charge par votre navigateur.'));
                     frm.gps_error_shown = true;
@@ -59,20 +73,14 @@ frappe.ui.form.on('Visite Commerciale', {
     }
 });
 
-// Fonction pour afficher la carte du client basée sur les coordonnées du champ custom_gps du Doctype Customer
 function updateCustomerMap(frm, gpsCoords) {
     const [latitude, longitude] = gpsCoords.split(", ");
     const mapUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBhtddbDMEu4OoBJAxlfYADptjTspOqflw&q=${latitude},${longitude}&zoom=15`;
-
-    // Mettre à jour la carte dans le champ 'carte_client'
     $(frm.fields_dict['carte_client'].wrapper).html(`<iframe width="100%" height="300" frameborder="0" style="border:0" src="${mapUrl}" allowfullscreen></iframe>`);
 }
 
-// Fonction pour afficher la carte de la visite commerciale
 function updateMap(frm, gpsCoords) {
     const [latitude, longitude] = gpsCoords.split(", ");
     const mapUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBhtddbDMEu4OoBJAxlfYADptjTspOqflw&q=${latitude},${longitude}&zoom=15`;
-
-    // Mettre à jour la carte dans le champ 'carte'
     $(frm.fields_dict['carte'].wrapper).html(`<iframe width="100%" height="300" frameborder="0" style="border:0" src="${mapUrl}" allowfullscreen></iframe>`);
 }
