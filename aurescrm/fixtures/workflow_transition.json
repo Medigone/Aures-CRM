@@ -320,6 +320,22 @@
   "workflow_builder_id": null
  },
  {
+  "action": "Démarrer",
+  "allow_self_approval": 1,
+  "allowed": "Coordination",
+  "condition": null,
+  "docstatus": 0,
+  "doctype": "Workflow Transition",
+  "modified": "2025-02-27 10:56:41.370629",
+  "name": "t0hmopb7jv",
+  "next_state": "En Traitement",
+  "parent": "Reclamations Clients",
+  "parentfield": "transitions",
+  "parenttype": "Workflow",
+  "state": "Nouveau",
+  "workflow_builder_id": null
+ },
+ {
   "action": "Terminer",
   "allow_self_approval": 1,
   "allowed": "All",
@@ -365,6 +381,22 @@
   "parentfield": "transitions",
   "parenttype": "Workflow",
   "state": "En étude",
+  "workflow_builder_id": null
+ },
+ {
+  "action": "Traité",
+  "allow_self_approval": 1,
+  "allowed": "Coordination",
+  "condition": null,
+  "docstatus": 0,
+  "doctype": "Workflow Transition",
+  "modified": "2025-02-27 10:56:41.370629",
+  "name": "qocip640b2",
+  "next_state": "Traité",
+  "parent": "Reclamations Clients",
+  "parentfield": "transitions",
+  "parenttype": "Workflow",
+  "state": "En Traitement",
   "workflow_builder_id": null
  },
  {
@@ -416,6 +448,22 @@
   "workflow_builder_id": null
  },
  {
+  "action": "Non Traité",
+  "allow_self_approval": 1,
+  "allowed": "Coordination",
+  "condition": null,
+  "docstatus": 0,
+  "doctype": "Workflow Transition",
+  "modified": "2025-02-27 10:56:41.370629",
+  "name": "j4qum8gnlf",
+  "next_state": "Non Traité",
+  "parent": "Reclamations Clients",
+  "parentfield": "transitions",
+  "parenttype": "Workflow",
+  "state": "En Traitement",
+  "workflow_builder_id": null
+ },
+ {
   "action": "Livrer",
   "allow_self_approval": 1,
   "allowed": "System Manager",
@@ -448,6 +496,22 @@
   "workflow_builder_id": null
  },
  {
+  "action": "Annuler",
+  "allow_self_approval": 1,
+  "allowed": "Coordination",
+  "condition": null,
+  "docstatus": 0,
+  "doctype": "Workflow Transition",
+  "modified": "2025-02-27 10:56:41.370629",
+  "name": "sa5kusci2p",
+  "next_state": "Annulé",
+  "parent": "Reclamations Clients",
+  "parentfield": "transitions",
+  "parenttype": "Workflow",
+  "state": "Traité",
+  "workflow_builder_id": null
+ },
+ {
   "action": "Valider - Client",
   "allow_self_approval": 1,
   "allowed": "System Manager",
@@ -477,6 +541,22 @@
   "parentfield": "transitions",
   "parenttype": "Workflow",
   "state": "Non Réalisable",
+  "workflow_builder_id": null
+ },
+ {
+  "action": "Annuler",
+  "allow_self_approval": 1,
+  "allowed": "Coordination",
+  "condition": null,
+  "docstatus": 0,
+  "doctype": "Workflow Transition",
+  "modified": "2025-02-27 10:56:41.370629",
+  "name": "21l7blig9f",
+  "next_state": "Annulé",
+  "parent": "Reclamations Clients",
+  "parentfield": "transitions",
+  "parenttype": "Workflow",
+  "state": "Non Traité",
   "workflow_builder_id": null
  },
  {

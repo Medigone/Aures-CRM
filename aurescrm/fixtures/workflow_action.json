@@ -754,5 +754,68 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Terminé"
+ },
+ {
+  "completed_by": "amine.melizi@intrapro.net",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-27 09:30:33.236368",
+  "name": "e620ku3u5r",
+  "permitted_roles": [
+   {
+    "parent": "e620ku3u5r",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00033",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "amine.melizi@intrapro.net",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-27 09:30:36.009328",
+  "name": "c3rgfj35io",
+  "permitted_roles": [
+   {
+    "parent": "c3rgfj35io",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00033",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-27 09:30:39.309205",
+  "name": "bvso1tmfah",
+  "permitted_roles": [
+   {
+    "parent": "bvso1tmfah",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00033",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Terminé"
  }
 ]
