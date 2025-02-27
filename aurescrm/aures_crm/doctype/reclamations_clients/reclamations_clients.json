@@ -139,7 +139,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-22 21:31:37.778882",
+ "modified": "2025-02-27 10:38:25.510702",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
@@ -219,5 +219,6 @@
    "color": "Gray",
    "title": "Annul\u00e9"
   }
- ]
+ ],
+ "track_changes": 1
 }
