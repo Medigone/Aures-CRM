@@ -22,7 +22,8 @@
   "id_commercial",
   "commercial",
   "section_break_lzea",
-  "observations"
+  "observations",
+  "amended_from"
  ],
  "fields": [
   {
@@ -135,11 +136,22 @@
   {
    "fieldname": "column_break_yjon",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Reclamations Clients",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-02-27 10:43:44.181841",
+ "modified": "2025-02-27 10:51:06.580645",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
@@ -172,6 +184,7 @@
    "write": 1
   },
   {
+   "cancel": 1,
    "create": 1,
    "email": 1,
    "export": 1,
@@ -181,6 +194,7 @@
    "role": "Coordination",
    "select": 1,
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
