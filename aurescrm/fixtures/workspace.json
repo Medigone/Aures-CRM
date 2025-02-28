@@ -1878,7 +1878,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-01-02 12:48:12.133659",
+  "modified": "2025-02-28 12:31:25.819834",
   "module": "Selling",
   "name": "Selling",
   "number_cards": [],
@@ -1886,7 +1886,20 @@
   "public": 1,
   "quick_lists": [],
   "restrict_to_domain": "",
-  "roles": [],
+  "roles": [
+   {
+    "parent": "Selling",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrator"
+   },
+   {
+    "parent": "Selling",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "System Manager"
+   }
+  ],
   "sequence_id": 3.0,
   "shortcuts": [
    {
