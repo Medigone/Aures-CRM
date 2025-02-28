@@ -1,38 +1,27 @@
 from frappe.model.naming import make_autoname
 import frappe
-import re
+
 
 def custom_item_naming(doc, method):
-    if doc.item_group == "Produits":  # Vérifie si le groupe d'article est 'Produits'
-        if doc.custom_client:  # Vérifie si un client est lié
-            # Récupère l'ID du client
+    if doc.item_group == "Produits":
+        if doc.custom_client:
+            # Récupérer l'ID du client
             customer_id = frappe.get_value("Customer", doc.custom_client, "name")
             if not customer_id:
                 frappe.throw("Le champ Client est invalide ou vide.")
-            
-            # Récupérer tous les articles existants pour ce client
-            existing_items = frappe.get_all(
-                "Item",
-                filters={"custom_client": doc.custom_client},
-                fields=["name"],
-                order_by="name desc"
-            )
-            
-            # Déterminer le plus grand numéro utilisé
-            max_number = 0
-            pattern = re.compile(rf"^{customer_id}-(\d+)$")  # Cherche des noms au format CLIENT-001
-            
-            for item in existing_items:
-                match = pattern.match(item["name"])
-                if match:
-                    num = int(match.group(1))
-                    max_number = max(max_number, num)
-            
-            # Génère le prochain numéro disponible
-            next_number = f"{max_number + 1:03}"  # Format 001, 002, etc.
-            
-            # Génère le nom complet
-            doc.name = f"{customer_id}-{next_number}"
+
+            # Récupérer le dernier numéro utilisé pour ce client
+            last_number = frappe.get_value("Customer", doc.custom_client, "custom_dernier_numéro_article") or 0
+
+            # Incrémenter le compteur
+            next_number = last_number + 1
+
+            # Mettre à jour le dernier numéro utilisé dans le Doctype Customer
+            frappe.db.set_value("Customer", doc.custom_client, "custom_dernier_numéro_article", next_number)
+
+            # Générer le nom complet de l'article
+            doc.name = f"{customer_id}-{next_number:03}"
+
         else:
             frappe.throw("Veuillez sélectionner un client pour générer un code Item.")
 
