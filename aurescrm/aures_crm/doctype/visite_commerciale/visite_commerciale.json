@@ -20,9 +20,6 @@
   "client",
   "column_break_yzkg",
   "groupe_client",
-  "suivi_client_tab",
-  "devis",
-  "commande",
   "notes_tab",
   "notes",
   "localisation_tab",
@@ -38,7 +35,8 @@
   "duree_visite",
   "column_break_thex",
   "gps_visite",
-  "carte"
+  "carte",
+  "liens_tab"
  ],
  "fields": [
   {
@@ -231,32 +229,26 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "suivi_client_tab",
-   "fieldtype": "Tab Break",
-   "label": "Documents"
-  },
-  {
-   "fieldname": "devis",
-   "fieldtype": "Link",
-   "label": "Devis",
-   "options": "Quotation"
-  },
-  {
-   "fieldname": "commande",
-   "fieldtype": "Link",
-   "label": "Commande",
-   "options": "Sales Order"
-  },
-  {
    "fieldname": "date_rdv",
    "fieldtype": "Datetime",
    "label": "Date & Heure du RDV",
    "read_only": 1
+  },
+  {
+   "fieldname": "liens_tab",
+   "fieldtype": "Tab Break",
+   "label": "Liens",
+   "show_dashboard": 1
   }
  ],
  "is_submittable": 1,
- "links": [],
- "modified": "2025-02-28 12:21:41.152263",
+ "links": [
+  {
+   "link_doctype": "Reclamations Clients",
+   "link_fieldname": "visite"
+  }
+ ],
+ "modified": "2025-02-28 12:28:39.394491",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",

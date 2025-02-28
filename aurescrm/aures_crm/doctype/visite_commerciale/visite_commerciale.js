@@ -10,7 +10,8 @@ frappe.ui.form.on('Visite Commerciale', {
                 return;
             }
             frappe.new_doc('Reclamations Clients', {
-                client: frm.doc.client
+                client: frm.doc.client,
+                visite: frm.doc.name // Remplir automatiquement le champ 'visite' avec l'ID de la visite commerciale
             });
         }, __('Créer'));
 
