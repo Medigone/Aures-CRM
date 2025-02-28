@@ -1,5 +1,6 @@
 from frappe.model.naming import make_autoname
 import frappe
+import re
 
 def custom_item_naming(doc, method):
     if doc.item_group == "Produits":  # Vérifie si le groupe d'article est 'Produits'
@@ -9,16 +10,32 @@ def custom_item_naming(doc, method):
             if not customer_id:
                 frappe.throw("Le champ Client est invalide ou vide.")
             
-            # Compte le nombre d'articles existants pour ce client
-            existing_count = frappe.db.count("Item", filters={"custom_client": doc.custom_client})
+            # Récupérer tous les articles existants pour ce client
+            existing_items = frappe.get_all(
+                "Item",
+                filters={"custom_client": doc.custom_client},
+                fields=["name"],
+                order_by="name desc"
+            )
             
-            # Génère le compteur pour ce client
-            next_number = f"{existing_count + 1:03}"  # Format 001, 002, etc.
+            # Déterminer le plus grand numéro utilisé
+            max_number = 0
+            pattern = re.compile(rf"^{customer_id}-(\d+)$")  # Cherche des noms au format CLIENT-001
+            
+            for item in existing_items:
+                match = pattern.match(item["name"])
+                if match:
+                    num = int(match.group(1))
+                    max_number = max(max_number, num)
+            
+            # Génère le prochain numéro disponible
+            next_number = f"{max_number + 1:03}"  # Format 001, 002, etc.
             
             # Génère le nom complet
             doc.name = f"{customer_id}-{next_number}"
         else:
             frappe.throw("Veuillez sélectionner un client pour générer un code Item.")
+
 
 
 def custom_delivery_address_naming(doc, method):
