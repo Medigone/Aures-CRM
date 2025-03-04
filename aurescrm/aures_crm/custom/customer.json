@@ -867,7 +867,7 @@
    "insert_after": "image",
    "is_system_generated": 0,
    "is_virtual": 0,
-   "label": "Date Existence",
+   "label": "Date d\u00e9but interaction",
    "length": 0,
    "link_filters": null,
    "mandatory_depends_on": null,
