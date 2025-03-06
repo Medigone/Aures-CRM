@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"k8rpTiNcvA\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial\",\"col\":12}},{\"id\":\"33SqNF-xJI\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":3}},{\"id\":\"Jn0NenZk9N\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Articles\",\"col\":3}},{\"id\":\"9yluIARaXw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visite Commerciale\",\"col\":3}},{\"id\":\"ZH7izKWdCR\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Reclamations Ouvertes\",\"col\":3}}]",
+ "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"k8rpTiNcvA\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial\",\"col\":12}},{\"id\":\"1OwS_622p8\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - \u00c9tude Faisabilit\u00e9\",\"col\":12}},{\"id\":\"33SqNF-xJI\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Clients\",\"col\":3}},{\"id\":\"Jn0NenZk9N\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Articles\",\"col\":3}},{\"id\":\"9yluIARaXw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Visite Commerciale\",\"col\":3}},{\"id\":\"ZH7izKWdCR\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Reclamations Ouvertes\",\"col\":3}}]",
  "creation": "2024-08-15 15:02:30.805872",
  "custom_blocks": [
   {
@@ -10,6 +10,10 @@
   {
    "custom_block_name": "Accueil",
    "label": "Accueil"
+  },
+  {
+   "custom_block_name": "Actions Rapides - \u00c9tude Faisabilit\u00e9",
+   "label": "Actions Rapides - \u00c9tude Faisabilit\u00e9"
   }
  ],
  "docstatus": 0,
@@ -22,7 +26,7 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2025-02-22 23:03:24.717782",
+ "modified": "2025-03-06 18:01:01.905635",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",
