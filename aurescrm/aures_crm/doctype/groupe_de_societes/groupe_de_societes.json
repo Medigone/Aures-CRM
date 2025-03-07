@@ -162,7 +162,7 @@
    "link_fieldname": "custom_groupe_de_soci\u00e9t\u00e9s"
   }
  ],
- "modified": "2025-02-22 21:39:28.658304",
+ "modified": "2025-03-07 14:05:21.943308",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Groupe de societes",
@@ -183,41 +183,44 @@
   {
    "create": 1,
    "email": 1,
-   "print": 1,
-   "read": 1,
-   "role": "Commercial",
-   "select": 1,
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Superviseur CRM",
-   "write": 1
-  },
-  {
-   "create": 1,
-   "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Administrateur Ventes",
+   "select": 1,
    "share": 1,
    "write": 1
   },
   {
-   "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Coordination",
-   "share": 1,
+   "role": "Superviseur CRM",
+   "select": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Coordination",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
   }
  ],
  "show_title_field_in_link": 1,
