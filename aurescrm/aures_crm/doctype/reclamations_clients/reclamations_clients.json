@@ -154,13 +154,14 @@
    "in_standard_filter": 1,
    "label": "Visite",
    "options": "Visite Commerciale",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-28 12:24:15.064438",
+ "modified": "2025-03-07 14:12:49.420696",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
@@ -181,7 +182,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -193,10 +193,16 @@
    "write": 1
   },
   {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM",
+   "select": 1
+  },
+  {
    "cancel": 1,
    "create": 1,
    "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
@@ -208,22 +214,16 @@
   },
   {
    "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
+   "if_owner": 1,
    "read": 1,
-   "report": 1,
-   "role": "Superviseur CRM",
-   "select": 1,
-   "share": 1,
+   "role": "Commercial Itin\u00e9rant",
    "write": 1
   },
   {
    "create": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "Commercial",
-   "select": 1,
+   "role": "Commercial S\u00e9dentaire",
    "write": 1
   }
  ],
