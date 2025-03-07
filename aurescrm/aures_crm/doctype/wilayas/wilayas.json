@@ -35,7 +35,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-03 13:34:52.095591",
+ "modified": "2025-03-07 13:40:47.840063",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Wilayas",
@@ -56,25 +56,12 @@
   },
   {
    "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Administrateur Ventes",
+   "role": "All",
    "select": 1,
    "share": 1
-  },
-  {
-   "read": 1,
-   "report": 1,
-   "role": "Commercial",
-   "select": 1
-  },
-  {
-   "read": 1,
-   "report": 1,
-   "role": "Superviseur CRM",
-   "select": 1
   }
  ],
  "search_fields": "code,region",

@@ -89,7 +89,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-22 21:35:30.318119",
+ "modified": "2025-03-07 13:43:46.946357",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Adresses de livraison",
@@ -110,11 +110,10 @@
   {
    "create": 1,
    "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Commercial",
+   "role": "Commercial Itin\u00e9rant",
    "select": 1,
    "share": 1,
    "write": 1
@@ -122,11 +121,11 @@
   {
    "create": 1,
    "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Superviseur CRM",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -134,6 +133,7 @@
    "create": 1,
    "read": 1,
    "role": "Coordination",
+   "select": 1,
    "write": 1
   },
   {
@@ -144,6 +144,23 @@
    "read": 1,
    "report": 1,
    "role": "Administrateur Ventes",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Commercial S\u00e9dentaire",
+   "select": 1,
    "share": 1,
    "write": 1
   }

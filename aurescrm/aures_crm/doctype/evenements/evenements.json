@@ -166,7 +166,7 @@
  "index_web_pages_for_search": 1,
  "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2025-02-22 21:38:19.441340",
+ "modified": "2025-03-07 13:54:55.467900",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Evenements",
@@ -186,19 +186,12 @@
   },
   {
    "create": 1,
-   "read": 1,
-   "role": "Commercial",
-   "select": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Administrateur Ventes",
+   "role": "R\u00e9sponsable Marketing",
    "select": 1,
    "share": 1,
    "write": 1
@@ -210,20 +203,15 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Superviseur CRM",
+   "role": "Charg\u00e9 Marketing",
    "select": 1,
    "share": 1,
    "write": 1
   },
   {
-   "email": 1,
-   "export": 1,
-   "print": 1,
    "read": 1,
-   "report": 1,
-   "role": "Coordination",
-   "select": 1,
-   "share": 1
+   "role": "All",
+   "select": 1
   }
  ],
  "show_title_field_in_link": 1,

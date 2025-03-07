@@ -37,7 +37,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-20 11:37:29.631734",
+ "modified": "2025-03-07 13:40:23.354084",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Communes",
@@ -54,6 +54,15 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1,
+   "share": 1
   }
  ],
  "search_fields": "wilaya,region",
