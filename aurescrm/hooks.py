@@ -282,7 +282,8 @@ fixtures = [
     # "DocPerm",
     # "Workspace",
     # "Custom Role",
-    # "Role",
+    # "Custom DocPerm",
+    
     
 ]
 

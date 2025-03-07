@@ -26,7 +26,7 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2025-03-06 18:01:01.905635",
+ "modified": "2025-03-07 11:45:33.765304",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",
@@ -64,6 +64,18 @@
   },
   {
    "role": "Administrateur Ventes"
+  },
+  {
+   "role": "R\u00e9sponsable Devis"
+  },
+  {
+   "role": "Charg\u00e9 Devis"
+  },
+  {
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "role": "R\u00e9sponsable \u00c9tude Faisabilit\u00e9"
   }
  ],
  "sequence_id": 1.0,
