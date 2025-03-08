@@ -112,7 +112,7 @@ permission_query_conditions = {
     "Sales Invoice": "aurescrm.custom_permissions.get_sales_invoice_permission_query_conditions",
     "Payment Entry": "aurescrm.custom_permissions.get_payment_entry_permission_query_conditions",
     "BOM": "aurescrm.custom_permissions.get_bom_permission_query_conditions",
-    "Etude Faisabilité": "aurescrm.custom_permissions.get_feasibility_study_permission_query_conditions",
+    "Etude Faisabilite": "aurescrm.custom_permissions.get_feasibility_study_permission_query_conditions",
     "Etude Technique": "aurescrm.custom_permissions.get_technical_study_permission_query_conditions",
     "Reclamations Clients": "aurescrm.custom_permissions.get_reclamations_clients_permission_query_conditions"
 }
