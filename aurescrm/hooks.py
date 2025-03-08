@@ -288,7 +288,7 @@ fixtures = [
     # {
     #     "doctype": "Custom DocPerm",
     #     "filters": []  # Export uniquement les permissions personnalisées
-    # }
+    # },
     # "Custom HTML Block",
     # "Client Script",
     # "Document Naming Rule",

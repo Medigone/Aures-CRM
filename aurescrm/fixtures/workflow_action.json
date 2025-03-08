@@ -567,69 +567,6 @@
   "workflow_state": "Non Réalisable"
  },
  {
-  "completed_by": "Administrator",
-  "completed_by_role": "All",
-  "docstatus": 0,
-  "doctype": "Workflow Action",
-  "modified": "2025-02-26 11:48:05.324473",
-  "name": "pulvmb4ol5",
-  "permitted_roles": [
-   {
-    "parent": "pulvmb4ol5",
-    "parentfield": "permitted_roles",
-    "parenttype": "Workflow Action",
-    "role": "All"
-   }
-  ],
-  "reference_doctype": "Etude Faisabilite",
-  "reference_name": "sk83lkv3se",
-  "status": "Completed",
-  "user": null,
-  "workflow_state": "Nouveau"
- },
- {
-  "completed_by": "Administrator",
-  "completed_by_role": "All",
-  "docstatus": 0,
-  "doctype": "Workflow Action",
-  "modified": "2025-02-26 11:48:06.963229",
-  "name": "ssarnpjsv9",
-  "permitted_roles": [
-   {
-    "parent": "ssarnpjsv9",
-    "parentfield": "permitted_roles",
-    "parenttype": "Workflow Action",
-    "role": "All"
-   }
-  ],
-  "reference_doctype": "Etude Faisabilite",
-  "reference_name": "sk83lkv3se",
-  "status": "Completed",
-  "user": null,
-  "workflow_state": "En étude"
- },
- {
-  "completed_by": null,
-  "completed_by_role": null,
-  "docstatus": 0,
-  "doctype": "Workflow Action",
-  "modified": "2025-02-26 11:48:08.530514",
-  "name": "0d65t3vo4p",
-  "permitted_roles": [
-   {
-    "parent": "0d65t3vo4p",
-    "parentfield": "permitted_roles",
-    "parenttype": "Workflow Action",
-    "role": "All"
-   }
-  ],
-  "reference_doctype": "Etude Faisabilite",
-  "reference_name": "sk83lkv3se",
-  "status": "Open",
-  "user": null,
-  "workflow_state": "Réalisable"
- },
- {
   "completed_by": null,
   "completed_by_role": null,
   "docstatus": 0,
@@ -641,7 +578,7 @@
     "parent": "e9bst7sehu",
     "parentfield": "permitted_roles",
     "parenttype": "Workflow Action",
-    "role": "Commercial"
+    "role": "Commercial Itinérant"
    }
   ],
   "reference_doctype": "Visite Commerciale",
@@ -817,5 +754,362 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Terminé"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Coordination",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-07 15:03:28.698862",
+  "name": "offukjv58r",
+  "permitted_roles": [
+   {
+    "parent": "offukjv58r",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "9kkpqavo0n",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Coordination",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-07 15:03:58.260564",
+  "name": "510u76n7q6",
+  "permitted_roles": [
+   {
+    "parent": "510u76n7q6",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "9kkpqavo0n",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Traitement"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-07 15:04:46.860207",
+  "name": "muqfmt82rt",
+  "permitted_roles": [
+   {
+    "parent": "muqfmt82rt",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "9kkpqavo0n",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Traité"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-07 17:36:56.192146",
+  "name": "6nmp530si8",
+  "permitted_roles": [
+   {
+    "parent": "6nmp530si8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "9p27gf1hpi",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-07 17:37:18.555147",
+  "name": "2b3abl7amg",
+  "permitted_roles": [
+   {
+    "parent": "2b3abl7amg",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "9p27gf1hpi",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-07 17:38:33.520764",
+  "name": "7bbld6vc9j",
+  "permitted_roles": [
+   {
+    "parent": "7bbld6vc9j",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "9p27gf1hpi",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-07 17:39:39.539932",
+  "name": "1af60t4tor",
+  "permitted_roles": [
+   {
+    "parent": "1af60t4tor",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "pos3lk93gv",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-07 17:39:42.788705",
+  "name": "lj997tagrb",
+  "permitted_roles": [
+   {
+    "parent": "lj997tagrb",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "pos3lk93gv",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "amine.melizi@intrapro.net",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 15:47:40.457064",
+  "name": "52qceig26b",
+  "permitted_roles": [
+   {
+    "parent": "52qceig26b",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00036",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 15:48:08.453845",
+  "name": "te2pin7q3d",
+  "permitted_roles": [
+   {
+    "parent": "te2pin7q3d",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00036",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 15:51:00.903015",
+  "name": "1pi9qt70k2",
+  "permitted_roles": [
+   {
+    "parent": "1pi9qt70k2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "3n31narsnm",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Coordination",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 15:56:01.412972",
+  "name": "0lkmv5jk65",
+  "permitted_roles": [
+   {
+    "parent": "0lkmv5jk65",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "ajf3v0mipl",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Coordination",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 16:06:20.810014",
+  "name": "5tnd2o82jg",
+  "permitted_roles": [
+   {
+    "parent": "5tnd2o82jg",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "o7k5asbsfg",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Coordination",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 16:07:28.481913",
+  "name": "ar5lt7sb8i",
+  "permitted_roles": [
+   {
+    "parent": "ar5lt7sb8i",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "o7k5asbsfg",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Traitement"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Coordination",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 16:08:41.603200",
+  "name": "svfb86pp4i",
+  "permitted_roles": [
+   {
+    "parent": "svfb86pp4i",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "o7k5asbsfg",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Traité"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Coordination",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 16:13:30.761737",
+  "name": "l9kedv7uav",
+  "permitted_roles": [
+   {
+    "parent": "l9kedv7uav",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "ajf3v0mipl",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Traitement"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 16:13:35.381104",
+  "name": "cu87i7hvmf",
+  "permitted_roles": [
+   {
+    "parent": "cu87i7hvmf",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "ajf3v0mipl",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Traité"
  }
 ]
