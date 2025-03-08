@@ -88,7 +88,8 @@
    "label": "Client",
    "options": "Customer",
    "reqd": 1,
-   "search_index": 1
+   "search_index": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "type_reclamation",
@@ -102,6 +103,7 @@
    "fetch_from": "client.custom_commercial_attribu\u00e9",
    "fieldname": "id_commercial",
    "fieldtype": "Link",
+   "hidden": 1,
    "in_standard_filter": 1,
    "label": "ID Commercial",
    "options": "User",
@@ -171,7 +173,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-08 16:05:38.371773",
+ "modified": "2025-03-08 16:06:55.518264",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
