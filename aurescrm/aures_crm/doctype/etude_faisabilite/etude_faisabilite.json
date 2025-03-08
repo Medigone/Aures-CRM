@@ -22,8 +22,9 @@
   "procede",
   "tab_2_tab",
   "taux_chutes",
-  "column_break_uilq",
   "delai_realisation",
+  "column_break_uilq",
+  "fichier_trace",
   "section_break_edky",
   "observations"
  ],
@@ -162,11 +163,16 @@
   {
    "fieldname": "column_break_uilq",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fichier_trace",
+   "fieldtype": "Attach",
+   "label": "Fichier Trac\u00e9"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-08 16:31:52.491497",
+ "modified": "2025-03-08 16:34:15.472783",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
