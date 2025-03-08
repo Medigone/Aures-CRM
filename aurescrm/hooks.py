@@ -103,9 +103,20 @@ app_license = "mit"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Customer": "aurescrm.customer_hooks.get_permission_query_conditions",
-# }
+permission_query_conditions = {
+    "Customer": "aurescrm.custom_permissions.get_customer_permission_query_conditions",
+    "Quotation": "aurescrm.custom_permissions.get_quotation_permission_query_conditions",
+    "Sales Order": "aurescrm.custom_permissions.get_sales_order_permission_query_conditions",
+    "Delivery Note": "aurescrm.custom_permissions.get_delivery_note_permission_query_conditions",
+    "Item": "aurescrm.custom_permissions.get_item_permission_query_conditions",
+    "Sales Invoice": "aurescrm.custom_permissions.get_sales_invoice_permission_query_conditions",
+    "Payment Entry": "aurescrm.custom_permissions.get_payment_entry_permission_query_conditions",
+    "BOM": "aurescrm.custom_permissions.get_bom_permission_query_conditions",
+    "Etude Faisabilité": "aurescrm.custom_permissions.get_feasibility_study_permission_query_conditions",
+    "Etude Technique": "aurescrm.custom_permissions.get_technical_study_permission_query_conditions",
+    "Reclamations Clients": "aurescrm.custom_permissions.get_reclamations_clients_permission_query_conditions"
+}
+
 #
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
@@ -136,10 +147,11 @@ doc_events = {
         "after_insert": "aurescrm.fiche_evaluation_client.calculate_global_score"
     },
     "Customer": {
+        "after_insert": "aurescrm.customer_hooks.create_user_permission_after_insert",
         "before_save": [
             "aurescrm.customer_hooks.uppercase_customer_name",
             "aurescrm.customer_hooks.set_default_commercial",
-            "aurescrm.customer_hooks.update_user_permission"
+            # "aurescrm.customer_hooks.update_user_permission"
         ]
     },
     "Item": {
