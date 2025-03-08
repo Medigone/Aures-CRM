@@ -147,11 +147,11 @@ doc_events = {
         "after_insert": "aurescrm.fiche_evaluation_client.calculate_global_score"
     },
     "Customer": {
-        "after_insert": "aurescrm.customer_hooks.create_user_permission_after_insert",
+        
         "before_save": [
             "aurescrm.customer_hooks.uppercase_customer_name",
             "aurescrm.customer_hooks.set_default_commercial",
-            # "aurescrm.customer_hooks.update_user_permission"
+            
         ]
     },
     "Item": {
