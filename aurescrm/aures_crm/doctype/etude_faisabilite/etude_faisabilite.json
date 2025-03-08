@@ -67,6 +67,7 @@
    "fetch_from": "client.custom_commercial_attribu\u00e9",
    "fieldname": "id_commercial",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "ID Commercial",
    "options": "User",
    "read_only": 1
@@ -165,7 +166,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-08 16:27:18.409652",
+ "modified": "2025-03-08 16:31:52.491497",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
