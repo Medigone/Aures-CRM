@@ -1,4 +1,5 @@
 import frappe
+from frappe.permissions import get_user_permissions
 
 def uppercase_customer_name(doc, method):
     # Vérifier que le champ 'customer_name' existe et n'est pas vide
@@ -21,8 +22,6 @@ def set_default_commercial(doc, method):
             "custom_commercial_attribué": doc.owner,
             "custom_nom_commercial": full_name
         }, update_modified=True)
-
-
 
 
 
@@ -49,6 +48,8 @@ def update_user_permission(doc, method):
 
     # Si aucun utilisateur assigné, on ne fait rien de plus
     if not new_assigned:
+        # Pour forcer la restriction, on vide aussi le cache pour cet utilisateur
+        frappe.cache().hdel("user_permissions", new_assigned)
         return
 
     # Vérifier si l'utilisateur assigné possède le rôle "Commercial Itinérant"
@@ -70,3 +71,5 @@ def update_user_permission(doc, method):
                 "hide_descendants": 0
             })
             new_permission.insert(ignore_permissions=True)
+    # Vider le cache des permissions pour que la modification soit prise en compte
+    frappe.cache().hdel("user_permissions", new_assigned)
