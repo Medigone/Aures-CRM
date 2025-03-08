@@ -124,7 +124,8 @@
   {
    "fieldname": "observations",
    "fieldtype": "Text Editor",
-   "label": "Observations"
+   "label": "Observations",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_tabj",
@@ -161,7 +162,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-07 14:12:49.420696",
+ "modified": "2025-03-08 15:54:17.085545",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
