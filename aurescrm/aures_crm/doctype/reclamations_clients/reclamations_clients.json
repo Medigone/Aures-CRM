@@ -24,6 +24,7 @@
   "commercial",
   "section_break_lzea",
   "observations",
+  "traitement",
   "amended_from"
  ],
  "fields": [
@@ -94,7 +95,8 @@
    "fieldtype": "Select",
    "label": "Type R\u00e9clamation",
    "options": "\nQualit\u00e9\nRetards Livraison\nAutres",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fetch_from": "client.custom_commercial_attribu\u00e9",
@@ -124,7 +126,7 @@
   {
    "fieldname": "observations",
    "fieldtype": "Text Editor",
-   "label": "Observations",
+   "label": "R\u00e9clamation",
    "reqd": 1
   },
   {
@@ -157,12 +159,19 @@
    "options": "Visite Commerciale",
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "depends_on": "eval: doc.status != \"Nouveau\"\n",
+   "fieldname": "traitement",
+   "fieldtype": "Text Editor",
+   "label": "R\u00e9ponse R\u00e9clamation",
+   "mandatory_depends_on": "eval: doc.status == \"Trait\u00e9\" || doc.status == \"Non Trait\u00e9\"\n"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-08 15:54:17.085545",
+ "modified": "2025-03-08 16:05:38.371773",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",

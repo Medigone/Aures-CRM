@@ -7,9 +7,9 @@ from frappe.utils import add_to_date, now_datetime, getdate
 
 class ReclamationsClients(Document):
     def validate(self):
-        # Si la date de création est renseignée, on calcule la date d'échéance (+48h)
+        # Si la date de création est renseignée, on calcule la date d'échéance (+24h)
         if self.date_creation:
-            self.date_echeance = add_to_date(self.date_creation, hours=48)
+            self.date_echeance = add_to_date(self.date_creation, hours=24)
         
         # Si la date d'échéance est dépassée et que le statut est "Nouveau" ou "En Traitement",
         # on met à jour le statut à "En retard"
@@ -38,9 +38,9 @@ def update_reclamations_status():
 
     for rec in reclamations:
         # Si la date d'échéance n'est pas renseignée mais la date de création est présente,
-        # on calcule la date d'échéance à +48 heures
+        # on calcule la date d'échéance à +24 heures
         if not rec.get("date_echeance") and rec.get("date_creation"):
-            date_echeance = add_to_date(rec.get("date_creation"), hours=48)
+            date_echeance = add_to_date(rec.get("date_creation"), hours=24)
         else:
             date_echeance = rec.get("date_echeance")
         
