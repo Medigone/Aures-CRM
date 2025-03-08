@@ -115,7 +115,7 @@ def get_feasibility_study_permission_query_conditions(user):
     if "Commercial Itinérant" in frappe.get_roles(user):
         return f"""exists (
             select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabEtude Faisabilité`.client
+            where `tabCustomer`.name = `tabEtude Faisabilite`.client
               and `tabCustomer`.custom_commercial_attribué = '{user}'
         )"""
     return ""
