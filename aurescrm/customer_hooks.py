@@ -21,3 +21,52 @@ def set_default_commercial(doc, method):
             "custom_commercial_attribué": doc.owner,
             "custom_nom_commercial": full_name
         }, update_modified=True)
+
+
+
+
+
+def update_user_permission(doc, method):
+    """
+    Lors de la sauvegarde d'un Customer, cette fonction supprime toutes les permissions
+    existantes pour ce client qui ne correspondent pas à l'utilisateur défini dans
+    custom_commercial_attribué.
+    
+    Si l'utilisateur assigné existe et possède le rôle "Commercial Itinérant", une nouvelle
+    permission est créée.
+    """
+    new_assigned = doc.custom_commercial_attribué
+
+    # Supprimer toutes les permissions existantes pour ce client qui ne correspondent pas à new_assigned
+    existing_permissions = frappe.get_all("User Permission", filters={
+        "allow": "Customer",
+        "for_value": doc.name
+    }, fields=["name", "user"])
+
+    for perm in existing_permissions:
+        if perm.user != new_assigned:
+            frappe.delete_doc("User Permission", perm.name, ignore_permissions=True)
+
+    # Si aucun utilisateur assigné, on ne fait rien de plus
+    if not new_assigned:
+        return
+
+    # Vérifier si l'utilisateur assigné possède le rôle "Commercial Itinérant"
+    roles = frappe.get_roles(new_assigned)
+    if "Commercial Itinérant" in roles:
+        # Créer la permission si elle n'existe pas déjà
+        if not frappe.db.exists("User Permission", {
+            "user": new_assigned,
+            "allow": "Customer",
+            "for_value": doc.name
+        }):
+            new_permission = frappe.get_doc({
+                "doctype": "User Permission",
+                "user": new_assigned,
+                "allow": "Customer",
+                "for_value": doc.name,
+                "apply_to_all_doctypes": 1,
+                "is_default": 0,
+                "hide_descendants": 0
+            })
+            new_permission.insert(ignore_permissions=True)

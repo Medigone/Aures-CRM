@@ -138,20 +138,19 @@ doc_events = {
     "Customer": {
         "before_save": [
             "aurescrm.customer_hooks.uppercase_customer_name",
-            "aurescrm.customer_hooks.set_default_commercial"
-        ],
-
-        # "on_update": "aurescrm.customer_hooks.create_user_permission"
+            "aurescrm.customer_hooks.set_default_commercial",
+            "aurescrm.customer_hooks.update_user_permission"
+        ]
     },
     "Item": {
         "autoname": "aurescrm.utils.custom_item_naming",
         "before_save": "aurescrm.utils.format_item_fields"
-        
     },
     "Adresses de livraison": {
         "before_save": "aurescrm.utils.custom_delivery_address_naming"
     }
 }
+
 
 # aurescrm/hooks.py
 
