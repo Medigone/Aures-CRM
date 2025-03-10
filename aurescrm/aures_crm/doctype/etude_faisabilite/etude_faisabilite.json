@@ -26,7 +26,8 @@
   "column_break_uilq",
   "fichier_trace",
   "section_break_edky",
-  "observations"
+  "observations",
+  "amended_from"
  ],
  "fields": [
   {
@@ -168,11 +169,22 @@
    "fieldname": "fichier_trace",
    "fieldtype": "Attach",
    "label": "Fichier Trac\u00e9"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Etude Faisabilite",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-03-08 16:34:15.472783",
+ "modified": "2025-03-10 10:01:28.125292",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -227,11 +239,14 @@
    "write": 1
   },
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "email": 1,
    "read": 1,
    "report": 1,
    "role": "R\u00e9sponsable \u00c9tude Faisabilit\u00e9",
+   "submit": 1,
    "write": 1
   }
  ],
