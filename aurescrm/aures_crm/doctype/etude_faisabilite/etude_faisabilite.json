@@ -13,13 +13,13 @@
   "id_commercial",
   "commercial",
   "section_break_uigs",
-  "est_creation",
+  "est_conception",
   "section_break_dazt",
   "client",
-  "column_break_nktv",
   "article",
-  "column_break_fglp",
+  "column_break_nktv",
   "procede",
+  "quantite",
   "tab_2_tab",
   "taux_chutes",
   "delai_realisation",
@@ -112,10 +112,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "column_break_fglp",
-   "fieldtype": "Column Break"
-  },
-  {
    "fetch_from": "article.custom_proc\u00e9d\u00e9",
    "fieldname": "procede",
    "fieldtype": "Select",
@@ -127,12 +123,6 @@
   {
    "fieldname": "section_break_uigs",
    "fieldtype": "Section Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "est_creation",
-   "fieldtype": "Check",
-   "label": "Cr\u00e9ation"
   },
   {
    "fieldname": "tab_2_tab",
@@ -179,12 +169,24 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9",
+   "non_negative": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "est_conception",
+   "fieldtype": "Check",
+   "label": "Nouvelle Conception"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-10 10:01:28.125292",
+ "modified": "2025-03-10 10:12:45.586493",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
