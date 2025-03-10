@@ -14,23 +14,42 @@ frappe.ui.form.on('Etude Faisabilite', {
 
         // Vérifier si le statut est "Réalisable" et si un article est sélectionné
         if (frm.doc.status === "Réalisable" && frm.doc.article) {
-            frm.add_custom_button('Créer Nomenclature', function() {
-                // Vérifier si un article est sélectionné
+            // Bouton pour créer une Nomenclature
+            frm.add_custom_button('Nomenclature', function() {
                 if (!frm.doc.article) {
                     frappe.msgprint(__('Veuillez sélectionner un article avant de créer une nomenclature.'));
                     return;
                 }
 
-                // Ouvrir le formulaire de création d'un BOM avec uniquement l'article pré-rempli
                 frappe.new_doc('BOM', {
-                    item: frm.doc.article,  // Pré-remplissage de l'article uniquement
-                    quantity: 1,  // Quantité par défaut
-                    is_active: 1,  // Activer le BOM
-                    is_default: 1,  // Définir comme BOM par défaut
-                    company: frappe.defaults.get_default("company")  // Entreprise actuelle
+                    item: frm.doc.article,
+                    quantity: 1,
+                    is_active: 1,
+                    is_default: 1,
+                    company: frappe.defaults.get_default("company")
                 });
 
-            }, "Actions");
+            }, "Créer");
+
+            // Bouton pour créer un Devis
+            frm.add_custom_button('Devis', function() {
+                if (!frm.doc.client || !frm.doc.article) {
+                    frappe.msgprint(__('Veuillez sélectionner un client et un article avant de créer un devis.'));
+                    return;
+                }
+
+                frappe.new_doc('Quotation', {
+                    party_name: frm.doc.client,
+                    custom_id_client: frm.doc.client,
+                    quotation_to: 'Customer',
+                    items: [{
+                        item_code: frm.doc.article,
+                        qty: 1
+                    }],
+                    company: frappe.defaults.get_default("company")
+                });
+
+            }, "Créer");
         }
     },
 
@@ -39,14 +58,14 @@ frappe.ui.form.on('Etude Faisabilite', {
         frm.fields_dict.article.get_query = function(doc) {
             return {
                 filters: {
-                    'custom_client': doc.client  // Filtrer les articles liés au client sélectionné
+                    'custom_client': doc.client
                 }
             };
         };
     },
 
     status: function(frm) {
-        // Rafraîchir le formulaire pour afficher ou masquer le bouton selon le statut
+        // Rafraîchir le formulaire pour afficher ou masquer les boutons selon le statut
         frm.refresh();
     }
 });
