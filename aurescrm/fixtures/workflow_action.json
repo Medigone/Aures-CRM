@@ -1111,5 +1111,194 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Traité"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-08 16:35:11.251292",
+  "name": "ijeud7g7r6",
+  "permitted_roles": [
+   {
+    "parent": "ijeud7g7r6",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Résponsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "pos3lk93gv",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "amine.melizi@intrapro.net",
+  "completed_by_role": "Coordination",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-09 12:14:22.359792",
+  "name": "cvnjqg2k8n",
+  "permitted_roles": [
+   {
+    "parent": "cvnjqg2k8n",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "o1ijtppgss",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-09 12:19:23.693543",
+  "name": "3c9am5cmsp",
+  "permitted_roles": [
+   {
+    "parent": "3c9am5cmsp",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "o1ijtppgss",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En Traitement"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-09 14:36:43.875506",
+  "name": "v164dsje3i",
+  "permitted_roles": [
+   {
+    "parent": "v164dsje3i",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "7kjvaumekf",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-09 14:38:30.302500",
+  "name": "3r2dc04iv3",
+  "permitted_roles": [
+   {
+    "parent": "3r2dc04iv3",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "dnnab38vjg",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-09 14:39:52.382095",
+  "name": "7cj0f3c0fp",
+  "permitted_roles": [
+   {
+    "parent": "7cj0f3c0fp",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "dnnab38vjg",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "amine.melizi@intrapro.net",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-10 09:58:44.677039",
+  "name": "medidru0bp",
+  "permitted_roles": [
+   {
+    "parent": "medidru0bp",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "cb9oulf9cs",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-10 09:58:59.317665",
+  "name": "e3phdjgvej",
+  "permitted_roles": [
+   {
+    "parent": "e3phdjgvej",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "cb9oulf9cs",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-10 10:04:07.449641",
+  "name": "0i1ng09l2f",
+  "permitted_roles": [
+   {
+    "parent": "0i1ng09l2f",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Résponsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "cb9oulf9cs",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
  }
 ]

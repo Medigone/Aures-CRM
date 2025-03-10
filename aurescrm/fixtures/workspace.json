@@ -12630,128 +12630,6 @@
   "title": "Home"
  },
  {
-  "charts": [
-   {
-    "chart_name": "Visites par Statut",
-    "label": "Visites par Statut",
-    "parent": "Visites",
-    "parentfield": "charts",
-    "parenttype": "Workspace"
-   },
-   {
-    "chart_name": "Visites par Utilisateur",
-    "label": "Visites par Utilisateur",
-    "parent": "Visites",
-    "parentfield": "charts",
-    "parenttype": "Workspace"
-   },
-   {
-    "chart_name": "Visites par Wilaya",
-    "label": "Visites par Wilaya",
-    "parent": "Visites",
-    "parentfield": "charts",
-    "parenttype": "Workspace"
-   },
-   {
-    "chart_name": "Évolution Visites",
-    "label": "Évolution Visites",
-    "parent": "Visites",
-    "parentfield": "charts",
-    "parenttype": "Workspace"
-   },
-   {
-    "chart_name": "Visites par Groupe Client",
-    "label": "Visites par Groupe Client",
-    "parent": "Visites",
-    "parentfield": "charts",
-    "parenttype": "Workspace"
-   }
-  ],
-  "content": "[{\"id\":\"jIhouKomOM\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Visites\",\"col\":12}},{\"id\":\"WPsutyJJhu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"wkeLPJ7LfZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":3}},{\"id\":\"g1Yvnhuq8r\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"P4EmfgkTtj\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Évolution Visites\",\"col\":6}},{\"id\":\"paYzM807-h\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Statut\",\"col\":6}},{\"id\":\"JiqKKWi62Y\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Groupe Client\",\"col\":6}},{\"id\":\"e_lJ4FUeG6\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Utilisateur\",\"col\":6}},{\"id\":\"lztL-i7uqS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Wilaya\",\"col\":12}}]",
-  "custom_blocks": [
-   {
-    "custom_block_name": "Menu Visites",
-    "label": "Menu Visites",
-    "parent": "Visites",
-    "parentfield": "custom_blocks",
-    "parenttype": "Workspace"
-   }
-  ],
-  "docstatus": 0,
-  "doctype": "Workspace",
-  "for_user": "",
-  "hide_custom": 0,
-  "icon": "liabilities",
-  "indicator_color": "",
-  "is_hidden": 0,
-  "label": "Visites",
-  "links": [],
-  "modified": "2025-02-19 16:48:39.337647",
-  "module": "Aures CRM",
-  "name": "Visites",
-  "number_cards": [],
-  "parent_page": "",
-  "public": 1,
-  "quick_lists": [],
-  "restrict_to_domain": null,
-  "roles": [
-   {
-    "parent": "Visites",
-    "parentfield": "roles",
-    "parenttype": "Workspace",
-    "role": "Commercial Itinérant"
-   },
-   {
-    "parent": "Visites",
-    "parentfield": "roles",
-    "parenttype": "Workspace",
-    "role": "Administrateur Ventes"
-   },
-   {
-    "parent": "Visites",
-    "parentfield": "roles",
-    "parenttype": "Workspace",
-    "role": "Superviseur CRM"
-   }
-  ],
-  "sequence_id": 2.0,
-  "shortcuts": [
-   {
-    "color": "Blue",
-    "doc_view": "List",
-    "format": null,
-    "icon": null,
-    "kanban_board": null,
-    "label": "Visites Commerciales",
-    "link_to": "Visite Commerciale",
-    "parent": "Visites",
-    "parentfield": "shortcuts",
-    "parenttype": "Workspace",
-    "restrict_to_domain": null,
-    "stats_filter": "[]",
-    "type": "DocType",
-    "url": null
-   },
-   {
-    "color": "Green",
-    "doc_view": "List",
-    "format": null,
-    "icon": null,
-    "kanban_board": null,
-    "label": "Clients",
-    "link_to": "Customer",
-    "parent": "Visites",
-    "parentfield": "shortcuts",
-    "parenttype": "Workspace",
-    "restrict_to_domain": null,
-    "stats_filter": "[]",
-    "type": "DocType",
-    "url": null
-   }
-  ],
-  "title": "Visites"
- },
- {
   "charts": [],
   "content": "[{\"id\":\"5nnLaQeoFa\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Get started</b><br></span>\",\"col\":12}},{\"id\":\"HXRmktXYHy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"DocType\",\"col\":3}},{\"id\":\"pYALX3MwBW\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customize Form\",\"col\":3}},{\"id\":\"XC78DuYB65\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Report\",\"col\":3}},{\"id\":\"XPm50Ppq3J\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Client Script\",\"col\":3}},{\"id\":\"yoU6nWiT83\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Server Script\",\"col\":3}},{\"id\":\"5UgFESBY0N\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Print Format Builder\",\"col\":3}},{\"id\":\"0gE0s-S70E\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"System Settings\",\"col\":3}},{\"id\":\"62hseENHbd\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"tOCrOgLW1G\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Components to build your app</b></span>\",\"col\":12}},{\"id\":\"cJ6CVsa8qW\",\"type\":\"card\",\"data\":{\"card_name\":\"Models\",\"col\":4}},{\"id\":\"MmEJpjEdGR\",\"type\":\"card\",\"data\":{\"card_name\":\"Views\",\"col\":4}},{\"id\":\"2ZdtgxQZqq\",\"type\":\"card\",\"data\":{\"card_name\":\"Customization\",\"col\":4}},{\"id\":\"NPFolijIcb\",\"type\":\"card\",\"data\":{\"card_name\":\"Scripting\",\"col\":4}},{\"id\":\"BIHjudL0T_\",\"type\":\"card\",\"data\":{\"card_name\":\"Modules\",\"col\":4}},{\"id\":\"iK3JQ9RXJE\",\"type\":\"card\",\"data\":{\"card_name\":\"Packages\",\"col\":4}},{\"id\":\"TiO9FCUUeC\",\"type\":\"card\",\"data\":{\"card_name\":\"System Logs\",\"col\":4}}]",
   "custom_blocks": [],
@@ -13482,5 +13360,127 @@
   "sequence_id": 22.0,
   "shortcuts": [],
   "title": "Welcome Workspace"
+ },
+ {
+  "charts": [
+   {
+    "chart_name": "Visites par Statut",
+    "label": "Visites par Statut",
+    "parent": "Visites-Administrator",
+    "parentfield": "charts",
+    "parenttype": "Workspace"
+   },
+   {
+    "chart_name": "Visites par Utilisateur",
+    "label": "Visites par Utilisateur",
+    "parent": "Visites-Administrator",
+    "parentfield": "charts",
+    "parenttype": "Workspace"
+   },
+   {
+    "chart_name": "Visites par Wilaya",
+    "label": "Visites par Wilaya",
+    "parent": "Visites-Administrator",
+    "parentfield": "charts",
+    "parenttype": "Workspace"
+   },
+   {
+    "chart_name": "Évolution Visites",
+    "label": "Évolution Visites",
+    "parent": "Visites-Administrator",
+    "parentfield": "charts",
+    "parenttype": "Workspace"
+   },
+   {
+    "chart_name": "Visites par Groupe Client",
+    "label": "Visites par Groupe Client",
+    "parent": "Visites-Administrator",
+    "parentfield": "charts",
+    "parenttype": "Workspace"
+   }
+  ],
+  "content": "[{\"id\":\"jIhouKomOM\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Visites\",\"col\":12}},{\"id\":\"WPsutyJJhu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"wkeLPJ7LfZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":3}},{\"id\":\"g1Yvnhuq8r\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"P4EmfgkTtj\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Évolution Visites\",\"col\":6}},{\"id\":\"paYzM807-h\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Statut\",\"col\":6}},{\"id\":\"JiqKKWi62Y\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Groupe Client\",\"col\":6}},{\"id\":\"e_lJ4FUeG6\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Utilisateur\",\"col\":6}},{\"id\":\"lztL-i7uqS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Wilaya\",\"col\":12}}]",
+  "custom_blocks": [
+   {
+    "custom_block_name": "Menu Visites",
+    "label": "Menu Visites",
+    "parent": "Visites-Administrator",
+    "parentfield": "custom_blocks",
+    "parenttype": "Workspace"
+   }
+  ],
+  "docstatus": 0,
+  "doctype": "Workspace",
+  "for_user": "Administrator",
+  "hide_custom": 0,
+  "icon": "liabilities",
+  "indicator_color": "",
+  "is_hidden": 0,
+  "label": "Visites-Administrator",
+  "links": [],
+  "modified": "2025-03-08 16:40:51.402409",
+  "module": "Aures CRM",
+  "name": "Visites-Administrator",
+  "number_cards": [],
+  "parent_page": "",
+  "public": 0,
+  "quick_lists": [],
+  "restrict_to_domain": null,
+  "roles": [
+   {
+    "parent": "Visites-Administrator",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Commercial Itinérant"
+   },
+   {
+    "parent": "Visites-Administrator",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Administrateur Ventes"
+   },
+   {
+    "parent": "Visites-Administrator",
+    "parentfield": "roles",
+    "parenttype": "Workspace",
+    "role": "Superviseur CRM"
+   }
+  ],
+  "sequence_id": 0.0,
+  "shortcuts": [
+   {
+    "color": "Blue",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Visites Commerciales",
+    "link_to": "Visite Commerciale",
+    "parent": "Visites-Administrator",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "restrict_to_domain": null,
+    "stats_filter": "[]",
+    "type": "DocType",
+    "url": null
+   },
+   {
+    "color": "Green",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Clients",
+    "link_to": "Customer",
+    "parent": "Visites-Administrator",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "restrict_to_domain": null,
+    "stats_filter": "[]",
+    "type": "DocType",
+    "url": null
+   }
+  ],
+  "title": "Visites"
  }
 ]

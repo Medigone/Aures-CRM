@@ -542,7 +542,7 @@
   "doctype": "Workflow",
   "document_type": "Etude Faisabilite",
   "is_active": 1,
-  "modified": "2025-03-08 16:30:55.766559",
+  "modified": "2025-03-10 10:02:43.772388",
   "name": "Etude Faisabilite",
   "override_status": 0,
   "send_email_alert": 0,
@@ -639,7 +639,7 @@
    {
     "action": "Réalisable",
     "allow_self_approval": 1,
-    "allowed": "Chargé Étude Faisabilité",
+    "allowed": "Résponsable Étude Faisabilité",
     "condition": null,
     "next_state": "Réalisable",
     "parent": "Etude Faisabilite",
@@ -651,7 +651,7 @@
    {
     "action": "Non Réalisable",
     "allow_self_approval": 1,
-    "allowed": "Chargé Étude Faisabilité",
+    "allowed": "Résponsable Étude Faisabilité",
     "condition": null,
     "next_state": "Non Réalisable",
     "parent": "Etude Faisabilite",

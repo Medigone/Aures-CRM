@@ -726,7 +726,7 @@
  },
  {
   "aggregate_function_based_on": null,
-  "color": null,
+  "color": "#29CD42",
   "docstatus": 0,
   "doctype": "Number Card",
   "document_type": "Item",
@@ -738,7 +738,7 @@
   "is_standard": 1,
   "label": "Total Active Items",
   "method": null,
-  "modified": "2025-03-08 16:18:15.960591",
+  "modified": "2025-03-08 16:24:23.623036",
   "module": "Stock",
   "name": "Total Active Items",
   "parent_document_type": null,
