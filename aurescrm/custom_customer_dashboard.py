@@ -16,6 +16,8 @@ def get_data(**kwargs):
             "Etude Faisabilite": "client",
             "Sales Invoice": "customer",
             "Payment Entry": "party",
+            "Delivery Note": "customer",
+            "Production Order": "customer",
         },
         "transactions": [
             {
@@ -28,7 +30,11 @@ def get_data(**kwargs):
             },
             {
                 "label": _("Documents de Vente et Paiements"),
-                "items": ["Quotation", "Sales Order", "Sales Invoice", "Payment Entry"],
+                "items": ["Quotation", "Sales Order", "Delivery Note", "Sales Invoice", "Payment Entry"],
+            },
+            {
+                "label": _("Production"),
+                "items": ["Production Order"],
             },
         ],
     }
