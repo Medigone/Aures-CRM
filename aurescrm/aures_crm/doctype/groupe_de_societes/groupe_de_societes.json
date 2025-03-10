@@ -162,7 +162,7 @@
    "link_fieldname": "custom_groupe_de_soci\u00e9t\u00e9s"
   }
  ],
- "modified": "2025-03-07 14:05:21.943308",
+ "modified": "2025-03-10 12:33:33.334533",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Groupe de societes",
@@ -193,6 +193,7 @@
    "write": 1
   },
   {
+   "create": 1,
    "read": 1,
    "report": 1,
    "role": "Superviseur CRM",
