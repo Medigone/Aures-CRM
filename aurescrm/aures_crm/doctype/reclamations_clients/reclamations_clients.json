@@ -16,9 +16,10 @@
   "date_resolution",
   "section_break_qnyd",
   "type_reclamation",
+  "visite",
   "column_break_dses",
   "client",
-  "visite",
+  "nom_client",
   "column_break_tabj",
   "id_commercial",
   "commercial",
@@ -180,12 +181,20 @@
    "fieldname": "observation_interne",
    "fieldtype": "Text Editor",
    "label": "Observation Interne"
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fetch_if_empty": 1,
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "label": "Raison Sociale",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-09 12:35:42.704796",
+ "modified": "2025-03-11 10:43:51.920509",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
