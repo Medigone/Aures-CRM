@@ -187,6 +187,7 @@
    "fetch_if_empty": 1,
    "fieldname": "nom_client",
    "fieldtype": "Data",
+   "is_virtual": 1,
    "label": "Raison Sociale",
    "read_only": 1
   }
@@ -194,7 +195,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-11 10:43:51.920509",
+ "modified": "2025-03-11 10:44:32.305036",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
