@@ -694,7 +694,7 @@
   "doctype": "Workflow",
   "document_type": "Reclamations Clients",
   "is_active": 1,
-  "modified": "2025-03-12 20:28:40.266229",
+  "modified": "2025-03-12 21:22:27.920955",
   "name": "Reclamations Clients",
   "override_status": 0,
   "send_email_alert": 0,
@@ -760,7 +760,7 @@
     "workflow_builder_id": null
    },
    {
-    "allow_edit": "All",
+    "allow_edit": "Coordination",
     "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
@@ -769,7 +769,7 @@
     "parent": "Reclamations Clients",
     "parentfield": "states",
     "parenttype": "Workflow",
-    "state": "En Retard",
+    "state": "En retard",
     "update_field": null,
     "update_value": null,
     "workflow_builder_id": null
@@ -836,7 +836,7 @@
     "parent": "Reclamations Clients",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "En Retard",
+    "state": "En retard",
     "workflow_builder_id": null
    },
    {
@@ -848,7 +848,7 @@
     "parent": "Reclamations Clients",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "En Retard",
+    "state": "En retard",
     "workflow_builder_id": null
    },
    {

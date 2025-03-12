@@ -156,10 +156,10 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-02-27 11:03:05.242186",
-  "name": "En Retard",
-  "style": "Danger",
-  "workflow_state_name": "En Retard"
+  "modified": "2025-03-12 21:20:43.004642",
+  "name": "En retard",
+  "style": "",
+  "workflow_state_name": "En retard"
  },
  {
   "docstatus": 0,
