@@ -186,7 +186,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-10 10:12:45.586493",
+ "modified": "2025-03-12 14:47:04.873506",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -205,6 +205,7 @@
    "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -212,7 +213,8 @@
    "report": 1,
    "role": "Administrateur Ventes",
    "select": 1,
-   "share": 1
+   "share": 1,
+   "write": 1
   },
   {
    "read": 1,
@@ -225,14 +227,18 @@
    "select": 1
   },
   {
+   "create": 1,
    "read": 1,
    "role": "Commercial Itin\u00e9rant",
-   "select": 1
+   "select": 1,
+   "write": 1
   },
   {
+   "create": 1,
    "read": 1,
    "role": "Commercial S\u00e9dentaire",
-   "select": 1
+   "select": 1,
+   "write": 1
   },
   {
    "create": 1,
