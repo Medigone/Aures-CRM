@@ -16,7 +16,7 @@ class ReclamationsClients(Document):
         if (self.date_echeance and 
             getdate(now_datetime()) > getdate(self.date_echeance) and 
             self.status in ["Nouveau", "En Traitement"]):
-            self.status = "En Retard"
+            self.status = "En retard"
         
         # Si le statut passe à "Traité" et que la date de résolution n'est pas encore renseignée,
         # on enregistre la date de résolution (la date courante)
@@ -46,4 +46,4 @@ def update_reclamations_status():
         
         # Si la date d'échéance est dépassée, on met à jour le statut à "En retard"
         if date_echeance and getdate(now_datetime()) > getdate(date_echeance):
-            frappe.db.set_value("Reclamations Clients", rec.name, "status", "En Retard")
+            frappe.db.set_value("Reclamations Clients", rec.name, "status", "En retard")
