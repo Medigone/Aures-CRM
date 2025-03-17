@@ -17,6 +17,7 @@
   "section_break_dazt",
   "client",
   "article",
+  "date_livraison",
   "column_break_nktv",
   "procede",
   "quantite",
@@ -181,12 +182,17 @@
    "fieldname": "est_conception",
    "fieldtype": "Check",
    "label": "Nouvelle Conception"
+  },
+  {
+   "fieldname": "date_livraison",
+   "fieldtype": "Date",
+   "label": "Date Livraison Souhait\u00e9"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-12 14:55:14.036015",
+ "modified": "2025-03-17 11:40:48.217310",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
