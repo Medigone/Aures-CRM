@@ -10,6 +10,10 @@ class VisiteCommerciale(Document):
         if not self.utilisateur:
             self.utilisateur = frappe.session.user
 
+        # 1.b Enregistrer le full name de l'utilisateur dans le champ 'nom_utilisateur'
+        if not self.nom_utilisateur:
+            self.nom_utilisateur = get_fullname(self.utilisateur)
+
         # 2. Définir la date et l'heure de début si le statut est "En Cours"
         if self.status == "En Cours" and not self.heure_debut_visite:
             self.heure_debut_visite = now()
