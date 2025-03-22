@@ -32,3 +32,5 @@ def get_customer_contacts(customer):
         GROUP BY c.name
     """, (customer,), as_dict=True)
     
+    return contacts_data
+    
