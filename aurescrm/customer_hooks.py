@@ -16,52 +16,19 @@ def set_default_commercial(doc, method):
 
 @frappe.whitelist()
 def get_customer_contacts(customer):
-    """
-    Récupère la liste des contacts liés à un client (via Dynamic Link) et
-    renvoie un tableau d'objets, chacun contenant :
-      - docname: le nom du document contact
-      - contact: concaténation prénom + nom
-      - designation: fonction
-      - mobile: numéro mobile principal
-      - email: email principal
-    """
-    contacts_data = []
-
-    # Récupère les Dynamic Links associant le client aux contacts
-    dynamic_links = frappe.get_all(
-        "Dynamic Link",
-        filters={
-            "link_doctype": "Customer",
-            "link_name": customer
-        },
-        fields=["parent"]
-    )
-    contact_names = [d.parent for d in dynamic_links]
-
-    # Parcours de chaque contact pour en extraire les infos utiles
-    for contact_name in contact_names:
-        contact_doc = frappe.get_doc("Contact", contact_name)
-        full_name = (contact_doc.first_name or "") + " " + (contact_doc.last_name or "")
-        designation = contact_doc.designation or ""
-
-        # Recherche du mobile principal
-        mobile = ""
-        if contact_doc.phone_nos:
-            primary_mobile = next((p.phone for p in contact_doc.phone_nos if p.is_primary_mobile_no), None)
-            mobile = primary_mobile or (contact_doc.phone_nos[0].phone if contact_doc.phone_nos else "")
-
-        # Recherche de l'email principal
-        email = ""
-        if contact_doc.email_ids:
-            primary_email = next((e.email_id for e in contact_doc.email_ids if e.is_primary), None)
-            email = primary_email or (contact_doc.email_ids[0].email_id if contact_doc.email_ids else "")
-
-        contacts_data.append({
-            "docname": contact_doc.name,
-            "contact": full_name.strip(),
-            "designation": designation,
-            "mobile": mobile,
-            "email": email
-        })
-
-    return contacts_data
+    contacts_data = frappe.db.sql("""
+        SELECT 
+            c.name AS docname,
+            TRIM(CONCAT_WS(' ', c.first_name, c.last_name)) AS contact,
+            c.designation,
+            MAX(CASE WHEN pn.is_primary_mobile_no = 1 THEN pn.phone END) AS mobile,
+            MAX(CASE WHEN e.is_primary = 1 THEN e.email_id END) AS email
+        FROM `tabContact` c
+        LEFT JOIN `tabDynamic Link` dl 
+            ON c.name = dl.parent AND dl.link_doctype = 'Customer' AND dl.link_name = %s
+        LEFT JOIN `tabContact Phone` pn ON c.name = pn.parent
+        LEFT JOIN `tabContact Email` e ON c.name = e.parent
+        WHERE dl.link_name IS NOT NULL
+        GROUP BY c.name
+    """, (customer,), as_dict=True)
+    
