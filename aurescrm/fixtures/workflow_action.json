@@ -1124,7 +1124,7 @@
     "parent": "ijeud7g7r6",
     "parentfield": "permitted_roles",
     "parenttype": "Workflow Action",
-    "role": "Résponsable Étude Faisabilité"
+    "role": "Responsable Étude Faisabilité"
    }
   ],
   "reference_doctype": "Etude Faisabilite",
@@ -1292,7 +1292,7 @@
     "parent": "0i1ng09l2f",
     "parentfield": "permitted_roles",
     "parenttype": "Workflow Action",
-    "role": "Résponsable Étude Faisabilité"
+    "role": "Responsable Étude Faisabilité"
    }
   ],
   "reference_doctype": "Etude Faisabilite",
@@ -1300,5 +1300,383 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-17 10:13:51.783762",
+  "name": "dph22kq2qd",
+  "permitted_roles": [
+   {
+    "parent": "dph22kq2qd",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00037",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-17 10:17:52.332274",
+  "name": "kk46dn6ju6",
+  "permitted_roles": [
+   {
+    "parent": "kk46dn6ju6",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "flsd1r669h",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Coordination",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-17 10:58:04.058842",
+  "name": "dmki2edhb7",
+  "permitted_roles": [
+   {
+    "parent": "dmki2edhb7",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "1ugdvnjr7c",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-17 12:12:38.678962",
+  "name": "kpc38fu537",
+  "permitted_roles": [
+   {
+    "parent": "kpc38fu537",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ri4nnkumpv",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-17 12:14:38.680838",
+  "name": "4p6qeo2p3k",
+  "permitted_roles": [
+   {
+    "parent": "4p6qeo2p3k",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "fpms4so6f1",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-17 12:15:21.107307",
+  "name": "cb8kbhmsu3",
+  "permitted_roles": [
+   {
+    "parent": "cb8kbhmsu3",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "rli5qr5ri4",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "amine.melizi@gmail.com",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-17 12:38:38.544558",
+  "name": "31sgdgurvn",
+  "permitted_roles": [
+   {
+    "parent": "31sgdgurvn",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "jn5r2nmd9i",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-17 13:54:06.777875",
+  "name": "m0lcvp78mm",
+  "permitted_roles": [
+   {
+    "parent": "m0lcvp78mm",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "e071hj37bh",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-20 13:58:54.392175",
+  "name": "0ih0a116d5",
+  "permitted_roles": [
+   {
+    "parent": "0ih0a116d5",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00038",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-20 13:58:59.736256",
+  "name": "dschlk3e0j",
+  "permitted_roles": [
+   {
+    "parent": "dschlk3e0j",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00038",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-20 14:04:48.439824",
+  "name": "6srhnophra",
+  "permitted_roles": [
+   {
+    "parent": "6srhnophra",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Visite Commerciale",
+  "reference_name": "VC-00039",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-25 11:24:21.017270",
+  "name": "ampnbt84tj",
+  "permitted_roles": [
+   {
+    "parent": "ampnbt84tj",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Coordination"
+   }
+  ],
+  "reference_doctype": "Reclamations Clients",
+  "reference_name": "6drj8qfqat",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-10 16:12:06.958250",
+  "name": "lv02q7plhm",
+  "permitted_roles": [
+   {
+    "parent": "lv02q7plhm",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00001",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-10 16:12:12.082034",
+  "name": "mro85ac8fb",
+  "permitted_roles": [
+   {
+    "parent": "mro85ac8fb",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00001",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-10 16:12:45.694060",
+  "name": "bkqviqnlcl",
+  "permitted_roles": [
+   {
+    "parent": "bkqviqnlcl",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00001",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-10 16:45:10.717684",
+  "name": "ihi6pti827",
+  "permitted_roles": [
+   {
+    "parent": "ihi6pti827",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "e071hj37bh",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-10 16:45:18.903925",
+  "name": "kth0ur6j40",
+  "permitted_roles": [
+   {
+    "parent": "kth0ur6j40",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "e071hj37bh",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-11 13:36:47.032312",
+  "name": "cajdmh56di",
+  "permitted_roles": [
+   {
+    "parent": "cajdmh56di",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "jn5r2nmd9i",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
  }
 ]

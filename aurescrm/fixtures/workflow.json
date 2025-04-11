@@ -639,7 +639,7 @@
    {
     "action": "Réalisable",
     "allow_self_approval": 1,
-    "allowed": "Résponsable Étude Faisabilité",
+    "allowed": "Responsable Étude Faisabilité",
     "condition": null,
     "next_state": "Réalisable",
     "parent": "Etude Faisabilite",
@@ -651,7 +651,7 @@
    {
     "action": "Non Réalisable",
     "allow_self_approval": 1,
-    "allowed": "Résponsable Étude Faisabilité",
+    "allowed": "Responsable Étude Faisabilité",
     "condition": null,
     "next_state": "Non Réalisable",
     "parent": "Etude Faisabilite",
@@ -663,7 +663,7 @@
    {
     "action": "Annuler",
     "allow_self_approval": 1,
-    "allowed": "Résponsable Étude Faisabilité",
+    "allowed": "Responsable Étude Faisabilité",
     "condition": null,
     "next_state": "Annulé",
     "parent": "Etude Faisabilite",
@@ -675,7 +675,7 @@
    {
     "action": "Annuler",
     "allow_self_approval": 1,
-    "allowed": "Résponsable Étude Faisabilité",
+    "allowed": "Responsable Étude Faisabilité",
     "condition": null,
     "next_state": "Annulé",
     "parent": "Etude Faisabilite",

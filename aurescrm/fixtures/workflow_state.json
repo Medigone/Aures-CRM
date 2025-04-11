@@ -156,15 +156,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-03-12 21:33:20.594113",
-  "name": "En retard",
-  "style": "Danger",
-  "workflow_state_name": "En retard"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2024-09-27 10:46:16.595859",
   "name": "Validé",
   "style": "Success",
@@ -174,28 +165,10 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-02-27 11:02:41.795575",
-  "name": "Traité",
-  "style": "Success",
-  "workflow_state_name": "Traité"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-02-27 11:02:53.008429",
-  "name": "Non Traité",
-  "style": "Warning",
-  "workflow_state_name": "Non Traité"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-02-27 11:02:20.801728",
-  "name": "En Traitement",
-  "style": "Warning",
-  "workflow_state_name": "En Traitement"
+  "modified": "2025-03-12 21:33:20.594113",
+  "name": "En retard",
+  "style": "Danger",
+  "workflow_state_name": "En retard"
  },
  {
   "docstatus": 0,
@@ -223,6 +196,33 @@
   "name": "Nouveau",
   "style": "Info",
   "workflow_state_name": "Nouveau"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-02-27 11:02:41.795575",
+  "name": "Traité",
+  "style": "Success",
+  "workflow_state_name": "Traité"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-02-27 11:02:53.008429",
+  "name": "Non Traité",
+  "style": "Warning",
+  "workflow_state_name": "Non Traité"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-02-27 11:02:20.801728",
+  "name": "En Traitement",
+  "style": "Warning",
+  "workflow_state_name": "En Traitement"
  },
  {
   "docstatus": 0,

@@ -370,7 +370,7 @@
  {
   "action": "Réalisable",
   "allow_self_approval": 1,
-  "allowed": "Résponsable Étude Faisabilité",
+  "allowed": "Responsable Étude Faisabilité",
   "condition": null,
   "docstatus": 0,
   "doctype": "Workflow Transition",
@@ -434,7 +434,7 @@
  {
   "action": "Non Réalisable",
   "allow_self_approval": 1,
-  "allowed": "Résponsable Étude Faisabilité",
+  "allowed": "Responsable Étude Faisabilité",
   "condition": null,
   "docstatus": 0,
   "doctype": "Workflow Transition",
@@ -482,7 +482,7 @@
  {
   "action": "Annuler",
   "allow_self_approval": 1,
-  "allowed": "Résponsable Étude Faisabilité",
+  "allowed": "Responsable Étude Faisabilité",
   "condition": null,
   "docstatus": 0,
   "doctype": "Workflow Transition",
@@ -530,7 +530,7 @@
  {
   "action": "Annuler",
   "allow_self_approval": 1,
-  "allowed": "Résponsable Étude Faisabilité",
+  "allowed": "Responsable Étude Faisabilité",
   "condition": null,
   "docstatus": 0,
   "doctype": "Workflow Transition",
