@@ -16,13 +16,14 @@
   "date_resolution",
   "section_break_qnyd",
   "type_reclamation",
-  "visite",
+  "proc\u00e9d\u00e9",
   "column_break_dses",
   "client",
   "nom_client",
   "column_break_tabj",
   "id_commercial",
   "commercial",
+  "visite",
   "section_break_lzea",
   "observations",
   "traitement",
@@ -177,12 +178,19 @@
    "fieldtype": "Data",
    "label": "Raison Sociale",
    "read_only": 1
+  },
+  {
+   "fieldname": "proc\u00e9d\u00e9",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Proc\u00e9d\u00e9",
+   "options": "\nOffset\nFlexo"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-25 11:07:46.683831",
+ "modified": "2025-04-11 15:13:47.388898",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
@@ -255,7 +263,7 @@
   {
    "create": 1,
    "read": 1,
-   "role": "Responsable Qualit\u00e9",
+   "role": "Responsable Qualit\u00e9 Aures",
    "write": 1
   }
  ],
