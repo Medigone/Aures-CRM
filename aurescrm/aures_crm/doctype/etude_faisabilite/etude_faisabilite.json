@@ -24,10 +24,13 @@
   "date_livraison",
   "numerique",
   "tab_2_tab",
+  "trace",
+  "column_break_gbek",
+  "imposition",
+  "section_break_zrsl",
   "taux_chutes",
-  "delai_realisation",
   "column_break_uilq",
-  "fichier_trace",
+  "delai_realisation",
   "section_break_edky",
   "observations",
   "amended_from"
@@ -159,11 +162,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "fichier_trace",
-   "fieldtype": "Attach",
-   "label": "Fichier Trac\u00e9"
-  },
-  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -199,12 +197,32 @@
   {
    "fieldname": "column_break_wanl",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "label": "Trac\u00e9",
+   "options": "Trace"
+  },
+  {
+   "fieldname": "column_break_gbek",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "imposition",
+   "fieldtype": "Link",
+   "label": "Imposition",
+   "options": "Imposition"
+  },
+  {
+   "fieldname": "section_break_zrsl",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-17 13:54:35.808591",
+ "modified": "2025-04-14 15:07:46.169239",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -271,7 +289,7 @@
    "email": 1,
    "read": 1,
    "report": 1,
-   "role": "R\u00e9sponsable \u00c9tude Faisabilit\u00e9",
+   "role": "Responsable \u00c9tude Faisabilit\u00e9",
    "submit": 1,
    "write": 1
   }

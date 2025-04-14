@@ -1,0 +1,100 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-14 09:02:09.364950",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "client",
+  "column_break_iirs",
+  "article",
+  "column_break_ksiy",
+  "trace",
+  "section_break_xfpk",
+  "dimensions",
+  "column_break_mkej",
+  "fichier_imp",
+  "section_break_snzx",
+  "defaut"
+ ],
+ "fields": [
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_iirs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_ksiy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "label": "Trac\u00e9",
+   "options": "Trace"
+  },
+  {
+   "fieldname": "section_break_xfpk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "fichier_imp",
+   "fieldtype": "Attach",
+   "label": "Fichier Imposition"
+  },
+  {
+   "fieldname": "column_break_mkej",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "defaut",
+   "fieldtype": "Check",
+   "label": "Est d\u00e9faut"
+  },
+  {
+   "fieldname": "dimensions",
+   "fieldtype": "Data",
+   "label": "Dimensions"
+  },
+  {
+   "fieldname": "section_break_snzx",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-14 09:05:27.375909",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Imposition",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
