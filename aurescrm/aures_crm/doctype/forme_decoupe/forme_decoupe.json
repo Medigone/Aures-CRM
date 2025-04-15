@@ -1,0 +1,134 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-15 12:13:46.185916",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "client",
+  "column_break_rxwr",
+  "article",
+  "section_break_mtii",
+  "trace",
+  "column_break_tjqp",
+  "dimensions",
+  "section_break_nwpe",
+  "imposition",
+  "column_break_vzyb",
+  "nbr_poses",
+  "infos_stock_tab",
+  "colonne",
+  "column_break_vcya",
+  "rayonnage",
+  "column_break_nwtl",
+  "numero"
+ ],
+ "fields": [
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "label": "Trac\u00e9",
+   "options": "Trace"
+  },
+  {
+   "fieldname": "imposition",
+   "fieldtype": "Link",
+   "label": "Imposition",
+   "options": "Imposition"
+  },
+  {
+   "fieldname": "column_break_rxwr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_nwpe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_vzyb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "infos_stock_tab",
+   "fieldtype": "Tab Break",
+   "label": "Infos Stock"
+  },
+  {
+   "fieldname": "colonne",
+   "fieldtype": "Data",
+   "label": "Colonne"
+  },
+  {
+   "fieldname": "column_break_vcya",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rayonnage",
+   "fieldtype": "Data",
+   "label": "Rayonnage"
+  },
+  {
+   "fieldname": "column_break_nwtl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "numero",
+   "fieldtype": "Data",
+   "label": "\u2116"
+  },
+  {
+   "fieldname": "section_break_mtii",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_tjqp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dimensions",
+   "fieldtype": "Data",
+   "label": "Dimensions"
+  },
+  {
+   "fieldname": "nbr_poses",
+   "fieldtype": "Int",
+   "label": "Nombre de poses"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-15 12:36:35.843412",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Forme Decoupe",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
