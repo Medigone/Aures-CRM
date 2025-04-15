@@ -75,7 +75,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-14 15:14:19.714680",
+ "modified": "2025-04-14 17:53:21.356914",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Imposition",
@@ -127,6 +127,7 @@
    "write": 1
   }
  ],
+ "search_fields": "client,article,trace,dimensions",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

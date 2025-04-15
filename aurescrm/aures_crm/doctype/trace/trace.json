@@ -69,7 +69,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-14 15:16:13.790462",
+ "modified": "2025-04-15 07:45:53.277275",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Trace",
@@ -121,6 +121,7 @@
    "write": 1
   }
  ],
+ "search_fields": "client,article,dimensions",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
