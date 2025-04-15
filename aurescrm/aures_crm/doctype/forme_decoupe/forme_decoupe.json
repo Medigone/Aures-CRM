@@ -109,7 +109,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-15 12:36:35.843412",
+ "modified": "2025-04-15 15:12:44.955124",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Forme Decoupe",
@@ -130,5 +130,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

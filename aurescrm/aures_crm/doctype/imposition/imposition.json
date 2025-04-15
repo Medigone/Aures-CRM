@@ -5,19 +5,24 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "status",
+  "section_break_ciau",
   "client",
-  "column_break_iirs",
+  "column_break_diue",
   "article",
-  "column_break_ksiy",
+  "section_break_joaj",
   "trace",
-  "column_break_eemc",
-  "an_num_fd",
+  "column_break_iirs",
+  "format_imp",
+  "laize_pal",
+  "section_break_pcyb",
+  "forme_decoupe",
+  "column_break_rdzb",
+  "nbr_poses",
   "section_break_xfpk",
-  "dimensions",
+  "an_num_fd",
   "column_break_mkej",
   "fichier_imp",
-  "column_break_ydzq",
-  "nbr_poses",
   "section_break_snzx",
   "defaut"
  ],
@@ -41,10 +46,6 @@
    "in_standard_filter": 1,
    "label": "Article",
    "options": "Item"
-  },
-  {
-   "fieldname": "column_break_ksiy",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "trace",
@@ -72,19 +73,8 @@
    "label": "Est d\u00e9faut"
   },
   {
-   "fieldname": "dimensions",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Dimensions"
-  },
-  {
    "fieldname": "section_break_snzx",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_ydzq",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "an_num_fd",
@@ -92,20 +82,61 @@
    "label": "Ancien Num\u00e9ro FD"
   },
   {
-   "fieldname": "column_break_eemc",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "nbr_poses",
    "fieldtype": "Int",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Nombre de poses"
+  },
+  {
+   "fieldname": "forme_decoupe",
+   "fieldtype": "Link",
+   "label": "Forme D\u00e9coupe",
+   "options": "Forme Decoupe"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Actif\nInactif"
+  },
+  {
+   "fieldname": "section_break_ciau",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_diue",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_joaj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_pcyb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_rdzb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "format_imp",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Format d'impression"
+  },
+  {
+   "fieldname": "laize_pal",
+   "fieldtype": "Select",
+   "label": "Laize / Palette ?",
+   "options": "Laize\nPalette"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-15 11:07:29.911580",
+ "modified": "2025-04-15 15:52:18.324396",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Imposition",
@@ -157,8 +188,18 @@
    "write": 1
   }
  ],
- "search_fields": "client,article,trace,dimensions",
+ "search_fields": "client,article,trace,format_imp",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Green",
+   "title": "Actif"
+  },
+  {
+   "color": "Gray",
+   "title": "Inactif"
+  }
+ ],
+ "track_changes": 1
 }

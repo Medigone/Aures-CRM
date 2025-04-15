@@ -30,7 +30,6 @@
   "section_break_zrsl",
   "taux_chutes",
   "column_break_uilq",
-  "delai_realisation",
   "section_break_edky",
   "observations",
   "amended_from"
@@ -136,12 +135,6 @@
    "label": "Rapport"
   },
   {
-   "fieldname": "delai_realisation",
-   "fieldtype": "Duration",
-   "hide_seconds": 1,
-   "label": "D\u00e9lai de r\u00e9alisation"
-  },
-  {
    "fieldname": "section_break_edky",
    "fieldtype": "Section Break"
   },
@@ -222,7 +215,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-14 16:28:53.858430",
+ "modified": "2025-04-15 15:56:45.039966",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -296,5 +289,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
