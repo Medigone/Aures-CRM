@@ -142,8 +142,8 @@ def cancel_etudes_faisabilite(docname):
 @frappe.whitelist()
 def get_articles_for_quotation(docname):
     """
-    Retourne la liste des articles (et quantités) liés à une Demande Faisabilite
-    via les Études de Faisabilité avec le statut "Réalisable".
+    Retourne les articles des Études Faisabilité avec statut "Réalisable"
+    liés à la Demande Faisabilite, avec item_name et uom.
     """
     try:
         etudes = frappe.get_all(
@@ -154,7 +154,41 @@ def get_articles_for_quotation(docname):
             },
             fields=["article", "quantite"]
         )
-        return etudes
+
+        # Ajouter item_name et uom pour chaque article
+        results = []
+        for e in etudes:
+            item = frappe.get_doc("Item", e.article)
+            results.append({
+                "article": e.article,
+                "quantite": e.quantite,
+                "item_name": item.item_name,
+                "uom": item.stock_uom
+            })
+
+        return results
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Erreur get_articles_for_quotation")
         frappe.throw(_("Impossible de récupérer les articles pour le devis."))
+
+
+@frappe.whitelist()
+def set_demande_status_from_quotation(doc, method):
+    """
+    Lors de la soumission d'un devis, si celui-ci est lié à une Demande Faisabilité,
+    on met à jour le statut de cette demande en 'Devis Établis'
+    """
+    if not doc.custom_demande_faisabilité:
+        return
+
+    try:
+        demande = frappe.get_doc("Demande Faisabilite", doc.custom_demande_faisabilité)
+
+        # Mettre à jour uniquement si le statut est Finalisée ou Partiellement Finalisée
+        if demande.status in ["Finalisée", "Partiellement Finalisée"]:
+            demande.status = "Devis Établis"
+            demande.save(ignore_permissions=True)
+            frappe.msgprint(_("Statut de la demande mis à jour en 'Devis Établis'"))
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Erreur lors de la mise à jour de la Demande depuis Quotation")

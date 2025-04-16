@@ -136,10 +136,13 @@ frappe.ui.form.on('Demande Faisabilite', {
                                 doc.party_name = frm.doc.client;
                                 doc.custom_id_client = frm.doc.client;
                                 doc.company = frappe.defaults.get_default("company");
+                                doc.custom_demande_faisabilité = frm.doc.name;
         
                                 r.message.forEach(row => {
                                     let item = frappe.model.add_child(doc, "Quotation Item", "items");
                                     item.item_code = row.article;
+                                    item.item_name = row.item_name;
+                                    item.uom = row.uom;
                                     item.qty = row.quantite;
                                 });
         
@@ -151,9 +154,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                     }
                 });
             }, "Créer");
-        }
-        
-        
+        }        
     }
 });
 
