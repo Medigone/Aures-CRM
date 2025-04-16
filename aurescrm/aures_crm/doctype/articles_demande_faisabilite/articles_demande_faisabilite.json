@@ -8,8 +8,9 @@
  "field_order": [
   "article",
   "quantite",
-  "est_creation",
-  "procede_article"
+  "date_livraison",
+  "procede_article",
+  "est_creation"
  ],
  "fields": [
   {
@@ -41,12 +42,18 @@
    "label": "Proc\u00e9d\u00e9",
    "options": "\nOffset\nFlexo",
    "read_only": 1
+  },
+  {
+   "fieldname": "date_livraison",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date de livraison"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-16 08:05:44.046537",
+ "modified": "2025-04-16 08:12:31.917523",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Articles Demande Faisabilite",
