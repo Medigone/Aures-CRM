@@ -21,7 +21,6 @@
   "commercial",
   "section_break_rlku",
   "html",
-  "articles_tab",
   "liste_articles"
  ],
  "fields": [
@@ -54,7 +53,10 @@
    "default": "Today",
    "fieldname": "date_creation",
    "fieldtype": "Date",
-   "label": "Date Cr\u00e9ation"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date Cr\u00e9ation",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_yams",
@@ -77,9 +79,12 @@
   {
    "fieldname": "client",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
-   "search_index": 1
+   "search_index": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "column_break_tric",
@@ -89,6 +94,7 @@
    "fetch_from": "id_commercial.full_name",
    "fieldname": "commercial",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Commercial",
    "read_only": 1
   },
@@ -102,14 +108,8 @@
    "label": "html"
   },
   {
-   "fieldname": "articles_tab",
-   "fieldtype": "Tab Break",
-   "label": "Articles"
-  },
-  {
    "fieldname": "liste_articles",
    "fieldtype": "Table",
-   "label": "Liste Articles ",
    "options": "Articles Demande Faisabilite"
   },
   {
@@ -120,6 +120,7 @@
    "default": "User",
    "fieldname": "id_utilisateur",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "ID Utilisateur",
    "options": "User",
    "search_index": 1
@@ -128,6 +129,7 @@
    "fetch_from": "id_utilisateur.full_name",
    "fieldname": "cree_par",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Cr\u00e9e Par",
    "read_only": 1
   }
@@ -135,7 +137,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-16 08:21:40.468302",
+ "modified": "2025-04-16 09:56:43.979890",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
