@@ -37,12 +37,13 @@
  ],
  "fields": [
   {
+   "allow_on_submit": 1,
    "default": "Nouveau",
    "fieldname": "status",
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn \u00e9tude\nR\u00e9alisable\nNon R\u00e9alisable"
+   "options": "Nouveau\nEn \u00e9tude\nR\u00e9alisable\nNon R\u00e9alisable\nAnnul\u00e9e"
   },
   {
    "fieldname": "section_break_fkfa",
@@ -142,11 +143,13 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "observations",
    "fieldtype": "Text Editor",
    "label": "Observations"
   },
   {
+   "allow_on_submit": 1,
    "description": "En %",
    "fieldname": "taux_chutes",
    "fieldtype": "Int",
@@ -198,6 +201,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "trace",
    "fieldtype": "Link",
    "label": "Trac\u00e9",
@@ -208,6 +212,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "imposition",
    "fieldtype": "Link",
    "label": "Imposition",
@@ -229,13 +234,15 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-16 11:31:57.756569",
+ "modified": "2025-04-16 15:26:56.833408",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
  "owner": "Administrator",
  "permissions": [
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -244,11 +251,12 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
-   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -256,8 +264,7 @@
    "report": 1,
    "role": "Administrateur Ventes",
    "select": 1,
-   "share": 1,
-   "write": 1
+   "share": 1
   },
   {
    "read": 1,
@@ -270,21 +277,16 @@
    "select": 1
   },
   {
-   "create": 1,
    "read": 1,
    "role": "Commercial Itin\u00e9rant",
-   "select": 1,
-   "write": 1
+   "select": 1
   },
   {
-   "create": 1,
    "read": 1,
    "role": "Commercial S\u00e9dentaire",
-   "select": 1,
-   "write": 1
+   "select": 1
   },
   {
-   "create": 1,
    "read": 1,
    "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9",
    "write": 1
@@ -292,7 +294,6 @@
   {
    "amend": 1,
    "cancel": 1,
-   "create": 1,
    "email": 1,
    "read": 1,
    "report": 1,

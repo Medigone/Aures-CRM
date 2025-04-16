@@ -160,6 +160,9 @@ doc_events = {
     },
     "Adresses de livraison": {
         "before_save": "aurescrm.utils.custom_delivery_address_naming"
+    },
+    "Etude Faisabilite": {
+         "on_update": "aurescrm.faisabilite_hook.update_demande_status_from_etudes"
     }
 }
 

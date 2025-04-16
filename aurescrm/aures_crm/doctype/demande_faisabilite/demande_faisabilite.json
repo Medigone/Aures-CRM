@@ -8,8 +8,6 @@
   "section_break_uf6i",
   "status",
   "column_break_fxtr",
-  "section_break_bwpt",
-  "liens",
   "section_break_ojxn",
   "date_creation",
   "column_break_yams",
@@ -21,6 +19,8 @@
   "client",
   "column_break_tric",
   "commercial",
+  "section_break_bwpt",
+  "liens",
   "section_break_rlku",
   "html",
   "liste_articles"
@@ -41,8 +41,10 @@
    "search_index": 1
   },
   {
+   "default": "Brouillon",
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Statut",
    "options": "Brouillon\nConfirm\u00e9e\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nAnnul\u00e9e"
   },
@@ -148,7 +150,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-16 11:54:50.815619",
+ "modified": "2025-04-16 14:10:08.280616",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
