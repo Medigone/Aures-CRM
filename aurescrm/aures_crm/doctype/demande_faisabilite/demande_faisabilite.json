@@ -8,6 +8,8 @@
   "section_break_uf6i",
   "status",
   "column_break_fxtr",
+  "section_break_bwpt",
+  "liens",
   "section_break_ojxn",
   "date_creation",
   "column_break_yams",
@@ -39,11 +41,10 @@
    "search_index": 1
   },
   {
-   "default": "Nouveau",
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Statut",
-   "options": "Nouveau\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nAnnul\u00e9e"
+   "options": "Brouillon\nConfirm\u00e9e\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nAnnul\u00e9e"
   },
   {
    "fieldname": "section_break_ojxn",
@@ -103,6 +104,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "depends_on": "eval: doc.status =='Brouillon'",
    "fieldname": "html",
    "fieldtype": "HTML",
    "label": "html"
@@ -110,7 +112,8 @@
   {
    "fieldname": "liste_articles",
    "fieldtype": "Table",
-   "options": "Articles Demande Faisabilite"
+   "options": "Articles Demande Faisabilite",
+   "read_only_depends_on": "eval: doc.status !='Brouillon'"
   },
   {
    "fieldname": "column_break_fxtr",
@@ -132,12 +135,20 @@
    "in_standard_filter": 1,
    "label": "Cr\u00e9e Par",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_bwpt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.status != 'Brouillon'",
+   "fieldname": "liens",
+   "fieldtype": "HTML"
   }
  ],
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
  "links": [],
- "modified": "2025-04-16 09:56:43.979890",
+ "modified": "2025-04-16 11:54:50.815619",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
@@ -153,7 +164,6 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "submit": 1,
    "write": 1
   }
  ],
@@ -161,8 +171,12 @@
  "sort_order": "DESC",
  "states": [
   {
+   "color": "Red",
+   "title": "Brouillon"
+  },
+  {
    "color": "Blue",
-   "title": "Nouveau"
+   "title": "Confirm\u00e9e"
   },
   {
    "color": "Yellow",
@@ -181,7 +195,7 @@
    "title": "Devis \u00c9tablis"
   },
   {
-   "color": "Red",
+   "color": "Gray",
    "title": "Annul\u00e9e"
   }
  ],

@@ -100,6 +100,7 @@
    "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
+   "read_only": 1,
    "search_index": 1
   },
   {
@@ -115,6 +116,7 @@
    "in_standard_filter": 1,
    "label": "Article",
    "options": "Item",
+   "read_only": 1,
    "search_index": 1
   },
   {
@@ -169,18 +171,21 @@
    "fieldname": "quantite",
    "fieldtype": "Int",
    "label": "Quantit\u00e9",
-   "non_negative": 1
+   "non_negative": 1,
+   "read_only": 1
   },
   {
    "default": "0",
    "fieldname": "est_conception",
    "fieldtype": "Check",
-   "label": "Nouvelle Conception"
+   "label": "Nouvelle Conception",
+   "read_only": 1
   },
   {
    "fieldname": "date_livraison",
    "fieldtype": "Date",
-   "label": "Date Livraison Souhait\u00e9"
+   "label": "Date Livraison Souhait\u00e9",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -224,7 +229,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-16 07:57:06.896503",
+ "modified": "2025-04-16 11:31:57.756569",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
