@@ -13,6 +13,8 @@
   "column_break_yams",
   "amended_from",
   "id_commercial",
+  "id_utilisateur",
+  "cree_par",
   "section_break_jdmh",
   "client",
   "column_break_tric",
@@ -113,12 +115,27 @@
   {
    "fieldname": "column_break_fxtr",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "User",
+   "fieldname": "id_utilisateur",
+   "fieldtype": "Link",
+   "label": "ID Utilisateur",
+   "options": "User",
+   "search_index": 1
+  },
+  {
+   "fetch_from": "id_utilisateur.full_name",
+   "fieldname": "cree_par",
+   "fieldtype": "Data",
+   "label": "Cr\u00e9e Par",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-16 08:16:42.121805",
+ "modified": "2025-04-16 08:21:40.468302",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
