@@ -8,6 +8,7 @@
   "status",
   "section_break_fkfa",
   "date_creation",
+  "demande_faisabilite",
   "column_break_wies",
   "date_echeance",
   "id_commercial",
@@ -210,12 +211,20 @@
   {
    "fieldname": "section_break_zrsl",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "demande_faisabilite",
+   "fieldtype": "Link",
+   "label": "Demande Faisabilit\u00e9",
+   "options": "Demande Faisabilite",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-15 15:56:45.039966",
+ "modified": "2025-04-16 07:57:06.896503",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",

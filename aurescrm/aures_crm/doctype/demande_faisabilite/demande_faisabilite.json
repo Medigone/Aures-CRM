@@ -1,0 +1,148 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-16 07:36:20.526559",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_uf6i",
+  "amended_from",
+  "status",
+  "section_break_ojxn",
+  "date_creation",
+  "column_break_yams",
+  "id_commercial",
+  "section_break_jdmh",
+  "client",
+  "column_break_tric",
+  "commercial",
+  "section_break_rlku",
+  "html"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_uf6i",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Demande Faisabilite",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Nouveau",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Nouveau\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nAnnul\u00e9e"
+  },
+  {
+   "fieldname": "section_break_ojxn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "label": "Date Cr\u00e9ation"
+  },
+  {
+   "fieldname": "column_break_yams",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "id_commercial",
+   "fieldtype": "Link",
+   "label": "ID Commercial",
+   "options": "User",
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_jdmh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer",
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_tric",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commercial",
+   "fieldtype": "Data",
+   "label": "Commercial",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_rlku",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "html",
+   "fieldtype": "HTML",
+   "label": "html"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-04-16 07:58:09.675795",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Demande Faisabilite",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Yellow",
+   "title": "En Cours"
+  },
+  {
+   "color": "Orange",
+   "title": "Partiellement Finalis\u00e9e"
+  },
+  {
+   "color": "Purple",
+   "title": "Finalis\u00e9e"
+  },
+  {
+   "color": "Green",
+   "title": "Devis \u00c9tablis"
+  },
+  {
+   "color": "Red",
+   "title": "Annul\u00e9e"
+  }
+ ],
+ "track_changes": 1
+}

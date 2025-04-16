@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-16 07:58:56.754465",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "article",
+  "quantite",
+  "est_creation",
+  "procede_article"
+ ],
+ "fields": [
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Article",
+   "options": "Item",
+   "search_index": 1
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Quantit\u00e9"
+  },
+  {
+   "default": "0",
+   "fieldname": "est_creation",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Cr\u00e9ation"
+  },
+  {
+   "fetch_from": "article.custom_proc\u00e9d\u00e9",
+   "fieldname": "procede_article",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Proc\u00e9d\u00e9",
+   "options": "\nOffset\nFlexo",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-16 08:05:44.046537",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Articles Demande Faisabilite",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
