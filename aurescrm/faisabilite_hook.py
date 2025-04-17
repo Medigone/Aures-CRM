@@ -175,20 +175,34 @@ def get_articles_for_quotation(docname):
 @frappe.whitelist()
 def set_demande_status_from_quotation(doc, method):
     """
-    Lors de la soumission d'un devis, si celui-ci est lié à une Demande Faisabilité,
-    on met à jour le statut de cette demande en 'Devis Établis'
+    Lorsqu’un devis est soumis, si lié à une Demande Faisabilité,
+    alors on met à jour son statut en "Devis Établis".
     """
     if not doc.custom_demande_faisabilité:
+        frappe.msgprint("Pas de demande faisabilité liée, aucun changement de statut.");
         return
 
     try:
         demande = frappe.get_doc("Demande Faisabilite", doc.custom_demande_faisabilité)
 
-        # Mettre à jour uniquement si le statut est Finalisée ou Partiellement Finalisée
+        frappe.msgprint(f"Demande liée trouvée : {demande.name}, statut actuel : {demande.status}")
+
         if demande.status in ["Finalisée", "Partiellement Finalisée"]:
             demande.status = "Devis Établis"
             demande.save(ignore_permissions=True)
-            frappe.msgprint(_("Statut de la demande mis à jour en 'Devis Établis'"))
+            frappe.msgprint(_("Statut de la Demande Faisabilité mis à jour en 'Devis Établis'"))
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Erreur lors de la mise à jour de la Demande depuis Quotation")
+        frappe.log_error(frappe.get_traceback(), "Erreur mise à jour statut depuis Quotation")
+        frappe.msgprint("Erreur lors de la mise à jour de la demande liée.")
+
+@frappe.whitelist()
+def get_quotations_for_demande(demande_name):
+    """
+    Retourne les devis liés à une Demande Faisabilite via le champ custom_demande_faisabilite
+    """
+    return frappe.get_all(
+        "Quotation",
+        filters={"custom_demande_faisabilité": demande_name},
+        fields=["name", "status"]
+    )

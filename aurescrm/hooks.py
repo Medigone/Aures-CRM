@@ -165,7 +165,7 @@ doc_events = {
          "on_update": "aurescrm.faisabilite_hook.update_demande_status_from_etudes"
     },
     "Quotation": {
-        "on_submit": "aurescrm.faisabilite_hook.set_demande_status_from_quotation"
+        "after_insert": "aurescrm.faisabilite_hook.set_demande_status_from_quotation"
     }
 }
 

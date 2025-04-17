@@ -2,8 +2,8 @@
 // For license information, please see license.txt
 frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
-        // Charger la liste des Etude Faisabilite dans le champ "liens"
         load_etude_links(frm);
+
         // --- Bouton "Ajouter un article" ---
         if (!frm.get_field('html').$wrapper.find('#add-article-btn').length) {
             frm.get_field('html').$wrapper.append(
@@ -58,7 +58,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                         row.date_livraison = values.date_livraison;
                         row.est_creation = values.est_creation;
                         frm.refresh_field('liste_articles');
-                        frm.save()
+                        frm.save();
                     }
                 },
                 'Ajouter un article',
@@ -66,6 +66,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                 );
             });
         }
+
         // --- Bouton "Confirmer" ---
         if (frm.doc.status === "Brouillon") {
             frm.clear_custom_buttons();
@@ -83,13 +84,11 @@ frappe.ui.form.on('Demande Faisabilite', {
                                 }
                             }
                         });
-                    },
-                    function() {
-                        // Rien si l'utilisateur annule
                     }
                 );
             });
         }
+
         // --- Bouton "Annuler" ---
         if (frm.doc.status === "Partiellement Finalisée" || frm.doc.status === "Finalisée") {
             frm.clear_custom_buttons();
@@ -114,13 +113,12 @@ frappe.ui.form.on('Demande Faisabilite', {
                                 }
                             }
                         });
-                    },
-                    function() {
-                        // Rien si l'utilisateur annule
                     }
                 );
             }).addClass("btn-danger");
         }
+
+        // --- Bouton "Devis" ---
         if (frm.doc.status === "Finalisée") {
             frm.add_custom_button('Devis', function() {
                 frappe.call({
@@ -137,7 +135,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                                 doc.custom_id_client = frm.doc.client;
                                 doc.company = frappe.defaults.get_default("company");
                                 doc.custom_demande_faisabilité = frm.doc.name;
-        
+
                                 r.message.forEach(row => {
                                     let item = frappe.model.add_child(doc, "Quotation Item", "items");
                                     item.item_code = row.article;
@@ -145,7 +143,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                                     item.uom = row.uom;
                                     item.qty = row.quantite;
                                 });
-        
+
                                 frappe.set_route("Form", "Quotation", doc.name);
                             });
                         } else {
@@ -154,70 +152,78 @@ frappe.ui.form.on('Demande Faisabilite', {
                     }
                 });
             }, "Créer");
-        }        
-    }
-});
-
-/**
- * Extraction du message d'erreur à partir de la réponse d'erreur
- * @param {Object} err - L'objet d'erreur retourné par Frappe
- * @returns {string} - Le message d'erreur extrait
- */
-function getErrorMessage(err) {
-    if (err && err.exc) {
-        var exceptionMessage = err.exc.split('\n').pop().trim();
-        return exceptionMessage;
-    }
-    if (err && err.message) {
-        if (typeof err.message === 'string') {
-            return err.message;
-        } else if (typeof err.message === 'object') {
-            try {
-                var errorMessage = JSON.parse(err.message);
-                if (errorMessage && errorMessage.message) {
-                    return errorMessage.message;
-                }
-            } catch (e) {
-                console.error("Erreur lors de la relecture du message d'erreur:", e);
-            }
         }
     }
-    return "Une erreur est survenue lors de l'opération.";
-}
+});
 
 function load_etude_links(frm) {
     frappe.db.get_list("Etude Faisabilite", {
         filters: { demande_faisabilite: frm.doc.name },
         fields: ["name", "status"],
         limit_page_length: 100
-    }).then(function(records) {
-        var html = "";
-        if (records && records.length > 0) {
-            html += "<div>";
-            html += '<h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px;">Liste Études de Faisabilité</h3>';
-            records.forEach(function(rec) {
-                var badge = get_status_badge(rec.status);
-                html += "<div style='margin-bottom: 5px;'>";
-                html += badge + " " + "<a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-weight: bold; font-size: 11px; text-decoration: none; color: inherit;'>" + rec.name + "</a>";
+    }).then(function(etudes) {
+        frappe.call({
+            method: "aurescrm.faisabilite_hook.get_quotations_for_demande",
+            args: {
+                demande_name: frm.doc.name
+            },
+            callback: function(res) {
+                var quotations = res.message || [];
+                var html = "";
+
+                // Études
+                html += "<div>";
+                html += '<h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px;">Liste Études de Faisabilité</h3>';
+                if (etudes.length > 0) {
+                    etudes.forEach(function(rec) {
+                        var badge = get_status_badge(rec.status);
+                        html += "<div style='margin-bottom: 5px;'>";
+                        html += badge + " <a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-weight: bold; font-size: 11px; text-decoration: none; color: inherit;'>" + rec.name + "</a>";
+                        html += "</div>";
+                    });
+                } else {
+                    html += "<p style='font-size: 11px;'>Aucune étude de faisabilité liée.</p>";
+                }
+                html += "</div><hr>";
+
+                // Devis
+                html += "<div>";
+                html += '<h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px;">Liste Devis liés</h3>';
+                if (quotations.length > 0) {
+                    quotations.forEach(function(quote) {
+                        var badge = get_status_badge(quote.status);
+                        html += "<div style='margin-bottom: 5px;'>";
+                        html += badge + " <a href='#' onclick=\"frappe.set_route('Form','Quotation','" + quote.name + "'); return false;\" style='font-weight: bold; font-size: 11px; text-decoration: none; color: inherit;'>" + quote.name + "</a>";
+                        html += "</div>";
+                    });
+                } else {
+                    html += "<p style='font-size: 11px;'>Aucun devis lié à cette demande.</p>";
+                }
                 html += "</div>";
-            });
-            html += "</div>";
-        } else {
-            html = "<p>Aucune étude de faisabilité liée.</p>";
-        }
-        frm.get_field("liens").$wrapper.html(html);
+
+                frm.get_field("liens").$wrapper.html(html);
+            }
+        });
     });
 }
 
 function get_status_badge(status) {
     var config = {
+        // Études
         "Nouveau": { color: "#118ab2" },
         "En étude": { color: "#f4a261" },
         "Réalisable": { color: "#2a9d8f" },
         "Non Réalisable": { color: "#e63946" },
-        "Programmée": { color: "#118ab2" }
+        "Programmée": { color: "#118ab2" },
+        // Devis
+        "Draft": { color: "#999999" },
+        "Submitted": { color: "#2a9d8f" },
+        "Cancelled": { color: "#e63946" },
+        "Open": { color: "#f4a261" },
+        "Lost": { color: "#e76f51" },
+        "Ordered": { color: "#118ab2" }
     };
-    var clr = config[status] ? config[status].color : "#999999";
+    var clr = config[status] ? config[status].color : "#666";
     return "<span style='background-color: " + clr + "; font-size: 11px; color: #fff; border-radius: 4px; padding: 2px 4px; margin-right: 4px;'>" +
            status + "</span>";
 }
