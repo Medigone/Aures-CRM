@@ -146,6 +146,7 @@ def get_articles_for_quotation(docname):
     liés à la Demande Faisabilite, avec item_name et uom.
     """
     try:
+        # Récupérer les études de faisabilité
         etudes = frappe.get_all(
             "Etude Faisabilite",
             filters={
@@ -154,17 +155,32 @@ def get_articles_for_quotation(docname):
             },
             fields=["article", "quantite"]
         )
+        
+        if not etudes:
+            return []
 
-        # Ajouter item_name et uom pour chaque article
+        # Récupérer tous les articles en une seule requête
+        article_ids = [e.article for e in etudes]
+        items = frappe.get_all(
+            "Item",
+            filters={"name": ["in", article_ids]},
+            fields=["name", "item_name", "stock_uom"]
+        )
+        
+        # Créer un dictionnaire pour un accès rapide aux données des articles
+        item_dict = {item.name: item for item in items}
+        
+        # Construire le résultat final
         results = []
         for e in etudes:
-            item = frappe.get_doc("Item", e.article)
-            results.append({
-                "article": e.article,
-                "quantite": e.quantite,
-                "item_name": item.item_name,
-                "uom": item.stock_uom
-            })
+            item = item_dict.get(e.article)
+            if item:
+                results.append({
+                    "article": e.article,
+                    "quantite": e.quantite,
+                    "item_name": item.item_name,
+                    "uom": item.stock_uom
+                })
 
         return results
     except Exception as e:

@@ -188,7 +188,8 @@ function load_etude_links(frm) {
 
                 // Devis
                 html += "<div>";
-                html += '<h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px;">Liste Devis liés</h3>';
+                html += '<h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px;">' + 
+                        (quotations.length === 1 ? 'Devis lié' : 'Liste Devis liés') + '</h3>';
                 if (quotations.length > 0) {
                     quotations.forEach(function(quote) {
                         var badge = get_status_badge(quote.status);
@@ -208,6 +209,16 @@ function load_etude_links(frm) {
 }
 
 function get_status_badge(status) {
+    // Mapping des traductions pour les statuts
+    const statusTranslations = {
+        "Draft": "Brouillon",
+        "Submitted": "Soumis",
+        "Cancelled": "Annulé",
+        "Open": "Ouvert",
+        "Lost": "Perdu",
+        "Ordered": "Commandé"
+    };
+
     var config = {
         // Études
         "Nouveau": { color: "#118ab2" },
@@ -216,14 +227,18 @@ function get_status_badge(status) {
         "Non Réalisable": { color: "#e63946" },
         "Programmée": { color: "#118ab2" },
         // Devis
-        "Draft": { color: "#999999" },
-        "Submitted": { color: "#2a9d8f" },
-        "Cancelled": { color: "#e63946" },
-        "Open": { color: "#f4a261" },
-        "Lost": { color: "#e76f51" },
-        "Ordered": { color: "#118ab2" }
+        "Brouillon": { color: "#e63946" },
+        "Soumis": { color: "#2a9d8f" },
+        "Annulé": { color: "#e63946" },
+        "Ouvert": { color: "#f4a261" },
+        "Perdu": { color: "#e76f51" },
+        "Commandé": { color: "#2a9d8f" }
     };
-    var clr = config[status] ? config[status].color : "#666";
+
+    // Traduire le statut si une traduction existe
+    const displayStatus = statusTranslations[status] || status;
+    var clr = config[displayStatus] ? config[displayStatus].color : "#666";
+    
     return "<span style='background-color: " + clr + "; font-size: 11px; color: #fff; border-radius: 4px; padding: 2px 4px; margin-right: 4px;'>" +
-           status + "</span>";
+           displayStatus + "</span>";
 }
