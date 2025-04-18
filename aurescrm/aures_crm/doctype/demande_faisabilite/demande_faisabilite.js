@@ -32,13 +32,13 @@ frappe.ui.form.on('Demande Faisabilite', {
                     {
                         fieldname: 'date_livraison',
                         fieldtype: 'Date',
-                        label: 'Date de livraison',
+                        label: 'Date de livraison souhaitée',
                         reqd: 1
                     },
                     {
                         fieldname: 'est_creation',
                         fieldtype: 'Check',
-                        label: 'Création',
+                        label: 'Est une nouvelle création',
                         default: 0
                     }
                 ],
@@ -169,37 +169,63 @@ function load_etude_links(frm) {
             },
             callback: function(res) {
                 var quotations = res.message || [];
-                var html = "";
+                var html = "<div style='display: flex; flex-direction: column; gap: 20px; padding-bottom: 10px; min-width: 280px;'>";
+                html += "<style>@media (min-width: 768px) { .df-container { flex-direction: row !important; } }</style>";
+                // Ajout de align-items: stretch pour garantir la même hauteur
+                html += "<div class='df-container' style='display: flex; flex-direction: column; gap: 20px; align-items: stretch;'>";
 
-                // Études
-                html += "<div>";
-                html += '<h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px;">Liste Études de Faisabilité</h3>';
+                // Études dans son propre conteneur
+                html += "<div style='flex: 1; min-width: 280px; display: flex; flex-direction: column;'>";
+                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; background-color: #f8f9fa; padding: 0; height: 100%;'>";
+                // En-tête avec titre et ligne
+                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd;">' +
+                        '<div style="display: flex; align-items: center;">' +
+                        '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">Liste Études de Faisabilité</span>' +
+                        '<span style="margin-left: 8px; background: rgba(74, 144, 226, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 11px; color: #4a90e2;">' + 
+                        etudes.length + ' étude' + (etudes.length > 1 ? 's' : '') + '</span></div>' +
+                        '</div>';
+                
+                // Contenu de la liste
+                html += "<div style='padding: 20px;'>";
                 if (etudes.length > 0) {
                     etudes.forEach(function(rec) {
                         var badge = get_status_badge(rec.status);
-                        html += "<div style='margin-bottom: 5px;'>";
-                        html += badge + " <a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-weight: bold; font-size: 11px; text-decoration: none; color: inherit;'>" + rec.name + "</a>";
+                        html += "<div style='margin-bottom: 5px; display: flex; align-items: center;'>";
+                        html += "<span style='margin-right: 8px;'>•</span>";
+                        html += "<a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-weight: bold; font-size: 12px; color: inherit; text-decoration: none;'>" + rec.name + "</a>";
+                        html += "<span style='margin-left: 8px;'>" + badge + "</span>";
                         html += "</div>";
                     });
                 } else {
                     html += "<p style='font-size: 11px;'>Aucune étude de faisabilité liée.</p>";
                 }
-                html += "</div><hr>";
+                html += "</div></div></div>";
 
-                // Devis
-                html += "<div>";
-                html += '<h3 style="font-size: 12px; font-weight: bold; margin-bottom: 12px;">' + 
-                        (quotations.length === 1 ? 'Devis lié' : 'Liste Devis liés') + '</h3>';
+                // Devis dans son propre conteneur
+                html += "<div style='flex: 1; min-width: 280px; display: flex; flex-direction: column;'>";
+                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; background-color: #f8f9fa; padding: 0; height: 100%;'>";
+                // En-tête avec titre et ligne
+                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd;">' +
+                        '<div style="display: flex; align-items: center;">' +
+                        '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">' + 
+                        (quotations.length === 1 ? 'Devis lié' : 'Liste Devis liés') + '</span></div></div>';
+                
+                // Contenu de la liste
+                html += "<div style='padding: 20px;'>";
                 if (quotations.length > 0) {
                     quotations.forEach(function(quote) {
                         var badge = get_status_badge(quote.status);
-                        html += "<div style='margin-bottom: 5px;'>";
-                        html += badge + " <a href='#' onclick=\"frappe.set_route('Form','Quotation','" + quote.name + "'); return false;\" style='font-weight: bold; font-size: 11px; text-decoration: none; color: inherit;'>" + quote.name + "</a>";
+                        html += "<div style='margin-bottom: 5px; display: flex; align-items: center;'>";
+                        html += "<span style='margin-right: 8px;'>•</span>";
+                        html += "<a href='#' onclick=\"frappe.set_route('Form','Quotation','" + quote.name + "'); return false;\" style='font-weight: bold; font-size: 12px; color: inherit; text-decoration: none;'>" + quote.name + "</a>";
+                        html += "<span style='margin-left: 8px;'>" + badge + "</span>";
                         html += "</div>";
                     });
                 } else {
-                    html += "<p style='font-size: 11px;'>Aucun devis lié à cette demande.</p>";
+                    html += "<p style='font-size: 11px;'>Aucun devis n'a encore été créé pour cette demande.</p>";
                 }
+                html += "</div></div></div>";
+
                 html += "</div>";
 
                 frm.get_field("liens").$wrapper.html(html);
@@ -221,24 +247,24 @@ function get_status_badge(status) {
 
     var config = {
         // Études
-        "Nouveau": { color: "#118ab2" },
-        "En étude": { color: "#f4a261" },
-        "Réalisable": { color: "#2a9d8f" },
-        "Non Réalisable": { color: "#e63946" },
-        "Programmée": { color: "#118ab2" },
+        "Nouveau": { color: "rgba(17, 138, 178, 0.1)", textColor: "#118ab2" },
+        "En étude": { color: "rgba(244, 162, 97, 0.1)", textColor: "#f4a261" },
+        "Réalisable": { color: "rgba(42, 157, 143, 0.1)", textColor: "#2a9d8f" },
+        "Non Réalisable": { color: "rgba(230, 57, 70, 0.1)", textColor: "#e63946" },
+        "Programmée": { color: "rgba(17, 138, 178, 0.1)", textColor: "#118ab2" },
         // Devis
-        "Brouillon": { color: "#e63946" },
-        "Soumis": { color: "#2a9d8f" },
-        "Annulé": { color: "#e63946" },
-        "Ouvert": { color: "#f4a261" },
-        "Perdu": { color: "#e76f51" },
-        "Commandé": { color: "#2a9d8f" }
+        "Brouillon": { color: "rgba(230, 57, 70, 0.1)", textColor: "#e63946" },
+        "Soumis": { color: "rgba(42, 157, 143, 0.1)", textColor: "#2a9d8f" },
+        "Annulé": { color: "rgba(230, 57, 70, 0.1)", textColor: "#e63946" },
+        "Ouvert": { color: "rgba(244, 162, 97, 0.1)", textColor: "#f4a261" },
+        "Perdu": { color: "rgba(231, 111, 81, 0.1)", textColor: "#e76f51" },
+        "Commandé": { color: "rgba(42, 157, 143, 0.1)", textColor: "#2a9d8f" }
     };
 
     // Traduire le statut si une traduction existe
     const displayStatus = statusTranslations[status] || status;
-    var clr = config[displayStatus] ? config[displayStatus].color : "#666";
+    var style = config[displayStatus] || { color: "rgba(102, 102, 102, 0.1)", textColor: "#666" };
     
-    return "<span style='background-color: " + clr + "; font-size: 11px; color: #fff; border-radius: 4px; padding: 2px 4px; margin-right: 4px;'>" +
+    return "<span style='background-color: " + style.color + "; font-size: 11px; color: " + style.textColor + "; border-radius: 4px; padding: 2px 4px; margin-right: 4px;'>" +
            displayStatus + "</span>";
 }

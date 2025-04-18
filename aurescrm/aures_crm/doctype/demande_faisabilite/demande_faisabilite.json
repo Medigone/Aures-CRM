@@ -114,6 +114,7 @@
   {
    "fieldname": "liste_articles",
    "fieldtype": "Table",
+   "in_standard_filter": 1,
    "options": "Articles Demande Faisabilite",
    "read_only_depends_on": "eval: doc.status !='Brouillon'"
   },
@@ -150,7 +151,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-17 07:57:42.317847",
+ "modified": "2025-04-18 11:18:34.453828",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
