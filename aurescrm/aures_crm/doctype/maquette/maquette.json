@@ -9,8 +9,8 @@
   "section_break_lpvd",
   "date_creation",
   "column_break_hjbg",
-  "version",
   "parent_maquette",
+  "ver",
   "section_break_nmfq",
   "client",
   "column_break_zbbn",
@@ -20,6 +20,10 @@
   "id_responsable",
   "column_break_jtwx",
   "nom_responsable",
+  "section_break_puxu",
+  "nom_reference_par",
+  "column_break_ovdm",
+  "reference_par",
   "suivi_tab",
   "obs_internes",
   "desc_changements"
@@ -28,9 +32,10 @@
   {
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "En attente\nR\u00e9f\u00e9renc\u00e9e\nObsol\u00e8te"
+   "options": "En attente\nR\u00e9f\u00e9renc\u00e9e\nCourante\nObsol\u00e8te"
   },
   {
    "fieldname": "section_break_lpvd",
@@ -77,13 +82,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "version",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Version"
-  },
-  {
    "fieldname": "suivi_tab",
    "fieldtype": "Tab Break",
    "label": "Suivi"
@@ -98,6 +96,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "User",
    "fieldname": "id_responsable",
    "fieldtype": "Link",
    "label": "ID Responsable",
@@ -108,9 +107,11 @@
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "id_responsable.full_name",
    "fieldname": "nom_responsable",
    "fieldtype": "Data",
-   "label": "Nom Responsable"
+   "label": "Nom Responsable",
+   "read_only": 1
   },
   {
    "fieldname": "parent_maquette",
@@ -123,11 +124,43 @@
    "fieldname": "desc_changements",
    "fieldtype": "Text Editor",
    "label": "Description des changements"
+  },
+  {
+   "fieldname": "section_break_puxu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "id_responsable.full_name",
+   "fieldname": "reference_par",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "R\u00e9f\u00e9renc\u00e9 par (ID)",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ovdm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nom_reference_par",
+   "fieldtype": "Data",
+   "label": "R\u00e9f\u00e9renc\u00e9 par",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "ver",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Version",
+   "non_negative": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-18 16:08:54.143092",
+ "modified": "2025-04-18 17:04:48.990170",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
@@ -148,6 +181,23 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Orange",
+   "title": "En attente"
+  },
+  {
+   "color": "Blue",
+   "title": "R\u00e9f\u00e9renc\u00e9e"
+  },
+  {
+   "color": "Green",
+   "title": "Courante"
+  },
+  {
+   "color": "Red",
+   "title": "Obsol\u00e8te"
+  }
+ ],
  "track_changes": 1
 }
