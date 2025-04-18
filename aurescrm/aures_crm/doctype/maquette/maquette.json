@@ -6,15 +6,16 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
-  "section_break_lpvd",
   "date_creation",
-  "column_break_hjbg",
-  "parent_maquette",
-  "ver",
   "section_break_nmfq",
   "client",
   "column_break_zbbn",
   "article",
+  "section_break_lpvd",
+  "ver",
+  "fichier_maquette",
+  "column_break_hjbg",
+  "parent_maquette",
   "section_break_olmo",
   "column_break_ihhc",
   "id_responsable",
@@ -35,7 +36,7 @@
    "hidden": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "En attente\nR\u00e9f\u00e9renc\u00e9e\nCourante\nObsol\u00e8te"
+   "options": "A r\u00e9f\u00e9rencer\nR\u00e9f\u00e9renc\u00e9e\nVersion Activ\u00e9e\nObsol\u00e8te"
   },
   {
    "fieldname": "section_break_lpvd",
@@ -156,11 +157,18 @@
    "label": "Version",
    "non_negative": 1,
    "read_only": 1
+  },
+  {
+   "description": "Seulement pour r\u00e9f\u00e9rence visuelle (version l\u00e9g\u00e8re en pdf)<br>\n\n<strong>Ne pas attacher le fichier source.</strong>",
+   "fieldname": "fichier_maquette",
+   "fieldtype": "Attach",
+   "label": "Fichier Maquette",
+   "options": "pdf"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-18 17:04:48.990170",
+ "modified": "2025-04-18 19:18:13.255524",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
@@ -184,7 +192,7 @@
  "states": [
   {
    "color": "Orange",
-   "title": "En attente"
+   "title": "A r\u00e9f\u00e9rencer"
   },
   {
    "color": "Blue",
@@ -192,7 +200,7 @@
   },
   {
    "color": "Green",
-   "title": "Courante"
+   "title": "Version Activ\u00e9e"
   },
   {
    "color": "Red",
