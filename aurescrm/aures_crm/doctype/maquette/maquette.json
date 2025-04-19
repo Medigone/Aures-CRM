@@ -13,9 +13,10 @@
   "article",
   "section_break_lpvd",
   "ver",
-  "fichier_maquette",
-  "column_break_hjbg",
   "parent_maquette",
+  "nom_fichier_source",
+  "column_break_hjbg",
+  "fichier_maquette",
   "section_break_olmo",
   "column_break_ihhc",
   "id_responsable",
@@ -164,11 +165,16 @@
    "fieldtype": "Attach",
    "label": "Fichier Maquette",
    "options": "pdf"
+  },
+  {
+   "fieldname": "nom_fichier_source",
+   "fieldtype": "Data",
+   "label": "Nom Fichier Source"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-18 19:18:13.255524",
+ "modified": "2025-04-19 12:10:38.731724",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
