@@ -234,7 +234,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-17 07:59:18.896367",
+ "modified": "2025-04-19 13:42:30.184246",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -310,6 +310,15 @@
    "report": 1,
    "role": "Responsable Devis",
    "select": 1
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Responsable Prepresse"
+  },
+  {
+   "read": 1,
+   "role": "Technicien Prepresse"
   }
  ],
  "sort_field": "modified",

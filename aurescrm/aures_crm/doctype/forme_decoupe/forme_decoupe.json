@@ -109,7 +109,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-15 15:12:44.955124",
+ "modified": "2025-04-19 13:47:35.410588",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Forme Decoupe",
@@ -126,6 +126,22 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Responsable Prepresse"
+  },
+  {
+   "read": 1,
+   "role": "Technicien Prepresse"
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "read": 1,
+   "role": "Responsable \u00c9tude Faisabilit\u00e9"
   }
  ],
  "sort_field": "modified",
