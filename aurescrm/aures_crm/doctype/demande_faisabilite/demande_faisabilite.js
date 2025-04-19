@@ -176,21 +176,23 @@ function load_etude_links(frm) {
 
                 // Études dans son propre conteneur
                 html += "<div style='flex: 1; min-width: 280px; display: flex; flex-direction: column;'>";
-                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; background-color: #f8f9fa; padding: 0; height: 100%;'>";
-                // En-tête avec titre et ligne
-                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd;">' +
+                // Apply border and radius to the outer container, remove background from here
+                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden;'>"; // Added overflow: hidden
+                // En-tête avec titre et ligne - Apply gray background here
+                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd; background-color: #f8f9fa;">' + // Added background-color
                         '<div style="display: flex; align-items: center;">' +
                         '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">Liste Études de Faisabilité</span>' +
-                        '<span style="margin-left: 8px; background: rgba(74, 144, 226, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 11px; color: #4a90e2;">' + 
+                        '<span style="margin-left: 8px; background: rgba(74, 144, 226, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 11px; color: #4a90e2;">' +
                         etudes.length + ' étude' + (etudes.length > 1 ? 's' : '') + '</span></div>' +
                         '</div>';
-                
-                // Contenu de la liste
-                html += "<div style='padding: 20px;'>";
+
+                // Contenu de la liste - Apply white background here
+                html += "<div style='padding: 20px; background-color: #ffffff; flex-grow: 1;'>"; // Added background-color and flex-grow
                 if (etudes.length > 0) {
                     etudes.forEach(function(rec) {
                         var badge = get_status_badge(rec.status);
-                        html += "<div style='margin-bottom: 5px; display: flex; align-items: center;'>";
+                        // Change align-items to baseline for horizontal text alignment
+                        html += "<div style='margin-bottom: 5px; display: flex; align-items: baseline;'>";
                         html += "<span style='margin-right: 8px;'>•</span>";
                         html += "<a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-weight: bold; font-size: 12px; color: inherit; text-decoration: none;'>" + rec.name + "</a>";
                         html += "<span style='margin-left: 8px;'>" + badge + "</span>";
@@ -199,23 +201,25 @@ function load_etude_links(frm) {
                 } else {
                     html += "<p style='font-size: 11px;'>Aucune étude de faisabilité liée.</p>";
                 }
-                html += "</div></div></div>";
+                html += "</div></div></div>"; // Close content, card container, and flex item
 
                 // Devis dans son propre conteneur
                 html += "<div style='flex: 1; min-width: 280px; display: flex; flex-direction: column;'>";
-                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; background-color: #f8f9fa; padding: 0; height: 100%;'>";
-                // En-tête avec titre et ligne
-                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd;">' +
+                 // Apply border and radius to the outer container, remove background from here
+                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden;'>"; // Added overflow: hidden
+                // En-tête avec titre et ligne - Apply gray background here
+                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd; background-color: #f8f9fa;">' + // Added background-color
                         '<div style="display: flex; align-items: center;">' +
-                        '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">' + 
+                        '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">' +
                         (quotations.length === 1 ? 'Devis lié' : 'Liste Devis liés') + '</span></div></div>';
-                
-                // Contenu de la liste
-                html += "<div style='padding: 20px;'>";
+
+                // Contenu de la liste - Apply white background here
+                html += "<div style='padding: 20px; background-color: #ffffff; flex-grow: 1;'>"; // Added background-color and flex-grow
                 if (quotations.length > 0) {
                     quotations.forEach(function(quote) {
                         var badge = get_status_badge(quote.status);
-                        html += "<div style='margin-bottom: 5px; display: flex; align-items: center;'>";
+                         // Change align-items to baseline for horizontal text alignment
+                        html += "<div style='margin-bottom: 5px; display: flex; align-items: baseline;'>";
                         html += "<span style='margin-right: 8px;'>•</span>";
                         html += "<a href='#' onclick=\"frappe.set_route('Form','Quotation','" + quote.name + "'); return false;\" style='font-weight: bold; font-size: 12px; color: inherit; text-decoration: none;'>" + quote.name + "</a>";
                         html += "<span style='margin-left: 8px;'>" + badge + "</span>";
@@ -224,9 +228,10 @@ function load_etude_links(frm) {
                 } else {
                     html += "<p style='font-size: 11px;'>Aucun devis n'a encore été créé pour cette demande.</p>";
                 }
-                html += "</div></div></div>";
+                html += "</div></div></div>"; // Close content, card container, and flex item
 
-                html += "</div>";
+                html += "</div>"; // Close df-container
+                html += "</div>"; // Close outer div
 
                 frm.get_field("liens").$wrapper.html(html);
             }
