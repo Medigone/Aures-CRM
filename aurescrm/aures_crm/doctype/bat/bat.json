@@ -1,0 +1,134 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-19 15:05:04.502146",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_break_oyyz",
+  "date",
+  "column_break_ffpx",
+  "date_valable",
+  "section_break_bols",
+  "client",
+  "column_break_uwir",
+  "article",
+  "section_break_kjvl",
+  "etude_tech",
+  "imposition",
+  "column_break_tuck",
+  "trace",
+  "maquette",
+  "liens_tab"
+ ],
+ "fields": [
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Nouveau\nValid\u00e9\nObsol\u00e8te\nAnnuler"
+  },
+  {
+   "fieldname": "section_break_oyyz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date cr\u00e9ation"
+  },
+  {
+   "fieldname": "column_break_ffpx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_valable",
+   "fieldtype": "Date",
+   "label": "Valable jusqu\u2019au"
+  },
+  {
+   "fieldname": "section_break_bols",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer",
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_uwir",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "label": "Article",
+   "options": "Item",
+   "search_index": 1
+  },
+  {
+   "fieldname": "liens_tab",
+   "fieldtype": "Tab Break",
+   "label": "Liens"
+  },
+  {
+   "fieldname": "section_break_kjvl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "label": "Trac\u00e9",
+   "options": "Trace"
+  },
+  {
+   "fieldname": "imposition",
+   "fieldtype": "Link",
+   "label": "Imposition",
+   "options": "Imposition"
+  },
+  {
+   "fieldname": "maquette",
+   "fieldtype": "Link",
+   "label": "Maquette",
+   "options": "Maquette"
+  },
+  {
+   "fieldname": "etude_tech",
+   "fieldtype": "Link",
+   "label": "\u00c9tude Technique",
+   "options": "Etude Technique"
+  },
+  {
+   "fieldname": "column_break_tuck",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-19 15:19:35.036648",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "BAT",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
