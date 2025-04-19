@@ -174,7 +174,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-19 12:34:50.772941",
+ "modified": "2025-04-19 13:40:53.760316",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
@@ -190,6 +190,64 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Coordination"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Responsable \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Charg\u00e9 Devis"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Responsable Devis"
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "read": 1,
+   "role": "Technicien Prepresse",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "read": 1,
+   "role": "Responsable Prepresse",
    "write": 1
   }
  ],
