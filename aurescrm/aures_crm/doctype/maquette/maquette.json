@@ -27,8 +27,8 @@
   "column_break_ovdm",
   "reference_par",
   "suivi_tab",
-  "obs_internes",
-  "desc_changements"
+  "desc_changements",
+  "obs_internes"
  ],
  "fields": [
   {
@@ -174,7 +174,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-19 12:11:40.993385",
+ "modified": "2025-04-19 12:34:50.772941",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",

@@ -7,7 +7,7 @@ frappe.ui.form.on('Maquette', {
                     'Confirmez-vous que le fichier source de la maquette a été renommé avec cet ID dans le serveur des maquettes ?',
                     function() {
                         frm.call('set_status_referenced').then(() => {
-                            frappe.msgprint("La maquette a été marquée comme référencée dans le serveur");
+                            frappe.msgprint(`Maquette ${frm.doc.name} a été marquée comme référencée dans le serveur.`);
                             frm.reload_doc();
                         });
                     }
@@ -22,7 +22,7 @@ frappe.ui.form.on('Maquette', {
                     'Ceci va mettre cette version comme version Activée pour cet article, êtes-vous sûr de vouloir continuer ?',
                     function() {
                         frm.call('activate_version').then(() => {
-                            frappe.msgprint("La maquette a été activée avec succès");
+                            frappe.msgprint("La maquette a été activée.");
                             frm.reload_doc();
                         });
                     }
