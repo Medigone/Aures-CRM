@@ -169,12 +169,12 @@
   {
    "fieldname": "nom_fichier_source",
    "fieldtype": "Data",
-   "label": "Nom Fichier Source"
+   "label": "Nom Fichier Maquette"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-19 12:10:38.731724",
+ "modified": "2025-04-19 12:11:40.993385",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
