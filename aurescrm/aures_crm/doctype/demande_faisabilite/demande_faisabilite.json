@@ -150,15 +150,17 @@
    "fieldtype": "HTML"
   },
   {
+   "description": "La date ne peut \u00eatre saisie qu\u2019une seule fois\u00a0; une fois le document cr\u00e9\u00e9, elle ne peut plus \u00eatre modifi\u00e9e.\n",
    "fieldname": "date_livraison",
    "fieldtype": "Date",
    "label": "Date de livraison souhait\u00e9e",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-19 22:45:31.412808",
+ "modified": "2025-04-19 23:59:03.123451",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
