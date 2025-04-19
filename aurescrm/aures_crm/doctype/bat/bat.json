@@ -20,7 +20,19 @@
   "column_break_tuck",
   "trace",
   "maquette",
-  "liens_tab"
+  "trace_tab",
+  "dimens_trace",
+  "column_break_hlrz",
+  "fich_trace",
+  "impo_tab",
+  "format_imp",
+  "forme_decoupe",
+  "an_num_fd",
+  "column_break_tkgv",
+  "nbr_poses",
+  "laize_pal",
+  "section_break_drfr",
+  "fichier_imp"
  ],
  "fields": [
   {
@@ -70,11 +82,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "liens_tab",
-   "fieldtype": "Tab Break",
-   "label": "Liens"
-  },
-  {
    "fieldname": "section_break_kjvl",
    "fieldtype": "Section Break"
   },
@@ -105,11 +112,83 @@
   {
    "fieldname": "column_break_tuck",
    "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "trace.dimensions",
+   "fieldname": "dimens_trace",
+   "fieldtype": "Data",
+   "label": "Dimensions Trac\u00e9"
+  },
+  {
+   "fieldname": "column_break_hlrz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "trace.fichier_trace",
+   "fieldname": "fich_trace",
+   "fieldtype": "Attach",
+   "label": "Fichier Trac\u00e9"
+  },
+  {
+   "fieldname": "trace_tab",
+   "fieldtype": "Tab Break",
+   "label": "Trac\u00e9"
+  },
+  {
+   "fieldname": "impo_tab",
+   "fieldtype": "Tab Break",
+   "label": "Imposition"
+  },
+  {
+   "fetch_from": "imposition.format_imp",
+   "fieldname": "format_imp",
+   "fieldtype": "Data",
+   "label": "Format d'impression"
+  },
+  {
+   "fetch_from": "imposition.laize_pal",
+   "fieldname": "laize_pal",
+   "fieldtype": "Select",
+   "label": "Laize / Palette ?",
+   "options": "\nLaize\nPalette"
+  },
+  {
+   "fetch_from": "imposition.forme_decoupe",
+   "fieldname": "forme_decoupe",
+   "fieldtype": "Link",
+   "label": "Forme D\u00e9coupe",
+   "options": "Forme Decoupe"
+  },
+  {
+   "fetch_from": "imposition.nbr_poses",
+   "fieldname": "nbr_poses",
+   "fieldtype": "Int",
+   "label": "Nombre de poses"
+  },
+  {
+   "fetch_from": "imposition.an_num_fd",
+   "fieldname": "an_num_fd",
+   "fieldtype": "Data",
+   "label": "Ancien Num\u00e9ro FD"
+  },
+  {
+   "fetch_from": "imposition.fichier_imp",
+   "fieldname": "fichier_imp",
+   "fieldtype": "Attach",
+   "label": "Fichier Imposition"
+  },
+  {
+   "fieldname": "column_break_tkgv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_drfr",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-19 15:39:42.433242",
+ "modified": "2025-04-19 15:55:28.193982",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",
@@ -199,5 +278,23 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Green",
+   "title": "Valid\u00e9"
+  },
+  {
+   "color": "Orange",
+   "title": "Obsol\u00e8te"
+  },
+  {
+   "color": "Red",
+   "title": "Annuler"
+  }
+ ],
+ "track_changes": 1
 }
