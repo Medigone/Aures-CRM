@@ -143,19 +143,19 @@ def cancel_etudes_faisabilite(docname):
 def get_articles_for_quotation(docname):
     """
     Retourne les articles des Études Faisabilité avec statut "Réalisable"
-    liés à la Demande Faisabilite, avec item_name et uom.
+    liés à la Demande Faisabilite, avec item_name, uom, et date_livraison.
     """
     try:
-        # Récupérer les études de faisabilité
+        # Récupérer les études de faisabilité, incluant la date de livraison
         etudes = frappe.get_all(
             "Etude Faisabilite",
             filters={
                 "demande_faisabilite": docname,
                 "status": "Réalisable"
             },
-            fields=["article", "quantite"]
+            fields=["article", "quantite", "date_livraison"] # Added date_livraison
         )
-        
+
         if not etudes:
             return []
 
@@ -179,7 +179,8 @@ def get_articles_for_quotation(docname):
                     "article": e.article,
                     "quantite": e.quantite,
                     "item_name": item.item_name,
-                    "uom": item.stock_uom
+                    "uom": item.stock_uom,
+                    "date_livraison": e.date_livraison # Added date_livraison to the result
                 })
 
         return results
@@ -222,3 +223,115 @@ def get_quotations_for_demande(demande_name):
         filters={"custom_demande_faisabilité": demande_name},
         fields=["name", "status"]
     )
+
+
+@frappe.whitelist()
+def get_sales_documents_for_demande(demande_name):
+    """
+    Fetches Quotations and Sales Orders linked to a specific Demande Faisabilite.
+
+    Args:
+        demande_name (str): The name of the Demande Faisabilite document.
+
+    Returns:
+        list: A list of dictionaries, each containing doctype, name, and status
+              for linked Quotations and Sales Orders.
+    """
+    documents = []
+
+    # Fetch linked Quotations
+    # Ensure 'custom_demande_faisabilité' is the correct link field name in Quotation
+    quotations = frappe.get_list(
+        "Quotation",
+        filters={"custom_demande_faisabilité": demande_name, "docstatus": ["!=", 2]}, # Exclude cancelled
+        fields=["name", "status"]
+    )
+    for qtn in quotations:
+        documents.append({
+            "doctype": "Quotation",
+            "name": qtn.name,
+            "status": qtn.status
+        })
+
+    # Fetch linked Sales Orders
+    # Ensure 'custom_demande_de_faisabilité' is the correct link field name in Sales Order
+    sales_orders = frappe.get_list(
+        "Sales Order",
+        filters={"custom_demande_de_faisabilité": demande_name, "docstatus": ["!=", 2]}, # Exclude cancelled
+        fields=["name", "status"]
+    )
+    for so in sales_orders:
+        documents.append({
+            "doctype": "Sales Order",
+            "name": so.name,
+            "status": so.status
+        })
+
+    # Optional: Sort the documents, e.g., by name or doctype
+    # documents.sort(key=lambda x: x['name'])
+
+    return documents
+
+# --- New Function Added Below ---
+
+@frappe.whitelist()
+def get_linked_documents_for_demande(demande_name):
+    """
+    Fetches Etudes Faisabilite, Quotations, and Sales Orders linked to a
+    specific Demande Faisabilite in a single call.
+
+    Args:
+        demande_name (str): The name of the Demande Faisabilite document.
+
+    Returns:
+        dict: A dictionary containing two keys:
+              - 'etudes': List of linked Etude Faisabilite documents ({name, status}).
+              - 'sales_documents': List of linked Quotations and Sales Orders
+                                   ({doctype, name, status}).
+    """
+    # Fetch linked Etudes Faisabilite
+    etudes = frappe.get_list(
+        "Etude Faisabilite",
+        filters={"demande_faisabilite": demande_name},
+        fields=["name", "status"],
+        ignore_permissions=True # Assuming read access might be restricted otherwise
+    )
+
+    # Fetch linked Sales Documents (Quotations and Sales Orders)
+    sales_documents = []
+
+    # Fetch linked Quotations
+    quotations = frappe.get_list(
+        "Quotation",
+        filters={"custom_demande_faisabilité": demande_name, "docstatus": ["!=", 2]},
+        fields=["name", "status"],
+        ignore_permissions=True
+    )
+    for qtn in quotations:
+        sales_documents.append({
+            "doctype": "Quotation",
+            "name": qtn.name,
+            "status": qtn.status
+        })
+
+    # Fetch linked Sales Orders
+    sales_orders = frappe.get_list(
+        "Sales Order",
+        filters={"custom_demande_de_faisabilité": demande_name, "docstatus": ["!=", 2]},
+        fields=["name", "status"],
+        ignore_permissions=True
+    )
+    for so in sales_orders:
+        sales_documents.append({
+            "doctype": "Sales Order",
+            "name": so.name,
+            "status": so.status
+        })
+
+    # Optional: Sort sales documents if needed
+    # sales_documents.sort(key=lambda x: x['name'])
+
+    return {
+        "etudes": etudes,
+        "sales_documents": sales_documents
+    }

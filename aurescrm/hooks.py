@@ -165,7 +165,14 @@ doc_events = {
          "on_update": "aurescrm.faisabilite_hook.update_demande_status_from_etudes"
     },
     "Quotation": {
-        "after_insert": "aurescrm.faisabilite_hook.set_demande_status_from_quotation"
+        # Note: Changed this from after_insert to on_submit based on faisabilite_hook.py content
+        # If you need after_insert for something else, keep it, otherwise on_submit might be more appropriate
+        # based on the function name set_demande_status_from_quotation
+        "on_submit": "aurescrm.faisabilite_hook.set_demande_status_from_quotation"
+    },
+    # Add the hook for Sales Order submission
+    "Sales Order": {
+        "on_submit": "aurescrm.sales_order_hooks.update_quotation_status_on_so_submit"
     }
 }
 

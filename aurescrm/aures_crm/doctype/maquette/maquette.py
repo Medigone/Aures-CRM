@@ -3,11 +3,21 @@ from frappe.model.document import Document
 
 class Maquette(Document):
     def autoname(self):
-        # Nommer selon la version: MAQ-Client-Article-V{ver}
+        # Nommer selon la version: MAQ-{article_sans_prefixe_client}-V{ver}
         # S'assurer que ver est défini (première version = 1)
         if not getattr(self, 'ver', None):
             self.ver = 1
-        self.name = f"MAQ-{self.client}-{self.article}-V{self.ver}"
+
+        # Extraire le code article et supprimer le préfixe 'CLI-' s'il existe
+        article_code = self.article
+        prefix_to_remove = "CLI-"
+        if article_code and article_code.startswith(prefix_to_remove):
+            article_part = article_code[len(prefix_to_remove):]
+        else:
+            # Fallback si le préfixe n'est pas trouvé (ou si article est vide)
+            article_part = article_code
+
+        self.name = f"MAQ-{article_part}-V{self.ver}"
 
     def validate(self):
         if self.is_new() or self.status == 'A référencer':

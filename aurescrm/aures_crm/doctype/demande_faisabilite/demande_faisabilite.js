@@ -33,7 +33,9 @@ frappe.ui.form.on('Demande Faisabilite', {
                         fieldname: 'date_livraison',
                         fieldtype: 'Date',
                         label: 'Date de livraison souhaitée',
-                        reqd: 1
+                        reqd: 1,
+                        // Set default value from header field
+                        default: frm.doc.date_livraison
                     },
                     {
                         fieldname: 'est_creation',
@@ -136,12 +138,21 @@ frappe.ui.form.on('Demande Faisabilite', {
                                 doc.company = frappe.defaults.get_default("company");
                                 doc.custom_demande_faisabilité = frm.doc.name;
 
+                                // Set the custom delivery date from the first feasible item
+                                // Ensure the field name 'custom_date_de_livraison' matches your Quotation field
+                                if (r.message[0].date_livraison) {
+                                    doc.custom_date_de_livraison = r.message[0].date_livraison;
+                                }
+
                                 r.message.forEach(row => {
                                     let item = frappe.model.add_child(doc, "Quotation Item", "items");
                                     item.item_code = row.article;
                                     item.item_name = row.item_name;
                                     item.uom = row.uom;
                                     item.qty = row.quantite;
+                                    // Note: We are setting one delivery date at the header level of the Quotation.
+                                    // If you need different dates per item in the Quotation,
+                                    // you'd need a custom date field in 'Quotation Item' and set item.custom_item_delivery_date = row.date_livraison;
                                 });
 
                                 frappe.set_route("Form", "Quotation", doc.name);
@@ -153,49 +164,56 @@ frappe.ui.form.on('Demande Faisabilite', {
                 });
             }, "Créer");
         }
+    }, // End of refresh function
+
+    // Add handler for header date change to update default for prompt
+    date_livraison: function(frm) {
+        // This function could potentially update defaults if the prompt logic was more complex,
+        // but setting 'default: frm.doc.date_livraison' in the prompt itself is usually sufficient.
+        // You can add logic here if needed in the future.
     }
 });
 
 function load_etude_links(frm) {
-    frappe.db.get_list("Etude Faisabilite", {
-        filters: { demande_faisabilite: frm.doc.name },
-        fields: ["name", "status"],
-        limit_page_length: 100
-    }).then(function(etudes) {
-        frappe.call({
-            method: "aurescrm.faisabilite_hook.get_quotations_for_demande",
-            args: {
-                demande_name: frm.doc.name
-            },
-            callback: function(res) {
-                var quotations = res.message || [];
+    // Remove the separate frappe.db.get_list call for Etudes
+
+    // Call a single backend function that returns both Etudes and Sales Documents
+    frappe.call({
+        // IMPORTANT: Ensure this method name points to your *updated* backend function
+        // that returns both etudes and sales_documents.
+        method: "aurescrm.faisabilite_hook.get_linked_documents_for_demande", // Example updated method name
+        args: {
+            demande_name: frm.doc.name
+        },
+        callback: function(res) {
+            // Expecting response like: { etudes: [...], sales_documents: [...] }
+            if (res.message) {
+                var etudes = res.message.etudes || [];
+                var sales_documents = res.message.sales_documents || [];
+
+                // --- Start generating HTML ---
                 var html = "<div style='display: flex; flex-direction: column; gap: 20px; padding-bottom: 10px; min-width: 280px;'>";
                 html += "<style>@media (min-width: 768px) { .df-container { flex-direction: row !important; } }</style>";
-                // Ajout de align-items: stretch pour garantir la même hauteur
                 html += "<div class='df-container' style='display: flex; flex-direction: column; gap: 20px; align-items: stretch;'>";
 
-                // Études dans son propre conteneur
+                // --- Études section ---
+                // (HTML generation logic for etudes remains the same, using the 'etudes' variable)
                 html += "<div style='flex: 1; min-width: 280px; display: flex; flex-direction: column;'>";
-                // Apply border and radius to the outer container, remove background from here
-                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden;'>"; // Added overflow: hidden
-                // En-tête avec titre et ligne - Apply gray background here
-                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd; background-color: #f8f9fa;">' + // Added background-color
+                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden;'>";
+                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd; background-color: #f8f9fa;">' +
                         '<div style="display: flex; align-items: center;">' +
                         '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">Liste Études de Faisabilité</span>' +
                         '<span style="margin-left: 8px; background: rgba(74, 144, 226, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 11px; color: #4a90e2;">' +
                         etudes.length + ' étude' + (etudes.length > 1 ? 's' : '') + '</span></div>' +
                         '</div>';
-
-                // Contenu de la liste - Apply white background here
-                html += "<div style='padding: 20px; background-color: #ffffff; flex-grow: 1;'>"; // Added background-color and flex-grow
+                html += "<div style='padding: 20px; background-color: #ffffff; flex-grow: 1;'>";
                 if (etudes.length > 0) {
                     etudes.forEach(function(rec) {
                         var badge = get_status_badge(rec.status);
-                        // Change align-items to baseline for horizontal text alignment
-                        html += "<div style='margin-bottom: 5px; display: flex; align-items: baseline;'>";
-                        html += "<span style='margin-right: 8px;'>•</span>";
-                        html += "<a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-weight: bold; font-size: 12px; color: inherit; text-decoration: none;'>" + rec.name + "</a>";
-                        html += "<span style='margin-left: 8px;'>" + badge + "</span>";
+                        html += "<div style='margin-bottom: 5px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px;'>";
+                        html += "<span style='margin-right: 4px;'>•</span>";
+                        html += "<a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-size: 12px; color: inherit; text-decoration: none; word-break: break-all;'>" + rec.name + "</a>";
+                        html += "<span>" + badge + "</span>";
                         html += "</div>";
                     });
                 } else {
@@ -203,30 +221,36 @@ function load_etude_links(frm) {
                 }
                 html += "</div></div></div>"; // Close content, card container, and flex item
 
-                // Devis dans son propre conteneur
+                // --- Sales Documents Section ---
+                // (HTML generation logic for sales_documents remains the same, using the 'sales_documents' variable)
                 html += "<div style='flex: 1; min-width: 280px; display: flex; flex-direction: column;'>";
-                 // Apply border and radius to the outer container, remove background from here
-                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden;'>"; // Added overflow: hidden
-                // En-tête avec titre et ligne - Apply gray background here
-                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd; background-color: #f8f9fa;">' + // Added background-color
+                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden;'>";
+                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd; background-color: #f8f9fa;">' +
                         '<div style="display: flex; align-items: center;">' +
-                        '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">' +
-                        (quotations.length === 1 ? 'Devis lié' : 'Liste Devis liés') + '</span></div></div>';
-
-                // Contenu de la liste - Apply white background here
-                html += "<div style='padding: 20px; background-color: #ffffff; flex-grow: 1;'>"; // Added background-color and flex-grow
-                if (quotations.length > 0) {
-                    quotations.forEach(function(quote) {
-                        var badge = get_status_badge(quote.status);
-                         // Change align-items to baseline for horizontal text alignment
-                        html += "<div style='margin-bottom: 5px; display: flex; align-items: baseline;'>";
-                        html += "<span style='margin-right: 8px;'>•</span>";
-                        html += "<a href='#' onclick=\"frappe.set_route('Form','Quotation','" + quote.name + "'); return false;\" style='font-weight: bold; font-size: 12px; color: inherit; text-decoration: none;'>" + quote.name + "</a>";
-                        html += "<span style='margin-left: 8px;'>" + badge + "</span>";
-                        html += "</div>";
+                        '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">Documents de vente</span></div></div>';
+                html += "<div style='padding: 20px; background-color: #ffffff; flex-grow: 1;'>";
+                if (sales_documents.length > 0) {
+                    sales_documents.forEach(function(doc) {
+                        var badge = get_status_badge(doc.status);
+                        var doc_type_label = "";
+                        if (doc.doctype === "Quotation") {
+                            doc_type_label = "Devis : ";
+                        } else if (doc.doctype === "Sales Order") {
+                            doc_type_label = "Commande : ";
+                        }
+                        html += "<div style='margin-bottom: 10px; display: flex; align-items: flex-start;'>";
+                        html += "<span style='margin-right: 8px; line-height: 1.5;'>•</span>";
+                        html += "<div style='display: flex; flex-direction: column; align-items: flex-start;'>";
+                        html += "<strong style='font-size: 12px; color: #333;'>" + doc_type_label + "</strong>";
+                        html += "<div style='display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin-top: 2px;'>";
+                        html += "<a href='#' onclick=\"frappe.set_route('Form','" + doc.doctype + "','" + doc.name + "'); return false;\" style='font-size: 12px; color: inherit; text-decoration: none; word-break: break-all;'>" + doc.name + "</a>";
+                        html += "<span>" + badge + "</span>";
+                        html += "</div>"; // Close inner flex div (ID and badge)
+                        html += "</div>"; // Close inner div (vertical layout)
+                        html += "</div>"; // Close outer flex div (bullet and content)
                     });
                 } else {
-                    html += "<p style='font-size: 11px;'>Aucun devis n'a encore été créé pour cette demande.</p>";
+                    html += "<p style='font-size: 11px;'>Aucun document de vente lié.</p>";
                 }
                 html += "</div></div></div>"; // Close content, card container, and flex item
 
@@ -234,20 +258,32 @@ function load_etude_links(frm) {
                 html += "</div>"; // Close outer div
 
                 frm.get_field("liens").$wrapper.html(html);
+            } else {
+                // Handle potential error case where res.message is empty or undefined
+                frm.get_field("liens").$wrapper.html("<p style='font-size: 11px; padding: 20px;'>Erreur lors du chargement des liens.</p>");
             }
-        });
+        }
     });
+    // Removed the .then() part from the original get_list call
 }
 
+// --- get_status_badge function (remains unchanged) ---
 function get_status_badge(status) {
-    // Mapping des traductions pour les statuts
+    // Mapping des traductions pour les statuts (Add Sales Order specific ones if necessary)
     const statusTranslations = {
         "Draft": "Brouillon",
         "Submitted": "Soumis",
         "Cancelled": "Annulé",
-        "Open": "Ouvert",
-        "Lost": "Perdu",
-        "Ordered": "Commandé"
+        "Open": "Ouvert", // Quotation
+        "Lost": "Perdu", // Quotation
+        "Ordered": "Commandé", // Quotation
+        // Add Sales Order specific statuses if they differ and need translation
+        "To Deliver and Bill": "À livrer et facturer",
+        "To Bill": "À facturer",
+        "To Deliver": "À livrer",
+        "Completed": "Terminé",
+        "Closed": "Fermé",
+        "On Hold": "En attente"
     };
 
     var config = {
@@ -257,19 +293,28 @@ function get_status_badge(status) {
         "Réalisable": { color: "rgba(42, 157, 143, 0.1)", textColor: "#2a9d8f" },
         "Non Réalisable": { color: "rgba(230, 57, 70, 0.1)", textColor: "#e63946" },
         "Programmée": { color: "rgba(17, 138, 178, 0.1)", textColor: "#118ab2" },
-        // Devis
-        "Brouillon": { color: "rgba(230, 57, 70, 0.1)", textColor: "#e63946" },
-        "Soumis": { color: "rgba(42, 157, 143, 0.1)", textColor: "#2a9d8f" },
-        "Annulé": { color: "rgba(230, 57, 70, 0.1)", textColor: "#e63946" },
-        "Ouvert": { color: "rgba(244, 162, 97, 0.1)", textColor: "#f4a261" },
-        "Perdu": { color: "rgba(231, 111, 81, 0.1)", textColor: "#e76f51" },
-        "Commandé": { color: "rgba(42, 157, 143, 0.1)", textColor: "#2a9d8f" }
+        // Devis & Commandes (Shared statuses)
+        "Brouillon": { color: "rgba(108, 117, 125, 0.1)", textColor: "#6c757d" }, // Grey for Draft
+        "Soumis": { color: "rgba(0, 123, 255, 0.1)", textColor: "#007bff" }, // Blue for Submitted/Open/Active states
+        "Annulé": { color: "rgba(230, 57, 70, 0.1)", textColor: "#e63946" }, // Red for Cancelled
+        "Commandé": { color: "rgba(40, 167, 69, 0.1)", textColor: "#28a745" }, // Green for Ordered/Completed
+        "Terminé": { color: "rgba(40, 167, 69, 0.1)", textColor: "#28a745" }, // Green
+        "Fermé": { color: "rgba(40, 167, 69, 0.1)", textColor: "#28a745" }, // Green
+        // Specific statuses
+        "Ouvert": { color: "rgba(0, 123, 255, 0.1)", textColor: "#007bff" }, // Blue
+        "Perdu": { color: "rgba(231, 111, 81, 0.1)", textColor: "#e76f51" }, // Orange/Red for Lost
+        // Changed textColor for better readability on yellow background
+        "À livrer et facturer": { color: "rgba(255, 193, 7, 0.1)", textColor: "#856404" }, // Darker text
+        "À facturer": { color: "rgba(255, 193, 7, 0.1)", textColor: "#856404" }, // Darker text
+        "À livrer": { color: "rgba(255, 193, 7, 0.1)", textColor: "#856404" }, // Darker text
+        "En attente": { color: "rgba(108, 117, 125, 0.1)", textColor: "#6c757d" } // Grey for On Hold
     };
 
-    // Traduire le statut si une traduction existe
+    // Traduire le statut si une traduction existe, sinon utiliser le statut brut
     const displayStatus = statusTranslations[status] || status;
-    var style = config[displayStatus] || { color: "rgba(102, 102, 102, 0.1)", textColor: "#666" };
-    
+    // Utiliser le statut traduit (ou brut si pas de traduction) pour chercher la config de couleur
+    var style = config[displayStatus] || { color: "rgba(102, 102, 102, 0.1)", textColor: "#666" }; // Default grey
+
     return "<span style='background-color: " + style.color + "; font-size: 11px; color: " + style.textColor + "; border-radius: 4px; padding: 2px 4px; margin-right: 4px;'>" +
            displayStatus + "</span>";
 }

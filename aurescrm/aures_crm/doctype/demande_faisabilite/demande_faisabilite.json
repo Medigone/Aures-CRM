@@ -10,6 +10,7 @@
   "column_break_fxtr",
   "section_break_ojxn",
   "date_creation",
+  "date_livraison",
   "column_break_yams",
   "amended_from",
   "id_commercial",
@@ -147,11 +148,17 @@
    "depends_on": "eval: doc.status != 'Brouillon'",
    "fieldname": "liens",
    "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "date_livraison",
+   "fieldtype": "Date",
+   "label": "Date de livraison souhait\u00e9e",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-18 11:18:34.453828",
+ "modified": "2025-04-19 22:45:31.412808",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
