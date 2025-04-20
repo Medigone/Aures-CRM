@@ -129,28 +129,19 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-02-26 11:44:30.594355",
-  "name": "En étude",
-  "style": "Warning",
-  "workflow_state_name": "En étude"
+  "modified": "2025-04-16 11:05:30.225409",
+  "name": "Brouillon",
+  "style": "",
+  "workflow_state_name": "Brouillon"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-02-26 11:44:45.577838",
-  "name": "Réalisable",
-  "style": "Success",
-  "workflow_state_name": "Réalisable"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-02-26 11:44:38.799747",
-  "name": "Non Réalisable",
-  "style": "Danger",
-  "workflow_state_name": "Non Réalisable"
+  "modified": "2025-04-16 11:06:00.161042",
+  "name": "Confirmée",
+  "style": "",
+  "workflow_state_name": "Confirmée"
  },
  {
   "docstatus": 0,
@@ -192,15 +183,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2024-09-27 10:39:51.841406",
-  "name": "Nouveau",
-  "style": "Info",
-  "workflow_state_name": "Nouveau"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2025-02-27 11:02:41.795575",
   "name": "Traité",
   "style": "Success",
@@ -228,9 +210,54 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2025-04-16 14:55:13.245836",
+  "name": "Annulée",
+  "style": "Inverse",
+  "workflow_state_name": "Annulée"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-02-26 11:44:45.577838",
+  "name": "Réalisable",
+  "style": "Success",
+  "workflow_state_name": "Réalisable"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-02-26 11:44:38.799747",
+  "name": "Non Réalisable",
+  "style": "Danger",
+  "workflow_state_name": "Non Réalisable"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2025-02-27 11:03:27.310490",
   "name": "Annulé",
   "style": "Inverse",
   "workflow_state_name": "Annulé"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-09-27 10:39:51.841406",
+  "name": "Nouveau",
+  "style": "Info",
+  "workflow_state_name": "Nouveau"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-02-26 11:44:30.594355",
+  "name": "En étude",
+  "style": "Warning",
+  "workflow_state_name": "En étude"
  }
 ]
