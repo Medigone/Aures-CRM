@@ -87,6 +87,7 @@
    "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
+   "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
   },
@@ -117,7 +118,8 @@
    "fieldtype": "Table",
    "in_standard_filter": 1,
    "options": "Articles Demande Faisabilite",
-   "read_only_depends_on": "eval: doc.status !='Brouillon'"
+   "read_only_depends_on": "eval: doc.status !='Brouillon'",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_fxtr",
@@ -160,7 +162,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-19 23:59:03.123451",
+ "modified": "2025-04-20 14:37:29.140374",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
