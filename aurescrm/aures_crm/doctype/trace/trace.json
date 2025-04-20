@@ -41,7 +41,9 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Article",
-   "options": "Item"
+   "options": "Item",
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "section_break_ymla",
@@ -52,7 +54,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Dimensions"
+   "label": "Dimensions",
+   "reqd": 1
   },
   {
    "fieldname": "client",
@@ -60,7 +63,9 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Client",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_xyas",
@@ -69,7 +74,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-19 13:46:09.947058",
+ "modified": "2025-04-20 14:41:09.939248",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Trace",

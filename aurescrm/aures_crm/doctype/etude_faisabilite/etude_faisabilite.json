@@ -77,6 +77,7 @@
    "fieldname": "id_commercial",
    "fieldtype": "Link",
    "hidden": 1,
+   "in_standard_filter": 1,
    "label": "ID Commercial",
    "options": "User",
    "read_only": 1
@@ -102,6 +103,7 @@
    "label": "Client",
    "options": "Customer",
    "read_only": 1,
+   "reqd": 1,
    "search_index": 1
   },
   {
@@ -118,6 +120,7 @@
    "label": "Article",
    "options": "Item",
    "read_only": 1,
+   "reqd": 1,
    "search_index": 1
   },
   {
@@ -175,7 +178,8 @@
    "fieldtype": "Int",
    "label": "Quantit\u00e9",
    "non_negative": 1,
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "default": "0",
@@ -187,8 +191,10 @@
   {
    "fieldname": "date_livraison",
    "fieldtype": "Date",
+   "in_standard_filter": 1,
    "label": "Date Livraison Souhait\u00e9",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "default": "0",
@@ -234,7 +240,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-19 13:42:30.184246",
+ "modified": "2025-04-20 14:43:07.348384",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
