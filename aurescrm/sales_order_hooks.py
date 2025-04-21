@@ -129,6 +129,10 @@ def generate_technical_studies(sales_order_name):
             technical_study.article = item.item_code
             technical_study.quantite = item.qty
             
+            # Set the new fields: commande and demande_faisabilite
+            technical_study.commande = sales_order_name
+            technical_study.demande_faisabilite = sales_order.custom_demande_de_faisabilité
+            
             # Set maquette if available for this item
             if item.item_code in maquettes_data:
                 technical_study.maquette = maquettes_data[item.item_code]
