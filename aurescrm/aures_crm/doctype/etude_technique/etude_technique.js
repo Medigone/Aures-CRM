@@ -4,16 +4,6 @@
 
 frappe.ui.form.on('Etude Technique', {
     setup: function(frm) {
-        // Existing filter for 'article'
-        frm.set_query('article', function() {
-            return {
-                filters: [
-                    ["Item", "custom_procédé", "=", "Offset"],
-                    ["Item", "custom_client", "=", frm.doc.client]
-                ]
-            };
-        });
-
         // Filter for 'technicien' field directly on the form
         frm.set_query('technicien', function() {
             // Return a Promise, as fetching the user list is asynchronous
