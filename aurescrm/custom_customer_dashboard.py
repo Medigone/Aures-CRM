@@ -11,13 +11,15 @@ def get_data(**kwargs):
             "Item": "custom_client",
             "BOM": "custom_client",
             "Rendez Vous Client": "client",
-            "Etude Technique": "client",
             "Reclamations Clients": "client",
+            "Demande Faisabilite": "client",
             "Etude Faisabilite": "client",
+            "Etude Technique": "client",
             "Sales Invoice": "customer",
             "Payment Entry": "party",
             "Delivery Note": "customer",
             "Production Order": "customer",
+            
         },
         "transactions": [
             {
@@ -26,7 +28,7 @@ def get_data(**kwargs):
             },
             {
                 "label": _("Gestion des Produits et Études"),
-                "items": ["Item", "BOM", "Etude Faisabilite", "Etude Technique"],
+                "items": ["Demande Faisabilite", "Etude Faisabilite", "Etude Technique", "Item", "BOM"],
             },
             {
                 "label": _("Documents de Vente et Paiements"),
