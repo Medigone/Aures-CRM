@@ -133,6 +133,10 @@ def generate_technical_studies(sales_order_name):
             technical_study.commande = sales_order_name
             technical_study.demande_faisabilite = sales_order.custom_demande_de_faisabilité
             
+            # Set the devis field from custom_devis in Sales Order
+            if hasattr(sales_order, 'custom_devis') and sales_order.custom_devis:
+                technical_study.devis = sales_order.custom_devis
+            
             # Set maquette if available for this item
             if item.item_code in maquettes_data:
                 technical_study.maquette = maquettes_data[item.item_code]
