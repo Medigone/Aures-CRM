@@ -168,3 +168,32 @@ def generate_technical_studies(sales_order_name):
         frappe.msgprint(_("Échec de la génération des études techniques: {0}").format(str(e)), 
                        indicator='red', 
                        title=_('Erreur'))
+
+
+@frappe.whitelist()
+def check_existing_technical_studies(sales_order_name):
+    """
+    Check if technical studies already exist for any items in this Sales Order.
+    Returns:
+    - True if any technical studies exist
+    - False if no technical studies exist
+    """
+    # Count technical studies linked to this Sales Order
+    count = frappe.db.count("Etude Technique", {"commande": sales_order_name})
+    
+    # Return True if any exist, False otherwise
+    return count > 0
+
+@frappe.whitelist()
+def get_technical_studies_for_sales_order(sales_order_name):
+    """
+    Get all technical studies linked to a specific Sales Order.
+    Returns a list of technical studies with their details.
+    """
+    technical_studies = frappe.get_all(
+        "Etude Technique",
+        filters={"commande": sales_order_name},
+        fields=["name", "status", "article", "nom_article", "technicien", "date_echeance"]
+    )
+    
+    return technical_studies

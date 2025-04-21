@@ -100,7 +100,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nEssai Blanc\nValidation Essai\nTermin\u00e9e\nAnnul\u00e9e"
+   "options": "Nouveau\nEn Cours\nTermin\u00e9\nAnnul\u00e9e"
   },
   {
    "fieldname": "column_break_crbc",
@@ -291,7 +291,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-21 10:48:11.402944",
+ "modified": "2025-04-21 11:13:40.520410",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
