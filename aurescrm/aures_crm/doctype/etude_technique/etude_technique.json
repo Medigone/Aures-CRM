@@ -26,11 +26,14 @@
   "column_break_vhao",
   "quantite",
   "observations_tab",
-  "id_trace_tech",
   "trace",
+  "fichier_trace",
   "column_break_uxae",
-  "id_maquette",
   "imposition",
+  "fichier_imposition",
+  "column_break_jdub",
+  "maquette",
+  "fichier_maquette",
   "section_break_ahbw",
   "observations"
  ],
@@ -156,7 +159,7 @@
   {
    "fieldname": "observations_tab",
    "fieldtype": "Tab Break",
-   "label": "Infos"
+   "label": "Documents Li\u00e9s"
   },
   {
    "fieldname": "observations",
@@ -164,18 +167,8 @@
    "label": "Observations"
   },
   {
-   "fieldname": "id_trace_tech",
-   "fieldtype": "Data",
-   "label": "ID Trac\u00e9 technique"
-  },
-  {
    "fieldname": "column_break_uxae",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "id_maquette",
-   "fieldtype": "Data",
-   "label": "ID Maquette"
   },
   {
    "fieldname": "section_break_ahbw",
@@ -210,12 +203,44 @@
    "in_standard_filter": 1,
    "label": "Proc\u00e9d\u00e9",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_jdub",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "maquette",
+   "fieldtype": "Link",
+   "label": "Maquette",
+   "options": "Maquette",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "trace.fichier_trace",
+   "fieldname": "fichier_trace",
+   "fieldtype": "Attach",
+   "label": "Fichier Trac\u00e9",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "imposition.fichier_imp",
+   "fieldname": "fichier_imposition",
+   "fieldtype": "Attach",
+   "label": "Fichier Imposition",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "maquette.fichier_maquette",
+   "fieldname": "fichier_maquette",
+   "fieldtype": "Attach",
+   "label": "Fichier Maquette",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-21 09:08:52.269737",
+ "modified": "2025-04-21 09:42:38.188982",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
