@@ -129,6 +129,7 @@
    "label": "Notes"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "notes",
    "fieldtype": "Text Editor",
    "label": "Notes"
@@ -248,7 +249,7 @@
    "link_fieldname": "visite"
   }
  ],
- "modified": "2025-03-07 14:14:22.352012",
+ "modified": "2025-04-21 09:13:45.123454",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",

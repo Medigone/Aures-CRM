@@ -9,8 +9,9 @@
   "section_break_dojk",
   "date",
   "date_echeance",
+  "procede",
   "column_break_crbc",
-  "utilisateur",
+  "technicien",
   "nom_utilisateur",
   "amended_from",
   "section_break_nivw",
@@ -22,13 +23,14 @@
   "nom_commercial",
   "section_break_jdgg",
   "article",
-  "est_defaut",
   "column_break_vhao",
   "quantite",
   "observations_tab",
   "id_trace_tech",
+  "trace",
   "column_break_uxae",
   "id_maquette",
+  "imposition",
   "section_break_ahbw",
   "observations"
  ],
@@ -47,6 +49,8 @@
    "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Date",
    "read_only": 1
   },
@@ -54,6 +58,7 @@
    "fieldname": "client",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
    "reqd": 1,
@@ -74,17 +79,10 @@
    "read_only": 1
   },
   {
-   "fieldname": "utilisateur",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Designer",
-   "options": "User"
-  },
-  {
-   "fetch_from": "utilisateur.full_name",
+   "fetch_from": "technicien.full_name",
    "fieldname": "nom_utilisateur",
    "fieldtype": "Data",
-   "label": "Nom Designer",
+   "label": "Nom Technicien",
    "read_only": 1
   },
   {
@@ -100,8 +98,11 @@
   {
    "fieldname": "article",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Article",
    "options": "Item",
+   "read_only": 1,
    "search_index": 1
   },
   {
@@ -116,7 +117,8 @@
    "fieldname": "quantite",
    "fieldtype": "Int",
    "label": "Quantit\u00e9",
-   "non_negative": 1
+   "non_negative": 1,
+   "read_only": 1
   },
   {
    "fieldname": "section_break_dojk",
@@ -162,12 +164,6 @@
    "label": "Observations"
   },
   {
-   "default": "0",
-   "fieldname": "est_defaut",
-   "fieldtype": "Check",
-   "label": "Est D\u00e9faut"
-  },
-  {
    "fieldname": "id_trace_tech",
    "fieldtype": "Data",
    "label": "ID Trac\u00e9 technique"
@@ -184,12 +180,42 @@
   {
    "fieldname": "section_break_ahbw",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "label": "Trac\u00e9",
+   "options": "Trace",
+   "read_only": 1
+  },
+  {
+   "fieldname": "imposition",
+   "fieldtype": "Link",
+   "label": "Imposition",
+   "options": "Imposition",
+   "read_only": 1
+  },
+  {
+   "fieldname": "technicien",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Technicien",
+   "options": "User"
+  },
+  {
+   "fetch_from": "article.custom_proc\u00e9d\u00e9",
+   "fieldname": "procede",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Proc\u00e9d\u00e9",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-07 13:48:57.287891",
+ "modified": "2025-04-21 09:08:52.269737",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
@@ -231,7 +257,7 @@
   },
   {
    "read": 1,
-   "role": "R\u00e9sponsable Devis"
+   "role": "Responsable Devis"
   },
   {
    "read": 1,
@@ -239,7 +265,7 @@
   },
   {
    "read": 1,
-   "role": "R\u00e9sponsable \u00c9tude Faisabilit\u00e9"
+   "role": "Responsable \u00c9tude Faisabilit\u00e9"
   }
  ],
  "sort_field": "modified",
