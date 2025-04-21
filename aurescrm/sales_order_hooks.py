@@ -197,3 +197,11 @@ def get_technical_studies_for_sales_order(sales_order_name):
     )
     
     return technical_studies
+
+def validate_bon_de_commande(doc, method):
+    """Vérifie si le champ 'custom_bon_de_commande_client' est rempli avant la soumission.
+    
+    Cette fonction est appelée via le hook 'before_submit'.
+    """
+    if not doc.custom_bon_de_commande_client:
+        frappe.throw(_("Veuillez renseigner le champ 'Bon de Commande Client' avant de soumettre la commande."))

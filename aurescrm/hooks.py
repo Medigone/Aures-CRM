@@ -172,7 +172,8 @@ doc_events = {
     },
     # Add the hook for Sales Order submission
     "Sales Order": {
-        "on_submit": "aurescrm.sales_order_hooks.update_quotation_status_on_so_submit"
+        "on_submit": "aurescrm.sales_order_hooks.update_quotation_status_on_so_submit",
+        "before_submit": "aurescrm.sales_order_hooks.validate_bon_de_commande"
     }
 }
 

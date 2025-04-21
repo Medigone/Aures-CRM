@@ -26,6 +26,10 @@
   "column_break_vhao",
   "procede",
   "quantite",
+  "donn\u00e9es_techniques_tab",
+  "nbr_poses",
+  "quant_feuilles",
+  "machine",
   "observations_tab",
   "demande_faisabilite",
   "column_break_xqom",
@@ -286,12 +290,38 @@
   {
    "fieldname": "column_break_kzfy",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "donn\u00e9es_techniques_tab",
+   "fieldtype": "Tab Break",
+   "label": "Donn\u00e9es Techniques"
+  },
+  {
+   "fieldname": "quant_feuilles",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 Feuilles",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fetch_from": "imposition.nbr_poses",
+   "fieldname": "nbr_poses",
+   "fieldtype": "Int",
+   "label": "Nombre de poses",
+   "read_only": 1
+  },
+  {
+   "description": "Machine",
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "label": "Station de travail",
+   "options": "Workstation"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-21 11:13:40.520410",
+ "modified": "2025-04-21 18:11:02.893090",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",

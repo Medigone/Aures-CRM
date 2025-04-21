@@ -1,10 +1,31 @@
 import frappe
 from frappe.model.document import Document
 from datetime import datetime, timedelta
+import math # Importer le module math
 
 
 class EtudeTechnique(Document):
-    pass
+	def validate(self):
+		"""Valide et calcule quant_feuilles avant la sauvegarde."""
+		self.calculate_quant_feuilles()
+
+	def before_save(self):
+		"""Assure que le calcul est fait avant la sauvegarde."""
+		self.calculate_quant_feuilles()
+
+	def calculate_quant_feuilles(self):
+		"""Calcule la quantité de feuilles nécessaire."""
+		if self.quantite and self.nbr_poses:
+			if self.nbr_poses > 0:
+				self.quant_feuilles = math.ceil(float(self.quantite) / float(self.nbr_poses))
+			else:
+				# Gérer le cas de la division par zéro, par exemple en mettant 0 ou en levant une erreur
+				self.quant_feuilles = 0
+				# Optionnel: Afficher un message d'erreur si nbr_poses est 0
+				# frappe.throw("Le nombre de poses ne peut pas être zéro.")
+		else:
+			# Si quantite ou nbr_poses ne sont pas définis, mettre quant_feuilles à 0
+			self.quant_feuilles = 0
 
 
 # def create_etude_technique(doc, method):
