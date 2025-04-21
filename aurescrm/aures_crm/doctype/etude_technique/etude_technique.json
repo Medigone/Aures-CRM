@@ -27,6 +27,10 @@
   "procede",
   "quantite",
   "observations_tab",
+  "commande",
+  "column_break_xqom",
+  "demande_faisabilite",
+  "section_break_lcbk",
   "trace",
   "fichier_trace",
   "column_break_uxae",
@@ -247,12 +251,34 @@
    "fieldtype": "Data",
    "label": "Nom de l'article",
    "read_only": 1
+  },
+  {
+   "fieldname": "commande",
+   "fieldtype": "Link",
+   "label": "Commande",
+   "options": "Sales Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_xqom",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "demande_faisabilite",
+   "fieldtype": "Link",
+   "label": "Demande de faisabilit\u00e9",
+   "options": "Demande Faisabilite",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_lcbk",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-21 10:06:25.776826",
+ "modified": "2025-04-21 10:39:11.711383",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
