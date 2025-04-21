@@ -28,8 +28,11 @@
   "quantite",
   "donn\u00e9es_techniques_tab",
   "nbr_poses",
-  "quant_feuilles",
   "machine",
+  "column_break_zsog",
+  "quant_feuilles",
+  "section_break_ahbw",
+  "observations",
   "observations_tab",
   "demande_faisabilite",
   "column_break_xqom",
@@ -44,9 +47,7 @@
   "fichier_imposition",
   "column_break_jdub",
   "maquette",
-  "fichier_maquette",
-  "section_break_ahbw",
-  "observations"
+  "fichier_maquette"
  ],
  "fields": [
   {
@@ -316,12 +317,16 @@
    "fieldtype": "Link",
    "label": "Station de travail",
    "options": "Workstation"
+  },
+  {
+   "fieldname": "column_break_zsog",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-21 18:11:02.893090",
+ "modified": "2025-04-21 18:13:57.925073",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
