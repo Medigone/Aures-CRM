@@ -293,7 +293,7 @@ def get_linked_documents_for_demande(demande_name):
     etudes = frappe.get_list(
         "Etude Faisabilite",
         filters={"demande_faisabilite": demande_name},
-        fields=["name", "status"],
+        fields=["name", "status", "item_name", "article"],
         ignore_permissions=True # Assuming read access might be restricted otherwise
     )
 

@@ -212,8 +212,13 @@ function load_etude_links(frm) {
                         var badge = get_status_badge(rec.status);
                         html += "<div style='margin-bottom: 5px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px;'>";
                         html += "<span style='margin-right: 4px;'>•</span>";
-                        html += "<a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-size: 12px; color: inherit; text-decoration: none; word-break: break-all;'>" + rec.name + "</a>";
+                        html += "<div style='display: flex; flex-direction: column;'>";
+                        html += "<div style='display: flex; align-items: baseline; gap: 8px;'>";
+                        var itemName = rec.item_name || rec.article_name || (rec.article && rec.article.item_name) || ''; // Use a default value if item_name is missing
+                        html += "<a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-size: 12px; color: inherit; text-decoration: none; word-break: break-all;'>" + rec.name + (itemName ? " - " + itemName : "") + "</a>";
                         html += "<span>" + badge + "</span>";
+                        html += "</div>";
+                        html += "</div>";
                         html += "</div>";
                     });
                 } else {
