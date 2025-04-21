@@ -92,6 +92,26 @@ def generate_technical_studies(sales_order_name):
         import datetime
         due_date = datetime.datetime.now() + datetime.timedelta(days=1)
         
+        # Get maquettes data from the child table
+        maquettes_data = {}
+        try:
+            # Try to get maquettes directly from the database
+            maquettes_list = frappe.get_all(
+                "Maquettes Articles Commande",
+                filters={"parent": sales_order_name},
+                fields=["article", "maquette"]
+            )
+            
+            # Log what we found for debugging
+            frappe.log_error(f"Maquettes found for SO {sales_order_name}: {maquettes_list}", "generate_technical_studies")
+            
+            # Create mapping of item_code to maquette
+            for m in maquettes_list:
+                if m.article and m.maquette:
+                    maquettes_data[m.article] = m.maquette
+        except Exception as e:
+            frappe.log_error(f"Error retrieving maquettes for SO {sales_order_name}: {e}", "generate_technical_studies")
+        
         # For each item in the Sales Order
         for item in sales_order.items:
             # Create a technical study for this item
@@ -102,12 +122,16 @@ def generate_technical_studies(sales_order_name):
             technical_study.qty = item.qty
             
             # Fix field names to match exactly what the doctype expects
-            technical_study.client = sales_order.customer  # Changed from 'customer' to 'client'
-            technical_study.date_echeance = due_date.strftime('%Y-%m-%d')  # Changed from 'date_decheance' to 'date_echeance'
+            technical_study.client = sales_order.customer
+            technical_study.date_echeance = due_date.strftime('%Y-%m-%d')
             
             # Set article and quantite fields
             technical_study.article = item.item_code
             technical_study.quantite = item.qty
+            
+            # Set maquette if available for this item
+            if item.item_code in maquettes_data:
+                technical_study.maquette = maquettes_data[item.item_code]
             
             # Use the first feasibility study that has both trace and imposition
             for study in feasibility_studies:

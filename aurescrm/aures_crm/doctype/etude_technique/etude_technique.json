@@ -9,7 +9,6 @@
   "section_break_dojk",
   "date",
   "date_echeance",
-  "procede",
   "column_break_crbc",
   "technicien",
   "nom_utilisateur",
@@ -23,7 +22,9 @@
   "nom_commercial",
   "section_break_jdgg",
   "article",
+  "nom_article",
   "column_break_vhao",
+  "procede",
   "quantite",
   "observations_tab",
   "trace",
@@ -64,7 +65,7 @@
    "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
-   "reqd": 1,
+   "read_only": 1,
    "search_index": 1
   },
   {
@@ -91,8 +92,9 @@
   {
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nPhase Trac\u00e9 technique\nValidation Trac\u00e9\nEssai Blanc\nValidation Essai\nPhase Maquette\nValidation Maquette\nTermin\u00e9e\nAnnul\u00e9e"
+   "options": "Nouveau\nEssai Blanc\nValidation Essai\nTermin\u00e9e\nAnnul\u00e9e"
   },
   {
    "fieldname": "column_break_crbc",
@@ -179,14 +181,16 @@
    "fieldtype": "Link",
    "label": "Trac\u00e9",
    "options": "Trace",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "imposition",
    "fieldtype": "Link",
    "label": "Imposition",
    "options": "Imposition",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "technicien",
@@ -213,7 +217,8 @@
    "fieldtype": "Link",
    "label": "Maquette",
    "options": "Maquette",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fetch_from": "trace.fichier_trace",
@@ -235,12 +240,19 @@
    "fieldtype": "Attach",
    "label": "Fichier Maquette",
    "read_only": 1
+  },
+  {
+   "fetch_from": "article.item_name",
+   "fieldname": "nom_article",
+   "fieldtype": "Data",
+   "label": "Nom de l'article",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-21 09:42:38.188982",
+ "modified": "2025-04-21 10:06:25.776826",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
