@@ -9,6 +9,7 @@
   "section_break_dojk",
   "date",
   "date_echeance",
+  "is_reprint",
   "column_break_crbc",
   "technicien",
   "nom_utilisateur",
@@ -321,12 +322,20 @@
   {
    "fieldname": "column_break_zsog",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_reprint",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Retirage",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-21 18:13:57.925073",
+ "modified": "2025-04-22 10:28:50.025549",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",

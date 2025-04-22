@@ -3,8 +3,10 @@
 frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
         load_etude_links(frm);
+        frm.clear_custom_buttons(); // Clear existing buttons first
 
         // --- Bouton "Ajouter un article" ---
+        // (Keep existing logic for adding the button)
         if (!frm.get_field('html').$wrapper.find('#add-article-btn').length) {
             frm.get_field('html').$wrapper.append(
                 '<button id="add-article-btn" class="btn btn-primary" style="margin-top: 10px;">Ajouter un article</button>'
@@ -71,7 +73,7 @@ frappe.ui.form.on('Demande Faisabilite', {
 
         // --- Bouton "Confirmer" ---
         if (frm.doc.status === "Brouillon") {
-            frm.clear_custom_buttons();
+            // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button("Confirmer", function() {
                 frappe.confirm(
                     "Voulez-vous vraiment confirmer cette demande et générer une Étude de Faisabilité pour chaque article ?",
@@ -93,7 +95,7 @@ frappe.ui.form.on('Demande Faisabilite', {
 
         // --- Bouton "Annuler" ---
         if (frm.doc.status === "Partiellement Finalisée" || frm.doc.status === "Finalisée") {
-            frm.clear_custom_buttons();
+            // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button("Annuler", function() {
                 frappe.confirm(
                     "Attention, cette action va annuler cette demande de Faisabilité. Voulez-vous vraiment continuer ?",
@@ -122,6 +124,7 @@ frappe.ui.form.on('Demande Faisabilite', {
 
         // --- Bouton "Devis" ---
         if (frm.doc.status === "Finalisée") {
+            // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button('Devis', function() {
                 frappe.call({
                     method: "aurescrm.faisabilite_hook.get_articles_for_quotation",
@@ -137,6 +140,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                                 doc.custom_id_client = frm.doc.client;
                                 doc.company = frappe.defaults.get_default("company");
                                 doc.custom_demande_faisabilité = frm.doc.name;
+                                doc.custom_retirage = frm.doc.is_reprint;
 
                                 // Set the custom delivery date from the first feasible item
                                 // Ensure the field name 'custom_date_de_livraison' matches your Quotation field
@@ -164,6 +168,67 @@ frappe.ui.form.on('Demande Faisabilite', {
                 });
             }, "Créer");
         }
+
+        // --- NOUVEAU : Bouton "Retirage" ---
+        // Ajout du console.log pour déboguer
+        console.log("Statut actuel pour bouton Retirage:", frm.doc.status);
+        if (frm.doc.status === "Commandé") {
+            // frm.clear_custom_buttons(); // Already cleared above
+            frm.add_custom_button("Retirage", function() {
+                frappe.confirm(
+                    "Voulez-vous vraiment créer un retirage pour cette demande ? Une nouvelle demande sera créée.",
+                    function() {
+                        // Prompt for the new delivery date
+                        frappe.prompt([
+                            {
+                                fieldname: 'new_date_livraison',
+                                fieldtype: 'Date',
+                                label: 'Nouvelle date de livraison souhaitée',
+                                reqd: 1,
+                                default: frappe.datetime.add_days(frappe.datetime.now_date(), 7) // Default to 7 days from now
+                            }
+                        ],
+                        function(values) {
+                            // Call the server-side function to duplicate
+                            frappe.call({
+                                method: "aurescrm.faisabilite_hook.duplicate_demande_for_reprint", // Assurez-vous que ce chemin est correct
+                                args: {
+                                    docname: frm.doc.name,
+                                    new_date_livraison: values.new_date_livraison
+                                },
+                                callback: function(r) {
+                                    if (r.message && r.message.new_docname) {
+                                        frappe.msgprint({
+                                            title: __("Succès"),
+                                            message: __("La demande de retirage {0} a été créée.", [r.message.new_docname]),
+                                            indicator: "green"
+                                        });
+                                        frappe.set_route("Form", "Demande Faisabilite", r.message.new_docname);
+                                    } else {
+                                         frappe.msgprint({
+                                            title: __("Erreur"),
+                                            message: __("La création du retirage a échoué. Détails : {0}", [r.message || "Erreur inconnue"]),
+                                            indicator: "red"
+                                        });
+                                    }
+                                },
+                                error: function(r) {
+                                     frappe.msgprint({
+                                        title: __("Erreur Serveur"),
+                                        message: __("Une erreur s'est produite lors de la communication avec le serveur."),
+                                        indicator: "red"
+                                    });
+                                }
+                            });
+                        },
+                        'Date de livraison pour le retirage', // Prompt title
+                        'Créer Retirage' // Button label
+                        );
+                    }
+                );
+            }).addClass("btn-secondary"); // Use a different style if needed
+        }
+
     }, // End of refresh function
 
     // Add handler for header date change to update default for prompt

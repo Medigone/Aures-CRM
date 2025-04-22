@@ -53,7 +53,7 @@ def generate_technical_studies(sales_order_name):
     1. Get the feasibility request ID from custom_demande_de_faisabilité
     2. Find feasibility studies with status "Réalisable" linked to that request
     3. Extract the "Trace" and "Imposition" IDs
-    4. Create technical studies with these IDs
+    4. Create technical studies with these IDs and copy the 'custom_retirage' flag.
     """
     try:
         # Get the Sales Order document
@@ -120,27 +120,35 @@ def generate_technical_studies(sales_order_name):
             technical_study.item_code = item.item_code
             technical_study.item_name = item.item_name
             technical_study.qty = item.qty
-            
+
             # Fix field names to match exactly what the doctype expects
             technical_study.client = sales_order.customer
             technical_study.date_echeance = due_date.strftime('%Y-%m-%d')
-            
+
             # Set article and quantite fields
             technical_study.article = item.item_code
             technical_study.quantite = item.qty
-            
+
             # Set the new fields: commande and demande_faisabilite
             technical_study.commande = sales_order_name
             technical_study.demande_faisabilite = sales_order.custom_demande_de_faisabilité
-            
+
             # Set the devis field from custom_devis in Sales Order
             if hasattr(sales_order, 'custom_devis') and sales_order.custom_devis:
                 technical_study.devis = sales_order.custom_devis
-            
+
+            # --- NOUVEAU : Copier la valeur custom_retirage ---
+            # Vérifie si le champ custom_retirage existe et a une valeur (0 ou 1)
+            if hasattr(sales_order, 'custom_retirage') and sales_order.custom_retirage is not None:
+                 technical_study.is_reprint = sales_order.custom_retirage
+            else:
+                 technical_study.is_reprint = 0 # Valeur par défaut si non trouvé
+            # --- Fin de la modification ---
+
             # Set maquette if available for this item
             if item.item_code in maquettes_data:
                 technical_study.maquette = maquettes_data[item.item_code]
-            
+
             # Use the first feasibility study that has both trace and imposition
             for study in feasibility_studies:
                 if study.trace and study.imposition:
@@ -148,7 +156,7 @@ def generate_technical_studies(sales_order_name):
                     technical_study.imposition = study.imposition
                     technical_study.etude_faisabilite = study.name
                     break
-            
+
             # Save the technical study
             technical_study.insert()
             created_studies += 1

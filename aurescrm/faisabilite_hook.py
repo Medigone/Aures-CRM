@@ -1,40 +1,45 @@
 import frappe
 from frappe import _
+from frappe.utils import now_datetime # <-- Assurez-vous que cet import est présent
 
 @frappe.whitelist()
 def generate_etude_faisabilite(docname):
     """
     Pour chaque ligne de la table 'liste_articles' du document Demande Faisabilite,
     crée un nouveau document 'Etude Faisabilite' et met à jour le statut de la demande.
+    Copie également le statut 'is_reprint'.
     """
     try:
         # Récupérer le document Demande Faisabilite
         demande = frappe.get_doc("Demande Faisabilite", docname)
-        
+
         # Vérifier s'il y a des articles dans la liste
         if not demande.get("liste_articles"):
             frappe.throw("Aucun article n'a été ajouté à la demande.")
-        
+
         # Pour chaque article, créer un document Etude Faisabilite
         for row in demande.get("liste_articles"):
             etude = frappe.new_doc("Etude Faisabilite")
             etude.demande_faisabilite = demande.name
             etude.article = row.article
-            etude.quantite = row.quantite  # Assurez-vous que le doctype Etude Faisabilite possède ce champ
-            etude.date_livraison = row.date_livraison  # Vous pouvez adapter la logique de date si nécessaire
+            etude.quantite = row.quantite
+            etude.date_livraison = row.date_livraison
             etude.client = demande.client
             etude.commercial = demande.commercial
             etude.id_commercial = demande.id_commercial
+            # --- NOUVEAU : Copier la valeur is_reprint ---
+            etude.is_reprint = demande.is_reprint # Ajout de cette ligne
+            # --- Fin de la modification ---
             # Ajoutez ici d'autres affectations si besoin
-            
+
             etude.insert(ignore_permissions=True)
-        
+
         # Mise à jour du statut de la demande en "Confirmée"
         demande.status = "Confirmée"
         demande.save(ignore_permissions=True)
-        
+
         return demande.status
-        
+
     except Exception as e:
         frappe.log_error(message=str(e), title="Erreur generate_etude_faisabilite")
         frappe.throw("Une erreur est survenue lors de la génération des études de faisabilité.")
@@ -368,3 +373,52 @@ def set_demande_status_from_sales_order(doc, method):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), f"Erreur mise à jour statut Demande Faisabilite depuis Sales Order {doc.name}")
         frappe.msgprint(_("Erreur lors de la mise à jour du statut de la Demande Faisabilité liée."))
+
+
+
+@frappe.whitelist()
+def duplicate_demande_for_reprint(docname, new_date_livraison):
+    """
+    Duplique une Demande Faisabilite pour créer un retirage.
+    Met à jour la date de livraison, coche 'is_reprint', réinitialise le statut,
+    définit la date de création, le créateur et lie à la demande d'origine.
+    """
+    try:
+        # 1. Récupérer le document original
+        original_doc = frappe.get_doc("Demande Faisabilite", docname)
+
+        # 2. Créer une copie
+        new_doc = frappe.copy_doc(original_doc, ignore_no_copy=False)
+
+        # 3. Modifier les champs nécessaires pour le retirage
+        new_doc.status = "Brouillon"
+        new_doc.date_livraison = new_date_livraison
+        new_doc.is_reprint = 1
+        # --- MODIFIÉ : Utiliser le nouveau nom de champ 'demande_origin' ---
+        new_doc.demande_origin = docname # <-- Modification ici
+
+        # Définir explicitement la date de création et le propriétaire
+        new_doc.owner = frappe.session.user
+        new_doc.date_creation = now_datetime() # Utilisation de 'date_creation'
+
+        # Mettre à jour la date de livraison dans la table enfants
+        if new_doc.get("liste_articles"):
+            for item in new_doc.liste_articles:
+                item.date_livraison = new_date_livraison
+
+        # Effacer les liens (si nécessaire)
+        # new_doc.linked_quotation = None
+        # new_doc.linked_sales_order = None
+
+        # 4. Sauvegarder le nouveau document
+        new_doc.insert(ignore_permissions=True)
+
+        # 5. Retourner le nom du nouveau document
+        return {"new_docname": new_doc.name}
+
+    except frappe.DoesNotExistError:
+        frappe.log_error(f"Demande Faisabilite {docname} non trouvée lors de la tentative de retirage.", "Erreur Retirage")
+        return {"error": f"Document original {docname} non trouvé."}
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), f"Erreur lors de la création du retirage pour {docname}")
+        return {"error": f"Une erreur est survenue: {str(e)}"}

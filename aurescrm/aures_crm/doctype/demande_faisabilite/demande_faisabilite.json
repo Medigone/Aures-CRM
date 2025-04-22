@@ -20,6 +20,7 @@
   "date_livraison",
   "column_break_tric",
   "commercial",
+  "demande_origin",
   "is_reprint",
   "section_break_bwpt",
   "liens",
@@ -166,11 +167,18 @@
    "fieldtype": "Check",
    "label": "Retirage",
    "read_only": 1
+  },
+  {
+   "fieldname": "demande_origin",
+   "fieldtype": "Link",
+   "label": "Demande Originale",
+   "options": "Demande Faisabilite",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-22 09:29:18.136995",
+ "modified": "2025-04-22 09:53:42.847893",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",

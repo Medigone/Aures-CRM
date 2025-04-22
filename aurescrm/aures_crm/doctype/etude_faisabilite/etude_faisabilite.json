@@ -9,6 +9,7 @@
   "section_break_fkfa",
   "date_creation",
   "demande_faisabilite",
+  "is_reprint",
   "column_break_wies",
   "date_echeance",
   "id_commercial",
@@ -243,12 +244,19 @@
    "fieldtype": "Data",
    "label": "Nom de l'article",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_reprint",
+   "fieldtype": "Check",
+   "label": "Retirage",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-21 22:57:27.695637",
+ "modified": "2025-04-22 09:59:52.632950",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
