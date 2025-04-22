@@ -20,6 +20,7 @@
   "date_livraison",
   "column_break_tric",
   "commercial",
+  "is_reprint",
   "section_break_bwpt",
   "liens",
   "section_break_rlku",
@@ -47,7 +48,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Statut",
-   "options": "Brouillon\nConfirm\u00e9e\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nAnnul\u00e9e"
+   "options": "Brouillon\nConfirm\u00e9e\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nCommand\u00e9\nAnnul\u00e9e"
   },
   {
    "fieldname": "section_break_ojxn",
@@ -158,11 +159,18 @@
    "label": "Date de livraison souhait\u00e9e",
    "reqd": 1,
    "set_only_once": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_reprint",
+   "fieldtype": "Check",
+   "label": "Retirage",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-20 20:51:20.004490",
+ "modified": "2025-04-22 09:21:42.848271",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",

@@ -335,3 +335,36 @@ def get_linked_documents_for_demande(demande_name):
         "etudes": etudes,
         "sales_documents": sales_documents
     }
+
+@frappe.whitelist()
+def set_demande_status_from_sales_order(doc, method):
+    """
+    Lorsqu'une Sales Order est soumise, si elle est liée à une Demande Faisabilité,
+    met à jour le statut de la demande en "Commandé".
+    """
+    # Vérifie si le champ de liaison existe et a une valeur
+    if not doc.get("custom_demande_de_faisabilité"):
+        # frappe.msgprint("Pas de Demande Faisabilité liée à cette commande.")
+        return
+
+    demande_name = doc.custom_demande_de_faisabilité
+
+    try:
+        demande = frappe.get_doc("Demande Faisabilite", demande_name)
+
+        # Vérifie si le statut actuel permet la transition vers "Commandé"
+        # Par exemple, on pourrait vouloir passer à "Commandé" seulement depuis "Devis Établis"
+        # Adaptez cette condition selon votre workflow exact
+        if demande.status == "Devis Établis":
+            demande.status = "Commandé"
+            demande.save(ignore_permissions=True)
+            frappe.msgprint(_(f"Statut de la Demande Faisabilité {demande.name} mis à jour en 'Commandé'"))
+        # else:
+            # frappe.msgprint(f"Le statut actuel '{demande.status}' de la Demande Faisabilité {demande.name} ne permet pas de passer à 'Commandé'.")
+
+    except frappe.DoesNotExistError:
+        frappe.log_error(f"Demande Faisabilite {demande_name} non trouvée lors de la soumission de Sales Order {doc.name}", "Erreur Hook Sales Order")
+        # frappe.msgprint(f"Erreur : Demande Faisabilité {demande_name} non trouvée.")
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), f"Erreur mise à jour statut Demande Faisabilite depuis Sales Order {doc.name}")
+        frappe.msgprint(_("Erreur lors de la mise à jour du statut de la Demande Faisabilité liée."))
