@@ -3,6 +3,99 @@
 
 frappe.ui.form.on("Etude Technique", {
 	refresh(frm) {
+		// Bouton 'Attribuer à moi'
+		if (!frm.doc.__islocal) {
+			frm.add_custom_button(__('À moi'), function() {
+				let currentUser = frappe.session.user;
+
+				frappe.call({
+					method: "aurescrm.aures_crm.doctype.etude_technique.etude_technique.update_technicien",
+					args: {
+						docname: frm.doc.name,
+						technicien_user: currentUser
+					},
+					callback: function(r) {
+						if (r.message && r.message.status === "success") {
+							// Mettre à jour l'UI SEULEMENT si l'appel serveur réussit
+							let userFullName = r.message.full_name; // Récupérer le nom complet
+							frm.set_value('technicien', currentUser);
+							frm.set_value('nom_utilisateur', userFullName); // Mettre à jour le nom utilisateur
+							frm.refresh_field('technicien');
+							frm.refresh_field('nom_utilisateur'); // Rafraîchir le champ nom utilisateur
+							frappe.show_alert({ message: __('Technicien assigné: ') + userFullName, indicator: 'green' });
+							frm.reload_doc();
+						} else {
+							let error_msg = r.message ? r.message.message : __('Erreur inconnue');
+							frappe.show_alert({ message: __('Erreur lors de la mise à jour: ') + error_msg, indicator: 'red' });
+							console.error("Erreur update_technicien (callback):", r);
+						}
+					},
+					error: function(r) {
+						frappe.show_alert({ message: __('Erreur de communication serveur'), indicator: 'red' });
+						console.error("Erreur update_technicien (error):", r);
+					}
+				});
+			}, __("Attribuer"));
+		}
+
+		// Bouton 'Attribuer à...'
+		if (!frm.doc.__islocal) {
+			frm.add_custom_button(__('Attribuer à...'), function() {
+				let dialog = new frappe.ui.Dialog({
+					title: __('Sélectionner un Technicien Prépresse'),
+					fields: [
+						{
+							label: __('Utilisateur'),
+							fieldname: 'selected_user',
+							fieldtype: 'Link',
+							options: 'User',
+							reqd: 1,
+							get_query: function() {
+								return {
+									query: "aurescrm.aures_crm.doctype.etude_technique.etude_technique.get_techniciens_prepresse",
+								};
+							}
+						}
+					],
+					primary_action_label: __('Sélectionner'),
+					primary_action(values) {
+						if (values.selected_user) {
+							let selectedUser = values.selected_user;
+
+							frappe.call({
+								method: "aurescrm.aures_crm.doctype.etude_technique.etude_technique.update_technicien",
+								args: {
+									docname: frm.doc.name,
+									technicien_user: selectedUser
+								},
+								callback: function(r) {
+									if (r.message && r.message.status === "success") {
+										// Mettre à jour l'UI SEULEMENT si l'appel serveur réussit
+										let userFullName = r.message.full_name; // Récupérer le nom complet
+										frm.set_value('technicien', selectedUser);
+										frm.set_value('nom_utilisateur', userFullName); // Mettre à jour le nom utilisateur
+										frm.refresh_field('technicien');
+										frm.refresh_field('nom_utilisateur'); // Rafraîchir le champ nom utilisateur
+										frappe.show_alert({ message: __('Technicien assigné: ') + userFullName, indicator: 'green' });
+										frm.reload_doc();
+									} else {
+										let error_msg = r.message ? r.message.message : __('Erreur inconnue');
+										frappe.show_alert({ message: __('Erreur lors de la mise à jour: ') + error_msg, indicator: 'red' });
+										console.error("Erreur update_technicien (callback):", r);
+									}
+								},
+								error: function(r) {
+									frappe.show_alert({ message: __('Erreur de communication serveur'), indicator: 'red' });
+									console.error("Erreur update_technicien (error):", r);
+								}
+							});
+						}
+						dialog.hide();
+					}
+				});
+				dialog.show();
+			}, __("Attribuer"));
+		}
 		// Votre code existant ici, s'il y en a
 	},
 

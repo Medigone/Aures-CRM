@@ -1,3 +1,6 @@
+# Copyright (c) 2024, AURES Technologies and contributors
+# For license information, please see license.txt
+
 import frappe
 from frappe.model.document import Document
 from datetime import datetime, timedelta
@@ -57,3 +60,65 @@ class EtudeTechnique(Document):
 
 #         new_etude.insert()
 #         frappe.logger().info(f"Etude Technique Offset created for Item: {doc.name}")
+
+
+@frappe.whitelist()
+def update_technicien(docname, technicien_user):
+	"""Met à jour les champs technicien et nom_utilisateur pour un document Etude Technique."""
+	try:
+		# Récupérer le nom complet de l'utilisateur
+		full_name = frappe.db.get_value("User", technicien_user, "full_name")
+		if not full_name:
+			# Gérer le cas où l'utilisateur n'a pas de nom complet défini (peu probable mais possible)
+			full_name = technicien_user # Utiliser l'email/ID comme fallback
+
+		# Mise à jour directe des valeurs
+		frappe.db.set_value("Etude Technique", docname, {
+			"technicien": technicien_user,
+			"nom_utilisateur": full_name
+		}, update_modified=False)
+
+		# Ligne add_comment temporairement retirée pour tester
+		# frappe.get_doc("Etude Technique", docname).add_comment("Attribué", f"Technicien mis à jour via bouton: {technicien_user} ({full_name})")
+		frappe.db.commit() # Assurer que la transaction est commitée immédiatement
+		# Retourner le nom complet pour l'UI
+		return {"status": "success", "message": "Technicien et nom mis à jour", "full_name": full_name}
+	except Exception as e:
+		frappe.log_error(f"Erreur dans update_technicien pour {docname}: {e}", frappe.get_traceback())
+		frappe.db.rollback()
+		return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def get_techniciens_prepresse(doctype, txt, searchfield, start, page_len, filters):
+	# Récupère les utilisateurs ayant le rôle "Technicien Prepresse"
+	users_with_role = frappe.get_all("Has Role",
+									 filters={"role": "Technicien Prepresse", "parenttype": "User"},
+									 fields=["parent"])
+	user_list = [d.parent for d in users_with_role]
+
+	if not user_list:
+		return []
+
+	# Condition pour la recherche textuelle (si l'utilisateur tape dans le champ Link)
+	search_condition = ""
+	if txt:
+		# Assurez-vous que searchfield est un champ valide de User, comme 'name' ou 'full_name'
+		# Utilisons 'name' ou 'full_name' pour la recherche
+		search_condition = f"AND (`name` LIKE %(txt)s OR `full_name` LIKE %(txt)s)"
+
+
+	# Requête pour récupérer les utilisateurs correspondants, actifs et filtrés
+	return frappe.db.sql(f"""
+		SELECT `name`, `full_name` FROM `tabUser`
+		WHERE `name` IN %(user_list)s
+		AND `enabled` = 1
+		{search_condition}
+		ORDER BY `full_name`
+		LIMIT %(start)s, %(page_len)s
+	""", {
+		"user_list": tuple(user_list),
+		"txt": f"%{txt}%",
+		"start": start,
+		"page_len": page_len
+	}, as_list=True)
