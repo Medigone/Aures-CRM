@@ -170,7 +170,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-22 09:21:42.848271",
+ "modified": "2025-04-22 09:29:18.136995",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
@@ -267,6 +267,10 @@
   {
    "color": "Green",
    "title": "Devis \u00c9tablis"
+  },
+  {
+   "color": "Green",
+   "title": "Command\u00e9"
   },
   {
    "color": "Gray",
