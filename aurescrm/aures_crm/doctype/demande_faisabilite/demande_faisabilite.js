@@ -79,7 +79,8 @@ frappe.ui.form.on('Demande Faisabilite', {
                     "Voulez-vous vraiment confirmer cette demande et générer une Étude de Faisabilité pour chaque article ?",
                     function() {
                         frappe.call({
-                            method: "aurescrm.faisabilite_hook.generate_etude_faisabilite",
+                            // Mise à jour du chemin
+                            method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.generate_etude_faisabilite",
                             args: { docname: frm.doc.name },
                             callback: function(r) {
                                 if (r.message) {
@@ -101,7 +102,8 @@ frappe.ui.form.on('Demande Faisabilite', {
                     "Attention, cette action va annuler cette demande de Faisabilité. Voulez-vous vraiment continuer ?",
                     function() {
                         frappe.call({
-                            method: "aurescrm.faisabilite_hook.cancel_etudes_faisabilite",
+                            // Mise à jour du chemin
+                            method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.cancel_etudes_faisabilite",
                             args: { docname: frm.doc.name },
                             callback: function(r) {
                                 if (r.message && r.message.status === "ok") {
@@ -127,7 +129,8 @@ frappe.ui.form.on('Demande Faisabilite', {
             // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button('Devis', function() {
                 frappe.call({
-                    method: "aurescrm.faisabilite_hook.get_articles_for_quotation",
+                    // Mise à jour du chemin
+                    method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.get_articles_for_quotation",
                     args: {
                         docname: frm.doc.name
                     },
@@ -191,7 +194,8 @@ frappe.ui.form.on('Demande Faisabilite', {
                         function(values) {
                             // Call the server-side function to duplicate
                             frappe.call({
-                                method: "aurescrm.faisabilite_hook.duplicate_demande_for_reprint", // Assurez-vous que ce chemin est correct
+                                // Mise à jour du chemin
+                                method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.duplicate_demande_for_reprint", // Assurez-vous que ce chemin est correct
                                 args: {
                                     docname: frm.doc.name,
                                     new_date_livraison: values.new_date_livraison
@@ -246,7 +250,8 @@ function load_etude_links(frm) {
     frappe.call({
         // IMPORTANT: Ensure this method name points to your *updated* backend function
         // that returns both etudes and sales_documents.
-        method: "aurescrm.faisabilite_hook.get_linked_documents_for_demande", // Example updated method name
+        // Mise à jour du chemin
+        method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.get_linked_documents_for_demande", // Example updated method name
         args: {
             demande_name: frm.doc.name
         },

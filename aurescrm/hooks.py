@@ -147,11 +147,9 @@ doc_events = {
         "after_insert": "aurescrm.fiche_evaluation_client.calculate_global_score"
     },
     "Customer": {
-        
         "before_save": [
             "aurescrm.customer_hooks.uppercase_customer_name",
             "aurescrm.customer_hooks.set_default_commercial",
-            
         ]
     },
     "Item": {
@@ -162,23 +160,25 @@ doc_events = {
         "before_save": "aurescrm.utils.custom_delivery_address_naming"
     },
     "Etude Faisabilite": {
-         "on_update": "aurescrm.faisabilite_hook.update_demande_status_from_etudes"
+         # Mise à jour du chemin
+         "on_update": "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.update_demande_status_from_etudes"
     },
     "Quotation": {
-        # Note: Changed this from after_insert to on_submit based on faisabilite_hook.py content
-        # If you need after_insert for something else, keep it, otherwise on_submit might be more appropriate
-        # based on the function name set_demande_status_from_quotation
-        "on_submit": "aurescrm.faisabilite_hook.set_demande_status_from_quotation"
+        # Mise à jour du chemin
+        "on_submit": "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_quotation"
     },
     # Add the hook for Sales Order submission
     "Sales Order": {
         # Assurez-vous que c'est une liste si vous avez plusieurs hooks
         "on_submit": [
             "aurescrm.sales_order_hooks.update_quotation_status_on_so_submit",
-            "aurescrm.faisabilite_hook.set_demande_status_from_sales_order" # Ajoutez cette ligne
+            # Mise à jour du chemin
+            "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_sales_order"
         ],
         "before_submit": "aurescrm.sales_order_hooks.validate_bon_de_commande"
+        # Vous pourriez avoir d'autres hooks ici
     }
+    # Vous pourriez avoir d'autres DocTypes ici
 }
 
 
