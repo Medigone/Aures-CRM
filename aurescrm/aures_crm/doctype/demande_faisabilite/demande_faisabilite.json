@@ -178,7 +178,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-22 09:53:42.847893",
+ "modified": "2025-04-22 17:02:30.240858",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
@@ -211,7 +211,8 @@
   {
    "read": 1,
    "role": "Coordination",
-   "share": 1
+   "share": 1,
+   "write": 1
   },
   {
    "export": 1,
