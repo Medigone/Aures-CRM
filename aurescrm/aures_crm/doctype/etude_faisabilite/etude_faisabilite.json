@@ -26,13 +26,15 @@
   "column_break_wanl",
   "date_livraison",
   "numerique",
-  "tab_2_tab",
+  "section_break_jgil",
+  "column_break_fqda",
   "trace",
+  "fichier_trace",
   "column_break_gbek",
   "imposition",
-  "section_break_zrsl",
+  "fichier_imp",
+  "section_break_jugd",
   "taux_chutes",
-  "column_break_uilq",
   "section_break_edky",
   "observations",
   "amended_from"
@@ -48,6 +50,7 @@
    "options": "Nouveau\nEn \u00e9tude\nR\u00e9alisable\nNon R\u00e9alisable\nAnnul\u00e9e"
   },
   {
+   "collapsible": 1,
    "fieldname": "section_break_fkfa",
    "fieldtype": "Section Break"
   },
@@ -92,6 +95,7 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
    "fieldname": "section_break_dazt",
    "fieldtype": "Section Break"
   },
@@ -139,11 +143,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "tab_2_tab",
-   "fieldtype": "Tab Break",
-   "label": "Rapport"
-  },
-  {
    "fieldname": "section_break_edky",
    "fieldtype": "Section Break"
   },
@@ -157,13 +156,10 @@
    "allow_on_submit": 1,
    "description": "En %",
    "fieldname": "taux_chutes",
-   "fieldtype": "Int",
+   "fieldtype": "Float",
    "label": "Taux de chutes",
-   "non_negative": 1
-  },
-  {
-   "fieldname": "column_break_uilq",
-   "fieldtype": "Column Break"
+   "non_negative": 1,
+   "precision": "2"
   },
   {
    "fieldname": "amended_from",
@@ -209,11 +205,12 @@
    "fieldtype": "Column Break"
   },
   {
-   "allow_on_submit": 1,
    "fieldname": "trace",
    "fieldtype": "Link",
    "label": "Trac\u00e9",
-   "options": "Trace"
+   "options": "Trace",
+   "read_only": 1,
+   "read_only_depends_on": "eval: doc.is_reprint == 0"
   },
   {
    "fieldname": "column_break_gbek",
@@ -224,11 +221,8 @@
    "fieldname": "imposition",
    "fieldtype": "Link",
    "label": "Imposition",
-   "options": "Imposition"
-  },
-  {
-   "fieldname": "section_break_zrsl",
-   "fieldtype": "Section Break"
+   "options": "Imposition",
+   "read_only_depends_on": "eval: doc.is_reprint == 0"
   },
   {
    "fieldname": "demande_faisabilite",
@@ -251,12 +245,39 @@
    "fieldtype": "Check",
    "label": "Retirage",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_jgil",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_jugd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fqda",
+   "fieldtype": "Column Break",
+   "read_only_depends_on": "eval: doc.is_reprint == 0"
+  },
+  {
+   "fetch_from": "trace.fichier_trace",
+   "fieldname": "fichier_trace",
+   "fieldtype": "Attach",
+   "label": "Fichier Trac\u00e9",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "imposition.fichier_imp",
+   "fieldname": "fichier_imp",
+   "fieldtype": "Attach",
+   "label": "Fichier Imposition",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-23 08:26:30.748522",
+ "modified": "2025-04-23 11:04:04.556876",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
