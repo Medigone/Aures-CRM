@@ -12,19 +12,23 @@
   "is_reprint",
   "column_break_wies",
   "date_echeance",
+  "date_livraison",
   "id_commercial",
   "section_break_dazt",
   "client",
   "article",
-  "item_name",
+  "procede",
   "column_break_nktv",
   "commercial",
-  "procede",
-  "section_break_uigs",
+  "item_name",
   "quantite",
+  "section_break_zxac",
+  "html_doc",
+  "section_break_jugd",
+  "taux_chutes",
+  "section_break_uigs",
   "est_conception",
   "column_break_wanl",
-  "date_livraison",
   "numerique",
   "section_break_jgil",
   "column_break_fqda",
@@ -33,8 +37,6 @@
   "column_break_gbek",
   "imposition",
   "fichier_imp",
-  "section_break_jugd",
-  "taux_chutes",
   "section_break_edky",
   "observations",
   "amended_from"
@@ -153,7 +155,7 @@
    "label": "Observations"
   },
   {
-   "description": "En %",
+   "description": "Obligatoire pour pouvoir passer en <strong>R\u00e9alisable</strong>",
    "fieldname": "taux_chutes",
    "fieldtype": "Float",
    "label": "Taux de chutes",
@@ -208,7 +210,6 @@
    "fieldtype": "Link",
    "label": "Trac\u00e9",
    "options": "Trace",
-   "read_only": 1,
    "read_only_depends_on": "eval: doc.is_reprint == 0"
   },
   {
@@ -216,7 +217,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "allow_on_submit": 1,
    "fieldname": "imposition",
    "fieldtype": "Link",
    "label": "Imposition",
@@ -247,7 +247,8 @@
   },
   {
    "fieldname": "section_break_jgil",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hidden": 1
   },
   {
    "fieldname": "section_break_jugd",
@@ -260,23 +261,35 @@
   },
   {
    "fetch_from": "trace.fichier_trace",
+   "fetch_if_empty": 1,
    "fieldname": "fichier_trace",
    "fieldtype": "Attach",
    "label": "Fichier Trac\u00e9",
+   "make_attachment_public": 1,
    "read_only": 1
   },
   {
    "fetch_from": "imposition.fichier_imp",
+   "fetch_if_empty": 1,
    "fieldname": "fichier_imp",
    "fieldtype": "Attach",
    "label": "Fichier Imposition",
+   "make_attachment_public": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_zxac",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "html_doc",
+   "fieldtype": "HTML"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-23 12:39:24.486403",
+ "modified": "2025-04-24 00:05:19.739112",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
