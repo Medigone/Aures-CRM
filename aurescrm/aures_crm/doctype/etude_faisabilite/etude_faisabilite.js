@@ -4,115 +4,28 @@ frappe.ui.form.on('Etude Faisabilite', {
         set_filters(frm);
 
         // === BOUTONS DANS LE STATUT "En étude" SEULEMENT ===
-        if (frm.doc.status === "En étude") {
-
+        // Les boutons 'Tracé' et 'Imposition' sous le groupe 'Créer' ont été supprimés.
+        // if (frm.doc.status === "En étude") {
             // === CRÉATION TRACE ===
-            if (!frm.doc.trace && !frm.doc.imposition) {
-                frm.add_custom_button('Tracé', async function () {
-                    if (!frm.doc.client || !frm.doc.article) {
-                        frappe.msgprint(__('Veuillez remplir les champs Client et Article avant de créer une Trace.'));
-                        return;
-                    }
-
-                    // Désactive la sauvegarde pendant l'opération
-                    frm.disable_save();
-                    
-                    let r = await frappe.call({
-                        method: "frappe.client.insert",
-                        args: {
-                            doc: {
-                                doctype: "Trace",
-                                client: frm.doc.client,
-                                article: frm.doc.article,
-                                etude_faisabilite: frm.doc.name
-                            }
-                        },
-                        freeze: true,
-                        freeze_message: __("Création de la Trace en cours...")
-                    });
-                    
-                    // Réactive la sauvegarde
-                    frm.enable_save();
-
-                    if (r.message) {
-                        frm.set_value("trace", r.message.name);
-                        frappe.msgprint(__('Le document Trace a été créé avec succès.'));
-                        frm.save();
-                    }
-                }, 'Créer');
-            }
-
+            // if (!frm.doc.trace && !frm.doc.imposition) {
+            //     frm.add_custom_button('Tracé', async function () { ... }, 'Créer'); // Supprimé
+            // }
             // === CRÉATION IMPOSITION ===
-            if (frm.doc.trace && !frm.doc.imposition) {
-                frm.add_custom_button('Imposition', function () {
-                    if (!frm.doc.client || !frm.doc.article) {
-                        frappe.msgprint(__('Veuillez remplir les champs Client et Article avant de créer une Imposition.'));
-                        return;
-                    }
+            // if (frm.doc.trace && !frm.doc.imposition) {
+            //     frm.add_custom_button('Imposition', function () { ... }, 'Créer'); // Supprimé
+            // }
+        // }
 
-                    frappe.call({
-                        method: "frappe.client.insert",
-                        args: {
-                            doc: {
-                                doctype: "Imposition",
-                                client: frm.doc.client,
-                                article: frm.doc.article,
-                                trace: frm.doc.trace
-                            }
-                        },
-                        callback: function (r) {
-                            if (r.message) {
-                                frm.set_value("imposition", r.message.name);
-                                frappe.msgprint(__('Le document Imposition a été créé avec succès.'));
-                                frm.save();
-                            }
-                        },
-                        freeze: true,
-                        freeze_message: __("Création de l’Imposition en cours…")
-                    });
-                }, 'Créer');
-            }
-        }
 
         // === NOMENCLATURE et DEVIS ===
-        if (frm.doc.status === "Réalisable" && frm.doc.article) {
+        // Les boutons 'Nomenclature' et 'Devis' sous le groupe 'Créer' ont été supprimés.
+        // if (frm.doc.status === "Réalisable" && frm.doc.article) {
             // Bouton pour créer une Nomenclature
-            frm.add_custom_button('Nomenclature', function() {
-                if (!frm.doc.article) {
-                    frappe.msgprint(__('Veuillez sélectionner un article avant de créer une nomenclature.'));
-                    return;
-                }
-
-                frappe.new_doc('BOM', {
-                    item: frm.doc.article,
-                    quantity: 1,
-                    is_active: 1,
-                    is_default: 1,
-                    company: frappe.defaults.get_default("company")
-                });
-
-            }, "Créer");
+            // frm.add_custom_button('Nomenclature', function() { ... }, "Créer"); // Supprimé
 
             // Bouton pour créer un Devis
-            frm.add_custom_button('Devis', function() {
-                if (!frm.doc.client || !frm.doc.article) {
-                    frappe.msgprint(__('Veuillez sélectionner un client et un article avant de créer un devis.'));
-                    return;
-                }
-
-                frappe.new_doc('Quotation', {
-                    party_name: frm.doc.client,
-                    custom_id_client: frm.doc.client,
-                    quotation_to: 'Customer',
-                    items: [{
-                        item_code: frm.doc.article,
-                        qty: 1
-                    }],
-                    company: frappe.defaults.get_default("company")
-                });
-
-            }, "Créer");
-        }
+            // frm.add_custom_button('Devis', function() { ... }, "Créer"); // Supprimé
+        // }
     },
 
     client: function(frm) {
@@ -128,7 +41,7 @@ frappe.ui.form.on('Etude Faisabilite', {
     },
 
     status: function(frm) {
-        frm.refresh();
+        frm.refresh(); // Rafraîchit pour potentiellement masquer/afficher d'autres éléments si nécessaire
     }
 });
 

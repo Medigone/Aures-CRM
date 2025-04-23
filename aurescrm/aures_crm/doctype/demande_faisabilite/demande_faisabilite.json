@@ -178,7 +178,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-23 08:08:43.591594",
+ "modified": "2025-04-23 11:11:30.488105",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
@@ -249,6 +249,14 @@
    "read": 1,
    "role": "Commercial S\u00e9dentaire",
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Responsable Prepresse"
+  },
+  {
+   "read": 1,
+   "role": "Technicien Prepresse"
   }
  ],
  "sort_field": "modified",
