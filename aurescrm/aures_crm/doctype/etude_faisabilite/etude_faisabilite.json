@@ -155,6 +155,7 @@
    "label": "Observations"
   },
   {
+   "allow_on_submit": 1,
    "description": "Obligatoire pour pouvoir passer en <strong>R\u00e9alisable</strong>",
    "fieldname": "taux_chutes",
    "fieldtype": "Float",
@@ -289,7 +290,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-24 00:05:19.739112",
+ "modified": "2025-04-24 16:37:56.759394",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
