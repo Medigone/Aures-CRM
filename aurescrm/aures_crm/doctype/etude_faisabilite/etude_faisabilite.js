@@ -39,11 +39,24 @@ frappe.ui.form.on('Etude Faisabilite', {
     article: function(frm) {
         // Re-apply filters as article impacts trace/imposition lists
         set_filters(frm);
-         // Clear potentially invalid selections if article changes
-        // frm.set_value('trace', null); // Optional: uncomment if needed
-        // frm.set_value('imposition', null);
-        // load_trace_imposition_links(frm); // Update HTML if fields are cleared
-        // refresh_attached_files(frm);
+        
+        // Vérifier s'il existe déjà un tracé pour cet article et le lier automatiquement
+        if (frm.doc.article && !frm.doc.trace) {
+            frappe.call({
+                method: "aurescrm.aures_crm.doctype.etude_faisabilite.etude_faisabilite.get_existing_trace_for_article",
+                args: { article: frm.doc.article },
+                callback: function(r) {
+                    if (r.message) {
+                        // Un tracé existe, on le lie automatiquement
+                        frm.set_value('trace', r.message);
+                        // Pas besoin de message d'erreur, on lie silencieusement
+                    }
+                    // Mettre à jour l'affichage dans tous les cas
+                    load_trace_imposition_links(frm);
+                    refresh_attached_files(frm);
+                }
+            });
+        }
     },
 
     /**
@@ -191,14 +204,26 @@ function load_trace_imposition_links(frm) {
                     </div>
                  </div>`;
     } else {
-        html += `<p style='font-size: 11px; color: var(--text-muted);'>Aucun tracé lié, Démarrez l'Étude pour pouvoir Créer un nouveau tracé</p>`;
-        // Show "Create Trace" button only if status allows and prerequisites are met
-        if (frm.doc.status === "En étude" && !frm.doc.trace && !frm.doc.imposition && frm.doc.client && frm.doc.article) {
-            html += `<div class='ef-create-btn'>
-                        <button class='btn btn-xs btn-primary' onclick="createTrace('${frm.docname}'); return false;">Créer Tracé</button>
-                     </div>`;
-        } else if (frm.doc.status === "En étude" && (!frm.doc.client || !frm.doc.article)) {
-             html += `<p style='font-size: 11px; color: var(--text-muted);'>Sélectionnez Client et Article pour créer un Tracé.</p>`;
+        // Vérifier si un tracé existe déjà pour cet article
+        if (frm.doc.article) {
+            html += `<p style='font-size: 11px; color: var(--text-muted);'>Vérification de l'existence d'un tracé pour cet article...</p>`;
+            
+            // Show "Create Trace" button only if status allows and prerequisites are met
+            if (frm.doc.status === "En étude" && !frm.doc.trace && !frm.doc.imposition && frm.doc.client && frm.doc.article) {
+                html += `<div class='ef-create-btn'>
+                            <button class='btn btn-xs btn-primary' onclick="createTrace('${frm.docname}'); return false;">Créer Tracé</button>
+                         </div>`;
+            }
+        } else {
+            html += `<p style='font-size: 11px; color: var(--text-muted);'>Aucun tracé lié, Démarrez l'Étude pour pouvoir Créer un nouveau tracé</p>`;
+            // Show "Create Trace" button only if status allows and prerequisites are met
+            if (frm.doc.status === "En étude" && !frm.doc.trace && !frm.doc.imposition && frm.doc.client && frm.doc.article) {
+                html += `<div class='ef-create-btn'>
+                            <button class='btn btn-xs btn-primary' onclick="createTrace('${frm.docname}'); return false;">Créer Tracé</button>
+                         </div>`;
+            } else if (frm.doc.status === "En étude" && (!frm.doc.client || !frm.doc.article)) {
+                 html += `<p style='font-size: 11px; color: var(--text-muted);'>Sélectionnez Client et Article pour créer un Tracé.</p>`;
+            }
         }
     }
     html += `</div></div></div>`; // End Tracé section
@@ -340,7 +365,7 @@ function load_trace_imposition_links(frm) {
                                                     load_trace_imposition_links(frm);
                                                     refresh_attached_files(frm);
                                                 })
-                                                .catch((err) => { console.error("Save failed after Trace creation:", err); });
+                                                .catch((err) => { console.error("Save failed after linking existing Trace:", err); });
                                             d.hide();
                                         } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Trace."), indicator: 'red' }); }
                                     },

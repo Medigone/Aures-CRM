@@ -6,7 +6,16 @@ from frappe.model.document import Document
 
 
 class EtudeFaisabilite(Document):
-	pass
+	def before_save(self):
+		"""Vérifie si un tracé existe déjà pour l'article et le lie automatiquement"""
+		if self.article and not self.trace:
+			self.auto_link_existing_trace()
+	
+	def auto_link_existing_trace(self):
+		"""Recherche et lie automatiquement un tracé existant pour l'article"""
+		existing_trace = frappe.db.exists("Trace", {"article": self.article})
+		if existing_trace:
+			self.trace = existing_trace
 
 
 @frappe.whitelist()
@@ -35,3 +44,15 @@ def refresh_attached_files(docname):
     except Exception as e:
         frappe.log_error(message=str(e), title="Erreur refresh_attached_files")
         return {"error": str(e)}
+
+
+@frappe.whitelist()
+def get_existing_trace_for_article(article):
+    """
+    Vérifie si un tracé existe déjà pour un article donné et le retourne
+    """
+    if not article:
+        return None
+    
+    existing_trace = frappe.db.exists("Trace", {"article": article})
+    return existing_trace
