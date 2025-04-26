@@ -11,21 +11,13 @@
   "section_break_lwnz",
   "dimensions",
   "column_break_xrmo",
-  "fichier_trace",
-  "section_break_ymla",
-  "defaut"
+  "fichier_trace"
  ],
  "fields": [
   {
    "fieldname": "fichier_trace",
    "fieldtype": "Attach",
    "label": "Fichier Trac\u00e9"
-  },
-  {
-   "default": "0",
-   "fieldname": "defaut",
-   "fieldtype": "Check",
-   "label": "Est d\u00e9faut"
   },
   {
    "fieldname": "section_break_lwnz",
@@ -42,17 +34,15 @@
    "in_standard_filter": 1,
    "label": "Article",
    "options": "Item",
+   "read_only": 1,
    "reqd": 1,
    "search_index": 1
-  },
-  {
-   "fieldname": "section_break_ymla",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "dimensions",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Dimensions"
   },
@@ -63,6 +53,7 @@
    "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
+   "read_only": 1,
    "reqd": 1,
    "search_index": 1
   },
@@ -73,7 +64,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-20 17:08:14.965170",
+ "modified": "2025-04-26 10:48:56.619780",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Trace",
