@@ -3400,5 +3400,2462 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Non Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 14:39:11.242708",
+  "name": "4q4opmpos0",
+  "permitted_roles": [
+   {
+    "parent": "4q4opmpos0",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00067",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 15:11:30.994154",
+  "name": "oapivjbk9f",
+  "permitted_roles": [
+   {
+    "parent": "oapivjbk9f",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00068",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 15:12:31.585081",
+  "name": "t6s8mv3lfu",
+  "permitted_roles": [
+   {
+    "parent": "t6s8mv3lfu",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00068",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 15:23:24.013255",
+  "name": "iq9gocajn2",
+  "permitted_roles": [
+   {
+    "parent": "iq9gocajn2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00068",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 16:16:40.520801",
+  "name": "rptau83b0e",
+  "permitted_roles": [
+   {
+    "parent": "rptau83b0e",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00069",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 16:33:25.843641",
+  "name": "6ct8n4h8s5",
+  "permitted_roles": [
+   {
+    "parent": "6ct8n4h8s5",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00070",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 16:33:25.954687",
+  "name": "nh26m53v5q",
+  "permitted_roles": [
+   {
+    "parent": "nh26m53v5q",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00071",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 16:33:26.028055",
+  "name": "spdu9hpg3p",
+  "permitted_roles": [
+   {
+    "parent": "spdu9hpg3p",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00072",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 16:35:14.144327",
+  "name": "pib8loounh",
+  "permitted_roles": [
+   {
+    "parent": "pib8loounh",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00070",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 16:35:49.124206",
+  "name": "omed66fs25",
+  "permitted_roles": [
+   {
+    "parent": "omed66fs25",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00072",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 16:36:15.288171",
+  "name": "2hdgckspjl",
+  "permitted_roles": [
+   {
+    "parent": "2hdgckspjl",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00071",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 17:06:57.068779",
+  "name": "ilu489so1f",
+  "permitted_roles": [
+   {
+    "parent": "ilu489so1f",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00073",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 17:07:18.770787",
+  "name": "fkoinbo11k",
+  "permitted_roles": [
+   {
+    "parent": "fkoinbo11k",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00073",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-20 17:25:25.717734",
+  "name": "8dj86ud4k8",
+  "permitted_roles": [
+   {
+    "parent": "8dj86ud4k8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00073",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 10:07:36.582501",
+  "name": "7hl9l6554n",
+  "permitted_roles": [
+   {
+    "parent": "7hl9l6554n",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00074",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 10:07:43.904377",
+  "name": "q8ask7bp7c",
+  "permitted_roles": [
+   {
+    "parent": "q8ask7bp7c",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00074",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 10:08:39.398983",
+  "name": "11jdcva0e7",
+  "permitted_roles": [
+   {
+    "parent": "11jdcva0e7",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00074",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 11:32:03.269412",
+  "name": "dgbrojq9tn",
+  "permitted_roles": [
+   {
+    "parent": "dgbrojq9tn",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00001",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 11:48:03.412741",
+  "name": "uag3nj4oh3",
+  "permitted_roles": [
+   {
+    "parent": "uag3nj4oh3",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00075",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 11:48:03.596664",
+  "name": "33cna6qujd",
+  "permitted_roles": [
+   {
+    "parent": "33cna6qujd",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00076",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 11:48:48.559038",
+  "name": "p0v0svt5ur",
+  "permitted_roles": [
+   {
+    "parent": "p0v0svt5ur",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00075",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 11:51:35.192285",
+  "name": "8ov8vp2bs4",
+  "permitted_roles": [
+   {
+    "parent": "8ov8vp2bs4",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00075",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 11:51:53.992674",
+  "name": "qiaimhk0db",
+  "permitted_roles": [
+   {
+    "parent": "qiaimhk0db",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00076",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 11:51:56.733401",
+  "name": "as8kb3c22d",
+  "permitted_roles": [
+   {
+    "parent": "as8kb3c22d",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00076",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Non Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 11:59:03.864097",
+  "name": "0gmddj2o49",
+  "permitted_roles": [
+   {
+    "parent": "0gmddj2o49",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00003",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:13:48.376401",
+  "name": "edo753td3g",
+  "permitted_roles": [
+   {
+    "parent": "edo753td3g",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00077",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:13:48.498425",
+  "name": "aul181d5ja",
+  "permitted_roles": [
+   {
+    "parent": "aul181d5ja",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00078",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:13:57.989902",
+  "name": "4e72pgijei",
+  "permitted_roles": [
+   {
+    "parent": "4e72pgijei",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00077",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:15:10.570356",
+  "name": "r5688k1gk8",
+  "permitted_roles": [
+   {
+    "parent": "r5688k1gk8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00077",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:15:24.512944",
+  "name": "r741ve6ke0",
+  "permitted_roles": [
+   {
+    "parent": "r741ve6ke0",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00078",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:15:30.276379",
+  "name": "1spcor6osu",
+  "permitted_roles": [
+   {
+    "parent": "1spcor6osu",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00078",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Non Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:17:56.272111",
+  "name": "t40cv8idk9",
+  "permitted_roles": [
+   {
+    "parent": "t40cv8idk9",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00004",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:18:43.046133",
+  "name": "23auttuhg1",
+  "permitted_roles": [
+   {
+    "parent": "23auttuhg1",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00004",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:33:30.559657",
+  "name": "18getndefl",
+  "permitted_roles": [
+   {
+    "parent": "18getndefl",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00079",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:33:30.699248",
+  "name": "rnh9ombc20",
+  "permitted_roles": [
+   {
+    "parent": "rnh9ombc20",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00080",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:33:50.120344",
+  "name": "gprf6325vp",
+  "permitted_roles": [
+   {
+    "parent": "gprf6325vp",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00079",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:34:25.629989",
+  "name": "9tqgdfik5n",
+  "permitted_roles": [
+   {
+    "parent": "9tqgdfik5n",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00079",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:34:33.365260",
+  "name": "jlq4n6cqjb",
+  "permitted_roles": [
+   {
+    "parent": "jlq4n6cqjb",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00080",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:34:35.052772",
+  "name": "j3uavpsg8k",
+  "permitted_roles": [
+   {
+    "parent": "j3uavpsg8k",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00080",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Non Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:38:00.583409",
+  "name": "cae1c6g2ds",
+  "permitted_roles": [
+   {
+    "parent": "cae1c6g2ds",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00005",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 12:38:31.315659",
+  "name": "hpsc8c64qb",
+  "permitted_roles": [
+   {
+    "parent": "hpsc8c64qb",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00005",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:29:18.415684",
+  "name": "22c1tp4uai",
+  "permitted_roles": [
+   {
+    "parent": "22c1tp4uai",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00081",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:29:18.521251",
+  "name": "mafdamqp45",
+  "permitted_roles": [
+   {
+    "parent": "mafdamqp45",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00082",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:29:59.633638",
+  "name": "04h0bbgrr3",
+  "permitted_roles": [
+   {
+    "parent": "04h0bbgrr3",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00081",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:31:39.417087",
+  "name": "orn73fiuhg",
+  "permitted_roles": [
+   {
+    "parent": "orn73fiuhg",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00082",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:33:22.532758",
+  "name": "nrvtcmb66f",
+  "permitted_roles": [
+   {
+    "parent": "nrvtcmb66f",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00082",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:33:58.118017",
+  "name": "16tv6978bi",
+  "permitted_roles": [
+   {
+    "parent": "16tv6978bi",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00081",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Non Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:46:11.618603",
+  "name": "4g6c0mde7s",
+  "permitted_roles": [
+   {
+    "parent": "4g6c0mde7s",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00006",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:47:49.955157",
+  "name": "3eqs512l86",
+  "permitted_roles": [
+   {
+    "parent": "3eqs512l86",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00006",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:52:27.897267",
+  "name": "s0o74q21oq",
+  "permitted_roles": [
+   {
+    "parent": "s0o74q21oq",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00083",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:52:39.642034",
+  "name": "mtjs0r2e03",
+  "permitted_roles": [
+   {
+    "parent": "mtjs0r2e03",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00083",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 13:53:39.627334",
+  "name": "eb7ngidv5i",
+  "permitted_roles": [
+   {
+    "parent": "eb7ngidv5i",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00083",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 14:56:29.362299",
+  "name": "td9kao5ibh",
+  "permitted_roles": [
+   {
+    "parent": "td9kao5ibh",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00084",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 14:56:29.545802",
+  "name": "u5ifeeds2m",
+  "permitted_roles": [
+   {
+    "parent": "u5ifeeds2m",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00085",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 14:56:57.440613",
+  "name": "71tf3dhujm",
+  "permitted_roles": [
+   {
+    "parent": "71tf3dhujm",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00084",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 14:58:45.951249",
+  "name": "ddbqqoqsv4",
+  "permitted_roles": [
+   {
+    "parent": "ddbqqoqsv4",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00084",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 15:00:38.964254",
+  "name": "d61e5o4vsf",
+  "permitted_roles": [
+   {
+    "parent": "d61e5o4vsf",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00085",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 15:04:28.111848",
+  "name": "59ju554j7f",
+  "permitted_roles": [
+   {
+    "parent": "59ju554j7f",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00085",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Non Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 15:06:56.088544",
+  "name": "ktd7mcdmi9",
+  "permitted_roles": [
+   {
+    "parent": "ktd7mcdmi9",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00007",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 16:27:50.252308",
+  "name": "3aco8ehtsr",
+  "permitted_roles": [
+   {
+    "parent": "3aco8ehtsr",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00086",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 16:27:50.373625",
+  "name": "rg0sj6513q",
+  "permitted_roles": [
+   {
+    "parent": "rg0sj6513q",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00087",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 16:28:02.987897",
+  "name": "1euhd9rsa8",
+  "permitted_roles": [
+   {
+    "parent": "1euhd9rsa8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00086",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 16:29:59.606639",
+  "name": "o1db95b8ki",
+  "permitted_roles": [
+   {
+    "parent": "o1db95b8ki",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00086",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 16:30:32.694617",
+  "name": "upi9ldeboi",
+  "permitted_roles": [
+   {
+    "parent": "upi9ldeboi",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00087",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 16:30:35.021549",
+  "name": "mr1g62jel3",
+  "permitted_roles": [
+   {
+    "parent": "mr1g62jel3",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00087",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Non Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 17:41:15.555452",
+  "name": "ksacpcoa6e",
+  "permitted_roles": [
+   {
+    "parent": "ksacpcoa6e",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00009",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 17:50:32.268151",
+  "name": "86ul8ar2eg",
+  "permitted_roles": [
+   {
+    "parent": "86ul8ar2eg",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00088",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 17:50:38.563424",
+  "name": "od1pt0e3pb",
+  "permitted_roles": [
+   {
+    "parent": "od1pt0e3pb",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00088",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 17:51:31.282941",
+  "name": "kt23sc36vo",
+  "permitted_roles": [
+   {
+    "parent": "kt23sc36vo",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00088",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 18:07:46.818783",
+  "name": "m66qoe1nb7",
+  "permitted_roles": [
+   {
+    "parent": "m66qoe1nb7",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00010",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 23:01:04.764972",
+  "name": "9go97qbfmk",
+  "permitted_roles": [
+   {
+    "parent": "9go97qbfmk",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00092",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 23:17:41.297908",
+  "name": "ukc3a8g98g",
+  "permitted_roles": [
+   {
+    "parent": "ukc3a8g98g",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00092",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-21 23:18:17.331633",
+  "name": "55eh5648aa",
+  "permitted_roles": [
+   {
+    "parent": "55eh5648aa",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00092",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:03:23.958721",
+  "name": "escmgq3hcr",
+  "permitted_roles": [
+   {
+    "parent": "escmgq3hcr",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00094",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:13:03.355829",
+  "name": "kihn331f82",
+  "permitted_roles": [
+   {
+    "parent": "kihn331f82",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00094",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:13:17.631537",
+  "name": "6s0ub6ppkk",
+  "permitted_roles": [
+   {
+    "parent": "6s0ub6ppkk",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00094",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:35:35.697934",
+  "name": "0b226l81pb",
+  "permitted_roles": [
+   {
+    "parent": "0b226l81pb",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00013",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:47:47.147547",
+  "name": "qdb5hkplrb",
+  "permitted_roles": [
+   {
+    "parent": "qdb5hkplrb",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00095",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:47:55.419061",
+  "name": "a1iud2er6u",
+  "permitted_roles": [
+   {
+    "parent": "a1iud2er6u",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00095",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:48:08.330901",
+  "name": "6eqpiscqsu",
+  "permitted_roles": [
+   {
+    "parent": "6eqpiscqsu",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00095",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:49:43.902667",
+  "name": "k219mlt7or",
+  "permitted_roles": [
+   {
+    "parent": "k219mlt7or",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00096",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:50:31.071727",
+  "name": "fd2h82dt3f",
+  "permitted_roles": [
+   {
+    "parent": "fd2h82dt3f",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00096",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 10:51:08.732117",
+  "name": "5pjos3e2o8",
+  "permitted_roles": [
+   {
+    "parent": "5pjos3e2o8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00096",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 11:28:55.583296",
+  "name": "cp5koes47b",
+  "permitted_roles": [
+   {
+    "parent": "cp5koes47b",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00097",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 11:29:12.137187",
+  "name": "ht3orbioph",
+  "permitted_roles": [
+   {
+    "parent": "ht3orbioph",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00097",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 11:30:34.226508",
+  "name": "7j16bspi2m",
+  "permitted_roles": [
+   {
+    "parent": "7j16bspi2m",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00097",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 11:41:49.586477",
+  "name": "l2fectom5m",
+  "permitted_roles": [
+   {
+    "parent": "l2fectom5m",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00098",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 11:41:59.562805",
+  "name": "p9sm0ip8jh",
+  "permitted_roles": [
+   {
+    "parent": "p9sm0ip8jh",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00098",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 11:42:16.566896",
+  "name": "55l4ep2qjr",
+  "permitted_roles": [
+   {
+    "parent": "55l4ep2qjr",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00098",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 12:05:44.435841",
+  "name": "bkgjl8p3qf",
+  "permitted_roles": [
+   {
+    "parent": "bkgjl8p3qf",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00099",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 12:06:03.513837",
+  "name": "5qj9ce2mjp",
+  "permitted_roles": [
+   {
+    "parent": "5qj9ce2mjp",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00099",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 12:06:54.580580",
+  "name": "9mr5jt5kd6",
+  "permitted_roles": [
+   {
+    "parent": "9mr5jt5kd6",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00099",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 12:18:01.619593",
+  "name": "20dsb8n3m5",
+  "permitted_roles": [
+   {
+    "parent": "20dsb8n3m5",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00017",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 12:18:51.884803",
+  "name": "j57dvj6vdg",
+  "permitted_roles": [
+   {
+    "parent": "j57dvj6vdg",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00017",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En Cours"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 12:20:47.531513",
+  "name": "qvivn8foe7",
+  "permitted_roles": [
+   {
+    "parent": "qvivn8foe7",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Etude Technique",
+  "reference_name": "ETT-25-04-00017",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Terminé"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 14:16:32.089456",
+  "name": "pstm1ddcro",
+  "permitted_roles": [
+   {
+    "parent": "pstm1ddcro",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00100",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 14:18:29.094848",
+  "name": "df5vtugjvh",
+  "permitted_roles": [
+   {
+    "parent": "df5vtugjvh",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00100",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 14:21:17.984474",
+  "name": "fcve3bd6s2",
+  "permitted_roles": [
+   {
+    "parent": "fcve3bd6s2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00100",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 15:00:07.272518",
+  "name": "l15usnqqcj",
+  "permitted_roles": [
+   {
+    "parent": "l15usnqqcj",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00101",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 15:00:31.448029",
+  "name": "ieq53q37s6",
+  "permitted_roles": [
+   {
+    "parent": "ieq53q37s6",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00101",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-22 18:35:59.223054",
+  "name": "b8obkna0ga",
+  "permitted_roles": [
+   {
+    "parent": "b8obkna0ga",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00101",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 08:57:37.491358",
+  "name": "kilv0kk7dp",
+  "permitted_roles": [
+   {
+    "parent": "kilv0kk7dp",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00102",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 08:58:10.977677",
+  "name": "q2g3po9ann",
+  "permitted_roles": [
+   {
+    "parent": "q2g3po9ann",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00102",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 09:00:16.552903",
+  "name": "v9p84m578b",
+  "permitted_roles": [
+   {
+    "parent": "v9p84m578b",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00102",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 09:17:12.771111",
+  "name": "295ovidc8g",
+  "permitted_roles": [
+   {
+    "parent": "295ovidc8g",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00103",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 09:17:41.289947",
+  "name": "hc7bsv0oa0",
+  "permitted_roles": [
+   {
+    "parent": "hc7bsv0oa0",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00103",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 09:21:33.566527",
+  "name": "oe1osfmkq5",
+  "permitted_roles": [
+   {
+    "parent": "oe1osfmkq5",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00103",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 12:42:25.803427",
+  "name": "oe5t7gndl2",
+  "permitted_roles": [
+   {
+    "parent": "oe5t7gndl2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00104",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 12:42:32.149926",
+  "name": "8oart8984f",
+  "permitted_roles": [
+   {
+    "parent": "8oart8984f",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00104",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Responsable Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 12:46:28.698038",
+  "name": "ucr9p427ip",
+  "permitted_roles": [
+   {
+    "parent": "ucr9p427ip",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00104",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Réalisable"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 17:08:58.385209",
+  "name": "l379prg8hf",
+  "permitted_roles": [
+   {
+    "parent": "l379prg8hf",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00105",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-23 17:09:18.153991",
+  "name": "msguk73k46",
+  "permitted_roles": [
+   {
+    "parent": "msguk73k46",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00105",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-24 00:18:58.666287",
+  "name": "3udre4h00p",
+  "permitted_roles": [
+   {
+    "parent": "3udre4h00p",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00119",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-24 00:19:08.104020",
+  "name": "98au7su65l",
+  "permitted_roles": [
+   {
+    "parent": "98au7su65l",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00119",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Chargé Étude Faisabilité",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-25 16:51:20.797864",
+  "name": "4456qnhks0",
+  "permitted_roles": [
+   {
+    "parent": "4456qnhks0",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00120",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Nouveau"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-25 16:51:32.877210",
+  "name": "a6ajt7jn02",
+  "permitted_roles": [
+   {
+    "parent": "a6ajt7jn02",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Responsable Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00120",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "En étude"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-26 10:55:09.916639",
+  "name": "es9q64g2cl",
+  "permitted_roles": [
+   {
+    "parent": "es9q64g2cl",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Chargé Étude Faisabilité"
+   }
+  ],
+  "reference_doctype": "Etude Faisabilite",
+  "reference_name": "ETF-00122",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Nouveau"
  }
 ]

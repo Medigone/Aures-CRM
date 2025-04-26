@@ -308,16 +308,16 @@ fixtures = [
     #     "filters": []  # Export uniquement les permissions personnalisées
     # },
     # "Custom HTML Block",
-    # # "Client Script",
-    # # "Document Naming Rule",
-    # # "Workflow",
-    # # "Workflow State",
-    # # "Workflow Transition",
-    # # "Workflow Action",
-    # # "Workflow Action Master",
-    # # "Workflow Document State",
+    # "Client Script",
+    # "Document Naming Rule",
+    # "Workflow",
+    # "Workflow State",
+    # "Workflow Transition",
+    # "Workflow Action",
+    # "Workflow Action Master",
+    # "Workflow Document State",
     # "Workspace",
-    # # "Number Card"
+    # "Number Card"
     
     
 ]

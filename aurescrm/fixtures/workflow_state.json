@@ -210,10 +210,10 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-04-16 14:55:13.245836",
-  "name": "Annulée",
+  "modified": "2025-02-27 11:03:27.310490",
+  "name": "Annulé",
   "style": "Inverse",
-  "workflow_state_name": "Annulée"
+  "workflow_state_name": "Annulé"
  },
  {
   "docstatus": 0,
@@ -237,10 +237,10 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-02-27 11:03:27.310490",
-  "name": "Annulé",
-  "style": "Inverse",
-  "workflow_state_name": "Annulé"
+  "modified": "2025-04-21 11:15:14.207144",
+  "name": "Annulée",
+  "style": "Danger",
+  "workflow_state_name": "Annulée"
  },
  {
   "docstatus": 0,

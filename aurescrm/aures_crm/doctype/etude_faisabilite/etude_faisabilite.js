@@ -159,6 +159,22 @@ function load_trace_imposition_links(frm) {
     // Clear previous content
     html_field.$wrapper.html("");
 
+    // Si le statut est "Nouveau", afficher uniquement le message d'information
+    if (frm.doc.status === "Nouveau") {
+        html_field.$wrapper.html(`
+            <div style="padding: 20px; text-align: center; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 15px;">
+                <div style="font-size: 16px; color: #8d99a6; margin-bottom: 10px;">
+                    <i class="fa fa-info-circle" style="margin-right: 8px;"></i>
+                    Démarrer l'Étude pour afficher le tracé disponible
+                </div>
+                <div style="font-size: 12px; color: #8d99a6;">
+                    Changez le statut en "En étude" pour accéder aux fonctionnalités de tracé et d'imposition
+                </div>
+            </div>
+        `);
+        return;
+    }
+
     // --- HTML Structure and Styling ---
     var html = `<div style='display: flex; flex-direction: column; gap: 20px; padding-bottom: 10px;'>
         <style>
