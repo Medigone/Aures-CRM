@@ -15,8 +15,15 @@ frappe.ui.form.on('Etude Faisabilite', {
         load_trace_imposition_links(frm);
         // Refresh local attachment fields based on linked documents
         refresh_attached_files(frm);
+        
+        // Ajouter le bouton pour afficher/modifier les spécifications techniques de l'article
+        if (frm.doc.article) {
+            frm.add_custom_button(__('Spécifications Techniques'), function() {
+                show_item_technical_specs(frm.doc.article);
+            }, __('Article'));
+        }
     },
-
+    
     /**
      * Triggered when the client field changes.
      * @param {object} frm - The current form object.
@@ -198,6 +205,15 @@ function load_trace_imposition_links(frm) {
             }
             /* Ensure button text is visible */
             .btn-xs { line-height: 1.5; padding: 1px 5px; font-size: 12px; }
+            /* Style pour le bouton de spécifications techniques */
+            .ef-specs-btn { 
+                margin-top: 20px; 
+                text-align: center; 
+                padding: 10px; 
+                background-color: #f8f9fa; 
+                border-radius: 8px; 
+                border: 0.5px solid #d1d8dd;
+            }
         </style>
         <div class='ef-container'>`;
 
@@ -275,7 +291,18 @@ function load_trace_imposition_links(frm) {
     }
     html += `</div></div></div>`; // End Imposition section
 
-    html += `</div></div>`; // End ef-container and outer div
+    html += `</div>`; // End ef-container
+
+    // --- Ajout du bouton pour les spécifications techniques ---
+    if (frm.doc.article) {
+        html += `<div class='ef-specs-btn'>
+                    <button class='btn btn-default' onclick="showItemTechnicalSpecs('${frm.doc.article}'); return false;">
+                        Fiche Techniques Article
+                    </button>
+                </div>`;
+    }
+
+    html += `</div>`; // End outer div
     html_field.$wrapper.html(html); // Inject HTML
 
     // --- Define Global Action Functions ---
@@ -685,4 +712,365 @@ function refresh_attached_files(frm) {
             }
         }
     }
+}
+
+
+/**
+ * Affiche et permet de modifier les spécifications techniques de l'article.
+ * @param {string} article_name - Le nom de l'article.
+ */
+function show_item_technical_specs(article_name) {
+    if (!article_name) {
+        frappe.msgprint({
+            title: __('Article non sélectionné'),
+            message: __('Veuillez d\'abord sélectionner un article.'),
+            indicator: 'orange'
+        });
+        return;
+    }
+    
+    // Récupérer les données de l'article
+    frappe.call({
+        method: "frappe.client.get",
+        args: {
+            doctype: "Item",
+            name: article_name
+        },
+        callback: function(r) {
+            if (r.message) {
+                const item = r.message;
+                
+                // Récupérer tous les champs de l'onglet custom_fiche_technique
+                frappe.model.with_doctype("Item", function() {
+                    const fields = [];
+                    const meta = frappe.get_meta("Item");
+                    
+                    // Trouver tous les champs qui appartiennent à l'onglet custom_fiche_technique
+                    meta.fields.forEach(field => {
+                        // Vérifier si le champ appartient à l'onglet custom_fiche_technique
+                        // Nous cherchons les champs qui sont après un Tab Break nommé custom_fiche_technique
+                        // et avant le prochain Tab Break
+                        if (field.fieldtype === "Tab Break" && field.fieldname === "custom_fiche_technique") {
+                            // Marquer que nous sommes dans l'onglet custom_fiche_technique
+                            meta.in_fiche_technique_tab = true;
+                        } else if (field.fieldtype === "Tab Break" && meta.in_fiche_technique_tab) {
+                            // Si nous trouvons un autre Tab Break après être entrés dans custom_fiche_technique,
+                            // nous sortons de l'onglet
+                            meta.in_fiche_technique_tab = false;
+                        } else if (meta.in_fiche_technique_tab) {
+                            // Si nous sommes dans l'onglet custom_fiche_technique, ajouter le champ
+                            // Exclure les champs HTML, Button, etc.
+                            if (["Section Break", "Column Break"].indexOf(field.fieldtype) === -1) {
+                                fields.push({
+                                    label: __(field.label),
+                                    fieldname: field.fieldname,
+                                    fieldtype: field.fieldtype,
+                                    options: field.options,
+                                    default: item[field.fieldname],
+                                    reqd: field.reqd
+                                });
+                            }
+                        }
+                    });
+                    
+                    // Si aucun champ n'a été trouvé, afficher un message
+                    if (fields.length === 0) {
+                        frappe.msgprint({
+                            title: __('Aucune spécification technique'),
+                            message: __('Aucun champ n\'a été trouvé dans l\'onglet Fiche Technique pour cet article.'),
+                            indicator: 'blue'
+                        });
+                        return;
+                    }
+                    
+                    // Créer une boîte de dialogue pour afficher et modifier les champs
+                    const d = new frappe.ui.Dialog({
+                        title: __('Spécifications Techniques - ') + item.item_name,
+                        fields: fields,
+                        primary_action_label: __('Mettre à jour'),
+                        primary_action: function() {
+                            const values = d.get_values();
+                            
+                            // Mettre à jour l'article
+                            frappe.call({
+                                method: "frappe.client.set_value",
+                                args: {
+                                    doctype: "Item",
+                                    name: article_name,
+                                    fieldname: values
+                                },
+                                callback: function(r) {
+                                    if (r.message) {
+                                        frappe.show_alert({
+                                            message: __('Spécifications techniques mises à jour avec succès.'),
+                                            indicator: 'green'
+                                        }, 5);
+                                        d.hide();
+                                    } else {
+                                        frappe.msgprint({
+                                            title: __('Erreur'),
+                                            message: __('Une erreur est survenue lors de la mise à jour des spécifications techniques.'),
+                                            indicator: 'red'
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    
+                    d.show();
+                });
+            } else {
+                frappe.msgprint({
+                    title: __('Article non trouvé'),
+                    message: __('Impossible de trouver l\'article sélectionné.'),
+                    indicator: 'red'
+                });
+            }
+        }
+    });
+}
+
+
+/**
+ * Affiche les spécifications techniques de l'article.
+ * @param {string} article_name - Le nom de l'article.
+ */
+/**
+ * Affiche et permet de modifier les spécifications techniques de l'article.
+ * @param {string} article_name - Le nom de l'article.
+ */
+window.showItemTechnicalSpecs = function(article_name) {
+    if (!article_name) {
+        frappe.msgprint({
+            title: __('Article non sélectionné'),
+            message: __('Veuillez d\'abord sélectionner un article.'),
+            indicator: 'orange'
+        });
+        return;
+    }
+    
+    // Récupérer les données de l'article
+    frappe.call({
+        method: "frappe.client.get",
+        args: {
+            doctype: "Item",
+            name: article_name
+        },
+        callback: function(r) {
+            if (r.message) {
+                const item = r.message;
+                
+                // Récupérer tous les champs de l'onglet custom_fiche_technique
+                frappe.model.with_doctype("Item", function() {
+                    const fields = [];
+                    const meta = frappe.get_meta("Item");
+                    
+                    // Trouver tous les champs qui appartiennent à l'onglet custom_fiche_technique
+                    meta.fields.forEach(field => {
+                        // Vérifier si le champ appartient à l'onglet custom_fiche_technique
+                        // Nous cherchons les champs qui sont après un Tab Break nommé custom_fiche_technique
+                        // et avant le prochain Tab Break
+                        if (field.fieldtype === "Tab Break" && field.fieldname === "custom_fiche_technique") {
+                            // Marquer que nous sommes dans l'onglet custom_fiche_technique
+                            meta.in_fiche_technique_tab = true;
+                        } else if (field.fieldtype === "Tab Break" && meta.in_fiche_technique_tab) {
+                            // Si nous trouvons un autre Tab Break après être entrés dans custom_fiche_technique,
+                            // nous sortons de l'onglet
+                            meta.in_fiche_technique_tab = false;
+                        } else if (meta.in_fiche_technique_tab) {
+                            // Si nous sommes dans l'onglet custom_fiche_technique, ajouter le champ
+                            // Exclure les champs HTML, Button, etc.
+                            if (["Section Break", "Column Break"].indexOf(field.fieldtype) === -1) {
+                                fields.push({
+                                    label: __(field.label),
+                                    fieldname: field.fieldname,
+                                    fieldtype: field.fieldtype,
+                                    options: field.options,
+                                    default: item[field.fieldname],
+                                    reqd: field.reqd
+                                });
+                            }
+                        }
+                    });
+                    
+                    // Si aucun champ n'a été trouvé, afficher un message
+                    if (fields.length === 0) {
+                        frappe.msgprint({
+                            title: __('Aucune spécification technique'),
+                            message: __('Aucun champ n\'a été trouvé dans l\'onglet Fiche Technique pour cet article.'),
+                            indicator: 'blue'
+                        });
+                        return;
+                    }
+                    
+                    // Créer une boîte de dialogue pour afficher et modifier les champs
+                    const d = new frappe.ui.Dialog({
+                        title: __('Spécifications Techniques - ') + item.item_name,
+                        fields: fields,
+                        primary_action_label: __('Mettre à jour'),
+                        primary_action: function() {
+                            const values = d.get_values();
+                            
+                            // Mettre à jour l'article
+                            frappe.call({
+                                method: "frappe.client.set_value",
+                                args: {
+                                    doctype: "Item",
+                                    name: article_name,
+                                    fieldname: values
+                                },
+                                callback: function(r) {
+                                    if (r.message) {
+                                        frappe.show_alert({
+                                            message: __('Spécifications techniques mises à jour avec succès.'),
+                                            indicator: 'green'
+                                        }, 5);
+                                        d.hide();
+                                    } else {
+                                        frappe.msgprint({
+                                            title: __('Erreur'),
+                                            message: __('Une erreur est survenue lors de la mise à jour des spécifications techniques.'),
+                                            indicator: 'red'
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    
+                    d.show();
+                });
+            } else {
+                frappe.msgprint({
+                    title: __('Article non trouvé'),
+                    message: __('Impossible de trouver l\'article sélectionné.'),
+                    indicator: 'red'
+                });
+            }
+        }
+    });
+}
+
+
+/**
+ * Affiche les spécifications techniques de l'article.
+ * @param {string} article_name - Le nom de l'article.
+ */
+/**
+ * Affiche et permet de modifier les spécifications techniques de l'article.
+ * @param {string} article_name - Le nom de l'article.
+ */
+if (!window.showItemTechnicalSpecs) {
+    window.showItemTechnicalSpecs = function(article_name) {
+        if (!article_name) {
+            frappe.msgprint({
+                title: __('Article non sélectionné'),
+                message: __('Veuillez d\'abord sélectionner un article.'),
+                indicator: 'orange'
+            });
+            return;
+        }
+        
+        // Récupérer les données de l'article
+        frappe.call({
+            method: "frappe.client.get",
+            args: {
+                doctype: "Item",
+                name: article_name
+            },
+            callback: function(r) {
+                if (r.message) {
+                    const item = r.message;
+                    
+                    // Récupérer tous les champs de l'onglet custom_fiche_technique
+                    frappe.model.with_doctype("Item", function() {
+                        const fields = [];
+                        const meta = frappe.get_meta("Item");
+                        
+                        // Trouver tous les champs qui appartiennent à l'onglet custom_fiche_technique
+                        meta.fields.forEach(field => {
+                            // Vérifier si le champ appartient à l'onglet custom_fiche_technique
+                            // Nous cherchons les champs qui sont après un Tab Break nommé custom_fiche_technique
+                            // et avant le prochain Tab Break
+                            if (field.fieldtype === "Tab Break" && field.fieldname === "custom_fiche_technique") {
+                                // Marquer que nous sommes dans l'onglet custom_fiche_technique
+                                meta.in_fiche_technique_tab = true;
+                            } else if (field.fieldtype === "Tab Break" && meta.in_fiche_technique_tab) {
+                                // Si nous trouvons un autre Tab Break après être entrés dans custom_fiche_technique,
+                                // nous sortons de l'onglet
+                                meta.in_fiche_technique_tab = false;
+                            } else if (meta.in_fiche_technique_tab) {
+                                // Si nous sommes dans l'onglet custom_fiche_technique, ajouter le champ
+                                // Exclure les champs HTML, Button, etc.
+                                if (["Section Break", "Column Break"].indexOf(field.fieldtype) === -1) {
+                                    fields.push({
+                                        label: __(field.label),
+                                        fieldname: field.fieldname,
+                                        fieldtype: field.fieldtype,
+                                        options: field.options,
+                                        default: item[field.fieldname],
+                                        reqd: field.reqd
+                                    });
+                                }
+                            }
+                        });
+                        
+                        // Si aucun champ n'a été trouvé, afficher un message
+                        if (fields.length === 0) {
+                            frappe.msgprint({
+                                title: __('Aucune spécification technique'),
+                                message: __('Aucun champ n\'a été trouvé dans l\'onglet Fiche Technique pour cet article.'),
+                                indicator: 'blue'
+                            });
+                            return;
+                        }
+                        
+                        // Créer une boîte de dialogue pour afficher et modifier les champs
+                        const d = new frappe.ui.Dialog({
+                            title: __('Spécifications Techniques - ') + item.item_name,
+                            fields: fields,
+                            primary_action_label: __('Mettre à jour'),
+                            primary_action: function() {
+                                const values = d.get_values();
+                                
+                                // Mettre à jour l'article
+                                frappe.call({
+                                    method: "frappe.client.set_value",
+                                    args: {
+                                        doctype: "Item",
+                                        name: article_name,
+                                        fieldname: values
+                                    },
+                                    callback: function(r) {
+                                        if (r.message) {
+                                            frappe.show_alert({
+                                                message: __('Spécifications techniques mises à jour avec succès.'),
+                                                indicator: 'green'
+                                            }, 5);
+                                            d.hide();
+                                        } else {
+                                            frappe.msgprint({
+                                                title: __('Erreur'),
+                                                message: __('Une erreur est survenue lors de la mise à jour des spécifications techniques.'),
+                                                indicator: 'red'
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        
+                        d.show();
+                    });
+                } else {
+                    frappe.msgprint({
+                        title: __('Article non trouvé'),
+                        message: __('Impossible de trouver l\'article sélectionné.'),
+                        indicator: 'red'
+                    });
+                }
+            }
+        });
+    };
 }
