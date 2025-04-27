@@ -178,7 +178,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-23 11:11:30.488105",
+ "modified": "2025-04-27 16:36:22.831660",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
@@ -221,14 +221,18 @@
    "role": "Superviseur CRM"
   },
   {
+   "create": 1,
    "read": 1,
    "role": "Charg\u00e9 Devis",
-   "select": 1
+   "select": 1,
+   "write": 1
   },
   {
+   "create": 1,
    "read": 1,
    "role": "Responsable Devis",
-   "select": 1
+   "select": 1,
+   "write": 1
   },
   {
    "read": 1,
