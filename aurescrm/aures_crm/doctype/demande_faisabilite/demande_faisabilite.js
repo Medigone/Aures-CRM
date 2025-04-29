@@ -79,7 +79,6 @@ frappe.ui.form.on('Demande Faisabilite', {
                     "Voulez-vous vraiment confirmer cette demande et générer une Étude de Faisabilité pour chaque article ?",
                     function() {
                         frappe.call({
-                            // Mise à jour du chemin
                             method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.generate_etude_faisabilite",
                             args: { docname: frm.doc.name },
                             callback: function(r) {
@@ -87,6 +86,14 @@ frappe.ui.form.on('Demande Faisabilite', {
                                     frappe.msgprint("La demande a été confirmée et les études de faisabilité générées.");
                                     frm.reload_doc();
                                 }
+                            },
+                            error: function(r) {
+                                frappe.msgprint({
+                                    title: __("Erreur"),
+                                    message: __("Une erreur est survenue lors de la génération des études de faisabilité."),
+                                    indicator: "red"
+                                });
+                                console.error("Erreur generate_etude_faisabilite:", r);
                             }
                         });
                     }
