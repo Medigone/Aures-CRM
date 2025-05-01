@@ -619,8 +619,8 @@ function load_trace_imposition_links(frm) {
  */
 function refresh_attached_files(frm) {
     // Check if the local fields exist on the Etude Faisabilite Doctype
-    const has_trace_field = frm.meta.has_field('fichier_trace');
-    const has_imp_field = frm.meta.has_field('fichier_imp');
+    const has_trace_field = frm.fields_dict['fichier_trace'] !== undefined;
+    const has_imp_field = frm.fields_dict['fichier_imp'] !== undefined;
 
     if (!has_trace_field && !has_imp_field) {
         // console.log("No local attachment fields found on EtudeFaisabilite. Skipping refresh.");
@@ -739,6 +739,57 @@ function show_item_technical_specs(article_name) {
         callback: function(r) {
             if (r.message) {
                 const item = r.message;
+                const procede = item.custom_procédé || "";
+                
+                // Définir les champs à afficher selon le procédé
+                const champsOffset = [
+                    "custom_fiche_technique_article", 
+                    "custom_support_fourni", 
+                    "custom_support", 
+                    "custom_grammage", 
+                    "custom_impression", 
+                    "custom_nbr_couleurs", 
+                    "custom_nombre_de_poses", 
+                    "custom_pelliculage", 
+                    "custom_marquage_à_chaud", 
+                    "custom_couleur_marquage_à_chaud", 
+                    "custom_notice", 
+                    "custom_largeur", 
+                    "custom_hauteur", 
+                    "custom_longueur", 
+                    "custom_acrylique", 
+                    "custom_uv", 
+                    "custom_sélectif", 
+                    "custom_drip_off", 
+                    "custom_mat_gras", 
+                    "custom_blister", 
+                    "custom_recto_verso", 
+                    "custom_fenêtre", 
+                    "custom_dimension_fenêtre", 
+                    "custom_epaisseur_fenêtre", 
+                    "custom_gaufrage__estampage", 
+                    "custom_massicot", 
+                    "custom_collerette", 
+                    "custom_blanc_couvrant", 
+                    "custom_braille", 
+                    "custom_texte_braille"
+                ];
+                
+                const champsFlexo = [
+                    "custom_fiche_technique_article", 
+                    "custom_désignation", 
+                    "custom_type_support", 
+                    "custom_epaisseur", 
+                    "custom_diametre_mandrin", 
+                    "custom_diamètre_bobine", 
+                    "custom_dimensions_h_x_l", 
+                    "custom_sens_deroulement", 
+                    "custom_sense_défilement_"
+                ];
+                
+                // Sélectionner les champs à afficher selon le procédé
+                const champsAfficher = procede === "Offset" ? champsOffset : 
+                                      procede === "Flexo" ? champsFlexo : [];
                 
                 // Récupérer tous les champs de l'onglet custom_fiche_technique
                 frappe.model.with_doctype("Item", function() {
@@ -759,8 +810,9 @@ function show_item_technical_specs(article_name) {
                             meta.in_fiche_technique_tab = false;
                         } else if (meta.in_fiche_technique_tab) {
                             // Si nous sommes dans l'onglet custom_fiche_technique, ajouter le champ
-                            // Exclure les champs HTML, Button, etc.
-                            if (["Section Break", "Column Break"].indexOf(field.fieldtype) === -1) {
+                            // Exclure les champs HTML, Button, etc. et filtrer selon le procédé
+                            if (["Section Break", "Column Break"].indexOf(field.fieldtype) === -1 && 
+                                (champsAfficher.length === 0 || champsAfficher.includes(field.fieldname))) {
                                 fields.push({
                                     label: __(field.label),
                                     fieldname: field.fieldname,
@@ -864,6 +916,57 @@ if (!window.showItemTechnicalSpecs) {
             callback: function(r) {
                 if (r.message) {
                     const item = r.message;
+                    const procede = item.custom_procédé || "";
+                    
+                    // Définir les champs à afficher selon le procédé
+                    const champsOffset = [
+                        "custom_fiche_technique_article", 
+                        "custom_support_fourni", 
+                        "custom_support", 
+                        "custom_grammage", 
+                        "custom_impression", 
+                        "custom_nbr_couleurs", 
+                        "custom_nombre_de_poses", 
+                        "custom_pelliculage", 
+                        "custom_marquage_à_chaud", 
+                        "custom_couleur_marquage_à_chaud", 
+                        "custom_notice", 
+                        "custom_largeur", 
+                        "custom_hauteur", 
+                        "custom_longueur", 
+                        "custom_acrylique", 
+                        "custom_uv", 
+                        "custom_sélectif", 
+                        "custom_drip_off", 
+                        "custom_mat_gras", 
+                        "custom_blister", 
+                        "custom_recto_verso", 
+                        "custom_fenêtre", 
+                        "custom_dimension_fenêtre", 
+                        "custom_epaisseur_fenêtre", 
+                        "custom_gaufrage__estampage", 
+                        "custom_massicot", 
+                        "custom_collerette", 
+                        "custom_blanc_couvrant", 
+                        "custom_braille", 
+                        "custom_texte_braille"
+                    ];
+                    
+                    const champsFlexo = [
+                        "custom_fiche_technique_article", 
+                        "custom_désignation", 
+                        "custom_type_support", 
+                        "custom_epaisseur", 
+                        "custom_diametre_mandrin", 
+                        "custom_diamètre_bobine", 
+                        "custom_dimensions_h_x_l", 
+                        "custom_sens_deroulement", 
+                        "custom_sense_défilement_"
+                    ];
+                    
+                    // Sélectionner les champs à afficher selon le procédé
+                    const champsAfficher = procede === "Offset" ? champsOffset : 
+                                          procede === "Flexo" ? champsFlexo : [];
                     
                     // Récupérer tous les champs de l'onglet custom_fiche_technique
                     frappe.model.with_doctype("Item", function() {
@@ -884,8 +987,9 @@ if (!window.showItemTechnicalSpecs) {
                                 meta.in_fiche_technique_tab = false;
                             } else if (meta.in_fiche_technique_tab) {
                                 // Si nous sommes dans l'onglet custom_fiche_technique, ajouter le champ
-                                // Exclure les champs HTML, Button, etc.
-                                if (["Section Break", "Column Break"].indexOf(field.fieldtype) === -1) {
+                                // Exclure les champs HTML, Button, etc. et filtrer selon le procédé
+                                if (["Section Break", "Column Break"].indexOf(field.fieldtype) === -1 && 
+                                    (champsAfficher.length === 0 || champsAfficher.includes(field.fieldname))) {
                                     fields.push({
                                         label: __(field.label),
                                         fieldname: field.fieldname,
