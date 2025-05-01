@@ -152,6 +152,96 @@ function set_filters(frm) {
 }
 
 /**
+ * Affiche les spécifications techniques d'un article dans une boîte de dialogue.
+ * @param {string} item_code - Le code de l'article à afficher.
+ */
+function show_item_technical_specs(item_code) {
+    if (!item_code) {
+        frappe.msgprint({
+            title: __('Erreur'),
+            message: __('Code article non spécifié'),
+            indicator: 'red'
+        });
+        return;
+    }
+
+    frappe.call({
+        method: "frappe.client.get",
+        args: {
+            doctype: "Item",
+            name: item_code
+        },
+        callback: function(r) {
+            if (r.message) {
+                const item = r.message;
+                const d = new frappe.ui.Dialog({
+                    title: __('Spécifications Techniques: {0}', [item.item_name || item_code]),
+                    fields: [
+                        {fieldtype: 'HTML', fieldname: 'specs_html'}
+                    ],
+                    primary_action_label: __('Fermer'),
+                    primary_action: function() {
+                        d.hide();
+                    }
+                });
+
+                // Construire le HTML pour afficher les spécifications techniques
+                let html = `<div style="padding: 10px;">
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-weight: bold; margin-bottom: 5px;">${__('Code Article')}:</div>
+                        <div style="padding: 5px; background-color: #f8f9fa; border-radius: 4px;">${item.item_code || ''}</div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-weight: bold; margin-bottom: 5px;">${__('Désignation')}:</div>
+                        <div style="padding: 5px; background-color: #f8f9fa; border-radius: 4px;">${item.item_name || ''}</div>
+                    </div>`;
+
+                // Ajouter les champs personnalisés pertinents s'ils existent
+                if (item.description) {
+                    html += `<div style="margin-bottom: 15px;">
+                        <div style="font-weight: bold; margin-bottom: 5px;">${__('Description')}:</div>
+                        <div style="padding: 5px; background-color: #f8f9fa; border-radius: 4px;">${item.description || ''}</div>
+                    </div>`;
+                }
+
+                // Ajouter d'autres champs techniques si disponibles
+                const tech_fields = [
+                    { label: __('Dimensions'), value: item.custom_dimensions },
+                    { label: __('Matière'), value: item.custom_matiere },
+                    { label: __('Grammage'), value: item.custom_grammage },
+                    { label: __('Finition'), value: item.custom_finition },
+                    { label: __('Couleurs'), value: item.custom_couleurs }
+                ];
+
+                tech_fields.forEach(field => {
+                    if (field.value) {
+                        html += `<div style="margin-bottom: 15px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">${field.label}:</div>
+                            <div style="padding: 5px; background-color: #f8f9fa; border-radius: 4px;">${field.value}</div>
+                        </div>`;
+                    }
+                });
+
+                html += '</div>';
+                d.fields_dict.specs_html.$wrapper.html(html);
+                d.show();
+            } else {
+                frappe.msgprint({
+                    title: __('Erreur'),
+                    message: __('Article non trouvé'),
+                    indicator: 'red'
+                });
+            }
+        }
+    });
+}
+
+// Rendre la fonction accessible globalement
+if (typeof window !== 'undefined') {
+    window.show_item_technical_specs = show_item_technical_specs;
+}
+
+/**
  * Loads the HTML content displaying Trace/Imposition links and action buttons
  * into the 'html_doc' field.
  * @param {object} frm - The current form object.
@@ -207,14 +297,21 @@ function load_trace_imposition_links(frm) {
             .btn-xs { line-height: 1.5; padding: 1px 5px; font-size: 12px; }
             /* Style pour le bouton de spécifications techniques */
             .ef-specs-btn { 
-                margin-top: 20px; 
-                text-align: center; 
+                margin-bottom: 0px; 
+                text-align: left; 
                 padding: 10px; 
-                background-color: #f8f9fa; 
-                border-radius: 8px; 
-                border: 0.5px solid #d1d8dd;
+                background-color: #ffffff; 
+                
             }
         </style>
+        
+        <!-- Bouton Fiche Technique Article placé avant les sections Tracé et Imposition -->
+        ${frm.doc.article ? `<div class='ef-specs-btn'>
+            <button class='btn btn-primary' onclick="show_item_technical_specs('${frm.doc.article}'); return false;">
+                Fiche Technique
+            </button>
+        </div>` : ''}
+        
         <div class='ef-container'>`;
 
     // --- Section Tracé ---
@@ -292,16 +389,6 @@ function load_trace_imposition_links(frm) {
     html += `</div></div></div>`; // End Imposition section
 
     html += `</div>`; // End ef-container
-
-    // --- Ajout du bouton pour les spécifications techniques ---
-    if (frm.doc.article) {
-        html += `<div class='ef-specs-btn'>
-                    <button class='btn btn-default' onclick="showItemTechnicalSpecs('${frm.doc.article}'); return false;">
-                        Fiche Technique Article
-                    </button>
-                </div>`;
-    }
-
     html += `</div>`; // End outer div
     html_field.$wrapper.html(html); // Inject HTML
 
