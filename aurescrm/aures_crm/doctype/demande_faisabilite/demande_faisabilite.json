@@ -49,7 +49,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Statut",
-   "options": "Brouillon\nConfirm\u00e9e\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nCommand\u00e9\nAnnul\u00e9e"
+   "options": "Brouillon\nConfirm\u00e9e\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nCommand\u00e9\nFerm\u00e9e\nAnnul\u00e9e"
   },
   {
    "fieldname": "section_break_ojxn",
@@ -178,7 +178,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-27 16:36:22.831660",
+ "modified": "2025-05-01 12:09:52.657907",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
