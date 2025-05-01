@@ -132,7 +132,7 @@ frappe.ui.form.on('Demande Faisabilite', {
         }
 
         // --- Bouton "Devis" ---
-        if (frm.doc.status === "Finalisée") {
+        if (frm.doc.status === "Finalisée" || frm.doc.status === "Devis Établis") {
             // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button('Devis', function() {
                 frappe.call({
@@ -238,6 +238,36 @@ frappe.ui.form.on('Demande Faisabilite', {
                     }
                 );
             }).addClass("btn-secondary"); // Use a different style if needed
+        }
+
+        // --- NOUVEAU : Bouton "Fermer" ---
+        if (["Finalisée", "Devis Établis"].includes(frm.doc.status)) {
+            frm.add_custom_button("Fermer", function() {
+                frappe.confirm(
+                    "Voulez-vous vraiment fermer cette demande de faisabilité ? Les préparateurs de devis ne pourront plus la traiter.",
+                    function() {
+                        frappe.call({
+                            method: "frappe.client.set_value",
+                            args: {
+                                doctype: "Demande Faisabilite",
+                                name: frm.doc.name,
+                                fieldname: "status",
+                                value: "Fermée"
+                            },
+                            callback: function(r) {
+                                if (r.message) {
+                                    frappe.msgprint({
+                                        title: __("Succès"),
+                                        message: __("La demande a été fermée."),
+                                        indicator: "green"
+                                    });
+                                    frm.reload_doc();
+                                }
+                            }
+                        });
+                    }
+                );
+            }).addClass("btn-warning");
         }
 
     }, // End of refresh function
