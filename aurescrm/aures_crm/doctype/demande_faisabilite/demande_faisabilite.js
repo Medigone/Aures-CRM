@@ -132,7 +132,7 @@ frappe.ui.form.on('Demande Faisabilite', {
         }
 
         // --- Bouton "Devis" ---
-        if (frm.doc.status === "Finalisée" || frm.doc.status === "Devis Établis") {
+        if (frm.doc.status === "Finalisée" || frm.doc.status === "Devis Établis" || frm.doc.status === "Partiellement Finalisée") {
             // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button('Devis', function() {
                 frappe.call({
