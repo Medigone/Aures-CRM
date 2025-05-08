@@ -147,7 +147,7 @@ def update_demande_status_from_etudes(doc, method):
     # Calcul du nouveau statut en fonction des règles
     if any(s == "En étude" for s in statuses):
         computed_status = "En Cours"
-    elif all(s in ["Réalisable", "Non Réalisable"] for s in statuses):
+    elif all(s in ["Réalisable", "Non Réalisable", "Annulée"] for s in statuses):
         computed_status = "Finalisée"
     elif any(s in ["Réalisable", "Non Réalisable"] for s in statuses):
         computed_status = "Partiellement Finalisée"
