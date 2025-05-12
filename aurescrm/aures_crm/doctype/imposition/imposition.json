@@ -6,12 +6,15 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
+  "column_break_vmsj",
+  "procede",
   "section_break_ciau",
   "client",
   "column_break_diue",
   "article",
   "section_break_joaj",
   "trace",
+  "cliche",
   "column_break_iirs",
   "format_imp",
   "laize_pal",
@@ -54,6 +57,7 @@
   {
    "fieldname": "trace",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Trac\u00e9",
    "options": "Trace",
    "reqd": 1,
@@ -138,11 +142,29 @@
    "fieldtype": "Select",
    "label": "Laize / Palette ?",
    "options": "\nLaize\nPalette"
+  },
+  {
+   "fieldname": "column_break_vmsj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "article.custom_proc\u00e9d\u00e9",
+   "fieldname": "procede",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "label": "Proc\u00e9d\u00e9",
+   "options": "\nOffset\nFlexo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cliche",
+   "fieldtype": "Data",
+   "label": "Clich\u00e9"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-20 14:42:13.198103",
+ "modified": "2025-05-12 15:23:50.168600",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Imposition",
