@@ -5,6 +5,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "procede",
+  "section_break_bihv",
   "client",
   "column_break_xyas",
   "article",
@@ -60,11 +62,24 @@
   {
    "fieldname": "column_break_xyas",
    "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "article.custom_proc\u00e9d\u00e9",
+   "fieldname": "procede",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Proc\u00e9d\u00e9",
+   "options": "\nOffset\nFlexo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_bihv",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-26 10:48:56.619780",
+ "modified": "2025-05-12 14:53:22.315191",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Trace",
