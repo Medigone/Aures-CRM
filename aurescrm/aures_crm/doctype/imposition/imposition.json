@@ -5,9 +5,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "status",
-  "column_break_vmsj",
   "procede",
+  "column_break_vmsj",
   "section_break_ciau",
   "client",
   "column_break_diue",
@@ -105,12 +104,6 @@
    "options": "Forme Decoupe"
   },
   {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Statut",
-   "options": "Actif\nInactif"
-  },
-  {
    "fieldname": "section_break_ciau",
    "fieldtype": "Section Break"
   },
@@ -151,7 +144,7 @@
    "fetch_from": "article.custom_proc\u00e9d\u00e9",
    "fieldname": "procede",
    "fieldtype": "Select",
-   "in_filter": 1,
+   "in_standard_filter": 1,
    "label": "Proc\u00e9d\u00e9",
    "options": "\nOffset\nFlexo",
    "read_only": 1
@@ -164,7 +157,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-12 15:23:50.168600",
+ "modified": "2025-05-13 11:16:01.898708",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Imposition",
@@ -232,18 +225,9 @@
    "role": "Responsable Devis"
   }
  ],
- "search_fields": "client,article,trace,format_imp",
+ "search_fields": "client,article,trace,nbr_poses,format_imp",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [
-  {
-   "color": "Green",
-   "title": "Actif"
-  },
-  {
-   "color": "Gray",
-   "title": "Inactif"
-  }
- ],
+ "states": [],
  "track_changes": 1
 }
