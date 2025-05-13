@@ -5,10 +5,10 @@ import frappe
 from frappe.model.document import Document
 
 
-class BAT(Document):
+class Bonatirer(Document):
 	def autoname(self):
-		# Format: BAT-{client}-{article}-{etude_tech}
-		self.name = f"BAT-{self.client}-{self.article}-{self.etude_tech}"
+		# Format: Bonatirer-{client}-{article}-{etude_tech}
+		self.name = f"Bonatirer-{self.client}-{self.article}-{self.etude_tech}"
 
 	# You can add other methods like validate, before_save, etc. here if needed
 	pass

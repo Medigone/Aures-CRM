@@ -9,37 +9,42 @@
   "section_break_oyyz",
   "date",
   "column_break_ffpx",
-  "date_valable",
+  "valide_par",
+  "valide_par_nom",
   "section_break_bols",
   "client",
+  "nom_client",
   "column_break_uwir",
   "article",
-  "section_break_kjvl",
-  "etude_tech",
-  "imposition",
-  "column_break_tuck",
-  "trace",
-  "maquette",
+  "designation_article",
   "trace_tab",
-  "dimens_trace",
-  "column_break_hlrz",
+  "trace",
   "fich_trace",
+  "column_break_hlrz",
+  "dimens_trace",
   "impo_tab",
+  "section_break_drfr",
+  "imposition",
+  "column_break_fjtb",
+  "fichier_imp",
+  "section_break_ilax",
   "format_imp",
   "forme_decoupe",
   "an_num_fd",
   "column_break_tkgv",
   "nbr_poses",
   "laize_pal",
-  "section_break_drfr",
-  "fichier_imp"
+  "maquette_tab",
+  "maquette",
+  "column_break_oira",
+  "fichier_maq"
  ],
  "fields": [
   {
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Statut",
-   "options": "Nouveau\nValid\u00e9\nObsol\u00e8te\nAnnuler"
+   "options": "Nouveau\nValid\u00e9\nObsol\u00e8te\nAnnul\u00e9"
   },
   {
    "fieldname": "section_break_oyyz",
@@ -57,19 +62,12 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "date_valable",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Valable jusqu\u2019au"
-  },
-  {
    "fieldname": "section_break_bols",
    "fieldtype": "Section Break"
   },
   {
    "fieldname": "client",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
@@ -82,15 +80,10 @@
   {
    "fieldname": "article",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Article",
    "options": "Item",
    "search_index": 1
-  },
-  {
-   "fieldname": "section_break_kjvl",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "trace",
@@ -112,17 +105,6 @@
    "in_standard_filter": 1,
    "label": "Maquette",
    "options": "Maquette"
-  },
-  {
-   "fieldname": "etude_tech",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "\u00c9tude Technique",
-   "options": "Etude Technique"
-  },
-  {
-   "fieldname": "column_break_tuck",
-   "fieldtype": "Column Break"
   },
   {
    "fetch_from": "trace.dimensions",
@@ -195,14 +177,67 @@
   {
    "fieldname": "section_break_drfr",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fjtb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ilax",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "maquette_tab",
+   "fieldtype": "Tab Break",
+   "label": "Maquette"
+  },
+  {
+   "fieldname": "column_break_oira",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "imposition.fichier_imp",
+   "fieldname": "fichier_maq",
+   "fieldtype": "Attach",
+   "label": "Fichier Maquette"
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom Client",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "article.item_code",
+   "fieldname": "designation_article",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "D\u00e9signation Article",
+   "read_only": 1
+  },
+  {
+   "fieldname": "valide_par",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Valid\u00e9 par ID",
+   "options": "User"
+  },
+  {
+   "fetch_from": "valide_par.full_name",
+   "fieldname": "valide_par_nom",
+   "fieldtype": "Data",
+   "label": "Valid\u00e9 par",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-19 16:05:13.019086",
+ "modified": "2025-05-13 12:46:55.447029",
  "modified_by": "Administrator",
  "module": "Aures CRM",
- "name": "BAT",
+ "name": "Bon a tirer",
  "owner": "Administrator",
  "permissions": [
   {
@@ -287,7 +322,7 @@
    "write": 1
   }
  ],
- "search_fields": "client,article,etude_tech,format_imp,dimens_trace",
+ "search_fields": "client,article,format_imp,dimens_trace",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [

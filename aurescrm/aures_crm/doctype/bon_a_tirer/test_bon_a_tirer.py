@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestBAT(FrappeTestCase):
+class TestBonatirer(FrappeTestCase):
 	pass
