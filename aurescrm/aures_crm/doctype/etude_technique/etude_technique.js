@@ -4,7 +4,7 @@
 frappe.ui.form.on("Etude Technique", {
 	refresh(frm) {
 		// Bouton 'Attribuer à moi'
-		if (!frm.doc.__islocal) {
+		if (!frm.doc.__islocal && frm.doc.status === 'Nouveau') {
 			frm.add_custom_button(__('À moi'), function() {
 				let currentUser = frappe.session.user;
 
@@ -39,7 +39,7 @@ frappe.ui.form.on("Etude Technique", {
 		}
 
 		// Bouton 'Attribuer à...'
-		if (!frm.doc.__islocal) {
+		if (!frm.doc.__islocal && frm.doc.status === 'Nouveau') {
 			frm.add_custom_button(__('Attribuer à...'), function() {
 				let dialog = new frappe.ui.Dialog({
 					title: __('Sélectionner un Technicien Prépresse'),
