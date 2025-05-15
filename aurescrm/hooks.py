@@ -177,7 +177,11 @@ doc_events = {
         ],
         "before_submit": "aurescrm.sales_order_hooks.validate_bon_de_commande"
         # Vous pourriez avoir d'autres hooks ici
-    }
+    },
+    # Ajout du hook pour Suivi Creance
+    # "Suivi Creance": {
+    #     "before_insert": "aurescrm.aures_crm.doctype.suivi_creance.suivi_creance.recuperer_factures_impayees"
+    # }
     # Vous pourriez avoir d'autres DocTypes ici
 }
 
