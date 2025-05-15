@@ -1,0 +1,59 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-15 08:23:16.523185",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "facture",
+  "date",
+  "montant_du",
+  "montant_paiement"
+ ],
+ "fields": [
+  {
+   "fieldname": "facture",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Facture",
+   "options": "Sales Invoice"
+  },
+  {
+   "fetch_from": "facture.posting_date",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "facture.outstanding_amount",
+   "fieldname": "montant_du",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Montant D\u00fb",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "montant_paiement",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Montant Paiement",
+   "precision": "2"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-15 08:26:23.306725",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Factures Creances",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

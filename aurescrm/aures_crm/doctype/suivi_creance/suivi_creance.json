@@ -5,17 +5,147 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_xlce"
+  "status",
+  "column_break_agrw",
+  "date",
+  "section_break_dbcd",
+  "id_client",
+  "nom_client",
+  "column_break_pbnm",
+  "groupe_client",
+  "id_commercial",
+  "commercial",
+  "section_break_xcwu",
+  "montant_tot_du",
+  "column_break_rzyt",
+  "date_prom_paiement",
+  "section_break_pwji",
+  "observations",
+  "section_break_kncy",
+  "raison_litige",
+  "factures_tab",
+  "factures"
  ],
  "fields": [
   {
-   "fieldname": "section_break_xlce",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Nouveau\nPromesse de paiement\nPartiellement r\u00e9gl\u00e9\nTotalement r\u00e9gl\u00e9\nLitige"
+  },
+  {
+   "fieldname": "section_break_dbcd",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "id_client",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "ID Client",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "id_client.customer_name",
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom Client",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "id_client.customer_group",
+   "fieldname": "groupe_client",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Groupe Client",
+   "options": "Customer Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_prom_paiement",
+   "fieldtype": "Date",
+   "label": "Date Promesse de paiement"
+  },
+  {
+   "fieldname": "section_break_pwji",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "raison_litige",
+   "fieldtype": "Text Editor",
+   "label": "Raison Litige"
+  },
+  {
+   "fieldname": "section_break_xcwu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "montant_tot_du",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Montant total d\u00fb",
+   "precision": "2"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Text Editor",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "column_break_pbnm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_rzyt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "factures_tab",
+   "fieldtype": "Tab Break",
+   "label": "Factures"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_agrw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_kncy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "id_client.custom_commercial_attribu\u00e9",
+   "fieldname": "id_commercial",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "ID Commercial",
+   "options": "User"
+  },
+  {
+   "fetch_from": "id_commercial.full_name",
+   "fieldname": "commercial",
+   "fieldtype": "Data",
+   "label": "Commercial",
+   "read_only": 1
+  },
+  {
+   "fieldname": "factures",
+   "fieldtype": "Table",
+   "options": "Factures Creances"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-14 14:05:16.870757",
+ "modified": "2025-05-15 08:26:49.805478",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",
@@ -36,6 +166,27 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Pink",
+   "title": "Promesse de paiement"
+  },
+  {
+   "color": "Orange",
+   "title": "Partiellement r\u00e9gl\u00e9"
+  },
+  {
+   "color": "Green",
+   "title": "Totalement r\u00e9gl\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "Litige"
+  }
+ ],
  "track_changes": 1
 }
