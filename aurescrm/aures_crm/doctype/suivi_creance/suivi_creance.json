@@ -84,7 +84,8 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Montant total d\u00fb",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "observations",
@@ -145,7 +146,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-15 08:26:49.805478",
+ "modified": "2025-05-15 13:43:02.567846",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",
