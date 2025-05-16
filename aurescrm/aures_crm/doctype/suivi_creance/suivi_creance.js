@@ -3,7 +3,15 @@
 
 frappe.ui.form.on("Suivi Creance", {
 	refresh(frm) {
-		// Button removed as requested
+		// Masquer le bouton "Add Row" pour la table factures
+		frm.set_df_property("factures", "cannot_add_rows", true);
+		
+		// Masquer la table factures pendant la création
+		if (frm.is_new()) {
+			frm.set_df_property("factures", "hidden", true);
+		} else {
+			frm.set_df_property("factures", "hidden", false);
+		}
 	},
 	
 	id_client: function(frm) {

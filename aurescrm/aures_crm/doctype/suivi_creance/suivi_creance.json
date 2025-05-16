@@ -8,6 +8,7 @@
   "status",
   "column_break_agrw",
   "date",
+  "date_prom_paiement",
   "section_break_dbcd",
   "id_client",
   "nom_client",
@@ -17,10 +18,7 @@
   "commercial",
   "section_break_xwht",
   "factures",
-  "section_break_xcwu",
   "montant_tot_du",
-  "column_break_rzyt",
-  "date_prom_paiement",
   "section_break_pwji",
   "observations",
   "section_break_kncy",
@@ -42,7 +40,8 @@
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "ID Client",
-   "options": "Customer"
+   "options": "Customer",
+   "placeholder": "S\u00e9lectionnez le Client"
   },
   {
    "fetch_from": "id_client.customer_name",
@@ -62,6 +61,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval: doc.status ==\"Promesse de paiement\"",
    "fieldname": "date_prom_paiement",
    "fieldtype": "Date",
    "label": "Date Promesse de paiement"
@@ -74,10 +74,6 @@
    "fieldname": "raison_litige",
    "fieldtype": "Text Editor",
    "label": "Raison Litige"
-  },
-  {
-   "fieldname": "section_break_xcwu",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "montant_tot_du",
@@ -94,10 +90,6 @@
   },
   {
    "fieldname": "column_break_pbnm",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_rzyt",
    "fieldtype": "Column Break"
   },
   {
@@ -145,7 +137,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-16 12:06:16.961154",
+ "modified": "2025-05-16 12:20:16.444551",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",
