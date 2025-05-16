@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "creation": "2025-05-16 15:28:45.570203",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "html_bouton_generer"
+ ],
+ "fields": [
+  {
+   "fieldname": "html_bouton_generer",
+   "fieldtype": "HTML"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-05-16 15:39:01.734732",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Generation Suivi Creance",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

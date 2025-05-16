@@ -5,10 +5,13 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_cosn",
   "status",
-  "column_break_agrw",
   "date",
+  "column_break_agrw",
   "date_prom_paiement",
+  "id_utilisateur",
+  "utilisateur",
   "section_break_dbcd",
   "id_client",
   "nom_client",
@@ -16,17 +19,18 @@
   "groupe_client",
   "id_commercial",
   "commercial",
-  "section_break_ovck",
-  "type_paiement",
-  "section_break_dkmn",
-  "date_doc_payement",
-  "montant_payement",
-  "column_break_jxum",
-  "n_doc",
-  "photo",
   "section_break_xwht",
+  "html_bout_payement",
   "factures",
+  "section_break_dkmn",
+  "type_paiement",
+  "date_doc_payement",
+  "n_doc",
+  "column_break_jxum",
   "montant_tot_du",
+  "montant_payement",
+  "montant_restant",
+  "photo",
   "section_break_pwji",
   "observations",
   "section_break_kncy",
@@ -36,14 +40,16 @@
   {
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nPromesse de paiement\nPartiellement r\u00e9gl\u00e9\nTotalement r\u00e9gl\u00e9\nLitige"
+   "options": "Nouveau\nPromesse de paiement\nPartiellement r\u00e9gl\u00e9\nTotalement r\u00e9gl\u00e9\nLitige\nObsol\u00e8te"
   },
   {
    "fieldname": "section_break_dbcd",
    "fieldtype": "Section Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "id_client",
    "fieldtype": "Link",
    "in_standard_filter": 1,
@@ -137,21 +143,19 @@
   {
    "fieldname": "factures",
    "fieldtype": "Table",
-   "options": "Factures Creances"
+   "options": "Factures Creances",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_xwht",
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "section_break_ovck",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "type_paiement",
    "fieldtype": "Select",
    "label": "Type Paiement",
-   "options": "Esp\u00e8ce\nCh\u00e8que\nVirement"
+   "options": "\nEsp\u00e8ce\nCh\u00e8que\nVirement",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_dkmn",
@@ -161,8 +165,9 @@
    "depends_on": "eval:doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\"\n",
    "description": "Photo du ch\u00e8que ou de l\u2019ordre de virement associ\u00e9.",
    "fieldname": "photo",
-   "fieldtype": "Attach",
-   "label": "Photo"
+   "fieldtype": "Attach Image",
+   "label": "Photo",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_jxum",
@@ -171,27 +176,62 @@
   {
    "fieldname": "montant_payement",
    "fieldtype": "Currency",
-   "label": "Montant",
-   "precision": "2"
+   "label": "Montant Paiement",
+   "precision": "2",
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\"\n",
    "description": "Date du ch\u00e8que ou de l\u2019ordre de virement associ\u00e9.",
    "fieldname": "date_doc_payement",
    "fieldtype": "Date",
-   "label": "Date Ch\u00e8que/Virement"
+   "label": "Date Ch\u00e8que/Virement",
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\"\n",
    "description": "Num\u00e9ro du ch\u00e8que ou de l\u2019ordre de virement associ\u00e9.",
    "fieldname": "n_doc",
    "fieldtype": "Data",
-   "label": "N\u00ba"
+   "label": "N\u00ba",
+   "read_only": 1
+  },
+  {
+   "fieldname": "html_bout_payement",
+   "fieldtype": "HTML",
+   "label": "Bouton Payement"
+  },
+  {
+   "fieldname": "section_break_cosn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "User",
+   "fieldname": "id_utilisateur",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "ID Utilisateur",
+   "options": "User"
+  },
+  {
+   "fetch_from": "id_utilisateur.full_name",
+   "fieldname": "utilisateur",
+   "fieldtype": "Data",
+   "label": "Utilisateur",
+   "read_only": 1
+  },
+  {
+   "fieldname": "montant_restant",
+   "fieldtype": "Currency",
+   "label": "Montant Restant",
+   "precision": "2",
+   "read_only": 1
   }
  ],
+ "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-16 12:43:56.479168",
+ "modified": "2025-05-16 16:16:14.838872",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",
@@ -210,6 +250,7 @@
    "write": 1
   }
  ],
+ "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [
@@ -232,6 +273,10 @@
   {
    "color": "Red",
    "title": "Litige"
+  },
+  {
+   "color": "Gray",
+   "title": "Obsol\u00e8te"
   }
  ],
  "track_changes": 1
