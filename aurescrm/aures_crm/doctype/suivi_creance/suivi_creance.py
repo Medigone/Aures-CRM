@@ -10,6 +10,17 @@ class SuiviCreance(Document):
         """Appelé automatiquement après l'insertion d'un nouveau document"""
         self.recuperer_factures_impayees()
     
+    def validate(self):
+        """Appelé avant l'enregistrement du document"""
+        self.calculer_pourcentage_recouvrement()
+    
+    def calculer_pourcentage_recouvrement(self):
+        """Calcule le pourcentage de recouvrement"""
+        if self.montant_tot_du and self.montant_tot_du > 0:
+            self.pourcentage_recouvrement = (self.montant_payement or 0) / self.montant_tot_du * 100
+        else:
+            self.pourcentage_recouvrement = 0
+    
     def recuperer_factures_impayees(self):
         """Récupère toutes les factures impayées pour le client sélectionné"""
         frappe.logger().debug(f"Début récupération factures pour client: {self.id_client}")

@@ -20,12 +20,14 @@
   "id_commercial",
   "commercial",
   "section_break_xwht",
+  "progression",
   "html_bout_payement",
   "factures",
   "section_break_dkmn",
   "type_paiement",
   "date_doc_payement",
   "n_doc",
+  "pourcentage_recouvrement",
   "ecr_paiement",
   "column_break_jxum",
   "montant_tot_du",
@@ -80,7 +82,8 @@
    "depends_on": "eval: doc.status ==\"Promesse de paiement\"",
    "fieldname": "date_prom_paiement",
    "fieldtype": "Date",
-   "label": "Date Promesse de paiement"
+   "label": "Date Promesse de paiement",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_pwji",
@@ -234,12 +237,23 @@
    "label": "\u00c9criture de paiement",
    "options": "Payment Entry",
    "read_only": 1
+  },
+  {
+   "fieldname": "progression",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "pourcentage_recouvrement",
+   "fieldtype": "Percent",
+   "label": "Pourcentage recouvert",
+   "precision": "2",
+   "read_only": 1
   }
  ],
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-16 19:16:12.226068",
+ "modified": "2025-05-16 21:18:46.297001",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",

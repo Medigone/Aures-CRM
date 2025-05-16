@@ -10,6 +10,9 @@ frappe.ui.form.on("Suivi Creance", {
 			return; // Sortir de la fonction pour ne pas afficher les boutons
 		}
 
+		// Mettre à jour la barre de progression
+		updateProgressBar(frm);
+
 		// Masquer les boutons "Add Row" et "Delete" pour la table factures
 		frm.set_df_property("factures", "cannot_add_rows", true);
 		frm.set_df_property("factures", "cannot_delete", true);
@@ -334,13 +337,13 @@ frappe.ui.form.on("Suivi Creance", {
 						});
 					}
 				);
-			});
+			}).addClass('btn-danger');
 		}
 
 		// Vérifier si une écriture de paiement est déjà liée
 		if (!frm.doc.ecr_paiement) {
 			// Gestionnaire d'événement pour le bouton Supprimer Paiement
-			$(frm.fields_dict.html_bout_payement.wrapper).find("#btn-supprimer-paiement").on("click", function() {
+			$(frm.fields_dict.html_bout_payement.wrapper).find("#btn-supprimer-paiement").off("click").on("click", function() {
 				frappe.confirm(
 					'Êtes-vous sûr de vouloir supprimer les informations de paiement ?',
 					function() {
@@ -411,19 +414,78 @@ frappe.ui.form.on("Factures Creances", {
 
 // Fonction pour mettre à jour le statut
 function updateStatus(frm) {
-	if (!frm.doc.montant_payement || frm.doc.montant_payement <= 0) {
-		// Si pas de paiement ou paiement supprimé
-		if (frm.doc.date_prom_paiement) {
-			frm.set_value('status', 'Promesse de paiement');
-		} else {
-			frm.set_value('status', 'Nouveau');
-		}
-	} else {
-		// Si un paiement existe
-		if (frm.doc.montant_restant === 0) {
-			frm.set_value('status', 'Totalement réglé');
-		} else if (frm.doc.montant_restant > 0 && frm.doc.montant_restant < frm.doc.montant_tot_du) {
-			frm.set_value('status', 'Partiellement réglé');
-		}
-	}
+    if (!frm.doc.montant_payement || frm.doc.montant_payement <= 0) {
+        // Si pas de paiement ou paiement supprimé
+        if (frm.doc.date_prom_paiement) {
+            frm.set_value('status', 'Promesse de paiement');
+        } else {
+            frm.set_value('status', 'Nouveau');
+        }
+        // Mettre à jour le pourcentage de recouvrement à 0
+        frm.set_value('pourcentage_recouvrement', 0);
+    } else {
+        // Si un paiement existe
+        if (frm.doc.montant_restant === 0) {
+            frm.set_value('status', 'Totalement réglé');
+        } else if (frm.doc.montant_restant > 0 && frm.doc.montant_restant < frm.doc.montant_tot_du) {
+            frm.set_value('status', 'Partiellement réglé');
+        }
+        // Calculer et mettre à jour le pourcentage de recouvrement
+        if (frm.doc.montant_tot_du && frm.doc.montant_tot_du > 0) {
+            let pourcentage = (frm.doc.montant_payement / frm.doc.montant_tot_du) * 100;
+            frm.set_value('pourcentage_recouvrement', pourcentage);
+        }
+    }
+    
+    // Mettre à jour la barre de progression après chaque changement de statut
+    updateProgressBar(frm);
+}
+
+// Fonction pour mettre à jour la barre de progression
+function updateProgressBar(frm) {
+    console.log("updateProgressBar appelé avec pourcentage:", frm.doc.pourcentage_recouvrement);
+    const pourcentage = frm.doc.pourcentage_recouvrement || 0;
+    
+    // Créer le HTML pour la gauge avec l'indicateur et le triangle
+    const gaugeHTML = `
+        <div style="background: #f8f9fa; padding: 14px; border-radius: 8px;
+                    border: 0.5px solid #dee2e6; display: flex;
+                    flex-direction: column; justify-content: center;
+                    height: 80px; position: relative; margin-bottom: 20px;">
+
+            <!-- Titre en haut -->
+            <div style="text-align: left; font-weight: bold; color: #495057; font-size: 12px; margin-bottom: 2px;">
+                Pourcentage recouvert
+            </div>
+
+            <div style="width: 100%; text-align: center; position: relative; color: #495057;">
+                <!-- Barre de progression fixe à 100% -->
+                <div style="position: relative; width: 100%; height: 12px;
+                            background: linear-gradient(to right, #f07167, #ffe45e, #00afb9);
+                            border-radius: 4px; overflow: hidden;
+                            border: 0.5px solid #adb5bd; margin-top: 12px;">
+
+                    <!-- Indicateur du score (barre verticale) -->
+                    <div style="position: absolute; height: 100%; width: 2px;
+                                background: #6c757d; left: ${pourcentage}%;
+                                transform: translateX(-50%);">
+                    </div>
+                </div>
+                <span style="position: absolute; left: 0; font-size: 10px;">0%</span>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 10px;">50%</span>
+                <span style="position: absolute; right: 0; font-size: 10px;">100%</span>
+
+                <!-- Triangle indicateur au-dessus de la barre -->
+                <div style="position: absolute; top: -2px; left: ${pourcentage}%;
+                            transform: translateX(-50%); font-size: 10px; color: #6c757d;">
+                    ▼
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Mettre à jour le champ HTML progression
+	if (frm.fields_dict["progression"]) {
+        frm.fields_dict["progression"].$wrapper.html(gaugeHTML);
+    }
 }
