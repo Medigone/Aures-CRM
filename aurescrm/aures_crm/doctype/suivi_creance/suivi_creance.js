@@ -42,11 +42,11 @@ frappe.ui.form.on("Suivi Creance", {
 					<button class="btn btn-secondary btn-sm ml-2" id="btn-promesse">
 						Promesse de paiement
 					</button>
-				` : `
+				` : !frm.doc.ecr_paiement ? `
 					<button class="btn btn-danger btn-sm ml-2" id="btn-supprimer-paiement">
 						Supprimer Paiement
 					</button>
-				`}
+				` : ''}
 			`);
 
 		// Gestionnaire d'événement pour le bouton Supprimer Paiement
@@ -335,6 +335,55 @@ frappe.ui.form.on("Suivi Creance", {
 					}
 				);
 			});
+		}
+
+		// Vérifier si une écriture de paiement est déjà liée
+		if (!frm.doc.ecr_paiement) {
+			// Gestionnaire d'événement pour le bouton Supprimer Paiement
+			$(frm.fields_dict.html_bout_payement.wrapper).find("#btn-supprimer-paiement").on("click", function() {
+				frappe.confirm(
+					'Êtes-vous sûr de vouloir supprimer les informations de paiement ?',
+					function() {
+						// Action si l'utilisateur confirme
+						frm.set_value("type_paiement", "");
+						frm.set_value("date_doc_payement", "");
+						frm.set_value("n_doc", "");
+						frm.set_value("photo", "");
+						frm.set_value("montant_payement", 0);
+						
+						// Réinitialiser les montants de paiement dans la table des factures
+						frm.doc.factures.forEach(function(row) {
+							frappe.model.set_value(row.doctype, row.name, 'montant_paiement', 0);
+						});
+						
+						updateStatus(frm); // Mise à jour du statut après suppression
+						frm.refresh_field('factures'); // Rafraîchir l'affichage de la table
+						frm.save();
+						frappe.show_alert({
+							message: 'Informations de paiement supprimées',
+							indicator: 'green'
+						});
+					}
+				);
+			});
+
+			// Ajouter le bouton Générer Paiements si un paiement existe
+			if (frm.doc.type_paiement) {
+				frm.add_custom_button(__('Générer Paiements'), function() {
+					frappe.confirm(
+						'Voulez-vous générer les écritures de paiement en brouillon ?',
+						function() {
+							frm.call({
+								doc: frm.doc,
+								method: 'generer_ecritures_paiement',
+								callback: function(r) {
+									frm.reload_doc();
+								}
+							});
+						}
+					);
+				}, __("Actions"));
+			}
 		}
 	},
 	

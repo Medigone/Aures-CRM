@@ -26,6 +26,7 @@
   "type_paiement",
   "date_doc_payement",
   "n_doc",
+  "ecr_paiement",
   "column_break_jxum",
   "montant_tot_du",
   "montant_payement",
@@ -226,12 +227,19 @@
    "label": "Montant Restant",
    "precision": "2",
    "read_only": 1
+  },
+  {
+   "fieldname": "ecr_paiement",
+   "fieldtype": "Link",
+   "label": "\u00c9criture de paiement",
+   "options": "Payment Entry",
+   "read_only": 1
   }
  ],
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-16 16:16:14.838872",
+ "modified": "2025-05-16 19:16:12.226068",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",

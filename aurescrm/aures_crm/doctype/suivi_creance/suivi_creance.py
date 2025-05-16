@@ -43,3 +43,57 @@ class SuiviCreance(Document):
         
         # Sauvegarder les modifications
         self.save(ignore_permissions=True)
+    
+    @frappe.whitelist()
+    def generer_ecritures_paiement(self):
+        """Génère une écriture de paiement pour le montant total avec les références des factures"""
+        if not self.type_paiement:
+            frappe.throw("Veuillez d'abord saisir un paiement avant de générer les écritures")
+            
+        # Récupérer les initiales de la société
+        company = frappe.defaults.get_user_default("company")
+        company_abbr = frappe.get_cached_value("Company", company, "abbr")
+        
+        # Convertir 'Espèce' en 'Espèces'
+        mode_of_payment = "Espèces" if self.type_paiement == "Espèce" else self.type_paiement
+        
+        # Vérifier s'il y a des paiements à traiter
+        lignes_avec_paiement = [row for row in self.factures if row.montant_paiement > 0]
+        if not lignes_avec_paiement:
+            frappe.throw("Aucun montant de paiement n'a été saisi")
+            
+        # Calculer le montant total du paiement
+        montant_total = sum(row.montant_paiement for row in lignes_avec_paiement)
+        
+        # Créer une seule écriture de paiement
+        payment_entry = frappe.get_doc({
+            "doctype": "Payment Entry",
+            "payment_type": "Receive",
+            "party_type": "Customer",
+            "party": self.id_client,
+            "posting_date": frappe.utils.today(),
+            "paid_amount": montant_total,
+            "received_amount": montant_total,
+            "target_exchange_rate": 1,
+            "paid_to": f"1110 - Espèces - {company_abbr}",
+            "paid_from": f"1310 - Débiteurs - {company_abbr}",
+            "mode_of_payment": mode_of_payment,
+            "reference_no": self.n_doc if self.n_doc else "",
+            "reference_date": self.date_doc_payement if self.date_doc_payement else frappe.utils.today(),
+            "references": [
+                {
+                    "reference_doctype": "Sales Invoice",
+                    "reference_name": row.facture,
+                    "allocated_amount": row.montant_paiement
+                }
+                for row in lignes_avec_paiement
+            ]
+        })
+        
+        payment_entry.insert(ignore_permissions=True)
+        
+        # Mettre à jour le champ ecr_paiement avec l'ID de l'écriture générée
+        self.ecr_paiement = payment_entry.name
+        self.save(ignore_permissions=True)
+        
+        frappe.msgprint(f"Écriture de paiement créée en brouillon pour un montant total de {montant_total}")
