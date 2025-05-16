@@ -107,4 +107,5 @@ class SuiviCreance(Document):
         self.ecr_paiement = payment_entry.name
         self.save(ignore_permissions=True)
         
-        frappe.msgprint(f"Écriture de paiement créée en brouillon pour un montant total de {montant_total}")
+        montant_formate = frappe.format_value(montant_total, "Currency", currency="DZD")
+        frappe.msgprint(f"Écriture de paiement créée pour un montant total de <strong>{montant_formate}</strong>")

@@ -39,10 +39,10 @@ frappe.ui.form.on("Suivi Creance", {
 			.empty()
 			.append(`
 				${!frm.doc.type_paiement ? `
-					<button class="btn btn-primary btn-sm" id="btn-paiement">
+					<button class="btn btn-sm" id="btn-paiement" style="background-color: #34a0a4; color: white;">
 						Ajouter Paiement
 					</button>
-					<button class="btn btn-secondary btn-sm ml-2" id="btn-promesse">
+					<button class="btn btn-sm ml-2" id="btn-promesse" style="background-color: #f4a261; color: white;">
 						Promesse de paiement
 					</button>
 				` : !frm.doc.ecr_paiement ? `
@@ -372,20 +372,23 @@ frappe.ui.form.on("Suivi Creance", {
 
 			// Ajouter le bouton Générer Paiements si un paiement existe
 			if (frm.doc.type_paiement) {
-				frm.add_custom_button(__('Générer Paiements'), function() {
-					frappe.confirm(
-						'Voulez-vous générer les écritures de paiement en brouillon ?',
-						function() {
-							frm.call({
-								doc: frm.doc,
-								method: 'generer_ecritures_paiement',
-								callback: function(r) {
-									frm.reload_doc();
-								}
-							});
-						}
-					);
-				}, __("Actions"));
+				// Vérifier si l'utilisateur a les rôles requis
+				if (frappe.user.has_role('Accounts User') || frappe.user.has_role('Accounts Manager')) {
+					frm.add_custom_button(__('Générer Paiements'), function() {
+						frappe.confirm(
+							'Voulez-vous générer les écritures de paiement en brouillon ?',
+							function() {
+								frm.call({
+									doc: frm.doc,
+									method: 'generer_ecritures_paiement',
+									callback: function(r) {
+										frm.reload_doc();
+									}
+								});
+							}
+						);
+					}, __("Actions"));
+				}
 			}
 		}
 	},

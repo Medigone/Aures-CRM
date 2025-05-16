@@ -12,6 +12,8 @@
   "date_prom_paiement",
   "id_utilisateur",
   "utilisateur",
+  "section_break_xjqw",
+  "progression",
   "section_break_dbcd",
   "id_client",
   "nom_client",
@@ -20,7 +22,6 @@
   "id_commercial",
   "commercial",
   "section_break_xwht",
-  "progression",
   "html_bout_payement",
   "factures",
   "section_break_dkmn",
@@ -248,12 +249,16 @@
    "label": "Pourcentage recouvert",
    "precision": "2",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_xjqw",
+   "fieldtype": "Section Break"
   }
  ],
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-16 21:18:46.297001",
+ "modified": "2025-05-16 22:54:18.405972",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",
@@ -269,6 +274,12 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant",
    "write": 1
   }
  ],
