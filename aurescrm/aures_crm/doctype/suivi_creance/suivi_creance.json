@@ -15,6 +15,8 @@
   "groupe_client",
   "id_commercial",
   "commercial",
+  "section_break_xwht",
+  "factures",
   "section_break_xcwu",
   "montant_tot_du",
   "column_break_rzyt",
@@ -22,9 +24,7 @@
   "section_break_pwji",
   "observations",
   "section_break_kncy",
-  "raison_litige",
-  "factures_tab",
-  "factures"
+  "raison_litige"
  ],
  "fields": [
   {
@@ -101,11 +101,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "factures_tab",
-   "fieldtype": "Tab Break",
-   "label": "Factures"
-  },
-  {
    "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
@@ -142,11 +137,15 @@
    "fieldname": "factures",
    "fieldtype": "Table",
    "options": "Factures Creances"
+  },
+  {
+   "fieldname": "section_break_xwht",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-15 13:43:02.567846",
+ "modified": "2025-05-16 12:06:16.961154",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",

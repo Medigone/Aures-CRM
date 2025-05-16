@@ -11,6 +11,7 @@
   "client",
   "column_break_zbbn",
   "article",
+  "designation_art",
   "section_break_lpvd",
   "ver",
   "parent_maquette",
@@ -174,11 +175,18 @@
    "fieldname": "nom_fichier_source",
    "fieldtype": "Data",
    "label": "Nom Fichier Maquette"
+  },
+  {
+   "fetch_from": "article.item_code",
+   "fieldname": "designation_art",
+   "fieldtype": "Data",
+   "label": "D\u00e9signation Article",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-20 14:43:42.821250",
+ "modified": "2025-05-15 15:45:52.531360",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
