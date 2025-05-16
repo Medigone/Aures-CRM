@@ -16,6 +16,14 @@
   "groupe_client",
   "id_commercial",
   "commercial",
+  "section_break_ovck",
+  "type_paiement",
+  "section_break_dkmn",
+  "date_doc_payement",
+  "montant_payement",
+  "column_break_jxum",
+  "n_doc",
+  "photo",
   "section_break_xwht",
   "factures",
   "montant_tot_du",
@@ -41,7 +49,8 @@
    "in_standard_filter": 1,
    "label": "ID Client",
    "options": "Customer",
-   "placeholder": "S\u00e9lectionnez le Client"
+   "placeholder": "S\u00e9lectionnez le Client",
+   "set_only_once": 1
   },
   {
    "fetch_from": "id_client.customer_name",
@@ -133,11 +142,56 @@
   {
    "fieldname": "section_break_xwht",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_ovck",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "type_paiement",
+   "fieldtype": "Select",
+   "label": "Type Paiement",
+   "options": "Esp\u00e8ce\nCh\u00e8que\nVirement"
+  },
+  {
+   "fieldname": "section_break_dkmn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\"\n",
+   "description": "Photo du ch\u00e8que ou de l\u2019ordre de virement associ\u00e9.",
+   "fieldname": "photo",
+   "fieldtype": "Attach",
+   "label": "Photo"
+  },
+  {
+   "fieldname": "column_break_jxum",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "montant_payement",
+   "fieldtype": "Currency",
+   "label": "Montant",
+   "precision": "2"
+  },
+  {
+   "depends_on": "eval:doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\"\n",
+   "description": "Date du ch\u00e8que ou de l\u2019ordre de virement associ\u00e9.",
+   "fieldname": "date_doc_payement",
+   "fieldtype": "Date",
+   "label": "Date Ch\u00e8que/Virement"
+  },
+  {
+   "depends_on": "eval:doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\"\n",
+   "description": "Num\u00e9ro du ch\u00e8que ou de l\u2019ordre de virement associ\u00e9.",
+   "fieldname": "n_doc",
+   "fieldtype": "Data",
+   "label": "N\u00ba"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-16 12:20:16.444551",
+ "modified": "2025-05-16 12:43:56.479168",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",
