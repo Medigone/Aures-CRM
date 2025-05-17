@@ -866,12 +866,15 @@ function show_item_technical_specs(article_name) {
                     "custom_fiche_technique_article", 
                     "custom_désignation", 
                     "custom_type_support", 
-                    "custom_epaisseur", 
+                    "custom_complexage",
+                    "custom_epaisseur",
+                    "custom_epaisseur_2",
                     "custom_diametre_mandrin", 
                     "custom_diamètre_bobine", 
                     "custom_dimensions_h_x_l", 
                     "custom_sens_deroulement", 
-                    "custom_sense_défilement_"
+                    "custom_sense_défilement_",
+                    "custom_poids_bobine"
                 ];
                 
                 // Sélectionner les champs à afficher selon le procédé
@@ -1043,12 +1046,15 @@ if (!window.showItemTechnicalSpecs) {
                         "custom_fiche_technique_article", 
                         "custom_désignation", 
                         "custom_type_support", 
-                        "custom_epaisseur", 
+                        "custom_complexage",
+                        "custom_epaisseur",
+                        "custom_epaisseur_2",
                         "custom_diametre_mandrin", 
                         "custom_diamètre_bobine", 
                         "custom_dimensions_h_x_l", 
                         "custom_sens_deroulement", 
-                        "custom_sense_défilement_"
+                        "custom_sense_défilement_",
+                        "custom_poids_bobine"
                     ];
                     
                     // Sélectionner les champs à afficher selon le procédé
