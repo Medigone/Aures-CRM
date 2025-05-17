@@ -5,19 +5,134 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "status"
+  "status",
+  "date",
+  "column_break_vsxt",
+  "section_break_nhap",
+  "client",
+  "nom_client",
+  "column_break_vvfq",
+  "article",
+  "designation",
+  "section_break_mcxc",
+  "laize",
+  "nbr_couleurs",
+  "column_break_njzg",
+  "developpement",
+  "maquette",
+  "section_break_jwyi",
+  "fich_cliche",
+  "column_break_kmsn",
+  "fich_maquette"
  ],
  "fields": [
   {
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Statut",
-   "options": "Activ\u00e9"
+   "options": "Nouveau\nEn Devis\nAccept\u00e9\nRejet\u00e9\nR\u00e9alis\u00e9\nArchiv\u00e9"
+  },
+  {
+   "fieldname": "section_break_nhap",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "column_break_vsxt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom Client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_vvfq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "fetch_from": "article.item_code",
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "D\u00e9signation Article",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_mcxc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "laize",
+   "fieldtype": "Data",
+   "label": "Laize"
+  },
+  {
+   "fieldname": "nbr_couleurs",
+   "fieldtype": "Data",
+   "label": "Nbr Couleurs"
+  },
+  {
+   "fieldname": "column_break_njzg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "developpement",
+   "fieldtype": "Data",
+   "label": "D\u00e9veloppement"
+  },
+  {
+   "fieldname": "maquette",
+   "fieldtype": "Link",
+   "label": "Maquette",
+   "options": "Maquette"
+  },
+  {
+   "fieldname": "section_break_jwyi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "fich_cliche",
+   "fieldtype": "Attach",
+   "label": "Fichier Clich\u00e9"
+  },
+  {
+   "fieldname": "column_break_kmsn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "maquette.fichier_maquette",
+   "fieldname": "fich_maquette",
+   "fieldtype": "Attach",
+   "label": "Fichier Maquette",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-12 16:25:50.931544",
+ "modified": "2025-05-17 19:02:24.297359",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Cliche",

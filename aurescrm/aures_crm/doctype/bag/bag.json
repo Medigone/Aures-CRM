@@ -5,17 +5,112 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_9cwx"
+  "status",
+  "date",
+  "section_break_gxdx",
+  "client",
+  "nom_client",
+  "column_break_phlp",
+  "article",
+  "designation",
+  "section_break_nclo",
+  "trace",
+  "fich_trace",
+  "column_break_kcoe",
+  "maquette",
+  "fich_maquette"
  ],
  "fields": [
   {
-   "fieldname": "section_break_9cwx",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "Nouveau\nValid\u00e9\nRejet\u00e9\nAnnul\u00e9"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "section_break_gxdx",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom Client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_phlp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "fetch_from": "article.item_code",
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "D\u00e9signation Article",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_nclo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Trac\u00e9",
+   "options": "Trace"
+  },
+  {
+   "fetch_from": "trace.fichier_trace",
+   "fieldname": "fich_trace",
+   "fieldtype": "Attach",
+   "label": "Fichier Trac\u00e9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_kcoe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "maquette",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Maquette",
+   "options": "Maquette"
+  },
+  {
+   "fetch_from": "maquette.fichier_maquette",
+   "fieldname": "fich_maquette",
+   "fieldtype": "Attach Image",
+   "label": "Fichier Maquette",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-13 13:52:28.950361",
+ "modified": "2025-05-17 19:15:44.204315",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAG",

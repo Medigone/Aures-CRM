@@ -198,7 +198,7 @@
   {
    "fetch_from": "imposition.fichier_imp",
    "fieldname": "fichier_maq",
-   "fieldtype": "Attach",
+   "fieldtype": "Attach Image",
    "label": "Fichier Maquette"
   },
   {
@@ -234,7 +234,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-13 12:46:55.447029",
+ "modified": "2025-05-17 19:15:33.836107",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",

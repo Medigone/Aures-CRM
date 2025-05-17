@@ -13,7 +13,6 @@
   "article",
   "section_break_joaj",
   "trace",
-  "cliche",
   "column_break_iirs",
   "format_imp",
   "laize_pal",
@@ -148,16 +147,11 @@
    "label": "Proc\u00e9d\u00e9",
    "options": "\nOffset\nFlexo",
    "read_only": 1
-  },
-  {
-   "fieldname": "cliche",
-   "fieldtype": "Data",
-   "label": "Clich\u00e9"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-13 11:16:01.898708",
+ "modified": "2025-05-17 19:00:44.003571",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Imposition",
