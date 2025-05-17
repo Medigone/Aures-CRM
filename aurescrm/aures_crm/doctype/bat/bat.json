@@ -91,7 +91,8 @@
    "fetch_from": "trace.dimensions",
    "fieldname": "dimens_trace",
    "fieldtype": "Data",
-   "label": "Dimensions Trac\u00e9"
+   "label": "Dimensions Trac\u00e9",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_hlrz",
@@ -118,10 +119,11 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "imposition.fichier_imp",
+   "fetch_from": "maquette.fichier_maquette",
    "fieldname": "fichier_maq",
    "fieldtype": "Attach Image",
-   "label": "Fichier Maquette"
+   "label": "Fichier Maquette",
+   "read_only": 1
   },
   {
    "fetch_from": "client.customer_name",
@@ -156,7 +158,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 21:44:30.062534",
+ "modified": "2025-05-17 21:46:43.720005",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",
