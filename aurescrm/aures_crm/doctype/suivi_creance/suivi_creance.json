@@ -258,7 +258,7 @@
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-16 22:54:18.405972",
+ "modified": "2025-05-17 10:11:57.943190",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",
@@ -280,6 +280,39 @@
    "create": 1,
    "read": 1,
    "role": "Commercial Itin\u00e9rant",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
    "write": 1
   }
  ],
