@@ -73,7 +73,6 @@ frappe.ui.form.on('Demande Faisabilite', {
 
         // --- Bouton "Confirmer" ---
         if (frm.doc.status === "Brouillon") {
-            // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button("Confirmer", function() {
                 frappe.confirm(
                     "Voulez-vous vraiment confirmer cette demande et générer une Étude de Faisabilité pour chaque article ?",
@@ -98,7 +97,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                         });
                     }
                 );
-            });
+            }).addClass("btn-primary").css({"background-color": "#52b69a", "border-color": "#52b69a"});
         }
 
         // --- Bouton "Annuler" ---
