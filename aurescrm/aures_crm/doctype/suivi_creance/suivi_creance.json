@@ -258,7 +258,7 @@
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 10:11:57.943190",
+ "modified": "2025-05-17 18:37:49.955772",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",
@@ -280,6 +280,12 @@
    "create": 1,
    "read": 1,
    "role": "Commercial Itin\u00e9rant",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire",
    "write": 1
   },
   {
