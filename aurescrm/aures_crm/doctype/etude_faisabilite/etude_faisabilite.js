@@ -17,11 +17,11 @@ frappe.ui.form.on('Etude Faisabilite', {
         refresh_attached_files(frm);
         
         // Ajouter le bouton pour afficher/modifier les spécifications techniques de l'article
-        if (frm.doc.article) {
-            frm.add_custom_button(__('Spécifications Techniques'), function() {
-                show_item_technical_specs(frm.doc.article);
-            }, __('Article'));
-        }
+        // if (frm.doc.article) {
+        //     frm.add_custom_button(__('Spécifications Techniques'), function() {
+        //         show_item_technical_specs(frm.doc.article);
+        //     }, __('Article'));
+        // }
     },
     
     /**

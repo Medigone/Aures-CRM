@@ -22,18 +22,6 @@
   "fich_trace",
   "column_break_hlrz",
   "dimens_trace",
-  "impo_tab",
-  "section_break_drfr",
-  "imposition",
-  "column_break_fjtb",
-  "fichier_imp",
-  "section_break_ilax",
-  "format_imp",
-  "forme_decoupe",
-  "an_num_fd",
-  "column_break_tkgv",
-  "nbr_poses",
-  "laize_pal",
   "maquette_tab",
   "maquette",
   "column_break_oira",
@@ -93,13 +81,6 @@
    "options": "Trace"
   },
   {
-   "fieldname": "imposition",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Imposition",
-   "options": "Imposition"
-  },
-  {
    "fieldname": "maquette",
    "fieldtype": "Link",
    "in_standard_filter": 1,
@@ -126,65 +107,6 @@
    "fieldname": "trace_tab",
    "fieldtype": "Tab Break",
    "label": "Trac\u00e9"
-  },
-  {
-   "fieldname": "impo_tab",
-   "fieldtype": "Tab Break",
-   "label": "Imposition"
-  },
-  {
-   "fetch_from": "imposition.format_imp",
-   "fieldname": "format_imp",
-   "fieldtype": "Data",
-   "label": "Format d'impression"
-  },
-  {
-   "fetch_from": "imposition.laize_pal",
-   "fieldname": "laize_pal",
-   "fieldtype": "Select",
-   "label": "Laize / Palette ?",
-   "options": "\nLaize\nPalette"
-  },
-  {
-   "fetch_from": "imposition.forme_decoupe",
-   "fieldname": "forme_decoupe",
-   "fieldtype": "Link",
-   "label": "Forme D\u00e9coupe",
-   "options": "Forme Decoupe"
-  },
-  {
-   "fetch_from": "imposition.nbr_poses",
-   "fieldname": "nbr_poses",
-   "fieldtype": "Int",
-   "label": "Nombre de poses"
-  },
-  {
-   "fetch_from": "imposition.an_num_fd",
-   "fieldname": "an_num_fd",
-   "fieldtype": "Data",
-   "label": "Ancien Num\u00e9ro FD"
-  },
-  {
-   "fetch_from": "imposition.fichier_imp",
-   "fieldname": "fichier_imp",
-   "fieldtype": "Attach",
-   "label": "Fichier Imposition"
-  },
-  {
-   "fieldname": "column_break_tkgv",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_drfr",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_fjtb",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_ilax",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "maquette_tab",
@@ -234,7 +156,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 19:15:33.836107",
+ "modified": "2025-05-17 21:44:30.062534",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",
@@ -322,7 +244,7 @@
    "write": 1
   }
  ],
- "search_fields": "client,article,format_imp,dimens_trace",
+ "search_fields": "client,article,dimens_trace",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [
