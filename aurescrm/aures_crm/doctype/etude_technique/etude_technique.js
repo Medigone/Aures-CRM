@@ -97,37 +97,65 @@ frappe.ui.form.on("Etude Technique", {
 			}, __("Attribuer"));
 		}
 		// Bouton 'Créer BAT'
-		if (!frm.doc.__islocal && frm.doc.status === 'Terminé') {
+		if (!frm.doc.__islocal && frm.doc.status === 'Terminé' && !frm.doc.bat) {
 			frm.add_custom_button(__('Créer BAT'), function() {
-				frappe.model.with_doctype('BAT', function() {
-					let bat = frappe.model.get_new_doc('BAT');
-					
-					// Copier les données de l'étude technique vers le BAT
-					bat.client = frm.doc.client;
-					bat.article = frm.doc.article;
-					bat.trace = frm.doc.trace;
-					bat.maquette = frm.doc.maquette;
-					bat.etude_tech = frm.doc.name;
-					
-					// Sauvegarder le BAT
-					frappe.call({
-						method: 'frappe.client.save',
-						args: {
-							doc: bat
-						},
-						callback: function(r) {
-							if (!r.exc) {
-								frappe.show_alert({
-									message: __('BAT créé avec succès'),
-									indicator: 'green'
-								});
-								frappe.set_route('Form', 'BAT', r.message.name);
-							} else {
-								frappe.msgprint(__('Erreur lors de la création du BAT'));
-							}
-						}
-					});
-				});
+				frappe.confirm(
+					__('Voulez-vous créer un BAT à partir de cette étude technique ?'),
+					function() {
+						// Action si l'utilisateur confirme
+						frappe.model.with_doctype('BAT', function() {
+							let bat = frappe.model.get_new_doc('BAT');
+							
+							// Copier les données de l'étude technique vers le BAT
+							bat.client = frm.doc.client;
+							bat.article = frm.doc.article;
+							bat.trace = frm.doc.trace;
+							bat.maquette = frm.doc.maquette;
+							bat.etude_tech = frm.doc.name;
+							
+							// Sauvegarder le BAT
+							frappe.call({
+								method: 'frappe.client.save',
+								args: {
+									doc: bat
+								},
+								callback: function(r) {
+									if (!r.exc) {
+										// Mettre à jour le champ 'bat' dans l'étude technique
+										frappe.call({
+											method: 'frappe.client.set_value',
+											args: {
+												doctype: 'Etude Technique',
+												name: frm.doc.name,
+												fieldname: 'bat',
+												value: r.message.name
+											},
+											callback: function(response) {
+												if (!response.exc) {
+													frappe.show_alert({
+														message: __('BAT créé avec succès'),
+														indicator: 'green'
+													});
+													frm.reload_doc();
+													frappe.set_route('Form', 'BAT', r.message.name);
+												}
+											}
+										});
+									} else {
+										frappe.msgprint(__('Erreur lors de la création du BAT'));
+									}
+								}
+							});
+						});
+					},
+					function() {
+						// Action si l'utilisateur annule
+						frappe.show_alert({
+							message: __('Création du BAT annulée'),
+							indicator: 'orange'
+						});
+					}
+				);
 			}).addClass('btn-primary');
 		}
 	},

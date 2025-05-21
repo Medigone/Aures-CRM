@@ -35,6 +35,8 @@
   "section_break_ahbw",
   "observations",
   "observations_tab",
+  "bat",
+  "section_break_uicy",
   "demande_faisabilite",
   "column_break_xqom",
   "devis",
@@ -331,12 +333,23 @@
    "in_standard_filter": 1,
    "label": "Retirage",
    "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "bat",
+   "fieldtype": "Link",
+   "label": "BAT",
+   "options": "BAT"
+  },
+  {
+   "fieldname": "section_break_uicy",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-13 11:22:47.164109",
+ "modified": "2025-05-21 12:15:11.346021",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",

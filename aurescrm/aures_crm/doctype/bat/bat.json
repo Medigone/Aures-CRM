@@ -11,9 +11,10 @@
   "dimens_trace",
   "column_break_ffpx",
   "valide_par",
-  "valide_par_nom",
-  "column_break_iqty",
   "obsolete_par",
+  "echantillon_par",
+  "valide_par_nom",
+  "echantillon_par_nom",
   "obsolete_par_nom",
   "section_break_bols",
   "client",
@@ -21,6 +22,8 @@
   "column_break_uwir",
   "article",
   "designation_article",
+  "section_break_znaa",
+  "fichier_valide",
   "trace_tab",
   "etude_tech",
   "column_break_cdzn",
@@ -40,7 +43,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nValid\u00e9\nObsol\u00e8te"
+   "options": "Nouveau\nValid\u00e9\n\u00c9chantillon Valid\u00e9\nObsol\u00e8te"
   },
   {
    "fieldname": "section_break_oyyz",
@@ -191,30 +194,52 @@
    "label": "Image BAT"
   },
   {
-   "fieldname": "column_break_iqty",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "obsolete_par",
    "fieldtype": "Link",
    "hidden": 1,
    "in_standard_filter": 1,
-   "label": "Obsol\u00e8te par ID Copy",
+   "label": "Obsol\u00e8te par ID",
    "options": "User",
    "show_on_timeline": 1
   },
   {
-   "fetch_from": "valide_par.full_name",
+   "fetch_from": "obsolete_par.full_name",
    "fieldname": "obsolete_par_nom",
    "fieldtype": "Data",
-   "label": "Obsol\u00e8te par Copy",
+   "label": "Obsol\u00e8te par",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_znaa",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "BAT valid\u00e9 par client",
+   "fieldname": "fichier_valide",
+   "fieldtype": "Attach",
+   "label": "Fichier Valid\u00e9"
+  },
+  {
+   "fieldname": "echantillon_par",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "\u00c9chantillon par ID",
+   "options": "User",
+   "show_on_timeline": 1
+  },
+  {
+   "fetch_from": "echantillon_par.full_name",
+   "fieldname": "echantillon_par_nom",
+   "fieldtype": "Data",
+   "label": "\u00c9chantillon par",
    "read_only": 1
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 11:57:55.414352",
+ "modified": "2025-05-21 12:50:39.557443",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",
@@ -311,16 +336,16 @@
    "title": "Nouveau"
   },
   {
-   "color": "Green",
+   "color": "Orange",
    "title": "Valid\u00e9"
   },
   {
-   "color": "Orange",
-   "title": "Obsol\u00e8te"
+   "color": "Green",
+   "title": "\u00c9chantillon Valid\u00e9"
   },
   {
    "color": "Red",
-   "title": "Annuler"
+   "title": "Obsol\u00e8te"
   }
  ],
  "track_changes": 1
