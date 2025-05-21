@@ -12,6 +12,9 @@
   "column_break_ffpx",
   "valide_par",
   "valide_par_nom",
+  "column_break_iqty",
+  "obsolete_par",
+  "obsolete_par_nom",
   "section_break_bols",
   "client",
   "nom_client",
@@ -186,12 +189,32 @@
    "fieldname": "image",
    "fieldtype": "Attach Image",
    "label": "Image BAT"
+  },
+  {
+   "fieldname": "column_break_iqty",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "obsolete_par",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Obsol\u00e8te par ID Copy",
+   "options": "User",
+   "show_on_timeline": 1
+  },
+  {
+   "fetch_from": "valide_par.full_name",
+   "fieldname": "obsolete_par_nom",
+   "fieldtype": "Data",
+   "label": "Obsol\u00e8te par Copy",
+   "read_only": 1
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 11:55:49.559676",
+ "modified": "2025-05-21 11:57:55.414352",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",

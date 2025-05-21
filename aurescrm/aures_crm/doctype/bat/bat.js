@@ -24,6 +24,7 @@ frappe.ui.form.on("BAT", {
 		if (!frm.doc.__islocal && frm.doc.status === 'Validé') {
 			frm.add_custom_button(__('Obsolète'), function() {
 				frm.set_value('status', 'Obsolète');
+                frm.set_value('obsolete_par', currentUser);
 				
 				frm.save().then(() => {
 					frappe.show_alert({
