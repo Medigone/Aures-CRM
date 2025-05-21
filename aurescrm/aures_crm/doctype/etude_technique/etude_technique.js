@@ -96,7 +96,40 @@ frappe.ui.form.on("Etude Technique", {
 				dialog.show();
 			}, __("Attribuer"));
 		}
-		// Votre code existant ici, s'il y en a
+		// Bouton 'Créer BAT'
+		if (!frm.doc.__islocal && frm.doc.status === 'Terminé') {
+			frm.add_custom_button(__('Créer BAT'), function() {
+				frappe.model.with_doctype('BAT', function() {
+					let bat = frappe.model.get_new_doc('BAT');
+					
+					// Copier les données de l'étude technique vers le BAT
+					bat.client = frm.doc.client;
+					bat.article = frm.doc.article;
+					bat.trace = frm.doc.trace;
+					bat.maquette = frm.doc.maquette;
+					bat.etude_tech = frm.doc.name;
+					
+					// Sauvegarder le BAT
+					frappe.call({
+						method: 'frappe.client.save',
+						args: {
+							doc: bat
+						},
+						callback: function(r) {
+							if (!r.exc) {
+								frappe.show_alert({
+									message: __('BAT créé avec succès'),
+									indicator: 'green'
+								});
+								frappe.set_route('Form', 'BAT', r.message.name);
+							} else {
+								frappe.msgprint(__('Erreur lors de la création du BAT'));
+							}
+						}
+					});
+				});
+			}).addClass('btn-primary');
+		}
 	},
 
 	quantite(frm) {

@@ -8,6 +8,7 @@
   "status",
   "section_break_oyyz",
   "date",
+  "dimens_trace",
   "column_break_ffpx",
   "valide_par",
   "valide_par_nom",
@@ -18,21 +19,25 @@
   "article",
   "designation_article",
   "trace_tab",
+  "etude_tech",
+  "column_break_cdzn",
+  "image",
+  "section_break_cjff",
   "trace",
-  "fich_trace",
   "column_break_hlrz",
-  "dimens_trace",
-  "maquette_tab",
+  "fich_trace",
+  "section_break_obym",
   "maquette",
-  "column_break_oira",
+  "column_break_pdek",
   "fichier_maq"
  ],
  "fields": [
   {
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nValid\u00e9\nObsol\u00e8te\nAnnul\u00e9"
+   "options": "Nouveau\nValid\u00e9\nObsol\u00e8te"
   },
   {
    "fieldname": "section_break_oyyz",
@@ -42,6 +47,8 @@
    "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Date cr\u00e9ation",
    "read_only": 1
   },
@@ -76,16 +83,17 @@
   {
    "fieldname": "trace",
    "fieldtype": "Link",
-   "in_standard_filter": 1,
    "label": "Trac\u00e9",
-   "options": "Trace"
+   "options": "Trace",
+   "read_only": 1
   },
   {
    "fieldname": "maquette",
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "Maquette",
-   "options": "Maquette"
+   "options": "Maquette",
+   "read_only": 1
   },
   {
    "fetch_from": "trace.dimensions",
@@ -102,21 +110,13 @@
    "fetch_from": "trace.fichier_trace",
    "fieldname": "fich_trace",
    "fieldtype": "Attach",
-   "label": "Fichier Trac\u00e9"
+   "label": "Fichier Trac\u00e9",
+   "read_only": 1
   },
   {
    "fieldname": "trace_tab",
    "fieldtype": "Tab Break",
-   "label": "Trac\u00e9"
-  },
-  {
-   "fieldname": "maquette_tab",
-   "fieldtype": "Tab Break",
-   "label": "Maquette"
-  },
-  {
-   "fieldname": "column_break_oira",
-   "fieldtype": "Column Break"
+   "label": "Documents Li\u00e9s"
   },
   {
    "fetch_from": "maquette.fichier_maquette",
@@ -144,9 +144,11 @@
   {
    "fieldname": "valide_par",
    "fieldtype": "Link",
+   "hidden": 1,
    "in_standard_filter": 1,
    "label": "Valid\u00e9 par ID",
-   "options": "User"
+   "options": "User",
+   "show_on_timeline": 1
   },
   {
    "fetch_from": "valide_par.full_name",
@@ -154,11 +156,42 @@
    "fieldtype": "Data",
    "label": "Valid\u00e9 par",
    "read_only": 1
+  },
+  {
+   "fieldname": "etude_tech",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "\u00c9tude Technique",
+   "options": "Etude Technique",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_cjff",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_obym",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_pdek",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_cdzn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Doit \u00eatre en fichier image (Trac\u00e9 + Maquette) sans ent\u00eate.",
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image BAT"
   }
  ],
+ "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 21:46:43.720005",
+ "modified": "2025-05-21 11:55:49.559676",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",
@@ -246,7 +279,7 @@
    "write": 1
   }
  ],
- "search_fields": "client,article,dimens_trace",
+ "search_fields": "client,article,dimens_trace,etude_tech",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [
@@ -267,6 +300,5 @@
    "title": "Annuler"
   }
  ],
- "title_field": "client",
  "track_changes": 1
 }
