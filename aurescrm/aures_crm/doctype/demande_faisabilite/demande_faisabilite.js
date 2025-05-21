@@ -2,6 +2,8 @@
 // For license information, please see license.txt
 frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
+        // Cacher le bouton 'add row' par défaut
+        frm.get_field('liste_articles').grid.wrapper.find('.grid-add-row').hide();
         load_etude_links(frm);
         frm.clear_custom_buttons(); // Clear existing buttons first
 
