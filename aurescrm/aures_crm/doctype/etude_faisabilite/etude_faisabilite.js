@@ -830,7 +830,8 @@ function show_item_technical_specs(article_name) {
                 
                 // Définir les champs à afficher selon le procédé
                 const champsOffset = [
-                    "custom_fiche_technique_article", 
+                    "custom_fiche_technique_article",
+                    "custom_conditionnement",
                     "custom_support_fourni", 
                     "custom_support", 
                     "custom_grammage",
@@ -865,6 +866,7 @@ function show_item_technical_specs(article_name) {
                 
                 const champsFlexo = [
                     "custom_fiche_technique_article", 
+                    "custom_conditionnement",
                     "custom_désignation", 
                     "custom_type_support", 
                     "custom_complexage",
@@ -1011,7 +1013,8 @@ if (!window.showItemTechnicalSpecs) {
                     
                     // Définir les champs à afficher selon le procédé
                     const champsOffset = [
-                        "custom_fiche_technique_article", 
+                        "custom_fiche_technique_article",
+                        "custom_conditionnement",
                         "custom_support_fourni", 
                         "custom_support", 
                         "custom_grammage", 
@@ -1045,7 +1048,8 @@ if (!window.showItemTechnicalSpecs) {
                     ];
                     
                     const champsFlexo = [
-                        "custom_fiche_technique_article", 
+                        "custom_fiche_technique_article",
+                        "custom_conditionnement", 
                         "custom_désignation", 
                         "custom_type_support", 
                         "custom_complexage",
