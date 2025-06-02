@@ -3,27 +3,26 @@ import frappe
 
 
 def custom_item_naming(doc, method):
-    if doc.item_group == "Produits":
-        if doc.custom_client:
-            # Récupérer l'ID du client
-            customer_id = frappe.get_value("Customer", doc.custom_client, "name")
-            if not customer_id:
-                frappe.throw("Le champ Client est invalide ou vide.")
+    if doc.custom_client:
+        # Récupérer l'ID du client
+        customer_id = frappe.get_value("Customer", doc.custom_client, "name")
+        if not customer_id:
+            frappe.throw("Le champ Client est invalide ou vide.")
 
-            # Récupérer le dernier numéro utilisé pour ce client
-            last_number = frappe.get_value("Customer", doc.custom_client, "custom_dernier_numéro_article") or 0
+        # Récupérer le dernier numéro utilisé pour ce client
+        last_number = frappe.get_value("Customer", doc.custom_client, "custom_dernier_numéro_article") or 0
 
-            # Incrémenter le compteur
-            next_number = last_number + 1
+        # Incrémenter le compteur
+        next_number = last_number + 1
 
-            # Mettre à jour le dernier numéro utilisé dans le Doctype Customer
-            frappe.db.set_value("Customer", doc.custom_client, "custom_dernier_numéro_article", next_number)
+        # Mettre à jour le dernier numéro utilisé dans le Doctype Customer
+        frappe.db.set_value("Customer", doc.custom_client, "custom_dernier_numéro_article", next_number)
 
-            # Générer le nom complet de l'article
-            doc.name = f"{customer_id}-{next_number:03}"
+        # Générer le nom complet de l'article
+        doc.name = f"{customer_id}-{next_number:03}"
 
-        else:
-            frappe.throw("Veuillez sélectionner un client pour générer un code Item.")
+    else:
+        frappe.throw("Veuillez sélectionner un client pour générer un code Item.")
 
 
 
