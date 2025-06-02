@@ -165,11 +165,10 @@
    "read_only": 1
   },
   {
-   "description": "Seulement pour r\u00e9f\u00e9rence visuelle (version l\u00e9g\u00e8re en pdf)<br>\n\n<strong>Ne pas attacher le fichier source.</strong>",
+   "description": "Seulement pour r\u00e9f\u00e9rence visuelle (version l\u00e9g\u00e8re en image)<br>\n\n<strong>Ne pas attacher le fichier source.</strong>",
    "fieldname": "fichier_maquette",
-   "fieldtype": "Attach",
-   "label": "Fichier Maquette",
-   "options": "pdf"
+   "fieldtype": "Attach Image",
+   "label": "Fichier Maquette"
   },
   {
    "fieldname": "nom_fichier_source",
@@ -184,9 +183,10 @@
    "read_only": 1
   }
  ],
+ "image_field": "fichier_maquette",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-15 15:45:52.531360",
+ "modified": "2025-06-02 16:03:59.846935",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
