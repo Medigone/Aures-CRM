@@ -137,7 +137,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fetch_from": "id_responsable.full_name",
    "fieldname": "reference_par",
    "fieldtype": "Link",
    "hidden": 1,
@@ -186,7 +185,7 @@
  "image_field": "fichier_maquette",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-02 16:03:59.846935",
+ "modified": "2025-06-02 16:12:59.463922",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
