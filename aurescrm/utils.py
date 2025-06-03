@@ -53,7 +53,6 @@ def custom_delivery_address_naming(doc, method):
         frappe.throw("Veuillez sélectionner un client pour générer un code pour l'adresse de livraison.")
 
 
-import frappe
 
 def format_item_fields(doc, method):
     """
@@ -65,3 +64,62 @@ def format_item_fields(doc, method):
 
         # Générer automatiquement item_name basé sur item_code
         doc.item_name = doc.item_code  # `item_name` sera toujours égal à `item_code`
+
+
+def update_item_description(doc, method):
+    """Met à jour la description de l'article en combinant plusieurs champs."""
+    # Première ligne : informations de base
+    base_info = []
+    
+    # Traiter chaque champ individuellement pour gérer le cas spécial du grammage
+    if doc.item_code:
+        base_info.append(str(doc.item_code))
+    if doc.custom_support:
+        base_info.append(str(doc.custom_support))
+    if doc.custom_grammage:
+        base_info.append(f"{doc.custom_grammage}Gr")
+    if doc.custom_cotations_article:
+        base_info.append(str(doc.custom_cotations_article))
+    
+    description = ' '.join(base_info) + '\n' if base_info else '\n'
+    
+    # Liste des champs à vérifier
+    fields_to_check = [
+        ('custom_acrylique', 'Acrylique'),
+        ('custom_sélectif', 'Sélectif'),
+        ('custom_uv', 'UV'),
+        ('custom_drip_off', 'Drip-off'),
+        ('custom_mat_gras', 'Mat gras'),
+        ('custom_blister', 'Blister'),
+        ('custom_recto_verso', 'Recto-verso'),
+        ('custom_fenêtre', 'Fenêtre'),
+        ('custom_braille', 'Braille'),
+        ('custom_gaufrage__estampage', 'Gaufrage/Estampage'),
+        ('custom_massicot', 'Massicot'),
+        ('custom_collerette', 'Collerette'),
+        ('custom_blanc_couvrant', 'Blanc couvrant')
+    ]
+    
+    # Ajouter les étiquettes des champs qui ont la valeur 1
+    additional_info = [label for field, label in fields_to_check if doc.get(field) == 1]
+    if additional_info:
+        description += ' | '.join(additional_info)
+    
+    # Mettre à jour la description
+    doc.description = description
+
+
+@frappe.whitelist()
+def update_all_items_description():
+    """Met à jour la description de tous les articles."""
+    # Récupérer tous les articles
+    items = frappe.get_all("Item", fields=["name"])
+    count = 0
+    
+    for item in items:
+        doc = frappe.get_doc("Item", item.name)
+        update_item_description(doc, None)
+        doc.save()
+        count += 1
+    
+    return count
