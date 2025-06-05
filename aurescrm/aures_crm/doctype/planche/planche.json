@@ -5,7 +5,6 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "title",
   "section_break_tgjd",
   "largeur",
   "column_break_pbty",
@@ -13,18 +12,15 @@
  ],
  "fields": [
   {
-   "fieldname": "title",
-   "fieldtype": "Data",
-   "label": "Titre"
-  },
-  {
    "fieldname": "section_break_tgjd",
    "fieldtype": "Section Break"
   },
   {
    "fieldname": "largeur",
    "fieldtype": "Data",
-   "label": "Largeur (mm)"
+   "in_list_view": 1,
+   "label": "Largeur (mm)",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_pbty",
@@ -33,12 +29,14 @@
   {
    "fieldname": "hauteur",
    "fieldtype": "Data",
-   "label": "Hauteur (mm)"
+   "in_list_view": 1,
+   "label": "Hauteur (mm)",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-04 15:22:15.827640",
+ "modified": "2025-06-04 15:28:02.955305",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Planche",
