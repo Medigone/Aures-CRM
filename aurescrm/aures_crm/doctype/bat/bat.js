@@ -3,9 +3,9 @@
 
 frappe.ui.form.on("BAT", {
 	refresh(frm) {
-		// Bouton 'Valider'
+		// Bouton 'BAT-E Validé'
 		if (!frm.doc.__islocal && frm.doc.status === 'Nouveau') {
-			frm.add_custom_button(__('Valider'), function() {
+			frm.add_custom_button(__('BAT-E Validé'), function() {
 				if (!frm.doc.fichier_valide) {
 					frappe.msgprint({
 						title: __('Document requis'),
@@ -17,20 +17,52 @@ frappe.ui.form.on("BAT", {
 
 				let currentUser = frappe.session.user;
 				
-				frm.set_value('status', 'Validé');
+				frm.set_value('status', 'BAT-E Validé');
 				frm.set_value('valide_par', currentUser);
 				
 				frm.save().then(() => {
 					frappe.show_alert({
-						message: __('BAT validé avec succès'),
+						message: __('BAT-E validé avec succès'),
 						indicator: 'green'
 					});
 				});
 			}).addClass("btn-primary").css({"background-color": "#e76f51", "border-color": "#e76f51"});
 		}
 
+		// Bouton 'BAT-P Validé'
+		if (!frm.doc.__islocal && frm.doc.status === 'BAT-E Validé') {
+			frm.add_custom_button(__('BAT-P Validé'), function() {
+				frappe.confirm(
+					__('Voulez-vous valider le BAT-P ?'),
+					function() {
+						// Action si l'utilisateur confirme
+						let currentUser = frappe.session.user;
+						
+						Promise.all([
+							frm.set_value('status', 'BAT-P Validé'),
+							frm.set_value('echantillon_par', currentUser)
+						]).then(() => {
+							return frm.save();
+						}).then(() => {
+							frappe.show_alert({
+								message: __('BAT-P validé avec succès'),
+								indicator: 'green'
+							});
+						});
+					},
+					function() {
+						// Action si l'utilisateur annule
+						frappe.show_alert({
+							message: __('Opération annulée'),
+							indicator: 'orange'
+						});
+					}
+				);
+			}).addClass("btn-primary").css({"background-color": "#52b69a", "border-color": "#52b69a"});
+		}
+
 		// Bouton 'Obsolète'
-		if (!frm.doc.__islocal && (frm.doc.status === 'Validé' || frm.doc.status === 'Échantillon Validé')) {
+		if (!frm.doc.__islocal && (frm.doc.status === 'BAT-E Validé' || frm.doc.status === 'BAT-P Validé')) {
 			frm.add_custom_button(__('Obsolète'), function() {
 				frappe.confirm(
 					__('Voulez-vous vraiment marquer ce BAT comme obsolète ?'),
@@ -59,38 +91,6 @@ frappe.ui.form.on("BAT", {
 					}
 				);
 			}).addClass("btn-primary").css({"background-color": "#dc3545", "border-color": "#dc3545"});
-		}
-
-		// Bouton 'Échantillon Validé'
-		if (!frm.doc.__islocal && frm.doc.status === 'Validé') {
-			frm.add_custom_button(__('Échantillon Validé'), function() {
-				frappe.confirm(
-					__('Voulez-vous valider l\'échantillon pour ce BAT ?'),
-					function() {
-						// Action si l'utilisateur confirme
-						let currentUser = frappe.session.user;
-						
-						Promise.all([
-							frm.set_value('status', 'Échantillon Validé'),
-							frm.set_value('echantillon_par', currentUser)
-						]).then(() => {
-							return frm.save();
-						}).then(() => {
-							frappe.show_alert({
-								message: __('Échantillon validé avec succès'),
-								indicator: 'green'
-							});
-						});
-					},
-					function() {
-						// Action si l'utilisateur annule
-						frappe.show_alert({
-							message: __('Opération annulée'),
-							indicator: 'orange'
-						});
-					}
-				);
-			}).addClass("btn-primary").css({"background-color": "#52b69a", "border-color": "#52b69a"});
 		}
 	}
 });

@@ -43,7 +43,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nValid\u00e9\n\u00c9chantillon Valid\u00e9\nObsol\u00e8te"
+   "options": "Nouveau\nBAT-E Valid\u00e9\nBAT-P Valid\u00e9\nObsol\u00e8te"
   },
   {
    "fieldname": "section_break_oyyz",
@@ -160,7 +160,7 @@
    "fetch_from": "valide_par.full_name",
    "fieldname": "valide_par_nom",
    "fieldtype": "Data",
-   "label": "Valid\u00e9 par",
+   "label": "BAT \u00e9lectronique Valid\u00e9 par",
    "read_only": 1
   },
   {
@@ -206,7 +206,7 @@
    "fetch_from": "obsolete_par.full_name",
    "fieldname": "obsolete_par_nom",
    "fieldtype": "Data",
-   "label": "Obsol\u00e8te par",
+   "label": "BAT Obsol\u00e8te par",
    "read_only": 1
   },
   {
@@ -232,14 +232,14 @@
    "fetch_from": "echantillon_par.full_name",
    "fieldname": "echantillon_par_nom",
    "fieldtype": "Data",
-   "label": "\u00c9chantillon par",
+   "label": "BAT physique Valid\u00e9 par",
    "read_only": 1
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 12:50:39.557443",
+ "modified": "2025-06-12 10:23:58.830503",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",
@@ -337,11 +337,11 @@
   },
   {
    "color": "Orange",
-   "title": "Valid\u00e9"
+   "title": "BAT-E Valid\u00e9"
   },
   {
    "color": "Green",
-   "title": "\u00c9chantillon Valid\u00e9"
+   "title": "BAT-P Valid\u00e9"
   },
   {
    "color": "Red",
