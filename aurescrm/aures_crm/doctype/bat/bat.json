@@ -69,9 +69,11 @@
   {
    "fieldname": "client",
    "fieldtype": "Link",
+   "in_filter": 1,
    "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
+   "read_only": 1,
    "search_index": 1
   },
   {
@@ -81,9 +83,11 @@
   {
    "fieldname": "article",
    "fieldtype": "Link",
+   "in_filter": 1,
    "in_standard_filter": 1,
    "label": "Article",
    "options": "Item",
+   "read_only": 1,
    "search_index": 1
   },
   {
@@ -239,7 +243,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-12 10:23:58.830503",
+ "modified": "2025-06-12 17:43:46.317673",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",
