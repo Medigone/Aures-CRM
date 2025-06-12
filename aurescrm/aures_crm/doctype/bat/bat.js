@@ -31,33 +31,50 @@ frappe.ui.form.on("BAT", {
 
 		// Bouton 'BAT-P Validé'
 		if (!frm.doc.__islocal && frm.doc.status === 'BAT-E Validé') {
-			frm.add_custom_button(__('BAT-P Validé'), function() {
-				frappe.confirm(
-					__('Voulez-vous valider le BAT-P ?'),
-					function() {
-						// Action si l'utilisateur confirme
-						let currentUser = frappe.session.user;
-						
-						Promise.all([
-							frm.set_value('status', 'BAT-P Validé'),
-							frm.set_value('echantillon_par', currentUser)
-						]).then(() => {
-							return frm.save();
-						}).then(() => {
-							frappe.show_alert({
-								message: __('BAT-P validé avec succès'),
-								indicator: 'green'
-							});
-						});
-					},
-					function() {
-						// Action si l'utilisateur annule
-						frappe.show_alert({
-							message: __('Opération annulée'),
-							indicator: 'orange'
-						});
+			frm.add_custom_button(__("BAT-P Validé"), function() {
+				// Vérifier s'il existe déjà un BAT validé
+				frappe.db.get_list('BAT', {
+					filters: {
+						'article': frm.doc.article,
+						'status': 'BAT-P Validé',
+						'name': ['!=', frm.doc.name]
 					}
-				);
+				}).then(bats => {
+					if (bats && bats.length > 0) {
+						frappe.msgprint({
+							title: __("BAT déjà validé"),
+							message: __("Un BAT est déjà validé pour cet article. Veuillez d'abord marquer l'ancien BAT comme obsolète."),
+							indicator: 'red'
+						});
+						return;
+					}
+
+					// Continuer avec la validation si aucun BAT validé n'existe
+					frappe.confirm(
+						__("Voulez-vous valider le BAT-P ?"),
+						function() {
+							// Action si l'utilisateur confirme
+							let currentUser = frappe.session.user;
+							
+							frm.set_value('status', 'BAT-P Validé')
+								.then(() => frm.set_value('echantillon_par', currentUser))
+								.then(() => frm.save())
+								.then(() => {
+									frappe.show_alert({
+										message: __('BAT-P validé avec succès'),
+										indicator: 'green'
+									});
+								});
+						},
+						function() {
+							// Action si l'utilisateur annule
+							frappe.show_alert({
+								message: __('Opération annulée'),
+								indicator: 'orange'
+							});
+						}
+					);
+				});
 			}).addClass("btn-primary").css({"background-color": "#52b69a", "border-color": "#52b69a"});
 		}
 

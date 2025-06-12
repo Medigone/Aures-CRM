@@ -11,10 +11,26 @@ class EtudeTechnique(Document):
 	def validate(self):
 		"""Valide et calcule quant_feuilles avant la sauvegarde."""
 		self.calculate_quant_feuilles()
+		self.set_existing_bat()
 
 	def before_save(self):
 		"""Assure que le calcul est fait avant la sauvegarde."""
 		self.calculate_quant_feuilles()
+
+	def set_existing_bat(self):
+		"""Recherche et définit le BAT existant pour l'article."""
+		if not self.bat and self.article:
+			existing_bat = frappe.get_all(
+				"BAT",
+				filters={
+					"article": self.article,
+					"status": "BAT-P Validé"
+				},
+				pluck="name",
+				limit=1
+			)
+			if existing_bat:
+				self.bat = existing_bat[0]
 
 	def calculate_quant_feuilles(self):
 		"""Calcule la quantité de feuilles nécessaire."""
@@ -122,3 +138,41 @@ def get_techniciens_prepresse(doctype, txt, searchfield, start, page_len, filter
 		"start": start,
 		"page_len": page_len
 	}, as_list=True)
+
+
+@frappe.whitelist()
+def create_new_bat_from_etude(docname):
+	try:
+		etude = frappe.get_doc("Etude Technique", docname)
+		
+		# Marquer l'ancien BAT comme obsolète s'il existe
+		if etude.bat:
+			old_bat = frappe.get_doc("BAT", etude.bat)
+			old_bat.status = "Obsolète"
+			old_bat.obsolete_par = frappe.session.user
+			old_bat.save()
+
+		# Créer le nouveau BAT
+		new_bat = frappe.get_doc({
+			"doctype": "BAT",
+			"client": etude.client,
+			"article": etude.article,
+			"trace": etude.trace,
+			"maquette": etude.maquette,
+			"etude_tech": etude.name,
+			"status": "Nouveau"
+		})
+		new_bat.insert()
+
+		# Mettre à jour l'étude technique avec le nouveau BAT
+		etude.bat = new_bat.name
+		etude.save()
+
+		return {
+			"status": "success",
+			"message": "Nouveau BAT créé avec succès",
+			"bat_name": new_bat.name
+		}
+	except Exception as e:
+		frappe.log_error(f"Erreur lors de la création du nouveau BAT: {str(e)}")
+		return {"status": "error", "message": str(e)}
