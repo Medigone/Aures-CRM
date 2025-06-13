@@ -23,6 +23,8 @@
   "article",
   "designation_article",
   "section_break_znaa",
+  "code_bat_client",
+  "column_break_ohdg",
   "fichier_valide",
   "trace_tab",
   "etude_tech",
@@ -238,12 +240,23 @@
    "fieldtype": "Data",
    "label": "BAT physique Valid\u00e9 par",
    "read_only": 1
+  },
+  {
+   "description": "Version",
+   "fieldname": "code_bat_client",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Code BAT Client"
+  },
+  {
+   "fieldname": "column_break_ohdg",
+   "fieldtype": "Column Break"
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-12 17:43:46.317673",
+ "modified": "2025-06-13 09:03:51.090602",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",

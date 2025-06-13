@@ -8,21 +8,20 @@ from frappe.utils import today
 
 class BAT(Document):
 	def autoname(self):
-		# Format: BAT-{code article}-{date}
+		# Format: BAT-{code article}-{date}-V{version}
 		date_str = today()
 		# Supprimer 'CLI' de self.article
 		article_without_cli = self.article.replace('CLI-', '')
-		# Base name sans compteur
+		# Base name sans version
 		base_name = f"BAT-{article_without_cli}-{date_str}"
 		
-		# Ajouter un compteur si nécessaire
-		counter = 1
-		proposed_name = base_name
-		while frappe.db.exists('BAT', proposed_name):
-			counter += 1
-			proposed_name = f"{base_name}-{counter:03d}"
+		# Trouver la dernière version pour cet article à cette date
+		version = 1
+		while frappe.db.exists('BAT', f"{base_name}-V{version}"):
+			version += 1
 		
-		self.name = proposed_name
+		# Construire le nom final avec la version
+		self.name = f"{base_name}-V{version}"
 
 	def validate(self):
 		if self.status == 'BAT-P Validé':
