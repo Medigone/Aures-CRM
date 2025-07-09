@@ -5,15 +5,21 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "date",
   "status",
+  "section_break_ecvc",
+  "date",
   "section_break_rhgo",
   "id_fournisseur",
   "nom_fournisseur",
   "column_break_xcld",
   "pays",
   "code_pays",
-  "devise"
+  "section_break_qvpk",
+  "devise",
+  "column_break_vrcf",
+  "incoterm",
+  "documents_tab",
+  "achats"
  ],
  "fields": [
   {
@@ -76,11 +82,41 @@
    "fieldtype": "Data",
    "label": "Code Pays",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_qvpk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_vrcf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "incoterm",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Incoterm",
+   "options": "Incoterm"
+  },
+  {
+   "fieldname": "section_break_ecvc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "documents_tab",
+   "fieldtype": "Tab Break",
+   "label": "Documents"
+  },
+  {
+   "fieldname": "achats",
+   "fieldtype": "Table",
+   "label": "Achats",
+   "options": "Documents Achat Importation"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-08 17:10:11.683943",
+ "modified": "2025-07-09 11:32:08.773823",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Dossier Importation",
