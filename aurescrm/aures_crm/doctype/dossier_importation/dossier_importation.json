@@ -1,0 +1,130 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-08 16:51:49.458616",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "status",
+  "section_break_rhgo",
+  "id_fournisseur",
+  "nom_fournisseur",
+  "column_break_xcld",
+  "pays",
+  "code_pays",
+  "devise"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "default": "Brouillon",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Brouillon\nOuvert\nEn cours\nBloqu\u00e9\nTermin\u00e9\nFerm\u00e9"
+  },
+  {
+   "fieldname": "section_break_rhgo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "id_fournisseur",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "ID Fournisseur",
+   "options": "Supplier"
+  },
+  {
+   "fetch_from": "id_fournisseur.supplier_name",
+   "fieldname": "nom_fournisseur",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom Fournisseur",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_xcld",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "id_fournisseur.country",
+   "fieldname": "pays",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Pays",
+   "options": "Country",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "id_fournisseur.default_currency",
+   "fieldname": "devise",
+   "fieldtype": "Data",
+   "label": "Devise",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "pays.code",
+   "fieldname": "code_pays",
+   "fieldtype": "Data",
+   "label": "Code Pays",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-08 17:10:11.683943",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Dossier Importation",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Light Blue",
+   "title": "Brouillon"
+  },
+  {
+   "color": "Blue",
+   "title": "Ouvert"
+  },
+  {
+   "color": "Orange",
+   "title": "En cours"
+  },
+  {
+   "color": "Red",
+   "title": "Bloqu\u00e9"
+  },
+  {
+   "color": "Green",
+   "title": "Termin\u00e9"
+  },
+  {
+   "color": "Gray",
+   "title": "Ferm\u00e9"
+  }
+ ]
+}
