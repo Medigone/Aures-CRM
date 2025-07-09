@@ -7,20 +7,78 @@ frappe.ui.form.on("Document Legal", {
 		frm.trigger('update_status_indicator');
 		
 		// Ajouter un bouton pour marquer comme validé si le document est en cours
-		if (frm.doc.statut === "En cours") {
+		if (frm.doc.status === "En cours") {
 			frm.add_custom_button(__('Marquer comme Validé'), function() {
-				frm.set_value('statut', 'Validé');
+				frm.set_value('status', 'Validé');
 				frm.save();
 			});
 		}
 		
 		// Ajouter un bouton pour annuler le document
-		if (["Brouillon", "En cours", "Validé"].includes(frm.doc.statut)) {
+		if (["Brouillon", "En cours", "Validé"].includes(frm.doc.status)) {
 			frm.add_custom_button(__('Annuler'), function() {
-				frm.set_value('statut', 'Annulé');
+				frm.set_value('status', 'Annulé');
 				frm.save();
 			});
 		}
+		
+		// Filtrer les catégories actives seulement
+		frm.set_query('categorie', function() {
+			return {
+				filters: [
+					['Categorie Document Legal', 'status', '=', 'Activé']
+				]
+			};
+		});
+		
+		// Filtrer les types de documents selon la catégorie sélectionnée
+		frm.set_query('type_document', function() {
+			console.log('Filtrage type_document, catégorie sélectionnée:', frm.doc.categorie);
+			if (frm.doc.categorie) {
+				return {
+					filters: [
+						['Type Document Legal', 'categorie', '=', frm.doc.categorie],
+						['Type Document Legal', 'status', '=', 'Activé']
+					]
+				};
+			} else {
+				return {
+					filters: [
+						['Type Document Legal', 'status', '=', 'Activé']
+					]
+				};
+			}
+		});
+	},
+	
+	categorie: function(frm) {
+		// Réinitialiser le type de document quand la catégorie change
+		if (frm.doc.type_document) {
+			// Vérifier si le type de document actuel appartient à la nouvelle catégorie
+			frappe.call({
+				method: "frappe.client.get_value",
+				args: {
+					doctype: "Type Document Legal",
+					fieldname: "categorie",
+					filters: {name: frm.doc.type_document}
+				},
+				callback: function(response) {
+					console.log('Réponse get_value:', response);
+					if (response.message && response.message.categorie !== frm.doc.categorie) {
+						// Le type de document ne correspond pas à la nouvelle catégorie
+						console.log('Réinitialisation du type_document car catégorie différente');
+						frm.set_value('type_document', '');
+						frappe.msgprint({
+							message: __('Le type de document a été réinitialisé car il ne correspond pas à la nouvelle catégorie.'),
+							indicator: 'orange'
+						});
+					}
+				}
+			});
+		}
+		
+		// Rafraîchir le champ type_document pour appliquer le nouveau filtre
+		frm.refresh_field('type_document');
 	},
 	
 	type_document: function(frm) {
@@ -66,14 +124,14 @@ frappe.ui.form.on("Document Legal", {
 		frm.trigger('update_status');
 	},
 	
-	statut: function(frm) {
+	status: function(frm) {
 		// Mettre à jour l'indicateur de statut
 		frm.trigger('update_status_indicator');
 	},
 	
 	update_status: function(frm) {
 		// Ne pas modifier le statut si le document est annulé
-		if (frm.doc.statut === "Annulé") {
+		if (frm.doc.status === "Annulé") {
 			return;
 		}
 		
@@ -81,7 +139,7 @@ frappe.ui.form.on("Document Legal", {
 		if (frm.doc.date_expiration) {
 			const today = frappe.datetime.get_today();
 			if (frm.doc.date_expiration < today) {
-				frm.set_value('statut', 'Expiré');
+				frm.set_value('status', 'Expiré');
 			}
 		}
 	},
@@ -90,7 +148,7 @@ frappe.ui.form.on("Document Legal", {
 		// Définir l'indicateur de statut
 		let color = "blue";
 		
-		switch(frm.doc.statut) {
+		switch(frm.doc.status) {
 			case "Brouillon":
 				color = "lightblue";
 				break;
@@ -108,6 +166,6 @@ frappe.ui.form.on("Document Legal", {
 				break;
 		}
 		
-		frm.page.set_indicator(frm.doc.statut, color);
+		frm.page.set_indicator(frm.doc.status, color);
 	}
 });

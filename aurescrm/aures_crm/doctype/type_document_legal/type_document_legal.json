@@ -31,6 +31,8 @@
   {
    "fieldname": "categorie",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Cat\u00e9gorie",
    "options": "Categorie Document Legal",
    "reqd": 1
@@ -57,7 +59,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 19:49:43.997357",
+ "modified": "2025-07-10 00:01:34.337864",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Type Document Legal",

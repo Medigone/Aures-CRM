@@ -48,12 +48,12 @@ class DocumentLegal(Document):
 		Met à jour le statut du document en fonction des dates et du workflow.
 		"""
 		# Ne pas modifier le statut si le document est annulé
-		if self.statut == "Annulé":
+		if self.status == "Annulé":
 			return
 			
 		# Vérifier si le document est expiré
 		if self.date_expiration and getdate(self.date_expiration) < getdate(nowdate()):
-			self.statut = "Expiré"
+			self.status = "Expiré"
 			return
 			
 		# Si le document a un workflow, le statut est géré par le workflow
@@ -62,7 +62,7 @@ class DocumentLegal(Document):
 			
 		# Sinon, si le document est nouveau, le statut est "Brouillon"
 		if self.is_new():
-			self.statut = "Brouillon"
+			self.status = "Brouillon"
 	
 	def on_update(self):
 		"""
@@ -87,7 +87,7 @@ class DocumentLegal(Document):
 		
 		# Mettre à jour le statut dans chaque référence
 		for doc in docs_legaux:
-			frappe.db.set_value("Documents Legaux Importation", doc.name, "statut", self.statut)
+			frappe.db.set_value("Documents Legaux Importation", doc.name, "statut", self.status)
 			
 			# Notifier le parent qu'il y a eu une mise à jour
 			if doc.parent:

@@ -6,14 +6,21 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "statut",
+  "status",
+  "section_break_dwcn",
   "titre",
+  "column_break_fmgd",
+  "date",
   "section_break_qgqb",
   "categorie",
   "type_document",
   "column_break_zxza",
   "date_emission",
   "date_expiration",
+  "section_break_woaj",
+  "dossier_import",
+  "column_break_gmmm",
+  "fournisseur",
   "section_break_dates",
   "reference",
   "column_break_dates",
@@ -49,12 +56,10 @@
    "fieldtype": "Section Break"
   },
   {
-   "default": "Today",
    "fieldname": "date_emission",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Date d'\u00c9mission",
-   "reqd": 1
+   "label": "Date d'\u00c9mission"
   },
   {
    "fieldname": "date_expiration",
@@ -64,15 +69,6 @@
   {
    "fieldname": "column_break_dates",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "Brouillon",
-   "fieldname": "statut",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Statut",
-   "options": "Brouillon\nEn cours\nValid\u00e9\nExpir\u00e9\nAnnul\u00e9"
   },
   {
    "fieldname": "section_break_details",
@@ -99,14 +95,63 @@
   },
   {
    "fieldname": "categorie",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Cat\u00e9gorie",
-   "options": "\nBanque\nDouanes\nTransport"
+   "options": "Categorie Document Legal",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_woaj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "dossier_import",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Dossier Importation",
+   "options": "Dossier Importation"
+  },
+  {
+   "fieldname": "column_break_gmmm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "dossier_import.id_fournisseur",
+   "fieldname": "fournisseur",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Fournisseur",
+   "options": "Supplier",
+   "read_only": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_dwcn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fmgd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Brouillon",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Brouillon\nEn cours\nValid\u00e9\nExpir\u00e9\nAnnul\u00e9"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 19:19:47.026520",
+ "modified": "2025-07-09 23:09:08.386310",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Document Legal",
@@ -126,6 +171,7 @@
    "write": 1
   }
  ],
+ "search_fields": "categorie,type_document",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [

@@ -27,12 +27,8 @@
   "achats",
   "banque_tab",
   "html_banque",
-  "section_break_vcnn",
-  "doc_banque",
   "douane_tab",
   "html_douanes",
-  "section_break_wudw",
-  "doc_douanes",
   "transport_tab"
  ],
  "fields": [
@@ -174,26 +170,6 @@
    "fieldtype": "HTML"
   },
   {
-   "fieldname": "section_break_vcnn",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "doc_banque",
-   "fieldtype": "Table",
-   "label": "Documents Banque",
-   "options": "Documents Legaux Importation"
-  },
-  {
-   "fieldname": "section_break_wudw",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "doc_douanes",
-   "fieldtype": "Table",
-   "label": "Documents Douanes",
-   "options": "Documents Legaux Importation"
-  },
-  {
    "fetch_from": "transitaire.nom_transitaire",
    "fieldname": "nom_transitaire",
    "fieldtype": "Data",
@@ -204,7 +180,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 21:39:35.261302",
+ "modified": "2025-07-10 00:10:12.253333",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Dossier Importation",
@@ -223,6 +199,7 @@
    "write": 1
   }
  ],
+ "search_fields": "nom_fournisseur,nom_transitaire",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [
