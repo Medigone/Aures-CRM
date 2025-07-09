@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:CDL-{###}",
+ "creation": "2025-07-09 19:21:50.129188",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "categorie"
+ ],
+ "fields": [
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Statut",
+   "options": "Activ\u00e9\nD\u00e9sactiv\u00e9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "categorie",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cat\u00e9gorie",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-09 19:39:14.858829",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Categorie Document Legal",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Green",
+   "title": "Activ\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "D\u00e9sactiv\u00e9"
+  }
+ ],
+ "title_field": "categorie"
+}

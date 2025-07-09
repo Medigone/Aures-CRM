@@ -6,11 +6,13 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
-  "section_break_ecvc",
   "date",
+  "section_break_ecvc",
+  "date_arrivee",
   "column_break_lujp",
-  "transitaire",
+  "date_cloture",
   "section_break_rhgo",
+  "transitaire",
   "id_fournisseur",
   "nom_fournisseur",
   "column_break_xcld",
@@ -23,7 +25,14 @@
   "documents_tab",
   "achats",
   "banque_tab",
-  "douane_tab"
+  "html_banque",
+  "section_break_vcnn",
+  "doc_banque",
+  "douane_tab",
+  "html_douanes",
+  "section_break_wudw",
+  "doc_douanes",
+  "transport_tab"
  ],
  "fields": [
   {
@@ -137,12 +146,55 @@
   {
    "fieldname": "douane_tab",
    "fieldtype": "Tab Break",
-   "label": "Douane"
+   "label": "Douanes"
+  },
+  {
+   "fieldname": "transport_tab",
+   "fieldtype": "Tab Break",
+   "label": "Transport"
+  },
+  {
+   "fieldname": "date_arrivee",
+   "fieldtype": "Date",
+   "label": "Date d\u2019arriv\u00e9e estim\u00e9e"
+  },
+  {
+   "fieldname": "date_cloture",
+   "fieldtype": "Date",
+   "label": "Date de cl\u00f4ture effective"
+  },
+  {
+   "fieldname": "html_banque",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "html_douanes",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "section_break_vcnn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "doc_banque",
+   "fieldtype": "Table",
+   "label": "Documents Banque",
+   "options": "Documents Legaux Importation"
+  },
+  {
+   "fieldname": "section_break_wudw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "doc_douanes",
+   "fieldtype": "Table",
+   "label": "Documents Douanes",
+   "options": "Documents Legaux Importation"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 15:57:56.235303",
+ "modified": "2025-07-09 19:07:50.090652",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Dossier Importation",

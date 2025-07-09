@@ -7,15 +7,16 @@
  "engine": "InnoDB",
  "field_order": [
   "statut",
-  "section_break_dates",
-  "date_emission",
-  "column_break_dates",
-  "date_expiration",
-  "section_break_qgqb",
-  "type_document",
   "titre",
+  "section_break_qgqb",
+  "categorie",
+  "type_document",
   "column_break_zxza",
+  "date_emission",
+  "date_expiration",
+  "section_break_dates",
   "reference",
+  "column_break_dates",
   "fichier",
   "section_break_details",
   "description"
@@ -45,8 +46,7 @@
   },
   {
    "fieldname": "section_break_dates",
-   "fieldtype": "Section Break",
-   "label": "Dates"
+   "fieldtype": "Section Break"
   },
   {
    "default": "Today",
@@ -96,11 +96,17 @@
   {
    "fieldname": "column_break_zxza",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "categorie",
+   "fieldtype": "Select",
+   "label": "Cat\u00e9gorie",
+   "options": "\nBanque\nDouanes\nTransport"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 14:31:17.906861",
+ "modified": "2025-07-09 19:19:47.026520",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Document Legal",

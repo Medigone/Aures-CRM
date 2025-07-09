@@ -31,8 +31,6 @@ class DocumentsLegauxImportation(Document):
 				# Mise à jour des champs (bien que cela soit fait automatiquement par fetch_from)
 				self.type_document = doc_legal.type_document
 				self.reference = doc_legal.reference
-				self.date_emission = doc_legal.date_emission
-				self.date_expiration = doc_legal.date_expiration
 				self.statut = doc_legal.statut
 				
 			except frappe.DoesNotExistError:
@@ -40,8 +38,6 @@ class DocumentsLegauxImportation(Document):
 				# Réinitialiser les champs
 				self.type_document = ""
 				self.reference = ""
-				self.date_emission = None
-				self.date_expiration = None
 				self.statut = "Document non trouvé"
 			except Exception as e:
 				frappe.log_error(f"Erreur lors de la synchronisation avec le document légal: {str(e)}", "Documents Legaux Importation")
@@ -50,6 +46,4 @@ class DocumentsLegauxImportation(Document):
 			# Si aucun document légal n'est sélectionné, réinitialiser les champs
 			self.type_document = ""
 			self.reference = ""
-			self.date_emission = None
-			self.date_expiration = None
 			self.statut = ""

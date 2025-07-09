@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Medigo and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Type Document Legal", {
+frappe.ui.form.on("Categorie Document Legal", {
 	refresh(frm) {
 		// Ajouter un bouton pour basculer le statut
 		if (!frm.doc.__islocal) {
@@ -11,7 +11,7 @@ frappe.ui.form.on("Type Document Legal", {
 			frm.add_custom_button(__(action_text), function() {
 				// Demander confirmation avant de changer le statut
 				frappe.confirm(
-					__('Êtes-vous sûr de vouloir {0} ce type de document ?', [action_text.toLowerCase()]),
+					__('Êtes-vous sûr de vouloir {0} cette catégorie ?', [action_text.toLowerCase()]),
 					function() {
 						// L'utilisateur a confirmé
 						// Mettre à jour le champ status
@@ -44,14 +44,5 @@ frappe.ui.form.on("Type Document Legal", {
 				);
 			});
 		}
-		
-		// Filtrer les catégories actives seulement
-		frm.set_query('categorie', function() {
-			return {
-				filters: {
-					status: 'Activé'
-				}
-			};
-		});
 	}
 });
