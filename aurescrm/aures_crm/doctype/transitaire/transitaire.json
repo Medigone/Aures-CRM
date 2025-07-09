@@ -1,0 +1,112 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2025-07-10 10:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_informations_generales",
+  "status",
+  "nom_transitaire",
+  "column_break_4",
+  "email",
+  "telephone",
+  "site_web",
+  "section_notes",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_informations_generales",
+   "fieldtype": "Section Break",
+   "label": "Informations G\u00e9n\u00e9rales"
+  },
+  {
+   "fieldname": "nom_transitaire",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom du Transitaire",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "telephone",
+   "fieldtype": "Data",
+   "label": "T\u00e9l\u00e9phone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "site_web",
+   "fieldtype": "Data",
+   "label": "Site Web",
+   "options": "URL"
+  },
+  {
+   "fieldname": "section_notes",
+   "fieldtype": "Section Break",
+   "label": "Notes et Commentaires"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  },
+  {
+   "default": "Actif",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Statut",
+   "options": "Actif\nInactif\nBloqu\u00e9"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-09 15:14:48.573307",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Transitaire",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Green",
+   "title": "Actif"
+  },
+  {
+   "color": "Gray",
+   "title": "Inactif"
+  },
+  {
+   "color": "Red",
+   "title": "Bloqu\u00e9"
+  }
+ ],
+ "title_field": "nom_transitaire"
+}

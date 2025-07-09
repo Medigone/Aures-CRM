@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-09 12:06:41.534425",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_legal",
+  "type_document",
+  "reference",
+  "date_emission",
+  "date_expiration",
+  "statut"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_legal",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Legal",
+   "options": "Document Legal"
+  },
+  {
+   "fieldname": "type_document",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Type Document",
+   "fetch_from": "document_legal.type_document"
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Référence",
+   "fetch_from": "document_legal.reference"
+  },
+  {
+   "fieldname": "date_emission",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Date d'émission",
+   "fetch_from": "document_legal.date_emission"
+  },
+  {
+   "fieldname": "date_expiration",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Date d'expiration",
+   "fetch_from": "document_legal.date_expiration"
+  },
+  {
+   "fieldname": "statut",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Statut",
+   "fetch_from": "document_legal.statut"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-09 12:08:38.696483",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Documents Legaux Importation",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

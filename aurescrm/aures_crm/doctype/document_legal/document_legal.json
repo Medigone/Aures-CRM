@@ -1,0 +1,147 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:DOC-LEG-{####}",
+ "creation": "2025-07-10 10:30:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "statut",
+  "section_break_dates",
+  "date_emission",
+  "column_break_dates",
+  "date_expiration",
+  "section_break_qgqb",
+  "type_document",
+  "titre",
+  "column_break_zxza",
+  "reference",
+  "fichier",
+  "section_break_details",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "type_document",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type de Document",
+   "options": "Type Document Legal",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "R\u00e9f\u00e9rence"
+  },
+  {
+   "fieldname": "titre",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Titre",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_dates",
+   "fieldtype": "Section Break",
+   "label": "Dates"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_emission",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date d'\u00c9mission",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_expiration",
+   "fieldtype": "Date",
+   "label": "Date d'Expiration"
+  },
+  {
+   "fieldname": "column_break_dates",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Brouillon",
+   "fieldname": "statut",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Brouillon\nEn cours\nValid\u00e9\nExpir\u00e9\nAnnul\u00e9"
+  },
+  {
+   "fieldname": "section_break_details",
+   "fieldtype": "Section Break",
+   "label": "D\u00e9tails"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "fichier",
+   "fieldtype": "Attach",
+   "label": "Fichier"
+  },
+  {
+   "fieldname": "section_break_qgqb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_zxza",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-09 14:31:17.906861",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Document Legal",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Light Blue",
+   "title": "Brouillon"
+  },
+  {
+   "color": "Orange",
+   "title": "En cours"
+  },
+  {
+   "color": "Green",
+   "title": "Valid\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "Expir\u00e9"
+  },
+  {
+   "color": "Gray",
+   "title": "Annul\u00e9"
+  }
+ ]
+}

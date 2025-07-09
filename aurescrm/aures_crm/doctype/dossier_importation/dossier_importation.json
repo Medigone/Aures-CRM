@@ -8,6 +8,8 @@
   "status",
   "section_break_ecvc",
   "date",
+  "column_break_lujp",
+  "transitaire",
   "section_break_rhgo",
   "id_fournisseur",
   "nom_fournisseur",
@@ -19,7 +21,9 @@
   "column_break_vrcf",
   "incoterm",
   "documents_tab",
-  "achats"
+  "achats",
+  "banque_tab",
+  "douane_tab"
  ],
  "fields": [
   {
@@ -105,18 +109,40 @@
   {
    "fieldname": "documents_tab",
    "fieldtype": "Tab Break",
-   "label": "Documents"
+   "label": "Commercial"
   },
   {
    "fieldname": "achats",
    "fieldtype": "Table",
-   "label": "Achats",
+   "label": "DocumentsAchats",
    "options": "Documents Achat Importation"
+  },
+  {
+   "fieldname": "column_break_lujp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "transitaire",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Transitaire",
+   "options": "Transitaire"
+  },
+  {
+   "fieldname": "banque_tab",
+   "fieldtype": "Tab Break",
+   "label": "Banque"
+  },
+  {
+   "fieldname": "douane_tab",
+   "fieldtype": "Tab Break",
+   "label": "Douane"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 11:32:08.773823",
+ "modified": "2025-07-09 15:57:56.235303",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Dossier Importation",
