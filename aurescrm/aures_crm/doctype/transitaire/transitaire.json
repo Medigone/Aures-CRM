@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 0,
  "creation": "2025-07-10 10:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,9 +8,10 @@
   "status",
   "nom_transitaire",
   "column_break_4",
-  "email",
+  "section_break_naeb",
   "telephone",
-  "site_web",
+  "column_break_bftj",
+  "email",
   "section_notes",
   "notes"
  ],
@@ -46,12 +46,6 @@
    "options": "Phone"
   },
   {
-   "fieldname": "site_web",
-   "fieldtype": "Data",
-   "label": "Site Web",
-   "options": "URL"
-  },
-  {
    "fieldname": "section_notes",
    "fieldtype": "Section Break",
    "label": "Notes et Commentaires"
@@ -65,14 +59,22 @@
    "default": "Actif",
    "fieldname": "status",
    "fieldtype": "Select",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Statut",
    "options": "Actif\nInactif\nBloqu\u00e9"
+  },
+  {
+   "fieldname": "section_break_naeb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_bftj",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 15:14:48.573307",
+ "modified": "2025-07-09 21:41:47.958234",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Transitaire",
