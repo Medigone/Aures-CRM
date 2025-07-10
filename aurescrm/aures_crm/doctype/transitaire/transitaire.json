@@ -11,9 +11,7 @@
   "section_break_naeb",
   "telephone",
   "column_break_bftj",
-  "email",
-  "section_notes",
-  "notes"
+  "email"
  ],
  "fields": [
   {
@@ -46,16 +44,6 @@
    "options": "Phone"
   },
   {
-   "fieldname": "section_notes",
-   "fieldtype": "Section Break",
-   "label": "Notes et Commentaires"
-  },
-  {
-   "fieldname": "notes",
-   "fieldtype": "Text Editor",
-   "label": "Notes"
-  },
-  {
    "default": "Actif",
    "fieldname": "status",
    "fieldtype": "Select",
@@ -74,7 +62,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 21:41:47.958234",
+ "modified": "2025-07-10 08:56:57.512711",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Transitaire",
