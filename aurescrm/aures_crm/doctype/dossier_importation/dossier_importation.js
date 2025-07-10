@@ -6,6 +6,7 @@ frappe.ui.form.on("Dossier Importation", {
 		// Initialisation standard du formulaire
 		frm.trigger('setup_html_douanes');
 		frm.trigger('setup_html_banque');
+		frm.trigger('setup_html_commercial');
 	},
 	
 	setup_html_douanes(frm) {
@@ -668,191 +669,156 @@ frappe.ui.form.on("Dossier Importation", {
 				// Annulation - ne rien faire
 			}
 		);
-	}
-});
+	},
 
-// Gestion des événements sur la table enfant Documents Achat Importation
-frappe.ui.form.on("Documents Achat Importation", {
-	/**
-	 * Met à jour le statut lorsqu'un document est sélectionné
-	 * @param {Object} frm - L'objet formulaire parent
-	 * @param {Object} cdt - Type de document enfant
-	 * @param {Object} cdn - Nom du document enfant
-	 */
-	document: function(frm, cdt, cdn) {
-		const row = locals[cdt][cdn];
+	// === SECTION COMMERCIALE ===
+	setup_html_commercial(frm) {
+		// Créer le contenu HTML initial
+		frm.trigger('render_documents_commercial');
+	},
+
+	render_documents_commercial(frm) {
+		// Vérifier que le champ html_commercial existe
+		if (!frm.fields_dict.html_commercial) {
+			console.error('Le champ html_commercial n\'existe pas dans le formulaire');
+			return;
+		}
 		
-		// Vérifier que les champs nécessaires sont remplis
-		if (row.lien_doctype && row.document) {
-			// Appel au serveur pour récupérer le statut du document
+		// Charger les documents
+		frm.events.load_documents_commercial(frm);
+	},
+
+	load_documents_commercial(frm) {
+		// Récupérer les documents existants
+		if (!frm.is_new()) {
 			frappe.call({
-				method: "frappe.client.get",
-				args: {
-					doctype: row.lien_doctype,
-					name: row.document
-				},
+				method: 'get_documents_commerciaux',
+				doc: frm.doc,
 				callback: function(response) {
-					if (response.message) {
-						const doc = response.message;
-						let status = getDocumentStatus(doc, row.lien_doctype);
-						
-						// Mettre à jour le statut dans la ligne
-						frappe.model.set_value(cdt, cdn, "statut", status);
-						frm.refresh_field("achats");
-					}
+					console.log('Documents commerciaux récupérés:', response.message);
+					const documents = response.message || [];
+					frm.events.build_documents_html_commercial(frm, documents);
 				},
 				error: function(err) {
-					console.error("Erreur lors de la récupération du statut:", err);
-					frappe.model.set_value(cdt, cdn, "statut", "Erreur");
-					frm.refresh_field("achats");
+					console.error('Erreur lors de la récupération des documents commerciaux:', err);
+					frm.events.build_documents_html_commercial(frm, []);
 				}
 			});
 		} else {
-			// Réinitialiser le statut si le document est effacé
-			frappe.model.set_value(cdt, cdn, "statut", "");
-			frm.refresh_field("achats");
+			frm.events.build_documents_html_commercial(frm, []);
 		}
 	},
-	
-	/**
-	 * Met à jour le statut lorsque le type de document change
-	 */
-	lien_doctype: function(frm, cdt, cdn) {
-		const row = locals[cdt][cdn];
+
+	build_documents_html_commercial(frm, documents) {
+		// Fonction utilitaire pour obtenir la classe de couleur Frappe
+		const getStatusIndicatorClass = (statut) => {
+			const statusMap = {
+				'Brouillon': 'orange',
+				'Soumis': 'blue',
+				'Validé': 'green',
+				'Terminé': 'green',
+				'Annulé': 'red',
+				'En cours': 'yellow',
+				'Fermé': 'gray'
+			};
+			return statusMap[statut] || 'gray';
+		};
 		
-		// Réinitialiser le document et le statut si le type de document change
-		frappe.model.set_value(cdt, cdn, "document", "");
-		frappe.model.set_value(cdt, cdn, "statut", "");
-		frm.refresh_field("achats");
+		// Construire le HTML de la liste des documents
+		let html_content = `
+			<div style="background: #ffffff; border: 1px solid #e8ecef; border-radius: 8px; overflow: hidden;">
+				<!-- En-tête -->
+				<div style="background: #f8f9fa; padding: 16px; border-bottom: 1px solid #e8ecef; display: flex; justify-content: space-between; align-items: center;">
+					<div>
+						<h5 style="margin: 0; color: #495057; font-weight: 600;">💼 Documents Commerciaux</h5>
+						<small style="color: #6c757d;">Gestion des documents d'achat liés</small>
+					</div>
+					<button class="btn btn-success btn-sm" id="btn-rafraichir-docs-commercial" style="border-radius: 6px;">
+						<i class="fa fa-refresh" style="margin-right: 4px;"></i>Actualiser
+					</button>
+				</div>
+		`;
+		
+		if (documents && documents.length > 0) {
+			// Liste des documents
+			html_content += `<div style="padding: 0;">`;
+			
+			documents.forEach((doc, index) => {
+				const statusClass = getStatusIndicatorClass(doc.status_display);
+				
+				html_content += `
+					<div class="document-item" style="
+						padding: 12px 16px; 
+						border-bottom: ${index < documents.length - 1 ? '1px solid #f1f3f4' : 'none'};
+						display: flex; 
+						align-items: center; 
+						justify-content: space-between;
+						transition: background-color 0.2s;
+					" 
+						onmouseover="this.style.backgroundColor='#f8f9fa'" 
+						onmouseout="this.style.backgroundColor='transparent'">
+						
+						<!-- Informations du document -->
+						<div style="flex: 1; min-width: 0;">
+							<div style="display: flex; align-items: center; margin-bottom: 4px;">
+								<span style="font-weight: 500; color: #495057; margin-right: 8px;">${doc.type_document}</span>
+								<span style="font-weight: 400; color: #6c757d; margin-right: 8px;">${doc.name}</span>
+								<span class="indicator-pill ${statusClass}">${doc.status_display}</span>
+							</div>
+							<div style="font-size: 13px; color: #6c757d;">
+								${doc.date_creation ? `Date: ${doc.date_creation}` : 'Aucune date'}
+								${doc.montant ? ` | Total: ${frappe.format(doc.montant, {fieldtype: 'Currency'})}` : ''}
+								${doc.supplier_name ? ` | Fournisseur: ${doc.supplier_name}` : ''}
+							</div>
+						</div>
+						
+						<!-- Boutons d'action -->
+						<div style="display: flex; gap: 6px; margin-left: 12px;">
+							<button class="btn btn-outline-primary btn-xs btn-view-doc-commercial" 
+								data-doctype="${doc.doctype_name}"
+								data-document="${doc.name}"
+								style="padding: 4px 8px; font-size: 11px; border-radius: 4px;">
+								<i class="fa fa-eye"></i>
+							</button>
+						</div>
+					</div>
+				`;
+			});
+			
+			html_content += `</div>`;
+		} else {
+			// Message si aucun document
+			html_content += `
+				<div style="padding: 32px; text-align: center; color: #6c757d;">
+					<i class="fa fa-file-text-o" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+					<p style="margin: 0; font-size: 14px;">Aucun document commercial trouvé</p>
+					<small>Les documents d'achat liés à ce dossier apparaîtront ici</small>
+				</div>
+			`;
+		}
+		
+		html_content += `</div>`;
+		
+		// Injecter le HTML dans le champ
+		frm.fields_dict.html_commercial.$wrapper.html(html_content);
+		
+		// Attacher les événements
+		frm.events.attach_events_commercial(frm);
+	},
+
+	attach_events_commercial(frm) {
+		const $wrapper = frm.fields_dict.html_commercial.$wrapper;
+		
+		// Bouton actualiser documents
+		$wrapper.find('#btn-rafraichir-docs-commercial').on('click', function() {
+			frm.trigger('render_documents_commercial');
+		});
+		
+		// Boutons voir document
+		$wrapper.find('.btn-view-doc-commercial').on('click', function() {
+			const doctype = $(this).data('doctype');
+			const documentName = $(this).data('document');
+			frappe.set_route('Form', doctype, documentName);
+		});
 	}
 });
-
-/**
- * Fonction utilitaire pour déterminer le statut d'un document
- * @param {Object} doc - Le document récupéré
- * @param {String} doctype - Le type de document
- * @returns {String} - Le statut formaté
- */
-function getDocumentStatus(doc, doctype) {
-	// 1. Traitement spécifique selon le type de document
-	if (doctype === "Sales Order") {
-		if (doc.status === "Closed") return "Fermé";
-		if (doc.status === "On Hold") return "En attente";
-		if (doc.status === "Completed") return "Terminé";
-		if (doc.per_delivered === 100) return "Livré";
-		if (doc.per_delivered > 0) return `Livré partiellement (${doc.per_delivered}%)`;
-		if (doc.per_billed === 100) return "Facturé";
-		if (doc.per_billed > 0) return `Facturé partiellement (${doc.per_billed}%)`;
-	}
-	
-	else if (doctype === "Purchase Order") {
-		if (doc.status === "Closed") return "Fermé";
-		if (doc.status === "On Hold") return "En attente";
-		if (doc.status === "Completed") return "Terminé";
-		if (doc.per_received === 100) return "Reçu";
-		if (doc.per_received > 0) return `Reçu partiellement (${doc.per_received}%)`;
-		if (doc.per_billed === 100) return "Facturé";
-		if (doc.per_billed > 0) return `Facturé partiellement (${doc.per_billed}%)`;
-	}
-	
-	else if (doctype === "Quotation") {
-		if (doc.status === "Lost") return "Perdu";
-		if (doc.status === "Ordered") return "Commandé";
-		if (doc.status === "Expired") return "Expiré";
-	}
-	
-	else if (doctype === "Payment Entry") {
-		if (doc.docstatus === 1) {
-			if (doc.payment_type === "Receive") return "Paiement reçu";
-			if (doc.payment_type === "Pay") return "Paiement effectué";
-			if (doc.payment_type === "Internal Transfer") return "Transfert interne";
-		}
-	}
-	
-	else if (doctype === "Delivery Note" || doctype === "Purchase Receipt") {
-		if (doc.status === "Return Issued") return "Retour émis";
-		if (doc.status === "Completed") return "Terminé";
-		if (doc.status === "Closed") return "Fermé";
-	}
-	
-	// Dictionnaire de traduction pour les statuts en anglais
-	const statusTranslations = {
-		// Statuts génériques
-		"Draft": "Brouillon",
-		"Submitted": "Soumis",
-		"Cancelled": "Annulé",
-		"Completed": "Terminé",
-		"Closed": "Fermé",
-		"On Hold": "En attente",
-		"Pending": "En attente",
-		"Open": "Ouvert",
-		"Expired": "Expiré",
-		"Approved": "Approuvé",
-		"Rejected": "Rejeté",
-		"Partially Paid": "Partiellement payé",
-		"Unpaid": "Non payé",
-		"Paid": "Payé",
-		"Return": "Retour",
-		"Debit Note Issued": "Note de débit émise",
-		"Credit Note Issued": "Note de crédit émise",
-		"Return Issued": "Retour émis",
-		"Partly Delivered": "Partiellement livré",
-		"Delivered": "Livré",
-		"Not Delivered": "Non livré",
-		"Partly Received": "Partiellement reçu",
-		"Received": "Reçu",
-		"Not Received": "Non reçu",
-		"Ordered": "Commandé",
-		"To Bill": "À facturer",
-		"Billed": "Facturé",
-		"Not Billed": "Non facturé",
-		"Lost": "Perdu",
-		"To Deliver": "À livrer",
-		"To Receive": "À recevoir",
-		"In Transit": "En transit",
-		"Partly Billed": "Partiellement facturé",
-		"Unpaid and Discounted": "Non payé et remisé",
-		"Overdue and Discounted": "En retard et remisé",
-		"Overdue": "En retard",
-		"Internal Transfer": "Transfert interne",
-		"Partially Delivered": "Partiellement livré",
-		"Partially Received": "Partiellement reçu",
-		"Partially Billed": "Partiellement facturé",
-		"Partially Paid": "Partiellement payé"
-	};
-	
-	// 2. Workflow state (statut de workflow)
-	if (doc.workflow_state) {
-		// Traduire si une traduction existe, sinon garder la valeur originale
-		return statusTranslations[doc.workflow_state] || doc.workflow_state;
-	}
-	
-	// 3. Champ status (statut standard)
-	if (doc.status) {
-		// Traduire si une traduction existe, sinon garder la valeur originale
-		return statusTranslations[doc.status] || doc.status;
-	}
-	
-	// 4. Champs personnalisés courants
-	if (doc.etat) return doc.etat;
-	if (doc.état) return doc.état;
-	if (doc.status) return doc.status;
-	if (doc.etat_document) return doc.etat_document;
-	if (doc.état_document) return doc.état_document;
-	if (doc.statut_document) return doc.statut_document;
-	
-	// 5. Fallback sur docstatus avec conversion en texte explicite
-	if (doc.docstatus === 0) return "Brouillon";
-	if (doc.docstatus === 1) {
-		// Pour les documents soumis, on vérifie s'il y a un champ 'is_cancelled' ou similaire
-		if (doc.is_cancelled) return "Annulé";
-		if (doc.is_expired) return "Expiré";
-		if (doc.is_completed) return "Terminé";
-		if (doc.is_validated) return "Validé";
-		return "Soumis";
-	}
-	if (doc.docstatus === 2) return "Annulé";
-	
-	// Si aucun statut n'est trouvé
-	return "Statut non disponible";
-}

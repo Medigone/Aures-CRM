@@ -137,6 +137,88 @@ class DossierImportation(Document):
 				doc.description_type = ""
 		
 		return documents
+
+	@frappe.whitelist()
+	def get_documents_commerciaux(self):
+		"""
+		Récupère la liste des documents commerciaux (Devis Fournisseur, Commande d'achat, Reçu d'achat, Facture fournisseur)
+		liés à ce dossier d'importation via le champ custom_dossier_importation.
+		"""
+		documents = []
+		
+		# Types de documents commerciaux à récupérer
+		doctypes_commerciaux = [
+			{"doctype": "Supplier Quotation", "label": "Devis Fournisseur"},
+			{"doctype": "Purchase Order", "label": "Commande d'achat"},
+			{"doctype": "Purchase Receipt", "label": "Reçu d'achat"},
+			{"doctype": "Purchase Invoice", "label": "Facture fournisseur"}
+		]
+		
+		for doc_info in doctypes_commerciaux:
+			try:
+				# Définir les champs à récupérer selon le type de document
+				fields = [
+					"name", "status", "docstatus", "creation", "modified",
+					"supplier", "supplier_name", "total", "grand_total"
+				]
+				
+				# Ajouter le champ transaction_date pour les Devis Fournisseur
+				if doc_info["doctype"] == "Supplier Quotation":
+					fields.append("transaction_date")
+				
+				# Récupérer les documents de ce type liés au dossier
+				docs = frappe.get_all(
+					doc_info["doctype"],
+					filters={"custom_dossier_importation": self.name},
+					fields=fields,
+					order_by="creation desc"
+				)
+				
+				# Enrichir chaque document avec des informations supplémentaires
+				for doc in docs:
+					doc.type_document = doc_info["label"]
+					doc.doctype_name = doc_info["doctype"]
+					
+					# Déterminer le statut basé sur docstatus avec traduction en français
+					if doc.docstatus == 0:
+						doc.status_display = "Brouillon"
+					elif doc.docstatus == 1:
+						doc.status_display = "Validé"
+					elif doc.docstatus == 2:
+						doc.status_display = "Annulé"
+					else:
+						# Traduire les statuts anglais en français
+						status_translations = {
+							"Draft": "Brouillon",
+							"Submitted": "Validé",
+							"Cancelled": "Annulé",
+							"Open": "Ouvert",
+							"Closed": "Fermé",
+							"Completed": "Terminé",
+							"Pending": "En attente",
+							"On Hold": "En attente"
+						}
+						status = doc.get("status", "Inconnu")
+						doc.status_display = status_translations.get(status, status)
+					
+					# Formatage des montants
+					doc.montant = doc.get("grand_total") or doc.get("total") or 0
+					
+					# Formatage des dates - utiliser transaction_date pour les Devis Fournisseur
+					if doc_info["doctype"] == "Supplier Quotation" and doc.get("transaction_date"):
+						doc.date_creation = frappe.utils.formatdate(doc.transaction_date, "dd/mm/yyyy")
+					elif doc.creation:
+						doc.date_creation = frappe.utils.formatdate(doc.creation, "dd/mm/yyyy")
+					if doc.modified:
+						doc.date_modification = frappe.utils.formatdate(doc.modified, "dd/mm/yyyy")
+				
+				documents.extend(docs)
+				
+			except Exception as e:
+				frappe.log_error(f"Erreur lors de la récupération des {doc_info['label']}: {str(e)}")
+				continue
+		
+		return documents
 	
 	@frappe.whitelist()
 	def changer_statut_document_legal(self, document_name, nouveau_statut):

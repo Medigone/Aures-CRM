@@ -24,7 +24,7 @@
   "pays",
   "code_pays",
   "documents_tab",
-  "achats",
+  "html_commercial",
   "banque_tab",
   "html_banque",
   "douane_tab",
@@ -118,12 +118,6 @@
    "label": "Commercial"
   },
   {
-   "fieldname": "achats",
-   "fieldtype": "Table",
-   "label": "DocumentsAchats",
-   "options": "Documents Achat Importation"
-  },
-  {
    "fieldname": "column_break_lujp",
    "fieldtype": "Column Break"
   },
@@ -176,11 +170,15 @@
    "in_list_view": 1,
    "label": "Transitaire",
    "read_only": 1
+  },
+  {
+   "fieldname": "html_commercial",
+   "fieldtype": "HTML"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-10 11:02:26.006036",
+ "modified": "2025-07-10 16:44:53.390464",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Dossier Importation",
