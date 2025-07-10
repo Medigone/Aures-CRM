@@ -63,32 +63,3 @@ class DocumentLegal(Document):
 		# Sinon, si le document est nouveau, le statut est "Brouillon"
 		if self.is_new():
 			self.status = "Brouillon"
-	
-	def on_update(self):
-		"""
-		Actions à effectuer après la mise à jour du document.
-		"""
-		# Mettre à jour les références dans les tables enfant qui utilisent ce document
-		self.mettre_a_jour_references()
-	
-	def mettre_a_jour_references(self):
-		"""
-		Met à jour les références dans les tables enfant qui utilisent ce document.
-		"""
-		# Rechercher toutes les tables Documents Legaux Importation qui référencent ce document
-		docs_legaux = frappe.get_all(
-			"Documents Legaux Importation",
-			filters={
-				"lien_doctype": "Document Legal",
-				"document": self.name
-			},
-			fields=["name", "parent"]
-		)
-		
-		# Mettre à jour le statut dans chaque référence
-		for doc in docs_legaux:
-			frappe.db.set_value("Documents Legaux Importation", doc.name, "statut", self.status)
-			
-			# Notifier le parent qu'il y a eu une mise à jour
-			if doc.parent:
-				frappe.db.set_value("Dossier Importation", doc.parent, "modified", nowdate())
