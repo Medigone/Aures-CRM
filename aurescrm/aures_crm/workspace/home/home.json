@@ -1,11 +1,15 @@
 {
  "charts": [],
- "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"1OwS_622p8\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial accueil\",\"col\":12}},{\"id\":\"POpo0msWRB\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Technique accueil\",\"col\":12}},{\"id\":\"CorGvB7mkL\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Suivi cr\u00e9ances\",\"col\":12}}]",
- "creation": "2024-08-15 15:02:30.805872",
+ "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"1OwS_622p8\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial accueil\",\"col\":12}},{\"id\":\"LJV8mI6n4Y\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Achats\",\"col\":12}},{\"id\":\"POpo0msWRB\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Technique accueil\",\"col\":12}},{\"id\":\"CorGvB7mkL\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Suivi cr\u00e9ances\",\"col\":12}}]",
+ "creation": "2025-07-09 19:09:22.870737",
  "custom_blocks": [
   {
    "custom_block_name": "Actions Rapides - Commercial accueil",
    "label": "Actions Rapides - Commercial accueil"
+  },
+  {
+   "custom_block_name": "Actions Rapides - Achats",
+   "label": "Actions Rapides - Achats"
   },
   {
    "custom_block_name": "Accueil",
@@ -30,7 +34,7 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2025-05-17 10:47:05.389213",
+ "modified": "2025-07-10 11:12:33.289245",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",
