@@ -77,23 +77,20 @@ class DossierImportation(Document):
 				frappe.log_error(f"Erreur lors de la création du document {type_doc.nom_type}: {str(e)}")
 				continue
 		
-		# Préparer le message de retour
-		message_parts = []
+		# Préparer le message de retour simplifié
+		total_crees = len(documents_crees)
+		total_existants = len(documents_existants)
 		
-		if documents_crees:
-			message_parts.append(f"✅ {len(documents_crees)} document(s) créé(s): {', '.join(documents_crees)}")
-		
-		if documents_existants:
-			message_parts.append(f"ℹ️ {len(documents_existants)} document(s) existant(s) ignoré(s): {', '.join(documents_existants)}")
-		
-		if not documents_crees and not documents_existants:
-			message_parts.append("Aucun document à créer.")
+		if total_crees > 0:
+			message = f"{total_crees} document(s) généré(s) avec succès"
+		else:
+			message = "Aucun nouveau document à créer"
 		
 		return {
 			"success": True,
-			"message": "\n".join(message_parts),
-			"documents_crees": len(documents_crees),
-			"documents_existants": len(documents_existants)
+			"message": message,
+			"documents_crees": total_crees,
+			"documents_existants": total_existants
 		}
 	
 	@frappe.whitelist()
@@ -237,23 +234,20 @@ class DossierImportation(Document):
 				frappe.log_error(f"Erreur lors de la création du document {type_doc.nom_type}: {str(e)}")
 				continue
 		
-		# Préparer le message de retour
-		message_parts = []
+		# Préparer le message de retour simplifié
+		total_crees = len(documents_crees)
+		total_existants = len(documents_existants)
 		
-		if documents_crees:
-			message_parts.append(f"✅ {len(documents_crees)} document(s) créé(s): {', '.join(documents_crees)}")
-		
-		if documents_existants:
-			message_parts.append(f"ℹ️ {len(documents_existants)} document(s) existant(s) ignoré(s): {', '.join(documents_existants)}")
-		
-		if not documents_crees and not documents_existants:
-			message_parts.append("Aucun document à créer.")
+		if total_crees > 0:
+			message = f"{total_crees} document(s) généré(s) avec succès"
+		else:
+			message = "Aucun nouveau document à créer"
 		
 		return {
 			"success": True,
-			"message": "\n".join(message_parts),
-			"documents_crees": len(documents_crees),
-			"documents_existants": len(documents_existants)
+			"message": message,
+			"documents_crees": total_crees,
+			"documents_existants": total_existants
 		}
 	
 	@frappe.whitelist()

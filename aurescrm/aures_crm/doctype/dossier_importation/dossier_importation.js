@@ -529,16 +529,15 @@ frappe.ui.form.on("Dossier Importation", {
 					method: 'generer_documents_legaux_douanes',
 					doc: frm.doc,
 					callback: function(response) {
-						if (response.message && response.message.success) {
-							// Afficher le message de succès
-							frappe.msgprint({
-								title: __('Documents générés avec succès'),
-								message: response.message.message,
-								indicator: 'green'
-							});
-							
-							// Rafraîchir la liste des documents
-							frm.events.render_documents_douanes(frm);
+					if (response.message && response.message.success) {
+						// Afficher le message de succès simplifié
+						frappe.show_alert({
+							message: response.message.message,
+							indicator: 'green'
+						}, 5);
+						
+						// Rafraîchir la liste des documents
+						frm.events.render_documents_douanes(frm);
 						} else {
 							frappe.msgprint({
 								title: __('Erreur'),
@@ -588,16 +587,15 @@ frappe.ui.form.on("Dossier Importation", {
 					method: 'generer_documents_legaux_banque',
 					doc: frm.doc,
 					callback: function(response) {
-						if (response.message && response.message.success) {
-							// Afficher le message de succès
-							frappe.msgprint({
-								title: __('Documents générés avec succès'),
-								message: response.message.message,
-								indicator: 'green'
-							});
-							
-							// Rafraîchir la liste des documents
-							frm.events.render_documents_banque(frm);
+					if (response.message && response.message.success) {
+						// Afficher le message de succès simplifié
+						frappe.show_alert({
+							message: response.message.message,
+							indicator: 'green'
+						}, 5);
+						
+						// Rafraîchir la liste des documents
+						frm.events.render_documents_banque(frm);
 						} else {
 							frappe.msgprint({
 								title: __('Erreur'),
