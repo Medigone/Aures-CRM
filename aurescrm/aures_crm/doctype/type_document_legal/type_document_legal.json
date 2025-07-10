@@ -59,7 +59,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-10 00:01:34.337864",
+ "modified": "2025-07-10 11:03:48.080754",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Type Document Legal",
@@ -77,6 +77,23 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Purchase Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Purchase User",
+   "select": 1
   }
  ],
  "show_title_field_in_link": 1,

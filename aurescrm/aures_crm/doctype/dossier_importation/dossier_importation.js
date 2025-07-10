@@ -107,6 +107,11 @@ frappe.ui.form.on("Dossier Importation", {
 			return textColors[statut] || '#495057';
 		};
 		
+		// Calculer la progression des documents validés
+		const totalDocuments = documents ? documents.length : 0;
+		const documentsValides = documents ? documents.filter(doc => doc.status === 'Validé').length : 0;
+		const progressPercentage = totalDocuments > 0 ? Math.round((documentsValides / totalDocuments) * 100) : 0;
+		
 		// Construire le HTML de la liste des documents
 		let html_content = `
 			<div style="background: #ffffff; border: 1px solid #e8ecef; border-radius: 8px; overflow: hidden;">
@@ -119,6 +124,26 @@ frappe.ui.form.on("Dossier Importation", {
 					<button class="btn btn-primary btn-sm" id="btn-generer-docs-douanes" style="border-radius: 6px;">
 						<i class="fa fa-plus" style="margin-right: 4px;"></i>Générer
 					</button>
+				</div>
+				
+				<!-- Barre de progression -->
+				<div style="padding: 16px; border-bottom: 1px solid #e8ecef; background: #fafbfc;">
+					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+						<span style="font-size: 13px; font-weight: 500; color: #495057;">Progression des validations</span>
+						<span style="font-size: 13px; color: #6c757d;">${documentsValides}/${totalDocuments} documents validés</span>
+					</div>
+					<div style="background: #e9ecef; border-radius: 10px; height: 8px; overflow: hidden;">
+						<div style="
+							background: ${progressPercentage === 100 ? '#28a745' : progressPercentage >= 50 ? '#fd7e14' : '#dc3545'};
+							height: 100%;
+							width: ${progressPercentage}%;
+							transition: width 0.3s ease;
+							border-radius: 10px;
+						"></div>
+					</div>
+					<div style="text-align: center; margin-top: 6px;">
+						<span style="font-size: 12px; font-weight: 600; color: ${progressPercentage === 100 ? '#28a745' : '#6c757d'};">${progressPercentage}%</span>
+					</div>
 				</div>
 		`;
 		
@@ -227,6 +252,11 @@ frappe.ui.form.on("Dossier Importation", {
 			return textColors[statut] || '#495057';
 		};
 		
+		// Calculer la progression des documents validés
+		const totalDocuments = documents ? documents.length : 0;
+		const documentsValides = documents ? documents.filter(doc => doc.status === 'Validé').length : 0;
+		const progressPercentage = totalDocuments > 0 ? Math.round((documentsValides / totalDocuments) * 100) : 0;
+		
 		// Construire le HTML de la liste des documents
 		let html_content = `
 			<div style="background: #ffffff; border: 1px solid #e8ecef; border-radius: 8px; overflow: hidden;">
@@ -239,6 +269,26 @@ frappe.ui.form.on("Dossier Importation", {
 					<button class="btn btn-primary btn-sm" id="btn-generer-docs-banque" style="border-radius: 6px;">
 						<i class="fa fa-plus" style="margin-right: 4px;"></i>Générer
 					</button>
+				</div>
+				
+				<!-- Barre de progression -->
+				<div style="padding: 16px; border-bottom: 1px solid #e8ecef; background: #fafbfc;">
+					<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+						<span style="font-size: 13px; font-weight: 500; color: #495057;">Progression des validations</span>
+						<span style="font-size: 13px; color: #6c757d;">${documentsValides}/${totalDocuments} documents validés</span>
+					</div>
+					<div style="background: #e9ecef; border-radius: 10px; height: 8px; overflow: hidden;">
+						<div style="
+							background: ${progressPercentage === 100 ? '#28a745' : progressPercentage >= 50 ? '#fd7e14' : '#dc3545'};
+							height: 100%;
+							width: ${progressPercentage}%;
+							transition: width 0.3s ease;
+							border-radius: 10px;
+						"></div>
+					</div>
+					<div style="text-align: center; margin-top: 6px;">
+						<span style="font-size: 12px; font-weight: 600; color: ${progressPercentage === 100 ? '#28a745' : '#6c757d'};">${progressPercentage}%</span>
+					</div>
 				</div>
 		`;
 		
