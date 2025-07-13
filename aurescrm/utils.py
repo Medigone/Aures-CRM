@@ -3,7 +3,19 @@ import frappe
 
 
 def custom_item_naming(doc, method):
-    if doc.custom_client:
+    """
+    Génère automatiquement le nom de l'article selon le type d'article :
+    - Type "Client" : <ID_Client>-<numéro séquentiel>
+    - Type "Général" : ITEM-<numéro séquentiel>
+    """
+    if not doc.get("custom_type_article"):
+        frappe.throw("Veuillez sélectionner un type d'article pour générer un code Item.")
+    
+    if doc.custom_type_article == "Client":
+        # Articles spécifiques à un client
+        if not doc.custom_client:
+            frappe.throw("Veuillez sélectionner un client pour les articles de type 'Client'.")
+        
         # Récupérer l'ID du client
         customer_id = frappe.get_value("Customer", doc.custom_client, "name")
         if not customer_id:
@@ -20,9 +32,13 @@ def custom_item_naming(doc, method):
 
         # Générer le nom complet de l'article
         doc.name = f"{customer_id}-{next_number:03}"
-
+        
+    elif doc.custom_type_article == "Général":
+        # Articles généraux (matières premières, consommables, etc.)
+        doc.name = make_autoname("ITEM-.####")
+        
     else:
-        frappe.throw("Veuillez sélectionner un client pour générer un code Item.")
+        frappe.throw(f"Type d'article '{doc.custom_type_article}' non reconnu.")
 
 
 
