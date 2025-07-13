@@ -1,4 +1,5 @@
 import frappe
+from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 def execute():
     """
@@ -6,34 +7,49 @@ def execute():
     Tous les articles créés jusqu'à présent sont considérés comme des articles de type Client.
     """
     
-    # Obtenir tous les articles existants
-    items = frappe.db.get_all("Item", pluck="name")
+    # Forcer la synchronisation du DocType Item pour s'assurer que tous les champs personnalisés sont créés
+    try:
+        frappe.reload_doc("stock", "doctype", "item")
+        frappe.db.commit()
+    except Exception as e:
+        frappe.log_error(f"Erreur lors du rechargement du DocType Item: {str(e)}")
     
-    if not items:
-        frappe.log_error("Aucun article trouvé dans la base de données")
+    # Vérifier si le champ custom_type_article existe dans la table Item
+    if not frappe.db.has_column("tabItem", "custom_type_article"):
+        frappe.log_error("Le champ custom_type_article n'existe pas encore dans la table Item. Le patch sera ignoré.")
         return
     
-    frappe.log_error(f"Début de la mise à jour de {len(items)} articles avec custom_type_article = 'Client'")
-    
-    # Compteur pour suivre les mises à jour
-    updated_count = 0
-    
     try:
-        for item_name in items:
-            # Vérifier si l'article a déjà une valeur pour custom_type_article
-            current_value = frappe.db.get_value("Item", item_name, "custom_type_article")
-            
-            # Mettre à jour seulement si le champ est vide
-            if not current_value:
-                frappe.db.set_value("Item", item_name, "custom_type_article", "Client", update_modified=False)
-                updated_count += 1
+        # Compter le nombre d'articles existants
+        total_items = frappe.db.sql("SELECT COUNT(*) FROM `tabItem`")[0][0]
+        
+        if total_items == 0:
+            frappe.log_error("Aucun article trouvé dans la base de données")
+            return
+        
+        frappe.log_error(f"Début de la mise à jour de {total_items} articles avec custom_type_article = 'Client'")
+        
+        # Mettre à jour tous les articles où custom_type_article est NULL ou vide
+        # Utilisation d'une requête SQL directe pour plus d'efficacité
+        updated_count = frappe.db.sql("""
+            UPDATE `tabItem` 
+            SET `custom_type_article` = 'Client'
+            WHERE (`custom_type_article` IS NULL OR `custom_type_article` = '')
+        """)
         
         # Valider les changements
         frappe.db.commit()
         
-        frappe.log_error(f"Patch terminé avec succès. {updated_count} articles mis à jour avec custom_type_article = 'Client'")
+        # Compter les articles mis à jour
+        final_count = frappe.db.sql("""
+            SELECT COUNT(*) FROM `tabItem` 
+            WHERE `custom_type_article` = 'Client'
+        """)[0][0]
+        
+        frappe.log_error(f"Patch terminé avec succès. {final_count} articles ont maintenant custom_type_article = 'Client'")
         
     except Exception as e:
         frappe.db.rollback()
         frappe.log_error(f"Erreur lors de l'exécution du patch: {str(e)}")
+        print(f"Erreur lors de l'exécution du patch: {str(e)}")
         raise e
