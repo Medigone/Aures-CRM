@@ -18,9 +18,9 @@
   "column_break_shcj",
   "fichier",
   "section_break_ppbw",
-  "sens_der",
+  "html_deroulement",
   "column_break_cveg",
-  "html_deroulement"
+  "sens_der"
  ],
  "fields": [
   {
@@ -102,7 +102,7 @@
    "fieldname": "sens_der",
    "fieldtype": "Select",
    "label": "Sens de d\u00e9roulement",
-   "options": "\n1\n2\n3\n4"
+   "options": "\n1\n2\n3\n4\n5\n6\n7\n8"
   },
   {
    "fieldname": "column_break_cveg",
@@ -110,12 +110,13 @@
   },
   {
    "fieldname": "html_deroulement",
-   "fieldtype": "HTML"
+   "fieldtype": "HTML",
+   "label": "R\u00e9f\u00e9rence Sens de D\u00e9roulement"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 15:23:41.449896",
+ "modified": "2025-07-14 16:29:31.072972",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Plan Flexo",

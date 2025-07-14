@@ -69,7 +69,7 @@ app_license = "mit"
 # ------------
 
 # before_install = "aurescrm.install.before_install"
-# after_install = "aurescrm.install.after_install"
+after_install = "aurescrm.install.after_install"
 
 # Uninstallation
 # ------------
