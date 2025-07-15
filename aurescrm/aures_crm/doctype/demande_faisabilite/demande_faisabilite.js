@@ -323,7 +323,9 @@ function load_etude_links(frm) {
                         html += "<div style='display: flex; flex-direction: column;'>";
                         html += "<div style='display: flex; align-items: baseline; gap: 8px;'>";
                         var itemName = rec.item_name || rec.article_name || (rec.article && rec.article.item_name) || ''; // Use a default value if item_name is missing
-                        html += "<a href='#' onclick=\"frappe.set_route('Form','Etude Faisabilite','" + rec.name + "'); return false;\" style='font-size: 12px; color: inherit; text-decoration: none; word-break: break-all;'>" + rec.name + (itemName ? " - " + itemName : "") + "</a>";
+                        // Ouvre le bon formulaire selon le doctype
+                        var doctype = rec.doctype || 'Etude Faisabilite';
+                        html += "<a href='#' onclick=\"frappe.set_route('Form','" + doctype + "','" + rec.name + "'); return false;\" style='font-size: 12px; color: inherit; text-decoration: none; word-break: break-all;'>" + rec.name + (itemName ? " - " + itemName : "") + "</a>";
                         html += "<span>" + badge + "</span>";
                         html += "</div>";
                         html += "</div>";

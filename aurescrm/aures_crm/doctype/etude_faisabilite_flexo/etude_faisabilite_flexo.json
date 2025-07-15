@@ -1,0 +1,437 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-15 18:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_break_fkfa",
+  "date_creation",
+  "demande_faisabilite",
+  "is_reprint",
+  "column_break_wies",
+  "date_echeance",
+  "date_livraison",
+  "id_commercial",
+  "section_break_dazt",
+  "client",
+  "article",
+  "procede",
+  "column_break_nktv",
+  "commercial",
+  "item_name",
+  "quantite",
+  "section_break_zxac",
+  "html_doc",
+  "section_break_jugd",
+  "taux_chutes",
+  "section_break_uigs",
+  "est_conception",
+  "column_break_wanl",
+  "section_break_jgil",
+  "column_break_fqda",
+  "trace",
+  "fichier_trace",
+  "column_break_gbek",
+  "plan_flexo",
+  "fichier_plan_flexo",
+  "column_break_maquette",
+  "maquette",
+  "fichier_maquette",
+  "column_break_cliche",
+  "cliche",
+  "fichier_cliche",
+  "section_break_edky",
+  "observations",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "allow_on_submit": 1,
+   "default": "Nouveau",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Nouveau\nEn \u00e9tude\nR\u00e9alisable\nNon R\u00e9alisable\nAnnul\u00e9e"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_fkfa",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Date Cr\u00e9ation",
+   "read_only": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_echeance",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date \u00c9ch\u00e9ance"
+  },
+  {
+   "fieldname": "column_break_wies",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fieldname": "id_commercial",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "ID Commercial",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "id_commercial.full_name",
+   "fieldname": "commercial",
+   "fieldtype": "Data",
+   "label": "Commercial",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_dazt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_nktv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Article",
+   "options": "Item",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "article.custom_proc\u00e9d\u00e9",
+   "fieldname": "procede",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Proc\u00e9d\u00e9",
+   "options": "\nFlexo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_uigs",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_edky",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "observations",
+   "fieldtype": "Text Editor",
+   "label": "Observations"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Obligatoire pour pouvoir passer en <strong>R\u00e9alisable</strong>",
+   "fieldname": "taux_chutes",
+   "fieldtype": "Float",
+   "label": "Taux de chutes",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Etude Faisabilite Flexo",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "est_conception",
+   "fieldtype": "Check",
+   "label": "Nouvelle Conception",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_livraison",
+   "fieldtype": "Date",
+   "in_standard_filter": 1,
+   "label": "Date Livraison Souhait\u00e9",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_wanl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "plan_flexo",
+   "fieldtype": "Link",
+   "label": "Plan Flexo",
+   "options": "Plan Flexo",
+   "read_only_depends_on": "eval: doc.is_reprint == 0"
+  },
+  {
+   "fetch_from": "plan_flexo.fichier",
+   "fetch_if_empty": 1,
+   "fieldname": "fichier_plan_flexo",
+   "fieldtype": "Attach",
+   "hidden": 1,
+   "label": "Fichier Plan Flexo",
+   "make_attachment_public": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_gbek",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cliche",
+   "fieldtype": "Link",
+   "label": "Clich\u00e9",
+   "options": "Cliche",
+   "read_only_depends_on": "eval: doc.is_reprint == 0"
+  },
+  {
+   "fetch_from": "cliche.fich_maquette",
+   "fetch_if_empty": 1,
+   "fieldname": "fichier_cliche",
+   "fieldtype": "Attach",
+   "label": "Fichier Clich\u00e9",
+   "make_attachment_public": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "demande_faisabilite",
+   "fieldtype": "Link",
+   "label": "Demande Faisabilite",
+   "options": "Demande Faisabilite",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "article.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Nom de l'article",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_reprint",
+   "fieldtype": "Check",
+   "label": "Retirage",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_jgil",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_break_jugd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fqda",
+   "fieldtype": "Column Break",
+   "read_only_depends_on": "eval: doc.is_reprint == 0"
+  },
+  {
+   "fieldname": "section_break_zxac",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "html_doc",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "label": "Tracé",
+   "options": "Trace",
+   "read_only_depends_on": "eval: doc.is_reprint == 0"
+  },
+  {
+   "fetch_from": "trace.fichier_trace",
+   "fetch_if_empty": 1,
+   "fieldname": "fichier_trace",
+   "fieldtype": "Attach",
+   "hidden": 1,
+   "label": "Fichier Tracé",
+   "make_attachment_public": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_gbek",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_maquette",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "maquette",
+   "fieldtype": "Link",
+   "label": "Maquette",
+   "options": "Maquette",
+   "read_only_depends_on": "eval: doc.is_reprint == 0"
+  },
+  {
+   "fetch_from": "maquette.fichier_maquette",
+   "fetch_if_empty": 1,
+   "fieldname": "fichier_maquette",
+   "fieldtype": "Attach",
+   "hidden": 1,
+   "label": "Fichier Maquette",
+   "make_attachment_public": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cliche",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-07-15 16:42:29.169251",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Etude Faisabilite Flexo",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "read": 1,
+   "role": "Superviseur CRM",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Coordination",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9",
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "email": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Responsable \u00c9tude Faisabilit\u00e9",
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Charg\u00e9 Devis"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Responsable Devis",
+   "select": 1
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Responsable Prepresse"
+  },
+  {
+   "read": 1,
+   "role": "Technicien Prepresse"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

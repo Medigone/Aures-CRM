@@ -73,40 +73,51 @@ class DemandeFaisabilite(Document):
 def generate_etude_faisabilite(docname):
     """
     Pour chaque ligne de la table 'liste_articles' du document Demande Faisabilite,
-    crée un nouveau document 'Etude Faisabilite' et met à jour le statut de la demande.
-    Copie également le statut 'is_reprint'.
+    crée un nouveau document 'Etude Faisabilite' ou 'Etude Faisabilite Flexo' selon le procédé,
+    puis met à jour le statut de la demande.
     """
     try:
-        # Récupérer le document Demande Faisabilite
         demande = frappe.get_doc("Demande Faisabilite", docname)
-
-        # Vérifier s'il y a des articles dans la liste
         if not demande.get("liste_articles"):
             frappe.throw("Aucun article n'a été ajouté à la demande.")
 
-        # Pour chaque article, créer un document Etude Faisabilite
+        communs = [
+            "demande_faisabilite", "article", "quantite", "date_livraison", "client",
+            "commercial", "id_commercial", "is_reprint"
+        ]
+        offset_fields = communs + []
+        flexo_fields = communs + []
+
         for row in demande.get("liste_articles"):
-            etude = frappe.new_doc("Etude Faisabilite")
-            etude.demande_faisabilite = demande.name
-            etude.article = row.article
-            etude.quantite = row.quantite
-            etude.date_livraison = row.date_livraison
-            etude.client = demande.client
-            etude.commercial = demande.commercial
-            etude.id_commercial = demande.id_commercial
-            # --- NOUVEAU : Copier la valeur is_reprint ---
-            etude.is_reprint = demande.is_reprint # Ajout de cette ligne
-            # --- Fin de la modification ---
-            # Ajoutez ici d'autres affectations si besoin
+            procede = row.procede_article or ""
+            base_values = {
+                "demande_faisabilite": demande.name,
+                "article": row.article,
+                "quantite": row.quantite,
+                "date_livraison": row.date_livraison,
+                "client": demande.client,
+                "commercial": demande.commercial,
+                "id_commercial": demande.id_commercial,
+                "is_reprint": demande.is_reprint
+            }
+            if procede == "Flexo":
+                etude = frappe.new_doc("Etude Faisabilite Flexo")
+                fieldnames = [f.fieldname for f in etude.meta.fields]
+                for field in flexo_fields:
+                    if field in fieldnames and field in base_values:
+                        etude.set(field, base_values[field])
+                etude.insert(ignore_permissions=True)
+            else:
+                etude = frappe.new_doc("Etude Faisabilite")
+                fieldnames = [f.fieldname for f in etude.meta.fields]
+                for field in offset_fields:
+                    if field in fieldnames and field in base_values:
+                        etude.set(field, base_values[field])
+                etude.insert(ignore_permissions=True)
 
-            etude.insert(ignore_permissions=True)
-
-        # Mise à jour du statut de la demande en "Confirmée"
         demande.status = "Confirmée"
         demande.save(ignore_permissions=True)
-
         return demande.status
-
     except Exception as e:
         frappe.log_error(message=str(e), title="Erreur generate_etude_faisabilite")
         frappe.throw("Une erreur est survenue lors de la génération des études de faisabilité.")
@@ -349,30 +360,30 @@ def get_sales_documents_for_demande(demande_name):
 @frappe.whitelist()
 def get_linked_documents_for_demande(demande_name):
     """
-    Fetches Etudes Faisabilite, Quotations, and Sales Orders linked to a
-    specific Demande Faisabilite in a single call.
-
-    Args:
-        demande_name (str): The name of the Demande Faisabilite document.
-
-    Returns:
-        dict: A dictionary containing two keys:
-              - 'etudes': List of linked Etude Faisabilite documents ({name, status}).
-              - 'sales_documents': List of linked Quotations and Sales Orders
-                                   ({doctype, name, status}).
+    Récupère les Etudes Faisabilite (Offset et Flexo), Quotations et Sales Orders liés à une Demande Faisabilite.
     """
-    # Fetch linked Etudes Faisabilite
-    etudes = frappe.get_list(
+    # Récupérer les études Offset
+    etudes_offset = frappe.get_list(
         "Etude Faisabilite",
         filters={"demande_faisabilite": demande_name},
         fields=["name", "status", "item_name", "article"],
-        ignore_permissions=True # Assuming read access might be restricted otherwise
+        ignore_permissions=True
     )
-
-    # Fetch linked Sales Documents (Quotations and Sales Orders)
+    # Récupérer les études Flexo
+    etudes_flexo = frappe.get_list(
+        "Etude Faisabilite Flexo",
+        filters={"demande_faisabilite": demande_name},
+        fields=["name", "status", "item_name", "article"],
+        ignore_permissions=True
+    )
+    # Ajouter un champ pour différencier le type (pour l'affichage JS)
+    for e in etudes_offset:
+        e["doctype"] = "Etude Faisabilite"
+    for e in etudes_flexo:
+        e["doctype"] = "Etude Faisabilite Flexo"
+    etudes = etudes_offset + etudes_flexo
+    # Récupérer les documents de vente (inchangé)
     sales_documents = []
-
-    # Fetch linked Quotations
     quotations = frappe.get_list(
         "Quotation",
         filters={"custom_demande_faisabilité": demande_name, "docstatus": ["!=", 2]},
@@ -385,8 +396,6 @@ def get_linked_documents_for_demande(demande_name):
             "name": qtn.name,
             "status": qtn.status
         })
-
-    # Fetch linked Sales Orders
     sales_orders = frappe.get_list(
         "Sales Order",
         filters={"custom_demande_de_faisabilité": demande_name, "docstatus": ["!=", 2]},
@@ -399,10 +408,6 @@ def get_linked_documents_for_demande(demande_name):
             "name": so.name,
             "status": so.status
         })
-
-    # Optional: Sort sales documents if needed
-    # sales_documents.sort(key=lambda x: x['name'])
-
     return {
         "etudes": etudes,
         "sales_documents": sales_documents
