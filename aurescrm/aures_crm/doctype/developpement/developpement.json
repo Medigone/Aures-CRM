@@ -5,16 +5,15 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "taille",
-  "machine",
-  "nbr_couleurs"
+  "title",
+  "developpement",
+  "nbr_poses",
+  "laize",
+  "column_break_emkr",
+  "nbr_couleurs",
+  "machine"
  ],
  "fields": [
-  {
-   "fieldname": "taille",
-   "fieldtype": "Data",
-   "label": "Taille"
-  },
   {
    "fieldname": "machine",
    "fieldtype": "Link",
@@ -25,11 +24,35 @@
    "fieldname": "nbr_couleurs",
    "fieldtype": "Int",
    "label": "Nbr Couleurs"
+  },
+  {
+   "fieldname": "developpement",
+   "fieldtype": "Data",
+   "label": "D\u00e9veloppement"
+  },
+  {
+   "fieldname": "column_break_emkr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nbr_poses",
+   "fieldtype": "Int",
+   "label": "Nbr Poses"
+  },
+  {
+   "fieldname": "laize",
+   "fieldtype": "Data",
+   "label": "Liaze"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Titre"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 16:56:16.152321",
+ "modified": "2025-07-15 09:54:23.678863",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Developpement",
@@ -48,7 +71,9 @@
    "write": 1
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "title"
 }

@@ -15,15 +15,18 @@
   "article",
   "designation",
   "section_break_mcxc",
-  "dimensions",
+  "dimensions_art",
   "laize",
   "nbr_couleurs",
+  "surface",
+  "site_prod",
   "column_break_njzg",
   "developpement",
-  "maquette",
-  "site_prod",
+  "dev",
+  "hauteur_cliche",
   "section_break_jwyi",
-  "fich_cliche",
+  "column_break_memj",
+  "maquette",
   "column_break_kmsn",
   "fich_maquette"
  ],
@@ -32,7 +35,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Statut",
-   "options": "Nouveau\nEn Devis\nAccept\u00e9\nRejet\u00e9\nR\u00e9alis\u00e9\nArchiv\u00e9"
+   "options": "Nouveau\nEn Devis\nAccept\u00e9\nRejet\u00e9\nA R\u00e9aliser\nR\u00e9alis\u00e9\nArchiv\u00e9"
   },
   {
    "fieldname": "section_break_nhap",
@@ -89,7 +92,8 @@
   {
    "fieldname": "laize",
    "fieldtype": "Data",
-   "label": "Laize"
+   "label": "Laize",
+   "placeholder": "En mm"
   },
   {
    "fieldname": "nbr_couleurs",
@@ -103,7 +107,7 @@
   {
    "fieldname": "developpement",
    "fieldtype": "Link",
-   "label": "D\u00e9veloppement",
+   "label": "D\u00e9veloppement Machine",
    "options": "Developpement"
   },
   {
@@ -117,11 +121,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "fich_cliche",
-   "fieldtype": "Attach",
-   "label": "Fichier Clich\u00e9"
-  },
-  {
    "fieldname": "column_break_kmsn",
    "fieldtype": "Column Break"
   },
@@ -133,22 +132,44 @@
    "read_only": 1
   },
   {
-   "fetch_from": "article.custom_dimensions_h_x_l",
-   "fieldname": "dimensions",
-   "fieldtype": "Data",
-   "label": "Dimensions",
-   "read_only": 1
-  },
-  {
    "fieldname": "site_prod",
    "fieldtype": "Link",
    "label": "Site de production",
    "options": "Site Production"
+  },
+  {
+   "fieldname": "column_break_memj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "article.custom_dimensions_h_x_l",
+   "fieldname": "dimensions_art",
+   "fieldtype": "Data",
+   "label": "Dimensions Article"
+  },
+  {
+   "description": "Pour calcul devis",
+   "fieldname": "hauteur_cliche",
+   "fieldtype": "Data",
+   "label": "Hauteur Clich\u00e9",
+   "placeholder": "En mm"
+  },
+  {
+   "fieldname": "surface",
+   "fieldtype": "Data",
+   "label": "Surface Clich\u00e9",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "developpement.developpement",
+   "fieldname": "dev",
+   "fieldtype": "Data",
+   "label": "D\u00e9veloppement"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 16:57:03.197241",
+ "modified": "2025-07-15 14:21:58.614724",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Cliche",
