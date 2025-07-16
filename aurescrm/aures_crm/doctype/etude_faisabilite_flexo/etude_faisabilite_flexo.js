@@ -448,13 +448,33 @@ function load_flexo_linked_docs_html(frm) {
                         if (clicheCardContent) {
                             const newVersionsCount = r.message.newer_versions.length;
                             const alertHtml = `
-                                <div style="margin-top: 10px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; font-size: 11px; color: #856404;">
-                                    <i class="fa fa-exclamation-triangle" style="margin-right: 5px;"></i>
-                                    <strong>Attention :</strong> ${newVersionsCount} nouvelle${newVersionsCount > 1 ? 's' : ''} version${newVersionsCount > 1 ? 's' : ''} disponible${newVersionsCount > 1 ? 's' : ''} mais non activée${newVersionsCount > 1 ? 's' : ''}.
-                                    <br><small>Version${newVersionsCount > 1 ? 's' : ''} : ${r.message.newer_versions.map(v => `V${v.version} (${v.status})`).join(', ')}</small>
+                                <div class="version-notification" style="background: #fff3e0; 
+                                     border-left: 3px solid #ff9800; padding: 8px 12px; margin: 10px 0 15px 0; 
+                                     font-size: 11px; color: #e65100; display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fa fa-exclamation-triangle" style="margin-right: 6px;"></i>
+                                        <span>${newVersionsCount} nouvelle${newVersionsCount > 1 ? 's' : ''} version${newVersionsCount > 1 ? 's' : ''} disponible${newVersionsCount > 1 ? 's' : ''}</span>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn btn-xs" style="background: #ff9800; color: white; border: none; padding: 2px 8px;" 
+                                                onclick="showVersionSelector('Cliche', '${frm.doc.article}', '${frm.doc.name}'); return false;" title="Voir toutes les versions disponibles">
+                                            Voir
+                                        </button>
+                                        <button class="btn btn-xs" style="background: #ff9800; color: white; border: none; padding: 2px 8px;" 
+                                                onclick="showQuickVersionChange('Cliche', '${frm.doc.article}', '${frm.doc.name}'); return false;" title="Changer rapidement de version">
+                                            Changer
+                                        </button>
+                                    </div>
                                 </div>
                             `;
-                            clicheCardContent.insertAdjacentHTML('beforeend', alertHtml);
+                            
+                            // Insérer après le premier élément (l'ID et les boutons)
+                            const firstItem = clicheCardContent.querySelector('.ef-item');
+                            if (firstItem) {
+                                firstItem.insertAdjacentHTML('afterend', alertHtml);
+                            } else {
+                                clicheCardContent.insertAdjacentHTML('afterbegin', alertHtml);
+                            }
                         }
                     }
                 }
@@ -493,13 +513,33 @@ function load_flexo_linked_docs_html(frm) {
                         if (maquetteCardContent) {
                             const newVersionsCount = r.message.newer_versions.length;
                             const alertHtml = `
-                                <div style="margin-top: 10px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; font-size: 11px; color: #856404;">
-                                    <i class="fa fa-exclamation-triangle" style="margin-right: 5px;"></i>
-                                    <strong>Attention :</strong> ${newVersionsCount} nouvelle${newVersionsCount > 1 ? 's' : ''} version${newVersionsCount > 1 ? 's' : ''} disponible${newVersionsCount > 1 ? 's' : ''} mais non activée${newVersionsCount > 1 ? 's' : ''}.
-                                    <br><small>Version${newVersionsCount > 1 ? 's' : ''} : ${r.message.newer_versions.map(v => `V${v.ver} (${v.status})`).join(', ')}</small>
+                                <div class="version-notification" style="background: #fff3e0; 
+                                     border-left: 3px solid #ff9800; padding: 8px 12px; margin: 10px 0 15px 0; 
+                                     font-size: 11px; color: #e65100; display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fa fa-exclamation-triangle" style="margin-right: 6px;"></i>
+                                        <span>${newVersionsCount} nouvelle${newVersionsCount > 1 ? 's' : ''} version${newVersionsCount > 1 ? 's' : ''} disponible${newVersionsCount > 1 ? 's' : ''}</span>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn btn-xs" style="background: #ff9800; color: white; border: none; padding: 2px 8px;" 
+                                                onclick="showVersionSelector('Maquette', '${frm.doc.article}', '${frm.doc.name}'); return false;" title="Voir toutes les versions disponibles">
+                                            Voir
+                                        </button>
+                                        <button class="btn btn-xs" style="background: #ff9800; color: white; border: none; padding: 2px 8px;" 
+                                                onclick="showQuickVersionChange('Maquette', '${frm.doc.article}', '${frm.doc.name}'); return false;" title="Changer rapidement de version">
+                                            Changer
+                                        </button>
+                                    </div>
                                 </div>
                             `;
-                            maquetteCardContent.insertAdjacentHTML('beforeend', alertHtml);
+                            
+                            // Insérer après le premier élément (l'ID et les boutons)
+                            const firstItem = maquetteCardContent.querySelector('.ef-item');
+                            if (firstItem) {
+                                firstItem.insertAdjacentHTML('afterend', alertHtml);
+                            } else {
+                                maquetteCardContent.insertAdjacentHTML('afterbegin', alertHtml);
+                            }
                         }
                     }
                 }
@@ -626,6 +666,57 @@ function load_flexo_linked_docs_html(frm) {
                 text-align: left; 
                 padding: 10px; 
                 background-color: #ffffff; 
+            }
+            
+            /* Styles pour les notifications de versions */
+            .version-notification {
+                border-radius: 4px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            
+            .version-notification .btn {
+                transition: all 0.2s ease;
+                font-weight: 500;
+            }
+            
+            .version-notification .btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                background: #f57c00 !important;
+            }
+            
+            /* Responsive pour les notifications */
+            @media (max-width: 767px) {
+                .version-notification {
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                
+                .version-notification > div:last-child {
+                    justify-content: flex-end;
+                }
+            }
+            
+            /* Styles pour les tables de versions */
+            .version-table {
+                font-size: 11px;
+            }
+            
+            .version-table .current-version {
+                background-color: #e8f5e8;
+                font-weight: 500;
+            }
+            
+            .version-table .active-indicator {
+                color: #28a745;
+                font-size: 12px;
+                margin-left: 5px;
+            }
+            
+            .version-table .current-indicator {
+                color: #007bff;
+                font-size: 10px;
+                margin-left: 5px;
             }
         </style>
         
@@ -1436,6 +1527,258 @@ function load_flexo_linked_docs_html(frm) {
                 },
                 error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la récupération des infos Cliché.") + "<br>" + err.message, indicator: 'red' }); }
             });
+        };
+    }
+
+    // --- Version Selection Functions ---
+
+    /**
+     * Affiche un modal avec toutes les versions disponibles pour un doctype
+     * @param {string} doctype - Type de document (Cliche ou Maquette)
+     * @param {string} article - Article concerné
+     * @param {string} etude_id - ID de l'étude de faisabilité
+     */
+    if (!window.showVersionSelector) {
+        window.showVersionSelector = function(doctype, article, etude_id) {
+            if (!doctype || !article || !etude_id) {
+                frappe.msgprint({ title: __('Erreur'), message: __('Paramètres manquants pour afficher les versions.'), indicator: 'red' });
+                return;
+            }
+
+            const method = doctype === 'Cliche' ? 
+                'aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.get_all_cliche_versions' :
+                'aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.get_all_maquette_versions';
+
+            frappe.call({
+                method: method,
+                args: { article: article },
+                callback: function(r) {
+                    if (r.message && r.message.length > 0) {
+                        const versions = r.message;
+                        const currentDocId = doctype === 'Cliche' ? cur_frm.doc.cliche : cur_frm.doc.maquette;
+                        
+                        // Construire le HTML du modal
+                                                 let versionHtml = `
+                             <div style="max-height: 400px; overflow-y: auto;">
+                                 <table class="table table-bordered version-table" style="margin-bottom: 0;">
+                                     <thead>
+                                         <tr style="background-color: #f8f9fa;">
+                                             <th style="width: 15%;">Version</th>
+                                             <th style="width: 20%;">Statut</th>
+                                             <th style="width: 25%;">Créé par</th>
+                                             <th style="width: 20%;">Date</th>
+                                             <th style="width: 20%;">Action</th>
+                                         </tr>
+                                     </thead>
+                                     <tbody>
+                         `;
+
+                        versions.forEach(version => {
+                            const versionNum = doctype === 'Cliche' ? version.version : version.ver;
+                            const isActive = doctype === 'Cliche' ? version.version_active : (version.status === 'Version Activée');
+                            const isCurrent = version.name === currentDocId;
+                            const statusColors = getStatusColors(version.status, doctype);
+                            
+                                                         versionHtml += `
+                                 <tr class="${isCurrent ? 'current-version' : ''}">
+                                     <td>
+                                         <strong>V${versionNum}</strong>
+                                         ${isActive ? ' <span class="active-indicator">●</span>' : ''}
+                                         ${isCurrent ? ' <span class="current-indicator">(Actuelle)</span>' : ''}
+                                     </td>
+                                    <td>
+                                        <span style="padding: 2px 6px; background-color: ${statusColors.background}; color: ${statusColors.text}; border: 1px solid ${statusColors.border}; border-radius: 3px; font-size: 10px;">
+                                            ${version.status}
+                                        </span>
+                                    </td>
+                                    <td style="font-size: 11px;">${version.created_by || 'N/A'}</td>
+                                    <td style="font-size: 11px;">${frappe.datetime.str_to_user(version.creation)}</td>
+                                    <td>
+                                        ${!isCurrent ? `
+                                            <button class="btn btn-xs btn-primary" onclick="changeVersionFromSelector('${doctype}', '${etude_id}', '${version.name}'); return false;" title="Sélectionner cette version">
+                                                <i class="fa fa-check" style="margin-right: 3px;"></i>Sélectionner
+                                            </button>
+                                        ` : `
+                                            <span style="color: #6c757d; font-size: 10px;">Version actuelle</span>
+                                        `}
+                                    </td>
+                                </tr>
+                            `;
+                            
+                            // Ajouter la description si elle existe
+                                                         if (version.desc_changements) {
+                                 versionHtml += `
+                                     <tr class="${isCurrent ? 'current-version' : ''}">
+                                         <td colspan="5" style="padding: 5px 15px; font-size: 10px; color: #6c757d; border-top: none;">
+                                             <i class="fa fa-info-circle" style="margin-right: 5px;"></i>
+                                             ${version.desc_changements}
+                                         </td>
+                                     </tr>
+                                 `;
+                             }
+                        });
+
+                        versionHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+
+                        const d = new frappe.ui.Dialog({
+                            title: __('Versions disponibles - {0}', [doctype]),
+                            fields: [
+                                {
+                                    fieldtype: 'HTML',
+                                    fieldname: 'versions_html',
+                                    options: versionHtml
+                                }
+                            ],
+                            primary_action_label: __('Fermer'),
+                            primary_action: function() {
+                                d.hide();
+                            }
+                        });
+
+                        d.show();
+                    } else {
+                        frappe.msgprint({ title: __('Aucune version'), message: __('Aucune version trouvée pour cet article.'), indicator: 'blue' });
+                    }
+                }
+            });
+        };
+    }
+
+    /**
+     * Affiche un sélecteur rapide pour changer de version
+     * @param {string} doctype - Type de document (Cliche ou Maquette)
+     * @param {string} article - Article concerné
+     * @param {string} etude_id - ID de l'étude de faisabilité
+     */
+    if (!window.showQuickVersionChange) {
+        window.showQuickVersionChange = function(doctype, article, etude_id) {
+            if (!doctype || !article || !etude_id) {
+                frappe.msgprint({ title: __('Erreur'), message: __('Paramètres manquants pour changer de version.'), indicator: 'red' });
+                return;
+            }
+
+            const method = doctype === 'Cliche' ? 
+                'aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.get_all_cliche_versions' :
+                'aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.get_all_maquette_versions';
+
+            frappe.call({
+                method: method,
+                args: { article: article },
+                callback: function(r) {
+                    if (r.message && r.message.length > 0) {
+                        const versions = r.message;
+                        const currentDocId = doctype === 'Cliche' ? cur_frm.doc.cliche : cur_frm.doc.maquette;
+                        
+                        // Créer les options pour le sélecteur avec ID réel comme valeur
+                        const options = versions.map(version => {
+                            const versionNum = doctype === 'Cliche' ? version.version : version.ver;
+                            const isActive = doctype === 'Cliche' ? version.version_active : (version.status === 'Version Activée');
+                            const isCurrent = version.name === currentDocId;
+                            
+                            return {
+                                value: version.name,
+                                label: `V${versionNum} - ${version.status}${isActive ? ' (Active)' : ''}${isCurrent ? ' (Actuelle)' : ''}`
+                            };
+                        });
+
+                        const d = new frappe.ui.Dialog({
+                            title: __('Changer de version - {0}', [doctype]),
+                            fields: [
+                                {
+                                    fieldtype: 'Select',
+                                    fieldname: 'selected_version',
+                                    label: __('Sélectionner une version'),
+                                    options: options,
+                                    default: currentDocId,
+                                    reqd: 1
+                                },
+                                {
+                                    fieldtype: 'HTML',
+                                    fieldname: 'info_html',
+                                    options: '<div style="margin-top: 10px; padding: 8px; background-color: #f8f9fa; border-radius: 4px; font-size: 11px; color: #6c757d;"><i class="fa fa-info-circle" style="margin-right: 5px;"></i>Sélectionnez une version différente pour changer le lien dans cette étude de faisabilité.</div>'
+                                }
+                            ],
+                            primary_action_label: __('Changer'),
+                            primary_action: function() {
+                                const values = d.get_values();
+                                if (values.selected_version && values.selected_version !== currentDocId) {
+                                    changeVersionFromSelector(doctype, etude_id, values.selected_version);
+                                    d.hide();
+                                } else {
+                                    frappe.msgprint({ title: __('Aucun changement'), message: __('Veuillez sélectionner une version différente.'), indicator: 'orange' });
+                                }
+                            }
+                        });
+
+                        d.show();
+                    } else {
+                        frappe.msgprint({ title: __('Aucune version'), message: __('Aucune version trouvée pour cet article.'), indicator: 'blue' });
+                    }
+                }
+            });
+        };
+    }
+
+    /**
+     * Change la version sélectionnée depuis le sélecteur
+     * @param {string} doctype - Type de document (Cliche ou Maquette)
+     * @param {string} etude_id - ID de l'étude de faisabilité
+     * @param {string} new_doc_id - ID du nouveau document à lier
+     */
+    if (!window.changeVersionFromSelector) {
+        window.changeVersionFromSelector = function(doctype, etude_id, new_doc_id) {
+            if (!doctype || !etude_id || !new_doc_id) {
+                frappe.msgprint({ title: __('Erreur'), message: __('Paramètres manquants pour changer de version.'), indicator: 'red' });
+                return;
+            }
+
+            const method = doctype === 'Cliche' ? 
+                'aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.change_cliche_version' :
+                'aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.change_maquette_version';
+
+            frappe.confirm(
+                __('Êtes-vous sûr de vouloir changer vers cette version ?'),
+                function() {
+                    frappe.call({
+                        method: method,
+                        args: { 
+                            etude_id: etude_id, 
+                            new_cliche_id: doctype === 'Cliche' ? new_doc_id : undefined,
+                            new_maquette_id: doctype === 'Maquette' ? new_doc_id : undefined
+                        },
+                        freeze: true,
+                        freeze_message: __('Changement de version...'),
+                        callback: function(r) {
+                            if (r.message && r.message.success) {
+                                frappe.show_alert({
+                                    message: r.message.message,
+                                    indicator: 'green'
+                                }, 5);
+                                
+                                // Rafraîchir le formulaire
+                                cur_frm.reload_doc();
+                                
+                                // Recharger le HTML pour mettre à jour les données
+                                setTimeout(() => {
+                                    load_flexo_linked_docs_html(cur_frm);
+                                }, 500);
+                                
+                                // Fermer tous les dialogs ouverts
+                                $('.modal').modal('hide');
+                            } else {
+                                frappe.msgprint({ title: __('Erreur'), message: __('Erreur lors du changement de version.'), indicator: 'red' });
+                            }
+                        },
+                        error: function(err) {
+                            frappe.msgprint({ title: __('Erreur Serveur'), message: err.message || __('Erreur serveur lors du changement de version.'), indicator: 'red' });
+                        }
+                    });
+                }
+            );
         };
     }
 

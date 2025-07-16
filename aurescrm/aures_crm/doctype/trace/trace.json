@@ -79,7 +79,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-12 14:53:22.315191",
+ "modified": "2025-07-16 12:39:44.711169",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Trace",
@@ -146,6 +146,15 @@
   {
    "read": 1,
    "role": "Responsable Devis"
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Faisabilit\u00e9 Flexo",
+   "share": 1,
+   "write": 1
   }
  ],
  "search_fields": "client,article,dimensions",

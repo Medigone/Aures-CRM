@@ -203,4 +203,130 @@ def check_new_maquette_versions(article):
     return {
         "active_version": active_version,
         "newer_versions": newer_versions
-    } 
+    }
+
+@frappe.whitelist()
+def get_all_cliche_versions(article):
+    """
+    Récupère toutes les versions de cliché pour un article avec leurs détails complets
+    """
+    if not article:
+        return None
+    
+    all_versions = frappe.db.get_list(
+        "Cliche",
+        filters={"article": article},
+        fields=["name", "version", "status", "version_active", "creation", "modified", "desc_changements"],
+        order_by="version desc"
+    )
+    
+    # Enrichir avec les informations utilisateur
+    for version in all_versions:
+        # Récupérer les informations de création/modification
+        doc_info = frappe.db.get_value("Cliche", version.name, ["owner", "modified_by"], as_dict=True)
+        if doc_info:
+            version.created_by = frappe.db.get_value("User", doc_info.owner, "full_name") or doc_info.owner
+            version.modified_by = frappe.db.get_value("User", doc_info.modified_by, "full_name") or doc_info.modified_by
+    
+    return all_versions
+
+@frappe.whitelist()
+def get_all_maquette_versions(article):
+    """
+    Récupère toutes les versions de maquette pour un article avec leurs détails complets
+    """
+    if not article:
+        return None
+    
+    all_versions = frappe.db.get_list(
+        "Maquette",
+        filters={"article": article},
+        fields=["name", "ver", "status", "creation", "modified", "desc_changements"],
+        order_by="ver desc"
+    )
+    
+    # Enrichir avec les informations utilisateur
+    for version in all_versions:
+        # Récupérer les informations de création/modification
+        doc_info = frappe.db.get_value("Maquette", version.name, ["owner", "modified_by"], as_dict=True)
+        if doc_info:
+            version.created_by = frappe.db.get_value("User", doc_info.owner, "full_name") or doc_info.owner
+            version.modified_by = frappe.db.get_value("User", doc_info.modified_by, "full_name") or doc_info.modified_by
+    
+    return all_versions
+
+@frappe.whitelist()
+def change_cliche_version(etude_id, new_cliche_id):
+    """
+    Change la version du cliché liée à une étude de faisabilité
+    """
+    if not etude_id or not new_cliche_id:
+        frappe.throw("ID de l'étude et du nouveau cliché requis")
+    
+    # Vérifier que l'étude existe
+    if not frappe.db.exists("Etude Faisabilite Flexo", etude_id):
+        frappe.throw(f"Étude de faisabilité {etude_id} non trouvée")
+    
+    # Vérifier que le cliché existe
+    if not frappe.db.exists("Cliche", new_cliche_id):
+        frappe.throw(f"Cliché {new_cliche_id} non trouvé")
+    
+    # Vérifier que le cliché correspond au même article
+    etude = frappe.get_doc("Etude Faisabilite Flexo", etude_id)
+    cliche_article = frappe.db.get_value("Cliche", new_cliche_id, "article")
+    
+    if cliche_article != etude.article:
+        frappe.throw("Le cliché sélectionné ne correspond pas à l'article de l'étude")
+    
+    # Mettre à jour le lien
+    etude.cliche = new_cliche_id
+    etude.save(ignore_permissions=True)
+    
+    # Récupérer les informations du nouveau cliché
+    new_cliche_info = frappe.db.get_value("Cliche", new_cliche_id, ["version", "status"], as_dict=True)
+    
+    return {
+        "success": True,
+        "message": f"Cliché changé vers {new_cliche_id} (V{new_cliche_info.version} - {new_cliche_info.status})",
+        "new_cliche_id": new_cliche_id,
+        "version": new_cliche_info.version,
+        "status": new_cliche_info.status
+    }
+
+@frappe.whitelist()
+def change_maquette_version(etude_id, new_maquette_id):
+    """
+    Change la version de la maquette liée à une étude de faisabilité
+    """
+    if not etude_id or not new_maquette_id:
+        frappe.throw("ID de l'étude et de la nouvelle maquette requis")
+    
+    # Vérifier que l'étude existe
+    if not frappe.db.exists("Etude Faisabilite Flexo", etude_id):
+        frappe.throw(f"Étude de faisabilité {etude_id} non trouvée")
+    
+    # Vérifier que la maquette existe
+    if not frappe.db.exists("Maquette", new_maquette_id):
+        frappe.throw(f"Maquette {new_maquette_id} non trouvée")
+    
+    # Vérifier que la maquette correspond au même article
+    etude = frappe.get_doc("Etude Faisabilite Flexo", etude_id)
+    maquette_article = frappe.db.get_value("Maquette", new_maquette_id, "article")
+    
+    if maquette_article != etude.article:
+        frappe.throw("La maquette sélectionnée ne correspond pas à l'article de l'étude")
+    
+    # Mettre à jour le lien
+    etude.maquette = new_maquette_id
+    etude.save(ignore_permissions=True)
+    
+    # Récupérer les informations de la nouvelle maquette
+    new_maquette_info = frappe.db.get_value("Maquette", new_maquette_id, ["ver", "status"], as_dict=True)
+    
+    return {
+        "success": True,
+        "message": f"Maquette changée vers {new_maquette_id} (V{new_maquette_info.ver} - {new_maquette_info.status})",
+        "new_maquette_id": new_maquette_id,
+        "version": new_maquette_info.ver,
+        "status": new_maquette_info.status
+    }
