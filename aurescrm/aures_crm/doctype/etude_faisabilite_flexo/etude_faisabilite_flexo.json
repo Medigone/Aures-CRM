@@ -290,7 +290,7 @@
   {
    "fieldname": "trace",
    "fieldtype": "Link",
-   "label": "Tracé",
+   "label": "Trac\u00e9",
    "options": "Trace",
    "read_only_depends_on": "eval: doc.is_reprint == 0"
   },
@@ -300,7 +300,7 @@
    "fieldname": "fichier_trace",
    "fieldtype": "Attach",
    "hidden": 1,
-   "label": "Fichier Tracé",
+   "label": "Fichier Trac\u00e9",
    "make_attachment_public": 1,
    "read_only": 1
   },
@@ -337,7 +337,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-15 16:42:29.169251",
+ "modified": "2025-07-16 12:15:27.499135",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite Flexo",

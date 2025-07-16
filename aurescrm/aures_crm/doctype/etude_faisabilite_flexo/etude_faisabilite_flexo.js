@@ -148,7 +148,7 @@ function set_filters_flexo(frm) {
         frm.set_query("plan_flexo");
     }
 
-    // Filter Maquette based on the selected Article
+    // Filter Maquette based on the selected Article (only active versions)
     if (frm.fields_dict.maquette) {
         frm.fields_dict.maquette.get_query = function(doc) {
             if (!doc.article) {
@@ -156,14 +156,15 @@ function set_filters_flexo(frm) {
             }
             return {
                 filters: {
-                    article: doc.article
+                    article: doc.article,
+                    status: "Version Activée"
                 }
             };
         };
         frm.set_query("maquette");
     }
 
-    // Filter Cliche based on the selected Article
+    // Filter Cliche based on the selected Article (only active versions)
     if (frm.fields_dict.cliche) {
         frm.fields_dict.cliche.get_query = function(doc) {
             if (!doc.article) {
@@ -171,7 +172,8 @@ function set_filters_flexo(frm) {
             }
             return {
                 filters: {
-                    article: doc.article
+                    article: doc.article,
+                    version_active: 1
                 }
             };
         };
@@ -291,6 +293,100 @@ if (typeof window !== 'undefined') {
 }
 
 /**
+ * Function to get status colors based on status value and doctype
+ * @param {string} status - The status value
+ * @param {string} doctype - The doctype (Cliche, Maquette, etc.)
+ * @returns {object} - Object containing background, border and text colors
+ */
+function getStatusColors(status, doctype = 'Cliche') {
+    // Cliche status colors
+    const clicheStatusColors = {
+        'Nouveau': { 
+            background: '#f8f9fa', 
+            border: '#6c757d', 
+            text: '#495057' 
+        },
+        'En Cours': { 
+            background: '#e3f2fd', 
+            border: '#2196f3', 
+            text: '#1565c0' 
+        },
+        'En Devis': { 
+            background: '#fff8e1', 
+            border: '#ff9800', 
+            text: '#e65100' 
+        },
+        'Devis Prêt': { 
+            background: '#e8f5e8', 
+            border: '#4caf50', 
+            text: '#2e7d32' 
+        },
+        'Devis Accepté': { 
+            background: '#e8f5e8', 
+            border: '#4caf50', 
+            text: '#2e7d32' 
+        },
+        'Devis Rejeté': { 
+            background: '#ffebee', 
+            border: '#f44336', 
+            text: '#c62828' 
+        },
+        'A Réaliser': { 
+            background: '#e0f2f1', 
+            border: '#009688', 
+            text: '#00695c' 
+        },
+        'Réalisé': { 
+            background: '#e8f5e8', 
+            border: '#4caf50', 
+            text: '#2e7d32' 
+        },
+        'Archivé': { 
+            background: '#f8f9fa', 
+            border: '#6c757d', 
+            text: '#495057' 
+        },
+        'Annulé': { 
+            background: '#ffebee', 
+            border: '#f44336', 
+            text: '#c62828' 
+        }
+    };
+
+    // Maquette status colors
+    const maquetteStatusColors = {
+        'A référencer': { 
+            background: '#fff8e1', 
+            border: '#ff9800', 
+            text: '#e65100' 
+        },
+        'Référencée': { 
+            background: '#e3f2fd', 
+            border: '#2196f3', 
+            text: '#1565c0' 
+        },
+        'Version Activée': { 
+            background: '#e8f5e8', 
+            border: '#4caf50', 
+            text: '#2e7d32' 
+        },
+        'Obsolète': { 
+            background: '#ffebee', 
+            border: '#f44336', 
+            text: '#c62828' 
+        }
+    };
+
+    const statusColors = doctype === 'Maquette' ? maquetteStatusColors : clicheStatusColors;
+    
+    return statusColors[status] || { 
+        background: '#f8f9fa', 
+        border: '#6c757d', 
+        text: '#495057' 
+    };
+}
+
+/**
  * Loads the HTML content displaying linked documents links and action buttons
  * into the 'html_doc' field.
  * @param {object} frm - The current form object.
@@ -321,6 +417,96 @@ function load_flexo_linked_docs_html(frm) {
         return;
     }
 
+    // Function to load cliche status and check for new versions
+    function loadClicheStatusAndUpdateHTML() {
+        if (frm.doc.cliche) {
+            // Load status
+            frappe.call({
+                method: "frappe.client.get_value",
+                args: { doctype: "Cliche", fieldname: ["status", "version_active"], filters: { name: frm.doc.cliche } },
+                callback: function(r) {
+                    if (r.message && r.message.status) {
+                        const statusElement = document.getElementById(`cliche-status-${frm.doc.cliche}`);
+                        if (statusElement) {
+                            const statusColors = getStatusColors(r.message.status, 'Cliche');
+                            statusElement.style.backgroundColor = statusColors.background;
+                            statusElement.style.borderColor = statusColors.border;
+                            statusElement.style.color = statusColors.text;
+                            statusElement.textContent = r.message.status;
+                        }
+                    }
+                }
+            });
+            
+            // Check for newer versions
+            frappe.call({
+                method: "aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.check_new_cliche_versions",
+                args: { article: frm.doc.article },
+                callback: function(r) {
+                    if (r.message && r.message.newer_versions && r.message.newer_versions.length > 0) {
+                        const clicheCardContent = document.querySelector(`#cliche-card-${frm.doc.cliche} .ef-card-content`);
+                        if (clicheCardContent) {
+                            const newVersionsCount = r.message.newer_versions.length;
+                            const alertHtml = `
+                                <div style="margin-top: 10px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; font-size: 11px; color: #856404;">
+                                    <i class="fa fa-exclamation-triangle" style="margin-right: 5px;"></i>
+                                    <strong>Attention :</strong> ${newVersionsCount} nouvelle${newVersionsCount > 1 ? 's' : ''} version${newVersionsCount > 1 ? 's' : ''} disponible${newVersionsCount > 1 ? 's' : ''} mais non activée${newVersionsCount > 1 ? 's' : ''}.
+                                    <br><small>Version${newVersionsCount > 1 ? 's' : ''} : ${r.message.newer_versions.map(v => `V${v.version} (${v.status})`).join(', ')}</small>
+                                </div>
+                            `;
+                            clicheCardContent.insertAdjacentHTML('beforeend', alertHtml);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Function to load maquette status and check for new versions
+    function loadMaquetteStatusAndUpdateHTML() {
+        if (frm.doc.maquette) {
+            // Load status
+            frappe.call({
+                method: "frappe.client.get_value",
+                args: { doctype: "Maquette", fieldname: ["status"], filters: { name: frm.doc.maquette } },
+                callback: function(r) {
+                    if (r.message && r.message.status) {
+                        const statusElement = document.getElementById(`maquette-status-${frm.doc.maquette}`);
+                        if (statusElement) {
+                            const statusColors = getStatusColors(r.message.status, 'Maquette');
+                            statusElement.style.backgroundColor = statusColors.background;
+                            statusElement.style.borderColor = statusColors.border;
+                            statusElement.style.color = statusColors.text;
+                            statusElement.textContent = r.message.status;
+                        }
+                    }
+                }
+            });
+            
+            // Check for newer versions
+            frappe.call({
+                method: "aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.check_new_maquette_versions",
+                args: { article: frm.doc.article },
+                callback: function(r) {
+                    if (r.message && r.message.newer_versions && r.message.newer_versions.length > 0) {
+                        const maquetteCardContent = document.querySelector(`#maquette-card-${frm.doc.maquette} .ef-card-content`);
+                        if (maquetteCardContent) {
+                            const newVersionsCount = r.message.newer_versions.length;
+                            const alertHtml = `
+                                <div style="margin-top: 10px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; font-size: 11px; color: #856404;">
+                                    <i class="fa fa-exclamation-triangle" style="margin-right: 5px;"></i>
+                                    <strong>Attention :</strong> ${newVersionsCount} nouvelle${newVersionsCount > 1 ? 's' : ''} version${newVersionsCount > 1 ? 's' : ''} disponible${newVersionsCount > 1 ? 's' : ''} mais non activée${newVersionsCount > 1 ? 's' : ''}.
+                                    <br><small>Version${newVersionsCount > 1 ? 's' : ''} : ${r.message.newer_versions.map(v => `V${v.ver} (${v.status})`).join(', ')}</small>
+                                </div>
+                            `;
+                            maquetteCardContent.insertAdjacentHTML('beforeend', alertHtml);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     // --- HTML Structure and Styling ---
     var html = `<div style='display: flex; flex-direction: column; gap: 20px; padding-bottom: 10px;'>
         <style>
@@ -347,6 +533,9 @@ function load_flexo_linked_docs_html(frm) {
                 padding: 10px 20px; 
                 border-bottom: 0.5px solid #d1d8dd; 
                 background-color: #f8f9fa; 
+                display: flex; 
+                align-items: center; 
+                justify-content: flex-start; 
             }
             .ef-card-title { 
                 font-size: 14px; 
@@ -443,7 +632,7 @@ function load_flexo_linked_docs_html(frm) {
         <!-- Bouton Fiche Technique Article placé avant les sections -->
         ${frm.doc.article ? `<div class='ef-specs-btn'>
             <button class='btn btn-primary' onclick="show_flexo_technical_specs('${frm.doc.article}'); return false;">
-                Fiche Technique Flexo
+                Fiche Technique 
             </button>
         </div>` : ''}
         
@@ -513,8 +702,11 @@ function load_flexo_linked_docs_html(frm) {
 
     // --- Section Maquette ---
     html += `<div class='ef-section'>
-                <div class='ef-card'>
-                    <div class='ef-card-header'><span class='ef-card-title'>Maquette</span></div>
+                <div class='ef-card' id='maquette-card-${frm.doc.maquette || 'none'}'>
+                    <div class='ef-card-header'>
+                        <span class='ef-card-title'>Maquette</span>
+                        ${frm.doc.maquette ? `<span id="maquette-status-${frm.doc.maquette}" style="margin-left: 10px; padding: 4px 8px; background-color: #f8f9fa; color: #495057; border: 1px solid #6c757d; border-radius: 8px; font-size: 10px; font-weight: 500;">Chargement...</span>` : ''}
+                    </div>
                     <div class='ef-card-content'>`;
     if (frm.doc.maquette) {
         html += `<div class='ef-item'>
@@ -544,8 +736,11 @@ function load_flexo_linked_docs_html(frm) {
 
     // --- Section Cliché ---
     html += `<div class='ef-section'>
-                <div class='ef-card'>
-                    <div class='ef-card-header'><span class='ef-card-title'>Cliché</span></div>
+                <div class='ef-card' id='cliche-card-${frm.doc.cliche || 'none'}'>
+                    <div class='ef-card-header'>
+                        <span class='ef-card-title'>Cliché</span>
+                        ${frm.doc.cliche ? `<span id="cliche-status-${frm.doc.cliche}" style="margin-left: 10px; padding: 4px 8px; background-color: #f8f9fa; color: #495057; border: 1px solid #6c757d; border-radius: 8px; font-size: 10px; font-weight: 500;">Chargement...</span>` : ''}
+                    </div>
                     <div class='ef-card-content'>`;
     if (frm.doc.cliche) {
         html += `<div class='ef-item'>
@@ -576,6 +771,10 @@ function load_flexo_linked_docs_html(frm) {
     html += `</div>`; // End ef-container
     html += `</div>`; // End outer div
     html_field.$wrapper.html(html); // Inject HTML
+
+    // Load status badges after HTML is injected
+    loadClicheStatusAndUpdateHTML();
+    loadMaquetteStatusAndUpdateHTML();
 
     // --- Define Global Action Functions ---
 
@@ -631,6 +830,7 @@ function load_flexo_linked_docs_html(frm) {
 
     /**
      * Creates a new Trace document, links it, and prompts for required info.
+     * First checks if a Trace already exists for the article and links it instead.
      * @param {string} docname - Name of the current Etude Faisabilite Flexo document.
      */
     if (!window.createTrace) {
@@ -640,56 +840,85 @@ function load_flexo_linked_docs_html(frm) {
                 frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir les champs Client et Article avant de créer une Trace.'), indicator: 'orange' });
                 return;
             }
+            
+            // First check if a Trace already exists for this article
             frappe.call({
-                method: "frappe.client.insert",
-                args: { doc: { doctype: "Trace", client: frm.doc.client, article: frm.doc.article, etude_faisabilite_flexo: frm.doc.name } },
-                freeze: true, freeze_message: __("Création de la Trace..."),
+                method: "aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.get_existing_trace_for_article",
+                args: { article: frm.doc.article },
                 callback: function(r) {
-                    if (r.message && r.message.name) {
-                        var trace_id = r.message.name;
-                        frm.set_value("trace", trace_id); // Link the new Trace
+                    if (r.message) {
+                        // Trace already exists, link it
+                        var existing_trace_id = r.message;
+                        frm.set_value("trace", existing_trace_id);
+                        
+                        frappe.show_alert({
+                            message: __('Tracé existant lié automatiquement: {0}', [existing_trace_id]),
+                            indicator: 'green'
+                        }, 5);
+                        
+                        // Save the Etude Faisabilite to persist the link, then refresh UI
+                        frm.save()
+                            .then(() => {
+                                load_flexo_linked_docs_html(frm);
+                                refresh_attached_files_flexo(frm);
+                            })
+                            .catch((err) => { console.error("Save failed after linking existing Trace:", err); });
+                    } else {
+                        // No existing trace, create a new one
+                        frappe.call({
+                            method: "frappe.client.insert",
+                            args: { doc: { doctype: "Trace", client: frm.doc.client, article: frm.doc.article, etude_faisabilite_flexo: frm.doc.name } },
+                            freeze: true, freeze_message: __("Création de la Trace..."),
+                            callback: function(r) {
+                                if (r.message && r.message.name) {
+                                    var trace_id = r.message.name;
+                                    frm.set_value("trace", trace_id); // Link the new Trace
 
-                        var d = new frappe.ui.Dialog({
-                            title: __('Compléter les informations de la Trace'),
-                            fields: [
-                                { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${trace_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${trace_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, description: __('Entrez les dimensions du tracé') },
-                                { label: __('Fichier Tracé'), fieldname: 'fichier_trace', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier du tracé') }
-                            ],
-                            primary_action_label: __('Enregistrer et Fermer'),
-                            primary_action: function() {
-                                var values = d.get_values();
-                                if (!values.dimensions || !values.fichier_trace) {
-                                     frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
-                                     return; // Prevent closing dialog
-                                }
-                                // Update the newly created Trace document
-                                frappe.call({
-                                    method: "frappe.client.set_value",
-                                    args: { doctype: "Trace", name: trace_id, fieldname: { dimensions: values.dimensions, fichier_trace: values.fichier_trace } },
-                                    freeze: true, freeze_message: __("Mise à jour de la Trace..."),
-                                    callback: function(r_update) {
-                                        if (r_update.message) {
-                                            frappe.show_alert({message:__('Trace créée et mise à jour avec succès.'), indicator:'green'}, 5);
-                                            // Save the Etude Faisabilite to persist the link, then refresh UI
-                                            frm.save()
-                                                .then(() => {
-                                                    load_flexo_linked_docs_html(frm);
-                                                    refresh_attached_files_flexo(frm);
-                                                })
-                                                .catch((err) => { console.error("Save failed after linking existing Trace:", err); });
-                                            d.hide();
-                                        } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Trace."), indicator: 'red' }); }
-                                    },
-                                    error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de la Trace.") + "<br>" + err_update.message, indicator: 'red' });}
-                                });
-                            }
+                                    var d = new frappe.ui.Dialog({
+                                        title: __('Compléter les informations de la Trace'),
+                                        fields: [
+                                            { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${trace_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${trace_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
+                                            { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, description: __('Entrez les dimensions du tracé') },
+                                            { label: __('Fichier Tracé'), fieldname: 'fichier_trace', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier du tracé') }
+                                        ],
+                                        primary_action_label: __('Enregistrer et Fermer'),
+                                        primary_action: function() {
+                                            var values = d.get_values();
+                                            if (!values.dimensions || !values.fichier_trace) {
+                                                 frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
+                                                 return; // Prevent closing dialog
+                                            }
+                                            // Update the newly created Trace document
+                                            frappe.call({
+                                                method: "frappe.client.set_value",
+                                                args: { doctype: "Trace", name: trace_id, fieldname: { dimensions: values.dimensions, fichier_trace: values.fichier_trace } },
+                                                freeze: true, freeze_message: __("Mise à jour de la Trace..."),
+                                                callback: function(r_update) {
+                                                    if (r_update.message) {
+                                                        frappe.show_alert({message:__('Trace créée et mise à jour avec succès.'), indicator:'green'}, 5);
+                                                        // Save the Etude Faisabilite to persist the link, then refresh UI
+                                                        frm.save()
+                                                            .then(() => {
+                                                                load_flexo_linked_docs_html(frm);
+                                                                refresh_attached_files_flexo(frm);
+                                                            })
+                                                            .catch((err) => { console.error("Save failed after linking existing Trace:", err); });
+                                                        d.hide();
+                                                    } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Trace."), indicator: 'red' }); }
+                                                },
+                                                error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de la Trace.") + "<br>" + err_update.message, indicator: 'red' });}
+                                            });
+                                        }
+                                    });
+                                    style_dialog_primary_button(d); // Apply default styling (no-op now)
+                                    d.show();
+                                } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la création de la Trace.") + (r.exc ? "<br>" + r.exc : ""), indicator: 'red' }); }
+                            },
+                            error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création de la Trace.") + "<br>" + err.message, indicator: 'red' }); }
                         });
-                        style_dialog_primary_button(d); // Apply default styling (no-op now)
-                        d.show();
-                    } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la création de la Trace.") + (r.exc ? "<br>" + r.exc : ""), indicator: 'red' }); }
+                    }
                 },
-                error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création de la Trace.") + "<br>" + err.message, indicator: 'red' }); }
+                error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la vérification du Tracé existant.") + "<br>" + err.message, indicator: 'red' }); }
             });
         };
     }
@@ -752,6 +981,7 @@ function load_flexo_linked_docs_html(frm) {
 
     /**
      * Creates a new Plan Flexo document, links it, and prompts for required info.
+     * First checks if a Plan Flexo already exists for the article and links it instead.
      * @param {string} docname - Name of the current Etude Faisabilite Flexo document.
      */
     if (!window.createPlanFlexo) {
@@ -761,55 +991,84 @@ function load_flexo_linked_docs_html(frm) {
                 frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir les champs Client et Article avant de créer un Plan Flexo.'), indicator: 'orange' });
                 return;
             }
+            
+            // First check if a Plan Flexo already exists for this article
             frappe.call({
-                method: "frappe.client.insert",
-                args: { doc: { doctype: "Plan Flexo", client: frm.doc.client, article: frm.doc.article, etude_faisabilite_flexo: frm.doc.name } },
-                freeze: true, freeze_message: __("Création du Plan Flexo..."),
+                method: "aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.get_existing_plan_flexo_for_article",
+                args: { article: frm.doc.article },
                 callback: function(r) {
-                    if (r.message && r.message.name) {
-                        var plan_id = r.message.name;
-                        frm.set_value("plan_flexo", plan_id);
+                    if (r.message) {
+                        // Plan Flexo already exists, link it
+                        var existing_plan_id = r.message;
+                        frm.set_value("plan_flexo", existing_plan_id);
+                        
+                        frappe.show_alert({
+                            message: __('Plan Flexo existant lié automatiquement: {0}', [existing_plan_id]),
+                            indicator: 'green'
+                        }, 5);
+                        
+                        // Save the Etude Faisabilite to persist the link, then refresh UI
+                        frm.save()
+                            .then(() => {
+                                load_flexo_linked_docs_html(frm);
+                                refresh_attached_files_flexo(frm);
+                            })
+                            .catch((err) => { console.error("Save failed after linking existing Plan Flexo:", err); });
+                    } else {
+                        // No existing plan flexo, create a new one
+                        frappe.call({
+                            method: "frappe.client.insert",
+                            args: { doc: { doctype: "Plan Flexo", client: frm.doc.client, article: frm.doc.article, etude_faisabilite_flexo: frm.doc.name } },
+                            freeze: true, freeze_message: __("Création du Plan Flexo..."),
+                            callback: function(r) {
+                                if (r.message && r.message.name) {
+                                    var plan_id = r.message.name;
+                                    frm.set_value("plan_flexo", plan_id);
 
-                        var d = new frappe.ui.Dialog({
-                            title: __('Compléter les informations du Plan Flexo'),
-                            fields: [
-                                { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${plan_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${plan_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, description: __('Entrez les dimensions du plan') },
-                                { label: __('Laize'), fieldname: 'laize', fieldtype: 'Float', reqd: 1, description: __('Entrez la laize') },
-                                { label: __('Fichier Plan Flexo'), fieldname: 'fichier', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier du plan') }
-                            ],
-                            primary_action_label: __('Enregistrer et Fermer'),
-                            primary_action: function() {
-                                var values = d.get_values();
-                                if (!values.dimensions || !values.laize || !values.fichier) {
-                                    frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
-                                    return;
-                                }
-                                frappe.call({
-                                    method: "frappe.client.set_value",
-                                    args: { doctype: "Plan Flexo", name: plan_id, fieldname: { dimensions: values.dimensions, laize: values.laize, fichier: values.fichier } },
-                                    freeze: true, freeze_message: __("Mise à jour du Plan Flexo..."),
-                                    callback: function(r_update) {
-                                        if (r_update.message) {
-                                            frappe.show_alert({message:__('Plan Flexo créé et mis à jour avec succès.'), indicator:'green'}, 5);
-                                            frm.save()
-                                                .then(() => {
-                                                    load_flexo_linked_docs_html(frm);
-                                                    refresh_attached_files_flexo(frm);
-                                                })
-                                                .catch((err) => { console.error("Save failed after Plan Flexo creation:", err); });
-                                            d.hide();
-                                        } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour du Plan Flexo."), indicator: 'red' }); }
-                                    },
-                                    error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour du Plan Flexo.") + "<br>" + err_update.message, indicator: 'red' });}
-                                });
-                            }
+                                    var d = new frappe.ui.Dialog({
+                                        title: __('Compléter les informations du Plan Flexo'),
+                                        fields: [
+                                            { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${plan_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${plan_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
+                                            { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, description: __('Entrez les dimensions du plan') },
+                                            { label: __('Laize'), fieldname: 'laize', fieldtype: 'Float', reqd: 1, description: __('Entrez la laize') },
+                                            { label: __('Fichier Plan Flexo'), fieldname: 'fichier', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier du plan') }
+                                        ],
+                                        primary_action_label: __('Enregistrer et Fermer'),
+                                        primary_action: function() {
+                                            var values = d.get_values();
+                                            if (!values.dimensions || !values.laize || !values.fichier) {
+                                                frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
+                                                return;
+                                            }
+                                            frappe.call({
+                                                method: "frappe.client.set_value",
+                                                args: { doctype: "Plan Flexo", name: plan_id, fieldname: { dimensions: values.dimensions, laize: values.laize, fichier: values.fichier } },
+                                                freeze: true, freeze_message: __("Mise à jour du Plan Flexo..."),
+                                                callback: function(r_update) {
+                                                    if (r_update.message) {
+                                                        frappe.show_alert({message:__('Plan Flexo créé et mis à jour avec succès.'), indicator:'green'}, 5);
+                                                        frm.save()
+                                                            .then(() => {
+                                                                load_flexo_linked_docs_html(frm);
+                                                                refresh_attached_files_flexo(frm);
+                                                            })
+                                                            .catch((err) => { console.error("Save failed after Plan Flexo creation:", err); });
+                                                        d.hide();
+                                                    } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour du Plan Flexo."), indicator: 'red' }); }
+                                                },
+                                                error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour du Plan Flexo.") + "<br>" + err_update.message, indicator: 'red' });}
+                                            });
+                                        }
+                                    });
+                                    style_dialog_primary_button(d);
+                                    d.show();
+                                } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la création du Plan Flexo.") + (r.exc ? "<br>" + r.exc : ""), indicator: 'red' }); }
+                            },
+                            error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création du Plan Flexo.") + "<br>" + err.message, indicator: 'red' }); }
                         });
-                        style_dialog_primary_button(d);
-                        d.show();
-                    } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la création du Plan Flexo.") + (r.exc ? "<br>" + r.exc : ""), indicator: 'red' }); }
+                    }
                 },
-                error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création du Plan Flexo.") + "<br>" + err.message, indicator: 'red' }); }
+                error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la vérification du Plan Flexo existant.") + "<br>" + err.message, indicator: 'red' }); }
             });
         };
     }
@@ -870,6 +1129,7 @@ function load_flexo_linked_docs_html(frm) {
 
     /**
      * Creates a new Maquette document, links it, and prompts for required info.
+     * First checks if a Maquette already exists for the article and links it instead.
      * @param {string} docname - Name of the current Etude Faisabilite Flexo document.
      */
     if (!window.createMaquette) {
@@ -879,53 +1139,82 @@ function load_flexo_linked_docs_html(frm) {
                 frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir les champs Client et Article avant de créer une Maquette.'), indicator: 'orange' });
                 return;
             }
+            
+            // First check if a Maquette already exists for this article
             frappe.call({
-                method: "frappe.client.insert",
-                args: { doc: { doctype: "Maquette", client: frm.doc.client, article: frm.doc.article, etude_faisabilite_flexo: frm.doc.name } },
-                freeze: true, freeze_message: __("Création de la Maquette..."),
+                method: "aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.get_existing_maquette_for_article",
+                args: { article: frm.doc.article },
                 callback: function(r) {
-                    if (r.message && r.message.name) {
-                        var maquette_id = r.message.name;
-                        frm.set_value("maquette", maquette_id);
+                    if (r.message) {
+                        // Maquette already exists, link it
+                        var existing_maquette_id = r.message;
+                        frm.set_value("maquette", existing_maquette_id);
+                        
+                        frappe.show_alert({
+                            message: __('Maquette existante liée automatiquement: {0}', [existing_maquette_id]),
+                            indicator: 'green'
+                        }, 5);
+                        
+                        // Save the Etude Faisabilite to persist the link, then refresh UI
+                        frm.save()
+                            .then(() => {
+                                load_flexo_linked_docs_html(frm);
+                                refresh_attached_files_flexo(frm);
+                            })
+                            .catch((err) => { console.error("Save failed after linking existing Maquette:", err); });
+                    } else {
+                        // No existing maquette, create a new one
+                        frappe.call({
+                            method: "frappe.client.insert",
+                            args: { doc: { doctype: "Maquette", client: frm.doc.client, article: frm.doc.article, etude_faisabilite_flexo: frm.doc.name } },
+                            freeze: true, freeze_message: __("Création de la Maquette..."),
+                            callback: function(r) {
+                                if (r.message && r.message.name) {
+                                    var maquette_id = r.message.name;
+                                    frm.set_value("maquette", maquette_id);
 
-                        var d = new frappe.ui.Dialog({
-                            title: __('Compléter les informations de la Maquette'),
-                            fields: [
-                                { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${maquette_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${maquette_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                { label: __('Fichier Maquette'), fieldname: 'fichier_maquette', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier de la maquette') }
-                            ],
-                            primary_action_label: __('Enregistrer et Fermer'),
-                            primary_action: function() {
-                                var values = d.get_values();
-                                if (!values.fichier_maquette) {
-                                    frappe.msgprint({ title: __('Validation'), message: __("Veuillez joindre le fichier de la maquette."), indicator: 'orange' });
-                                    return;
-                                }
-                                frappe.call({
-                                    method: "frappe.client.set_value",
-                                    args: { doctype: "Maquette", name: maquette_id, fieldname: { fichier_maquette: values.fichier_maquette } },
-                                    freeze: true, freeze_message: __("Mise à jour de la Maquette..."),
-                                    callback: function(r_update) {
-                                        if (r_update.message) {
-                                            frappe.show_alert({message:__('Maquette créée et mise à jour avec succès.'), indicator:'green'}, 5);
-                                            frm.save()
-                                                .then(() => {
-                                                    load_flexo_linked_docs_html(frm);
-                                                    refresh_attached_files_flexo(frm);
-                                                })
-                                                .catch((err) => { console.error("Save failed after Maquette creation:", err); });
-                                            d.hide();
-                                        } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Maquette."), indicator: 'red' }); }
-                                    },
-                                    error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de la Maquette.") + "<br>" + err_update.message, indicator: 'red' });}
-                                });
-                            }
+                                    var d = new frappe.ui.Dialog({
+                                        title: __('Compléter les informations de la Maquette'),
+                                        fields: [
+                                            { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${maquette_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${maquette_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
+                                            { label: __('Fichier Maquette'), fieldname: 'fichier_maquette', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier de la maquette') }
+                                        ],
+                                        primary_action_label: __('Enregistrer et Fermer'),
+                                        primary_action: function() {
+                                            var values = d.get_values();
+                                            if (!values.fichier_maquette) {
+                                                frappe.msgprint({ title: __('Validation'), message: __("Veuillez joindre le fichier de la maquette."), indicator: 'orange' });
+                                                return;
+                                            }
+                                            frappe.call({
+                                                method: "frappe.client.set_value",
+                                                args: { doctype: "Maquette", name: maquette_id, fieldname: { fichier_maquette: values.fichier_maquette } },
+                                                freeze: true, freeze_message: __("Mise à jour de la Maquette..."),
+                                                callback: function(r_update) {
+                                                    if (r_update.message) {
+                                                        frappe.show_alert({message:__('Maquette créée et mise à jour avec succès.'), indicator:'green'}, 5);
+                                                        frm.save()
+                                                            .then(() => {
+                                                                load_flexo_linked_docs_html(frm);
+                                                                refresh_attached_files_flexo(frm);
+                                                            })
+                                                            .catch((err) => { console.error("Save failed after Maquette creation:", err); });
+                                                        d.hide();
+                                                    } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Maquette."), indicator: 'red' }); }
+                                                },
+                                                error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de la Maquette.") + "<br>" + err_update.message, indicator: 'red' });}
+                                            });
+                                        }
+                                    });
+                                    style_dialog_primary_button(d);
+                                    d.show();
+                                } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la création de la Maquette.") + (r.exc ? "<br>" + r.exc : ""), indicator: 'red' }); }
+                            },
+                            error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création de la Maquette.") + "<br>" + err.message, indicator: 'red' }); }
                         });
-                        style_dialog_primary_button(d);
-                        d.show();
-                    } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la création de la Maquette.") + (r.exc ? "<br>" + r.exc : ""), indicator: 'red' }); }
+                    }
                 },
-                error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création de la Maquette.") + "<br>" + err.message, indicator: 'red' }); }
+                error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la vérification de la Maquette existante.") + "<br>" + err.message, indicator: 'red' }); }
             });
         };
     }
@@ -984,6 +1273,7 @@ function load_flexo_linked_docs_html(frm) {
 
     /**
      * Creates a new Cliche document, links it, and prompts for required info.
+     * First checks if a Cliche already exists for the article and links it instead.
      * @param {string} docname - Name of the current Etude Faisabilite Flexo document.
      */
     if (!window.createCliche) {
@@ -993,53 +1283,95 @@ function load_flexo_linked_docs_html(frm) {
                 frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir les champs Client et Article avant de créer un Cliché.'), indicator: 'orange' });
                 return;
             }
+            
+            // First check if a Cliche already exists for this article
             frappe.call({
-                method: "frappe.client.insert",
-                args: { doc: { doctype: "Cliche", client: frm.doc.client, article: frm.doc.article, etude_faisabilite_flexo: frm.doc.name } },
-                freeze: true, freeze_message: __("Création du Cliché..."),
+                method: "aurescrm.aures_crm.doctype.etude_faisabilite_flexo.etude_faisabilite_flexo.get_existing_cliche_for_article",
+                args: { article: frm.doc.article },
                 callback: function(r) {
-                    if (r.message && r.message.name) {
-                        var cliche_id = r.message.name;
-                        frm.set_value("cliche", cliche_id);
+                    if (r.message) {
+                        // Cliche already exists, link it
+                        var existing_cliche_id = r.message;
+                        frm.set_value("cliche", existing_cliche_id);
+                        
+                        frappe.show_alert({
+                            message: __('Cliché existant lié automatiquement: {0}', [existing_cliche_id]),
+                            indicator: 'green'
+                        }, 5);
+                        
+                        // Save the Etude Faisabilite to persist the link, then refresh UI
+                        frm.save()
+                            .then(() => {
+                                load_flexo_linked_docs_html(frm);
+                                refresh_attached_files_flexo(frm);
+                            })
+                            .catch((err) => { console.error("Save failed after linking existing Cliche:", err); });
+                    } else {
+                        // No existing cliche, create a new one
+                        frappe.call({
+                            method: "frappe.client.insert",
+                            args: { doc: { doctype: "Cliche", client: frm.doc.client, article: frm.doc.article, etude_faisabilite_flexo: frm.doc.name } },
+                            freeze: true, freeze_message: __("Création du Cliché..."),
+                            callback: function(r) {
+                                if (r.message && r.message.name) {
+                                    var cliche_id = r.message.name;
+                                    frm.set_value("cliche", cliche_id);
 
-                        var d = new frappe.ui.Dialog({
-                            title: __('Compléter les informations du Cliché'),
-                            fields: [
-                                { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${cliche_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${cliche_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                { label: __('Fichier Maquette'), fieldname: 'fich_maquette', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier de la maquette pour le cliché') }
-                            ],
-                            primary_action_label: __('Enregistrer et Fermer'),
-                            primary_action: function() {
-                                var values = d.get_values();
-                                if (!values.fich_maquette) {
-                                    frappe.msgprint({ title: __('Validation'), message: __("Veuillez joindre le fichier de la maquette."), indicator: 'orange' });
-                                    return;
-                                }
-                                frappe.call({
-                                    method: "frappe.client.set_value",
-                                    args: { doctype: "Cliche", name: cliche_id, fieldname: { fich_maquette: values.fich_maquette } },
-                                    freeze: true, freeze_message: __("Mise à jour du Cliché..."),
-                                    callback: function(r_update) {
-                                        if (r_update.message) {
-                                            frappe.show_alert({message:__('Cliché créé et mis à jour avec succès.'), indicator:'green'}, 5);
-                                            frm.save()
-                                                .then(() => {
-                                                    load_flexo_linked_docs_html(frm);
-                                                    refresh_attached_files_flexo(frm);
-                                                })
-                                                .catch((err) => { console.error("Save failed after Cliche creation:", err); });
-                                            d.hide();
-                                        } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour du Cliché."), indicator: 'red' }); }
-                                    },
-                                    error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour du Cliché.") + "<br>" + err_update.message, indicator: 'red' });}
-                                });
-                            }
+                                    var d = new frappe.ui.Dialog({
+                                        title: __('Compléter les informations du Cliché'),
+                                        fields: [
+                                            { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${cliche_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${cliche_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
+                                            { label: __('Laize'), fieldname: 'laize', fieldtype: 'Data', description: __('Laize en mm') },
+                                            { label: __('Nombre de Couleurs'), fieldname: 'nbr_couleurs', fieldtype: 'Data', description: __('Nombre de couleurs') },
+                                            { label: __('Développement Machine'), fieldname: 'developpement', fieldtype: 'Link', options: 'Developpement', description: __('Sélectionnez le développement machine') },
+                                            { label: __('Maquette'), fieldname: 'maquette', fieldtype: 'Link', options: 'Maquette', description: __('Sélectionnez la maquette associée') },
+                                            { label: __('Site de Production'), fieldname: 'site_prod', fieldtype: 'Link', options: 'Site Production', description: __('Sélectionnez le site de production') },
+                                            { label: __('Hauteur Cliché'), fieldname: 'hauteur_cliche', fieldtype: 'Data', description: __('Hauteur du cliché en mm (pour calcul devis)') }
+                                        ],
+                                        primary_action_label: __('Enregistrer et Fermer'),
+                                        primary_action: function() {
+                                            var values = d.get_values();
+                                            // Validation optionnelle - on peut créer un cliché sans tous les champs
+                                            frappe.call({
+                                                method: "frappe.client.set_value",
+                                                args: { 
+                                                    doctype: "Cliche", 
+                                                    name: cliche_id, 
+                                                    fieldname: {
+                                                        laize: values.laize,
+                                                        nbr_couleurs: values.nbr_couleurs,
+                                                        developpement: values.developpement,
+                                                        maquette: values.maquette,
+                                                        site_prod: values.site_prod,
+                                                        hauteur_cliche: values.hauteur_cliche
+                                                    }
+                                                },
+                                                freeze: true, freeze_message: __("Mise à jour du Cliché..."),
+                                                callback: function(r_update) {
+                                                    if (r_update.message) {
+                                                        frappe.show_alert({message:__('Cliché créé et mis à jour avec succès.'), indicator:'green'}, 5);
+                                                        frm.save()
+                                                            .then(() => {
+                                                                load_flexo_linked_docs_html(frm);
+                                                                refresh_attached_files_flexo(frm);
+                                                            })
+                                                            .catch((err) => { console.error("Save failed after Cliche creation:", err); });
+                                                        d.hide();
+                                                    } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour du Cliché."), indicator: 'red' }); }
+                                                },
+                                                error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour du Cliché.") + "<br>" + err_update.message, indicator: 'red' });}
+                                            });
+                                        }
+                                    });
+                                    style_dialog_primary_button(d);
+                                    d.show();
+                                } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la création du Cliché.") + (r.exc ? "<br>" + r.exc : ""), indicator: 'red' }); }
+                            },
+                            error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création du Cliché.") + "<br>" + err.message, indicator: 'red' }); }
                         });
-                        style_dialog_primary_button(d);
-                        d.show();
-                    } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la création du Cliché.") + (r.exc ? "<br>" + r.exc : ""), indicator: 'red' }); }
+                    }
                 },
-                error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création du Cliché.") + "<br>" + err.message, indicator: 'red' }); }
+                error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la vérification du Cliché existant.") + "<br>" + err.message, indicator: 'red' }); }
             });
         };
     }
@@ -1053,7 +1385,7 @@ function load_flexo_linked_docs_html(frm) {
             var frm = cur_frm;
             frappe.call({
                 method: "frappe.client.get_value",
-                args: { doctype: "Cliche", fieldname: ["fich_maquette"], filters: { name: cliche_id } },
+                args: { doctype: "Cliche", fieldname: ["laize", "nbr_couleurs", "developpement", "maquette", "site_prod", "hauteur_cliche"], filters: { name: cliche_id } },
                 callback: function(r) {
                     if (r.message) {
                         let current_values = r.message;
@@ -1061,19 +1393,30 @@ function load_flexo_linked_docs_html(frm) {
                             title: __('Mettre à jour le document Cliché'),
                             fields: [
                                 { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${cliche_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${cliche_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                { label: __('Fichier Maquette'), fieldname: 'fich_maquette', fieldtype: 'Attach', reqd: 1, default: current_values.fich_maquette || "", description: __('Joignez le nouveau fichier') },
-                                { fieldtype: 'HTML', fieldname: 'current_file_info_cliche', options: current_values.fich_maquette ? `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: var(--text-muted);">Fichier actuel: <a href="${current_values.fich_maquette}" target="_blank">${current_values.fich_maquette.split('/').pop()}</a></div>` : `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: #888;">Aucun fichier actuel.</div>`}
+                                { label: __('Laize'), fieldname: 'laize', fieldtype: 'Data', default: current_values.laize || "", description: __('Laize en mm') },
+                                { label: __('Nombre de Couleurs'), fieldname: 'nbr_couleurs', fieldtype: 'Data', default: current_values.nbr_couleurs || "", description: __('Nombre de couleurs') },
+                                { label: __('Développement Machine'), fieldname: 'developpement', fieldtype: 'Link', options: 'Developpement', default: current_values.developpement || "", description: __('Sélectionnez le développement machine') },
+                                { label: __('Maquette'), fieldname: 'maquette', fieldtype: 'Link', options: 'Maquette', default: current_values.maquette || "", description: __('Sélectionnez la maquette associée') },
+                                { label: __('Site de Production'), fieldname: 'site_prod', fieldtype: 'Link', options: 'Site Production', default: current_values.site_prod || "", description: __('Sélectionnez le site de production') },
+                                { label: __('Hauteur Cliché'), fieldname: 'hauteur_cliche', fieldtype: 'Data', default: current_values.hauteur_cliche || "", description: __('Hauteur du cliché en mm (pour calcul devis)') }
                             ],
                             primary_action_label: __('Mettre à jour'),
                             primary_action: function() {
                                 var values = d.get_values();
-                                if (!values.fich_maquette) {
-                                     frappe.msgprint({ title: __('Validation'), message: __("Veuillez joindre le fichier de la maquette."), indicator: 'orange' });
-                                     return;
-                                }
                                 frappe.call({
                                     method: "frappe.client.set_value",
-                                    args: { doctype: "Cliche", name: cliche_id, fieldname: { fich_maquette: values.fich_maquette } },
+                                    args: { 
+                                        doctype: "Cliche", 
+                                        name: cliche_id, 
+                                        fieldname: {
+                                            laize: values.laize,
+                                            nbr_couleurs: values.nbr_couleurs,
+                                            developpement: values.developpement,
+                                            maquette: values.maquette,
+                                            site_prod: values.site_prod,
+                                            hauteur_cliche: values.hauteur_cliche
+                                        }
+                                    },
                                     freeze: true, freeze_message: __("Mise à jour du Cliché..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {

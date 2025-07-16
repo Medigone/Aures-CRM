@@ -306,22 +306,22 @@ scheduler_events = {
 # }
 
 fixtures = [
-    #     {
-    #     "doctype": "Role",
-    #     "filters": [["is_custom", "=", 1]]  # Export uniquement les rôles custom
-    # },
-    # {
-    #     "doctype": "Custom DocPerm",
-    #     "filters": []  # Export uniquement les permissions personnalisées
-    # },
+        {
+        "doctype": "Role",
+        "filters": [["is_custom", "=", 1]]  # Export uniquement les rôles custom
+    },
+    {
+        "doctype": "Custom DocPerm",
+        "filters": []  # Export uniquement les permissions personnalisées
+    },
     # "Custom HTML Block",
     # "Client Script",
-    # "Workflow",
-    # "Workflow State",
-    # "Workflow Transition",
-    # "Workflow Action",
-    # "Workflow Action Master",
-    # "Workflow Document State",
+    "Workflow",
+    "Workflow State",
+    "Workflow Transition",
+    "Workflow Action",
+    "Workflow Action Master",
+    "Workflow Document State",
     # "Workspace",
     # "Number Card"
     

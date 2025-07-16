@@ -2,8 +2,20 @@ import frappe
 from frappe.model.document import Document
 
 class EtudeFaisabiliteFlexo(Document):
+    def before_insert(self):
+        """Vérifie si des documents existent déjà pour l'article et les lie automatiquement lors de la création"""
+        if self.article:
+            if not self.trace:
+                self.auto_link_existing_trace()
+            if not self.plan_flexo:
+                self.auto_link_existing_plan_flexo()
+            if not self.maquette:
+                self.auto_link_existing_maquette()
+            if not self.cliche:
+                self.auto_link_existing_cliche()
+    
     def before_save(self):
-        """Vérifie si des documents existent déjà pour l'article et les lie automatiquement"""
+        """Vérifie si des documents existent déjà pour l'article et les lie automatiquement lors de la sauvegarde"""
         if self.article:
             if not self.trace:
                 self.auto_link_existing_trace()
@@ -27,14 +39,14 @@ class EtudeFaisabiliteFlexo(Document):
             self.plan_flexo = existing_plan
 
     def auto_link_existing_maquette(self):
-        """Recherche et lie automatiquement une maquette existante pour l'article"""
-        existing_maquette = frappe.db.exists("Maquette", {"article": self.article})
+        """Recherche et lie automatiquement une maquette active existante pour l'article"""
+        existing_maquette = frappe.db.exists("Maquette", {"article": self.article, "status": "Version Activée"})
         if existing_maquette:
             self.maquette = existing_maquette
 
     def auto_link_existing_cliche(self):
-        """Recherche et lie automatiquement un cliché existant pour l'article"""
-        existing_cliche = frappe.db.exists("Cliche", {"article": self.article})
+        """Recherche et lie automatiquement un cliché actif existant pour l'article"""
+        existing_cliche = frappe.db.exists("Cliche", {"article": self.article, "version_active": 1})
         if existing_cliche:
             self.cliche = existing_cliche
 
@@ -110,9 +122,85 @@ def get_existing_maquette_for_article(article):
 @frappe.whitelist()
 def get_existing_cliche_for_article(article):
     """
-    Vérifie si un cliché existe déjà pour un article donné et le retourne
+    Vérifie si un cliché actif existe déjà pour un article donné et le retourne
     """
     if not article:
         return None
-    existing_cliche = frappe.db.exists("Cliche", {"article": article})
-    return existing_cliche 
+    existing_cliche = frappe.db.exists("Cliche", {"article": article, "version_active": 1})
+    return existing_cliche
+
+@frappe.whitelist()
+def get_existing_maquette_for_article(article):
+    """
+    Vérifie si une maquette active existe déjà pour un article donné et la retourne
+    """
+    if not article:
+        return None
+    existing_maquette = frappe.db.exists("Maquette", {"article": article, "status": "Version Activée"})
+    return existing_maquette
+
+@frappe.whitelist()
+def check_new_cliche_versions(article):
+    """
+    Vérifie s'il existe des nouvelles versions de cliché non activées pour un article
+    """
+    if not article:
+        return None
+    
+    # Récupérer la version active
+    active_cliche = frappe.db.get_value("Cliche", {"article": article, "version_active": 1}, ["name", "version"])
+    
+    if not active_cliche:
+        return None
+    
+    active_version = active_cliche[1] if active_cliche else 0
+    
+    # Chercher des versions plus récentes non activées
+    newer_versions = frappe.db.get_list(
+        "Cliche",
+        filters={
+            "article": article,
+            "version": [">", active_version],
+            "version_active": 0
+        },
+        fields=["name", "version", "status"],
+        order_by="version desc"
+    )
+    
+    return {
+        "active_version": active_version,
+        "newer_versions": newer_versions
+    }
+
+@frappe.whitelist()
+def check_new_maquette_versions(article):
+    """
+    Vérifie s'il existe des nouvelles versions de maquette pour un article
+    """
+    if not article:
+        return None
+    
+    # Récupérer la version active
+    active_maquette = frappe.db.get_value("Maquette", {"article": article, "status": "Version Activée"}, ["name", "ver"])
+    
+    if not active_maquette:
+        return None
+    
+    active_version = active_maquette[1] if active_maquette else 0
+    
+    # Chercher des versions plus récentes non activées
+    newer_versions = frappe.db.get_list(
+        "Maquette",
+        filters={
+            "article": article,
+            "ver": [">", active_version],
+            "status": ["!=", "Version Activée"]
+        },
+        fields=["name", "ver", "status"],
+        order_by="ver desc"
+    )
+    
+    return {
+        "active_version": active_version,
+        "newer_versions": newer_versions
+    } 

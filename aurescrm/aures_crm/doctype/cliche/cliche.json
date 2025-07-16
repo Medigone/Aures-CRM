@@ -8,6 +8,10 @@
   "status",
   "date",
   "column_break_vsxt",
+  "amended_from",
+  "version",
+  "version_active",
+  "parent_cliche",
   "section_break_nhap",
   "client",
   "nom_client",
@@ -28,14 +32,18 @@
   "column_break_memj",
   "maquette",
   "column_break_kmsn",
-  "fich_maquette"
+  "fich_maquette",
+  "section_break_yyvm",
+  "desc_changements"
  ],
  "fields": [
   {
+   "allow_on_submit": 1,
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn Devis\nAccept\u00e9\nRejet\u00e9\nA R\u00e9aliser\nR\u00e9alis\u00e9\nArchiv\u00e9"
+   "options": "Nouveau\nEn Cours\nEn Devis\nDevis Pr\u00eat\nDevis Accept\u00e9\nDevis Rejet\u00e9\nA R\u00e9aliser\nR\u00e9alis\u00e9\nArchiv\u00e9\nAnnul\u00e9"
   },
   {
    "fieldname": "section_break_nhap",
@@ -165,11 +173,57 @@
    "fieldname": "dev",
    "fieldtype": "Data",
    "label": "D\u00e9veloppement"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Cliche",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "version",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Version",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "version_active",
+   "fieldtype": "Check",
+   "label": "Version Active",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "parent_cliche",
+   "fieldtype": "Link",
+   "label": "Version d'origine",
+   "options": "Cliche",
+   "read_only": 1
+  },
+  {
+   "fieldname": "desc_changements",
+   "fieldtype": "Text Editor",
+   "label": "Description des changements"
+  },
+  {
+   "fieldname": "section_break_yyvm",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-07-15 14:21:58.614724",
+ "modified": "2025-07-16 11:58:59.666199",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Cliche",
@@ -186,9 +240,22 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Faisabilit\u00e9 Flexo",
+   "submit": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
