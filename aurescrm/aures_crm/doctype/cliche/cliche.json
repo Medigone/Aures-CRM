@@ -223,7 +223,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-16 11:58:59.666199",
+ "modified": "2025-07-16 14:05:20.958829",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Cliche",
@@ -249,7 +249,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
-   "role": "Faisabilit\u00e9 Flexo",
+   "role": "\u00c9tude Flexo",
    "submit": 1,
    "write": 1
   }

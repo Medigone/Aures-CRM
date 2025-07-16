@@ -52,7 +52,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-15 09:54:23.678863",
+ "modified": "2025-07-16 14:05:46.071848",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Developpement",
@@ -67,6 +67,16 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "\u00c9tude Flexo",
    "share": 1,
    "write": 1
   }

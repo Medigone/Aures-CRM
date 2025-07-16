@@ -79,7 +79,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 12:39:44.711169",
+ "modified": "2025-07-16 14:04:46.464133",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Trace",
@@ -152,7 +152,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
-   "role": "Faisabilit\u00e9 Flexo",
+   "role": "\u00c9tude Flexo",
    "share": 1,
    "write": 1
   }

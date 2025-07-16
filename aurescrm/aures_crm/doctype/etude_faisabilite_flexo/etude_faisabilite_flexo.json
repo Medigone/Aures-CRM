@@ -337,7 +337,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-16 12:15:27.499135",
+ "modified": "2025-07-16 14:03:48.994351",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite Flexo",
@@ -394,21 +394,6 @@
    "select": 1
   },
   {
-   "read": 1,
-   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9",
-   "write": 1
-  },
-  {
-   "amend": 1,
-   "cancel": 1,
-   "email": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Responsable \u00c9tude Faisabilit\u00e9",
-   "submit": 1,
-   "write": 1
-  },
-  {
    "create": 1,
    "read": 1,
    "role": "Charg\u00e9 Devis"
@@ -421,13 +406,16 @@
    "select": 1
   },
   {
+   "create": 1,
+   "delete": 1,
    "email": 1,
+   "export": 1,
+   "print": 1,
    "read": 1,
-   "role": "Responsable Prepresse"
-  },
-  {
-   "read": 1,
-   "role": "Technicien Prepresse"
+   "report": 1,
+   "role": "\u00c9tude Flexo",
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
