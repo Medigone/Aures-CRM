@@ -83,43 +83,83 @@ def format_item_fields(doc, method):
 
 
 def update_item_description(doc, method):
-    """Met à jour la description de l'article en combinant plusieurs champs."""
-    # Première ligne : informations de base
-    base_info = []
+    """Met à jour la description de l'article en combinant plusieurs champs organisés par sections."""
+    # Debug: vérifier si la fonction est appelée
+    frappe.logger().info(f"update_item_description appelée pour l'article: {doc.item_code}")
     
-    # Traiter chaque champ individuellement pour gérer le cas spécial du grammage
+    # Informations de base (première ligne)
+    base_info = []
     if doc.item_code:
         base_info.append(str(doc.item_code))
-    if doc.custom_support:
+    if doc.custom_support and str(doc.custom_support).lower() != 'sans':
         base_info.append(str(doc.custom_support))
-    if doc.custom_grammage:
+    if doc.custom_grammage and str(doc.custom_grammage).lower() != 'sans':
         base_info.append(f"{doc.custom_grammage}Gr")
-    if doc.custom_cotations_article:
+    if doc.custom_cotations_article and str(doc.custom_cotations_article).lower() != 'sans':
         base_info.append(str(doc.custom_cotations_article))
     
-    description = ' '.join(base_info) + '\n' if base_info else '\n'
+    description_parts = []
+    if base_info:
+        description_parts.append(' '.join(base_info))
     
-    # Liste des champs à vérifier
-    fields_to_check = [
-        ('custom_acrylique', 'Acrylique'),
-        ('custom_sélectif', 'Sélectif'),
-        ('custom_uv', 'UV'),
-        ('custom_drip_off', 'Drip-off'),
-        ('custom_mat_gras', 'Mat gras'),
-        ('custom_blister', 'Blister'),
-        ('custom_recto_verso', 'Recto-verso'),
-        ('custom_fenêtre', 'Fenêtre'),
-        ('custom_braille', 'Braille'),
-        ('custom_gaufrage__estampage', 'Gaufrage/Estampage'),
-        ('custom_massicot', 'Massicot'),
-        ('custom_collerette', 'Collerette'),
-        ('custom_blanc_couvrant', 'Blanc couvrant')
-    ]
+    # Section Offset
+    offset_fields = []
+    if doc.custom_impression and str(doc.custom_impression).lower() != 'sans':
+        offset_fields.append(f"Impression: {doc.custom_impression}")
+    if doc.custom_nbr_couleurs and str(doc.custom_nbr_couleurs).lower() != 'sans':
+        offset_fields.append(f"Couleurs: {doc.custom_nbr_couleurs}")
+    if doc.custom_pelliculage and str(doc.custom_pelliculage).lower() != 'sans':
+        offset_fields.append(f"Pelliculage: {doc.custom_pelliculage}")
+    if doc.custom_marquage_à_chaud and str(doc.custom_marquage_à_chaud).lower() != 'sans':
+        offset_fields.append(f"Marquage à chaud: {doc.custom_marquage_à_chaud}")
     
-    # Ajouter les étiquettes des champs qui ont la valeur 1
-    additional_info = [label for field, label in fields_to_check if doc.get(field) == 1]
-    if additional_info:
-        description += ' | '.join(additional_info)
+    if offset_fields:
+        description_parts.append("OFFSET: " + " | ".join(offset_fields))
+    
+    # Section Options Vernis
+    vernis_fields = []
+    if doc.custom_acrylique == 1:
+        vernis_fields.append("Acrylique")
+    if doc.custom_sélectif == 1:
+        vernis_fields.append("Sélectif")
+    if doc.custom_uv == 1:
+        vernis_fields.append("UV")
+    if doc.custom_drip_off == 1:
+        vernis_fields.append("Drip-off")
+    if doc.custom_mat_gras == 1:
+        vernis_fields.append("Mat gras")
+    if doc.custom_blister == 1:
+        vernis_fields.append("Blister")
+    
+    if vernis_fields:
+        description_parts.append("OPTIONS VERNIS: " + " | ".join(vernis_fields))
+    
+    # Section Finition Offset
+    finition_fields = []
+    if doc.custom_recto_verso == 1:
+        finition_fields.append("Recto-verso")
+    if doc.custom_fenêtre == 1:
+        finition_fields.append("Fenêtre")
+    if doc.custom_braille == 1:
+        finition_fields.append("Braille")
+    if doc.custom_gaufrage__estampage == 1:
+        finition_fields.append("Gaufrage/Estampage")
+    if doc.custom_massicot == 1:
+        finition_fields.append("Massicot")
+    if doc.custom_collerette == 1:
+        finition_fields.append("Collerette")
+    if doc.custom_blanc_couvrant == 1:
+        finition_fields.append("Blanc couvrant")
+    
+    if finition_fields:
+        description_parts.append("FINITION OFFSET: " + " | ".join(finition_fields))
+    
+    # Assembler la description finale
+    description = '\n'.join(description_parts) if description_parts else ''
+    
+    # Debug: vérifier les valeurs des champs
+    frappe.logger().info(f"Description générée pour {doc.item_code}: {description}")
+    frappe.logger().info(f"Valeur custom_pelliculage: {doc.get('custom_pelliculage')}")
     
     # Mettre à jour la description
     doc.description = description
