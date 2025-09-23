@@ -592,7 +592,8 @@ function load_trace_imposition_links(frm) {
                             title: __('Compléter les informations de l\'Imposition'),
                             fields: [
                                 { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${imposition_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${imposition_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                { label: __('Format Imposition'), fieldname: 'format_imp', fieldtype: 'Data', reqd: 1, description: __('Entrez le format') },
+                                { label: __('Format Imposition'), fieldname: 'format_imp', fieldtype: 'Data', reqd: 1, description: __('Entrez le format (ex: 720x450)') },
+                                { label: __('Format Laize/Palette'), fieldname: 'format_laize_palette', fieldtype: 'Data', reqd: 1, description: __('Entrez le format laize/palette (ex: 720.2x1000)') },
                                 { label: __('Laize/Palette'), fieldname: 'laize_pal', fieldtype: 'Select', options: 'Laize\nPalette', reqd: 1, description: __('Sélectionnez le type') },
                                 { label: __('Nombre de poses'), fieldname: 'nbr_poses', fieldtype: 'Int', reqd: 1, description: __('Entrez le nombre total de poses') },
                                 { label: __('Fichier Imposition'), fieldname: 'fichier_imp', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier d\'imposition') }
@@ -600,14 +601,22 @@ function load_trace_imposition_links(frm) {
                             primary_action_label: __('Enregistrer et Fermer'),
                             primary_action: function() {
                                 var values = d.get_values();
-                                if (!values.format_imp || !values.laize_pal || !values.nbr_poses || !values.fichier_imp) {
+                                if (!values.format_imp || !values.format_laize_palette || !values.laize_pal || !values.nbr_poses || !values.fichier_imp) {
                                     frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
+                                    return;
+                                }
+                                
+                                // Valider le format des dimensions
+                                if (!validateDimensionFormat(values.format_imp, __('Format Imposition'))) {
+                                    return;
+                                }
+                                if (!validateDimensionFormat(values.format_laize_palette, __('Format Laize/Palette'))) {
                                     return;
                                 }
                                 // Update the newly created Imposition document
                                 frappe.call({
                                     method: "frappe.client.set_value",
-                                    args: { doctype: "Imposition", name: imposition_id, fieldname: { format_imp: values.format_imp, laize_pal: values.laize_pal, nbr_poses: values.nbr_poses, fichier_imp: values.fichier_imp } },
+                                    args: { doctype: "Imposition", name: imposition_id, fieldname: { format_imp: values.format_imp, format_laize_palette: values.format_laize_palette, laize_pal: values.laize_pal, nbr_poses: values.nbr_poses, fichier_imp: values.fichier_imp } },
                                     freeze: true, freeze_message: __("Mise à jour de l'Imposition..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {
@@ -645,7 +654,7 @@ function load_trace_imposition_links(frm) {
              // 1. Get current values
             frappe.call({
                 method: "frappe.client.get_value",
-                args: { doctype: "Imposition", fieldname: ["format_imp", "laize_pal", "nbr_poses", "fichier_imp"], filters: { name: imposition_id } },
+                args: { doctype: "Imposition", fieldname: ["format_imp", "format_laize_palette", "laize_pal", "nbr_poses", "fichier_imp"], filters: { name: imposition_id } },
                 callback: function(r) {
                     if (r.message) {
                         let current_values = r.message;
@@ -654,7 +663,8 @@ function load_trace_imposition_links(frm) {
                             title: __('Mettre à jour le document Imposition'),
                             fields: [
                                 { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${imposition_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${imposition_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                { label: __('Format Imposition'), fieldname: 'format_imp', fieldtype: 'Data', reqd: 1, default: current_values.format_imp || "", description: __('Entrez le format') },
+                                { label: __('Format Imposition'), fieldname: 'format_imp', fieldtype: 'Data', reqd: 1, default: current_values.format_imp || "", description: __('Entrez le format (ex: 720x450)') },
+                                { label: __('Format Laize/Palette'), fieldname: 'format_laize_palette', fieldtype: 'Data', reqd: 1, default: current_values.format_laize_palette || "", description: __('Entrez le format laize/palette (ex: 720.2x1000)') },
                                 { label: __('Laize/Palette'), fieldname: 'laize_pal', fieldtype: 'Select', options: 'Laize\nPalette', reqd: 1, default: current_values.laize_pal || "", description: __('Sélectionnez le type') },
                                 { label: __('Nombre de poses'), fieldname: 'nbr_poses', fieldtype: 'Int', reqd: 1, default: current_values.nbr_poses || 0, description: __('Entrez le nombre total de poses') },
                                 { label: __('Fichier Imposition'), fieldname: 'fichier_imp', fieldtype: 'Attach', reqd: 1, default: current_values.fichier_imp || "", description: __('Joignez le nouveau fichier') },
@@ -663,14 +673,22 @@ function load_trace_imposition_links(frm) {
                             primary_action_label: __('Mettre à jour'),
                             primary_action: function() {
                                 var values = d.get_values();
-                                if (!values.format_imp || !values.laize_pal || !values.nbr_poses || !values.fichier_imp) {
+                                if (!values.format_imp || !values.format_laize_palette || !values.laize_pal || !values.nbr_poses || !values.fichier_imp) {
                                      frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
                                      return;
+                                }
+                                
+                                // Valider le format des dimensions
+                                if (!validateDimensionFormat(values.format_imp, __('Format Imposition'))) {
+                                    return;
+                                }
+                                if (!validateDimensionFormat(values.format_laize_palette, __('Format Laize/Palette'))) {
+                                    return;
                                 }
                                 // 3. Update the document
                                 frappe.call({
                                     method: "frappe.client.set_value",
-                                    args: { doctype: "Imposition", name: imposition_id, fieldname: { format_imp: values.format_imp, laize_pal: values.laize_pal, nbr_poses: values.nbr_poses, fichier_imp: values.fichier_imp } },
+                                    args: { doctype: "Imposition", name: imposition_id, fieldname: { format_imp: values.format_imp, format_laize_palette: values.format_laize_palette, laize_pal: values.laize_pal, nbr_poses: values.nbr_poses, fichier_imp: values.fichier_imp } },
                                     freeze: true, freeze_message: __("Mise à jour de l'Imposition..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {
@@ -696,6 +714,32 @@ function load_trace_imposition_links(frm) {
     // --- End of Action Functions ---
 
 } // --- Fin de la fonction load_trace_imposition_links ---
+
+/**
+ * Valide le format des dimensions (ex: 720x450 ou 720.2x1000)
+ * @param {string} value - La valeur à valider
+ * @param {string} fieldName - Le nom du champ pour les messages d'erreur
+ * @returns {boolean} - True si le format est valide
+ */
+function validateDimensionFormat(value, fieldName) {
+    if (!value || typeof value !== 'string') {
+        return false;
+    }
+    
+    // Pattern pour valider le format: chiffres avec ou sans point, puis 'x', puis chiffres avec ou sans point
+    const pattern = /^\d+(\.\d+)?x\d+(\.\d+)?$/;
+    
+    if (!pattern.test(value.trim())) {
+        frappe.msgprint({
+            title: __('Format invalide'),
+            message: __('Le champ "{0}" doit respecter le format: 720x450 ou 720.2x1000', [fieldName]),
+            indicator: 'red'
+        });
+        return false;
+    }
+    
+    return true;
+}
 
 
 /**

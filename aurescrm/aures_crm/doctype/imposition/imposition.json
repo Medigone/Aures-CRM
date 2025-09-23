@@ -16,6 +16,7 @@
   "column_break_iirs",
   "format_imp",
   "laize_pal",
+  "format_laize_palette",
   "section_break_pcyb",
   "forme_decoupe",
   "column_break_rdzb",
@@ -147,11 +148,17 @@
    "label": "Proc\u00e9d\u00e9",
    "options": "\nOffset\nFlexo",
    "read_only": 1
+  },
+  {
+   "fieldname": "format_laize_palette",
+   "fieldtype": "Data",
+   "label": "Format Laize / Palette"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 19:00:44.003571",
+ "modified": "2025-09-23 16:31:28.231394",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Imposition",
@@ -219,6 +226,7 @@
    "role": "Responsable Devis"
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "client,article,trace,nbr_poses,format_imp",
  "sort_field": "modified",
  "sort_order": "DESC",
