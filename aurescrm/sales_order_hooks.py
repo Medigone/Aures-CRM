@@ -129,12 +129,35 @@ def generate_technical_studies(sales_order_name):
             technical_study.article = item.item_code
             technical_study.quantite = item.qty
 
-            # Rechercher un BAT existant pour cet article
-            existing_bat = frappe.db.get_value("BAT",
-                {"article": item.item_code, "status": "BAT-P Validé"},
-                "name")
+            # Rechercher un BAT existant pour cet article (priorité au BAT-P Validé)
+            existing_bat = frappe.get_all(
+                "BAT",
+                filters={
+                    "article": item.item_code,
+                    "status": "BAT-P Validé"
+                },
+                fields=["name"],
+                order_by="date desc",
+                limit=1
+            )
+            
             if existing_bat:
-                technical_study.bat = existing_bat
+                technical_study.bat = existing_bat[0].name
+            else:
+                # Si aucun BAT-P Validé, chercher un BAT-E Validé
+                existing_bat_e = frappe.get_all(
+                    "BAT",
+                    filters={
+                        "article": item.item_code,
+                        "status": "BAT-E Validé"
+                    },
+                    fields=["name"],
+                    order_by="date desc",
+                    limit=1
+                )
+                
+                if existing_bat_e:
+                    technical_study.bat = existing_bat_e[0].name
 
             # Set the new fields: commande and demande_faisabilite
             technical_study.commande = sales_order_name

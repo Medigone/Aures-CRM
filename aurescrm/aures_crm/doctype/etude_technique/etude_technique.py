@@ -18,19 +18,47 @@ class EtudeTechnique(Document):
 		self.calculate_quant_feuilles()
 
 	def set_existing_bat(self):
-		"""Recherche et définit le BAT existant pour l'article."""
+		"""Recherche et définit le BAT existant pour l'article avec le statut 'BAT-P Validé'."""
 		if not self.bat and self.article:
+			# Rechercher un BAT validé pour cet article
 			existing_bat = frappe.get_all(
 				"BAT",
 				filters={
 					"article": self.article,
 					"status": "BAT-P Validé"
 				},
-				pluck="name",
+				fields=["name", "date", "client"],
+				order_by="date desc",  # Prendre le plus récent
 				limit=1
 			)
+			
 			if existing_bat:
-				self.bat = existing_bat[0]
+				self.bat = existing_bat[0].name
+				frappe.msgprint(
+					f"BAT existant trouvé et associé : {existing_bat[0].name}",
+					indicator="blue",
+					title="BAT associé"
+				)
+			else:
+				# Optionnel : rechercher aussi les BAT-E Validé si aucun BAT-P n'est trouvé
+				existing_bat_e = frappe.get_all(
+					"BAT",
+					filters={
+						"article": self.article,
+						"status": "BAT-E Validé"
+					},
+					fields=["name", "date"],
+					order_by="date desc",
+					limit=1
+				)
+				
+				if existing_bat_e:
+					self.bat = existing_bat_e[0].name
+					frappe.msgprint(
+						f"BAT électronique trouvé et associé : {existing_bat_e[0].name}",
+						indicator="orange",
+						title="BAT électronique associé"
+					)
 
 	def calculate_quant_feuilles(self):
 		"""Calcule la quantité de feuilles nécessaire."""
@@ -175,4 +203,71 @@ def create_new_bat_from_etude(docname):
 		}
 	except Exception as e:
 		frappe.log_error(f"Erreur lors de la création du nouveau BAT: {str(e)}")
+		return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def search_existing_bat(article_code):
+	"""
+	Recherche un BAT existant pour un article donné.
+	Retourne les BAT trouvés avec leurs informations.
+	"""
+	try:
+		if not article_code:
+			return {"status": "error", "message": "Code article requis"}
+		
+		# Rechercher tous les BAT pour cet article, triés par statut et date
+		bats = frappe.get_all(
+			"BAT",
+			filters={"article": article_code},
+			fields=["name", "status", "date", "client", "valide_par_nom", "echantillon_par_nom"],
+			order_by="status desc, date desc"
+		)
+		
+		if bats:
+			return {
+				"status": "success",
+				"bats": bats,
+				"message": f"{len(bats)} BAT trouvé(s) pour l'article {article_code}"
+			}
+		else:
+			return {
+				"status": "info",
+				"bats": [],
+				"message": f"Aucun BAT trouvé pour l'article {article_code}"
+			}
+			
+	except Exception as e:
+		frappe.log_error(f"Erreur lors de la recherche de BAT pour {article_code}: {str(e)}")
+		return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def link_existing_bat_to_etude(etude_name, bat_name):
+	"""
+	Lie un BAT existant à une étude technique.
+	"""
+	try:
+		etude = frappe.get_doc("Etude Technique", etude_name)
+		bat = frappe.get_doc("BAT", bat_name)
+		
+		# Vérifier que le BAT correspond à l'article de l'étude
+		if bat.article != etude.article:
+			return {
+				"status": "error",
+				"message": f"Le BAT {bat_name} ne correspond pas à l'article {etude.article}"
+			}
+		
+		# Lier le BAT à l'étude
+		etude.bat = bat_name
+		etude.save()
+		
+		return {
+			"status": "success",
+			"message": f"BAT {bat_name} lié avec succès à l'étude technique",
+			"bat_name": bat_name
+		}
+		
+	except Exception as e:
+		frappe.log_error(f"Erreur lors de la liaison du BAT {bat_name} à l'étude {etude_name}: {str(e)}")
 		return {"status": "error", "message": str(e)}

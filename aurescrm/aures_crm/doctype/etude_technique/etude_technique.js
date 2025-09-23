@@ -96,8 +96,9 @@ frappe.ui.form.on("Etude Technique", {
 				dialog.show();
 			}, __("Attribuer"));
 		}
+
 		// Bouton 'Créer BAT'
-		if (!frm.doc.__islocal && frm.doc.status === 'Terminé') {
+		if (!frm.doc.__islocal && frm.doc.status === 'En Cours') {
 			if (!frm.doc.bat) {
 				// Le bouton existant pour créer un BAT
 				frm.add_custom_button(__('Créer BAT'), function() {
@@ -210,4 +211,48 @@ function calculate_quant_feuilles(frm) {
 		frm.set_value("quant_feuilles", 0); // Ou une autre valeur par défaut si nbr_poses est 0 ou non défini
 	}
 	frm.refresh_field("quant_feuilles");
+}
+
+function generate_bat_list_html(bats) {
+	let html = '<div class="bat-list-container">';
+	html += '<table class="table table-bordered">';
+	html += '<thead><tr>';
+	html += '<th>Nom BAT</th><th>Statut</th><th>Date</th><th>Client</th><th>Validé par</th><th>Actions</th>';
+	html += '</tr></thead><tbody>';
+	
+	bats.forEach(bat => {
+		let status_color = get_status_color(bat.status);
+		let validated_by = bat.valide_par_nom || bat.echantillon_par_nom || '-';
+		
+		html += '<tr>';
+		html += `<td><strong>${bat.name}</strong></td>`;
+		html += `<td><span class="badge" style="background-color: ${status_color}">${bat.status}</span></td>`;
+		html += `<td>${bat.date || '-'}</td>`;
+		html += `<td>${bat.client || '-'}</td>`;
+		html += `<td>${validated_by}</td>`;
+		html += `<td><button class="btn btn-sm btn-primary link-bat-btn" data-bat-name="${bat.name}">Lier</button></td>`;
+		html += '</tr>';
+	});
+	
+	html += '</tbody></table>';
+	html += '</div>';
+	
+	// Ajouter les styles CSS
+	html += '<style>';
+	html += '.bat-list-container { max-height: 400px; overflow-y: auto; }';
+	html += '.badge { color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }';
+	html += '.link-bat-btn { margin: 2px; }';
+	html += '</style>';
+	
+	return html;
+}
+
+function get_status_color(status) {
+	switch(status) {
+		case 'Nouveau': return '#007bff';
+		case 'BAT-E Validé': return '#fd7e14';
+		case 'BAT-P Validé': return '#28a745';
+		case 'Obsolète': return '#dc3545';
+		default: return '#6c757d';
+	}
 }

@@ -36,6 +36,8 @@
   "observations",
   "observations_tab",
   "bat",
+  "column_break_cplq",
+  "fichier_bat",
   "section_break_uicy",
   "demande_faisabilite",
   "column_break_xqom",
@@ -339,17 +341,30 @@
    "fieldname": "bat",
    "fieldtype": "Link",
    "label": "BAT",
-   "options": "BAT"
+   "options": "BAT",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_uicy",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_cplq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "bat.image",
+   "fieldname": "fichier_bat",
+   "fieldtype": "Attach Image",
+   "label": "Fichier BAT"
   }
  ],
+ "grid_page_length": 50,
+ "image_field": "fichier_bat",
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-21 12:15:11.346021",
+ "modified": "2025-09-23 11:41:51.788050",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
@@ -420,6 +435,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [
