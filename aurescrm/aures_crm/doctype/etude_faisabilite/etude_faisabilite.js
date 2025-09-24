@@ -593,7 +593,7 @@ function load_trace_imposition_links(frm) {
                             fields: [
                                 { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${imposition_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${imposition_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
                                 { label: __('Format Imposition'), fieldname: 'format_imp', fieldtype: 'Data', reqd: 1, description: __('Entrez le format (ex: 720x450)') },
-                                { label: __('Format Laize/Palette'), fieldname: 'format_laize_palette', fieldtype: 'Data', reqd: 1, description: __('Entrez le format laize/palette (ex: 720.2x1000)') },
+                                { label: __('Format Laize/Palette'), fieldname: 'format_laize_palette', fieldtype: 'Data', reqd: 1, description: __('Pour Laize: chiffres uniquement (ex: 720.5). Pour Palette: format dimensions (ex: 720.2x1000)') },
                                 { label: __('Laize/Palette'), fieldname: 'laize_pal', fieldtype: 'Select', options: 'Laize\nPalette', reqd: 1, description: __('Sélectionnez le type') },
                                 { label: __('Nombre de poses'), fieldname: 'nbr_poses', fieldtype: 'Int', reqd: 1, description: __('Entrez le nombre total de poses') },
                                 { label: __('Fichier Imposition'), fieldname: 'fichier_imp', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier d\'imposition') }
@@ -610,7 +610,7 @@ function load_trace_imposition_links(frm) {
                                 if (!validateDimensionFormat(values.format_imp, __('Format Imposition'))) {
                                     return;
                                 }
-                                if (!validateDimensionFormat(values.format_laize_palette, __('Format Laize/Palette'))) {
+                                if (!validateLaizePaletteFormat(values.format_laize_palette, values.laize_pal, __('Format Laize/Palette'))) {
                                     return;
                                 }
                                 // Update the newly created Imposition document
@@ -664,7 +664,7 @@ function load_trace_imposition_links(frm) {
                             fields: [
                                 { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${imposition_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${imposition_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
                                 { label: __('Format Imposition'), fieldname: 'format_imp', fieldtype: 'Data', reqd: 1, default: current_values.format_imp || "", description: __('Entrez le format (ex: 720x450)') },
-                                { label: __('Format Laize/Palette'), fieldname: 'format_laize_palette', fieldtype: 'Data', reqd: 1, default: current_values.format_laize_palette || "", description: __('Entrez le format laize/palette (ex: 720.2x1000)') },
+                                { label: __('Format Laize/Palette'), fieldname: 'format_laize_palette', fieldtype: 'Data', reqd: 1, default: current_values.format_laize_palette || "", description: __('Pour Laize: chiffres uniquement (ex: 720.5). Pour Palette: format dimensions (ex: 720.2x1000)') },
                                 { label: __('Laize/Palette'), fieldname: 'laize_pal', fieldtype: 'Select', options: 'Laize\nPalette', reqd: 1, default: current_values.laize_pal || "", description: __('Sélectionnez le type') },
                                 { label: __('Nombre de poses'), fieldname: 'nbr_poses', fieldtype: 'Int', reqd: 1, default: current_values.nbr_poses || 0, description: __('Entrez le nombre total de poses') },
                                 { label: __('Fichier Imposition'), fieldname: 'fichier_imp', fieldtype: 'Attach', reqd: 1, default: current_values.fichier_imp || "", description: __('Joignez le nouveau fichier') },
@@ -682,7 +682,7 @@ function load_trace_imposition_links(frm) {
                                 if (!validateDimensionFormat(values.format_imp, __('Format Imposition'))) {
                                     return;
                                 }
-                                if (!validateDimensionFormat(values.format_laize_palette, __('Format Laize/Palette'))) {
+                                if (!validateLaizePaletteFormat(values.format_laize_palette, values.laize_pal, __('Format Laize/Palette'))) {
                                     return;
                                 }
                                 // 3. Update the document
@@ -736,6 +736,45 @@ function validateDimensionFormat(value, fieldName) {
             indicator: 'red'
         });
         return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Valide le format laize/palette selon le type sélectionné
+ * @param {string} value - La valeur à valider
+ * @param {string} laizePalValue - La valeur du champ Laize/Palette ('Laize' ou 'Palette')
+ * @param {string} fieldName - Le nom du champ pour les messages d'erreur
+ * @returns {boolean} - True si le format est valide
+ */
+function validateLaizePaletteFormat(value, laizePalValue, fieldName) {
+    if (!value || typeof value !== 'string') {
+        return false;
+    }
+    
+    if (laizePalValue === 'Laize') {
+        // Pour Laize: validation simple (chiffres uniquement)
+        const pattern = /^\d+(\.\d+)?$/;
+        if (!pattern.test(value.trim())) {
+            frappe.msgprint({
+                title: __('Format invalide'),
+                message: __('Pour une Laize, le champ "{0}" doit contenir uniquement des chiffres (ex: 720 ou 720.5)', [fieldName]),
+                indicator: 'red'
+            });
+            return false;
+        }
+    } else if (laizePalValue === 'Palette') {
+        // Pour Palette: validation avec format dimensions
+        const pattern = /^\d+(\.\d+)?x\d+(\.\d+)?$/;
+        if (!pattern.test(value.trim())) {
+            frappe.msgprint({
+                title: __('Format invalide'),
+                message: __('Pour une Palette, le champ "{0}" doit respecter le format: 720x450 ou 720.2x1000', [fieldName]),
+                indicator: 'red'
+            });
+            return false;
+        }
     }
     
     return true;
