@@ -2,6 +2,9 @@
 // For license information, please see license.txt
 frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
+        // Masquer le champ is_reprint car il est géré automatiquement
+        frm.get_field('is_reprint').$wrapper.hide();
+        
         // Cacher le bouton 'add row' par défaut
         frm.get_field('liste_articles').grid.wrapper.find('.grid-add-row').hide();
         load_etude_links(frm);
@@ -283,6 +286,24 @@ frappe.ui.form.on('Demande Faisabilite', {
         }
 
     }, // End of refresh function
+
+    // Nouvelle fonction pour gérer le changement du champ type
+    type: function(frm) {
+        if (frm.doc.type === "Retirage") {
+            frm.set_value("is_reprint", 1);
+        } else if (frm.doc.type === "Premier Print") {
+            frm.set_value("is_reprint", 0);
+        }
+    },
+
+    // Fonction pour gérer le changement du champ is_reprint (au cas où)
+    is_reprint: function(frm) {
+        if (frm.doc.is_reprint === 1 && frm.doc.type !== "Retirage") {
+            frm.set_value("type", "Retirage");
+        } else if (frm.doc.is_reprint === 0 && frm.doc.type !== "Premier Print") {
+            frm.set_value("type", "Premier Print");
+        }
+    },
 
     // Add handler for header date change to update default for prompt
     date_livraison: function(frm) {

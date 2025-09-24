@@ -8,6 +8,20 @@ from frappe.utils import now_datetime # Ajout de l'import
 
 
 class DemandeFaisabilite(Document):
+	def validate(self):
+		"""Validation automatique pour synchroniser type et is_reprint"""
+		# Synchronisation automatique entre type et is_reprint
+		if self.type == "Retirage":
+			self.is_reprint = 1
+		elif self.type == "Premier Print":
+			self.is_reprint = 0
+		
+		# Validation cohérence
+		if self.type == "Retirage" and self.is_reprint != 1:
+			frappe.throw("Incohérence détectée : Type 'Retirage' mais is_reprint n'est pas coché")
+		if self.type == "Premier Print" and self.is_reprint != 0:
+			frappe.throw("Incohérence détectée : Type 'Premier Print' mais is_reprint est coché")
+
 	def can_generate_etudes(self):
 		"""
 		Vérifie si la demande peut générer des études de faisabilité.
@@ -483,7 +497,8 @@ def duplicate_demande_for_reprint(docname, new_date_livraison):
         # 3. Modifier les champs nécessaires pour le retirage
         new_doc.status = "Brouillon"
         new_doc.date_livraison = new_date_livraison
-        new_doc.is_reprint = 1
+        new_doc.type = "Retirage"  # Définir le type comme Retirage
+        new_doc.is_reprint = 1     # Sera automatiquement défini par la validation
         # --- MODIFIÉ : Utiliser le nouveau nom de champ 'demande_origin' ---
         new_doc.demande_origin = docname # <-- Modification ici
 
