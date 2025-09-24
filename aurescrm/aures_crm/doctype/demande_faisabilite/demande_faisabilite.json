@@ -182,14 +182,14 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "\nRetirage\nPremier Print",
+   "options": "\nRetirage\nPremier Tirage",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-24 12:00:40.331618",
+ "modified": "2025-09-24 12:03:49.257723",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",

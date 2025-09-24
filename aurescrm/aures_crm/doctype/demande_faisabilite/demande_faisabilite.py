@@ -13,14 +13,14 @@ class DemandeFaisabilite(Document):
 		# Synchronisation automatique entre type et is_reprint
 		if self.type == "Retirage":
 			self.is_reprint = 1
-		elif self.type == "Premier Print":
+		elif self.type == "Premier Tirage":
 			self.is_reprint = 0
 		
 		# Validation cohérence
 		if self.type == "Retirage" and self.is_reprint != 1:
 			frappe.throw("Incohérence détectée : Type 'Retirage' mais is_reprint n'est pas coché")
-		if self.type == "Premier Print" and self.is_reprint != 0:
-			frappe.throw("Incohérence détectée : Type 'Premier Print' mais is_reprint est coché")
+		if self.type == "Premier Tirage" and self.is_reprint != 0:
+			frappe.throw("Incohérence détectée : Type 'Premier Tirage' mais is_reprint est coché")
 
 	def can_generate_etudes(self):
 		"""

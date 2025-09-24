@@ -291,7 +291,7 @@ frappe.ui.form.on('Demande Faisabilite', {
     type: function(frm) {
         if (frm.doc.type === "Retirage") {
             frm.set_value("is_reprint", 1);
-        } else if (frm.doc.type === "Premier Print") {
+        } else if (frm.doc.type === "Premier Tirage") {
             frm.set_value("is_reprint", 0);
         }
     },
@@ -300,8 +300,8 @@ frappe.ui.form.on('Demande Faisabilite', {
     is_reprint: function(frm) {
         if (frm.doc.is_reprint === 1 && frm.doc.type !== "Retirage") {
             frm.set_value("type", "Retirage");
-        } else if (frm.doc.is_reprint === 0 && frm.doc.type !== "Premier Print") {
-            frm.set_value("type", "Premier Print");
+        } else if (frm.doc.is_reprint === 0 && frm.doc.type !== "Premier Tirage") {
+            frm.set_value("type", "Premier Tirage");
         }
     },
 
