@@ -74,8 +74,19 @@ frappe.ui.form.on('Demande Faisabilite', {
         }
 
         // --- Bouton "Confirmer" ---
+        // Vérifier que la demande est dans le statut initial "Brouillon"
         if (frm.doc.status === "Brouillon") {
             frm.add_custom_button("Confirmer", function() {
+                // Validation supplémentaire côté client
+                if (frm.doc.status !== "Brouillon") {
+                    frappe.msgprint({
+                        title: __("Erreur"),
+                        message: __("Cette demande n'est plus dans le statut initial 'Brouillon' et ne peut pas être confirmée."),
+                        indicator: "red"
+                    });
+                    return;
+                }
+                
                 frappe.confirm(
                     "Voulez-vous vraiment confirmer cette demande et générer une Étude de Faisabilité pour chaque article ?",
                     function() {

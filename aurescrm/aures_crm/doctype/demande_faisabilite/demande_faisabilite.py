@@ -8,6 +8,19 @@ from frappe.utils import now_datetime # Ajout de l'import
 
 
 class DemandeFaisabilite(Document):
+	def can_generate_etudes(self):
+		"""
+		Vérifie si la demande peut générer des études de faisabilité.
+		Seul le statut "Brouillon" permet de générer des études.
+		
+		Returns:
+			bool: True si la demande peut générer des études, False sinon
+		"""
+		# Seul le statut "Brouillon" permet de générer des études
+		# Les autres statuts indiquent que la demande a déjà été traitée
+		valid_statuses = ["Brouillon"]
+		return self.status in valid_statuses
+	
 	def get_etudes_faisabilite(self):
 		"""Récupère les études de faisabilité liées avec leurs informations d'article
 
@@ -78,6 +91,11 @@ def generate_etude_faisabilite(docname):
     """
     try:
         demande = frappe.get_doc("Demande Faisabilite", docname)
+        
+        # Vérifier que la demande est dans un état valide pour générer des études
+        if not demande.can_generate_etudes():
+            frappe.throw(f"Impossible de générer des études de faisabilité. Le statut actuel '{demande.status}' ne permet pas cette action. Seul le statut 'Brouillon' (statut initial) est autorisé pour générer des études.")
+        
         if not demande.get("liste_articles"):
             frappe.throw("Aucun article n'a été ajouté à la demande.")
 
@@ -120,7 +138,7 @@ def generate_etude_faisabilite(docname):
         return demande.status
     except Exception as e:
         frappe.log_error(message=str(e), title="Erreur generate_etude_faisabilite")
-        frappe.throw("Une erreur est survenue lors de la génération des études de faisabilité.")
+        frappe.throw(f"Une erreur est survenue lors de la génération des études de faisabilité : {str(e)}")
 
 
 
