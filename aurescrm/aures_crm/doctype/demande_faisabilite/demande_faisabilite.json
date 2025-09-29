@@ -15,8 +15,11 @@
   "id_commercial",
   "id_utilisateur",
   "cree_par",
-  "section_break_jdmh",
+  "section_break_dsuv",
   "type",
+  "column_break_auvj",
+  "n_bon_commande",
+  "section_break_jdmh",
   "client",
   "date_livraison",
   "column_break_tric",
@@ -49,6 +52,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "hidden": 1,
+   "in_standard_filter": 1,
    "label": "Statut",
    "options": "Brouillon\nConfirm\u00e9e\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nCommand\u00e9\nFerm\u00e9e\nAnnul\u00e9e"
   },
@@ -184,12 +188,28 @@
    "label": "Type",
    "options": "\nRetirage\nPremier Tirage",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_dsuv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_auvj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.type ==\"Retirage\"",
+   "fieldname": "n_bon_commande",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "N\u00ba Bon de commande",
+   "mandatory_depends_on": "eval:doc.type ==\"Retirage\""
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-24 12:03:49.257723",
+ "modified": "2025-09-29 08:50:52.141131",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
