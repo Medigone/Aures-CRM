@@ -209,7 +209,10 @@ scheduler_events = {
         "0 2 * * *": [
             "aurescrm.aures_crm.doctype.reclamations_clients.reclamations_clients.update_reclamations_status"
         ]
-    }
+    },
+    "weekly": [
+        "aurescrm.utils.update_all_items_description"
+    ]
 }
 
 

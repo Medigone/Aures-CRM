@@ -169,15 +169,31 @@ def update_item_description(doc, method):
 
 @frappe.whitelist()
 def update_all_items_description():
-    """Met à jour la description de tous les articles."""
+    """Met à jour la description de tous les articles.
+    Peut être exécutée manuellement ou via le scheduler.
+    """
+    frappe.logger().info("Début de la mise à jour des descriptions d'articles")
+    
     # Récupérer tous les articles
     items = frappe.get_all("Item", fields=["name"])
-    count = 0
+    count_success = 0
+    count_errors = 0
     
     for item in items:
-        doc = frappe.get_doc("Item", item.name)
-        update_item_description(doc, None)
-        doc.save()
-        count += 1
+        try:
+            doc = frappe.get_doc("Item", item.name)
+            update_item_description(doc, None)
+            doc.save(ignore_permissions=True)
+            count_success += 1
+        except Exception as e:
+            count_errors += 1
+            frappe.logger().error(f"Erreur lors de la mise à jour de l'article {item.name}: {str(e)}")
     
-    return count
+    message = f"Mise à jour terminée : {count_success} articles mis à jour, {count_errors} erreurs"
+    frappe.logger().info(message)
+    
+    return {
+        "success": count_success,
+        "errors": count_errors,
+        "message": message
+    }
