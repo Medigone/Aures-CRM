@@ -176,7 +176,9 @@ doc_events = {
         "on_submit": [
             "aurescrm.sales_order_hooks.update_quotation_status_on_so_submit",
             # Mise à jour du chemin
-            "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_sales_order"
+            "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_sales_order",
+            # Nouvelle fonction pour créer automatiquement les études techniques
+            "aurescrm.sales_order_hooks.auto_generate_technical_studies_on_submit"
         ],
         "before_submit": "aurescrm.sales_order_hooks.validate_bon_de_commande"
         # Vous pourriez avoir d'autres hooks ici
