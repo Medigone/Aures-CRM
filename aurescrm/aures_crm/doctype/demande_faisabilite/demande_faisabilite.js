@@ -2,8 +2,9 @@
 // For license information, please see license.txt
 frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
-        // Masquer le champ is_reprint car il est géré automatiquement
-        frm.get_field('is_reprint').$wrapper.hide();
+        // // Masquer les champs is_reprint et essai_blanc car ils sont gérés automatiquement
+        // frm.get_field('is_reprint').$wrapper.hide();
+        // frm.get_field('essai_blanc').$wrapper.hide();
         
         // Cacher le bouton 'add row' par défaut
         frm.get_field('liste_articles').grid.wrapper.find('.grid-add-row').hide();
@@ -166,6 +167,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                                 doc.company = frappe.defaults.get_default("company");
                                 doc.custom_demande_faisabilité = frm.doc.name;
                                 doc.custom_retirage = frm.doc.is_reprint;
+                                doc.custom_essai_blanc = frm.doc.essai_blanc;
 
                                 // Set the custom delivery date from the first feasible item
                                 // Ensure the field name 'custom_date_de_livraison' matches your Quotation field
@@ -291,7 +293,12 @@ frappe.ui.form.on('Demande Faisabilite', {
     type: function(frm) {
         if (frm.doc.type === "Retirage") {
             frm.set_value("is_reprint", 1);
+            frm.set_value("essai_blanc", 0);
         } else if (frm.doc.type === "Premier Tirage") {
+            frm.set_value("is_reprint", 0);
+            frm.set_value("essai_blanc", 0);
+        } else if (frm.doc.type === "Essai Blanc") {
+            frm.set_value("essai_blanc", 1);
             frm.set_value("is_reprint", 0);
         }
     },
@@ -300,7 +307,16 @@ frappe.ui.form.on('Demande Faisabilite', {
     is_reprint: function(frm) {
         if (frm.doc.is_reprint === 1 && frm.doc.type !== "Retirage") {
             frm.set_value("type", "Retirage");
-        } else if (frm.doc.is_reprint === 0 && frm.doc.type !== "Premier Tirage") {
+        } else if (frm.doc.is_reprint === 0 && frm.doc.type !== "Premier Tirage" && frm.doc.type !== "Essai Blanc") {
+            frm.set_value("type", "Premier Tirage");
+        }
+    },
+
+    // Fonction pour gérer le changement du champ essai_blanc (au cas où)
+    essai_blanc: function(frm) {
+        if (frm.doc.essai_blanc === 1 && frm.doc.type !== "Essai Blanc") {
+            frm.set_value("type", "Essai Blanc");
+        } else if (frm.doc.essai_blanc === 0 && frm.doc.type === "Essai Blanc") {
             frm.set_value("type", "Premier Tirage");
         }
     },

@@ -9,11 +9,16 @@ from frappe.utils import now_datetime # Ajout de l'import
 
 class DemandeFaisabilite(Document):
 	def validate(self):
-		"""Validation automatique pour synchroniser type et is_reprint"""
+		"""Validation automatique pour synchroniser type, is_reprint et essai_blanc"""
 		# Synchronisation automatique entre type et is_reprint
 		if self.type == "Retirage":
 			self.is_reprint = 1
+			self.essai_blanc = 0
 		elif self.type == "Premier Tirage":
+			self.is_reprint = 0
+			self.essai_blanc = 0
+		elif self.type == "Essai Blanc":
+			self.essai_blanc = 1
 			self.is_reprint = 0
 		
 		# Validation cohérence
@@ -21,6 +26,12 @@ class DemandeFaisabilite(Document):
 			frappe.throw("Incohérence détectée : Type 'Retirage' mais is_reprint n'est pas coché")
 		if self.type == "Premier Tirage" and self.is_reprint != 0:
 			frappe.throw("Incohérence détectée : Type 'Premier Tirage' mais is_reprint est coché")
+		if self.type == "Essai Blanc" and self.essai_blanc != 1:
+			frappe.throw("Incohérence détectée : Type 'Essai Blanc' mais essai_blanc n'est pas coché")
+		if self.type == "Retirage" and self.essai_blanc != 0:
+			frappe.throw("Incohérence détectée : Type 'Retirage' mais essai_blanc est coché")
+		if self.type == "Premier Tirage" and self.essai_blanc != 0:
+			frappe.throw("Incohérence détectée : Type 'Premier Tirage' mais essai_blanc est coché")
 
 	def can_generate_etudes(self):
 		"""
@@ -115,7 +126,7 @@ def generate_etude_faisabilite(docname):
 
         communs = [
             "demande_faisabilite", "article", "quantite", "date_livraison", "client",
-            "commercial", "id_commercial", "is_reprint"
+            "commercial", "id_commercial", "is_reprint", "essai_blanc"
         ]
         offset_fields = communs + []
         flexo_fields = communs + []
@@ -130,7 +141,8 @@ def generate_etude_faisabilite(docname):
                 "client": demande.client,
                 "commercial": demande.commercial,
                 "id_commercial": demande.id_commercial,
-                "is_reprint": demande.is_reprint
+                "is_reprint": demande.is_reprint,
+                "essai_blanc": demande.essai_blanc
             }
             if procede == "Flexo":
                 etude = frappe.new_doc("Etude Faisabilite Flexo")
@@ -499,6 +511,7 @@ def duplicate_demande_for_reprint(docname, new_date_livraison):
         new_doc.date_livraison = new_date_livraison
         new_doc.type = "Retirage"  # Définir le type comme Retirage
         new_doc.is_reprint = 1     # Sera automatiquement défini par la validation
+        new_doc.essai_blanc = 0    # Réinitialiser essai_blanc pour le retirage
         # --- MODIFIÉ : Utiliser le nouveau nom de champ 'demande_origin' ---
         new_doc.demande_origin = docname # <-- Modification ici
 

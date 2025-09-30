@@ -26,6 +26,7 @@
   "commercial",
   "demande_origin",
   "is_reprint",
+  "essai_blanc",
   "section_break_bwpt",
   "liens",
   "section_break_rlku",
@@ -204,12 +205,19 @@
    "in_standard_filter": 1,
    "label": "N\u00ba Bon de commande",
    "mandatory_depends_on": "eval:doc.type ==\"Retirage\""
+  },
+  {
+   "default": "0",
+   "fieldname": "essai_blanc",
+   "fieldtype": "Check",
+   "label": "Essai Blanc",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 09:39:51.386690",
+ "modified": "2025-09-30 09:17:03.639934",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
