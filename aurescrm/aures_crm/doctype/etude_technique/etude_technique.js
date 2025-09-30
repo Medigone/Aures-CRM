@@ -3,6 +3,9 @@
 
 frappe.ui.form.on("Etude Technique", {
 	refresh(frm) {
+		// Charger le bouton Fiche Article dans le champ HTML
+		load_fiche_article_button(frm);
+		
 		// Bouton 'Attribuer à moi'
 		if (!frm.doc.__islocal && frm.doc.status === 'Nouveau') {
 			frm.add_custom_button(__('À moi'), function() {
@@ -197,6 +200,11 @@ frappe.ui.form.on("Etude Technique", {
 
 	nbr_poses(frm) {
 		calculate_quant_feuilles(frm);
+	},
+
+	article(frm) {
+		// Mettre à jour le bouton Fiche Article quand l'article change
+		load_fiche_article_button(frm);
 	}
 });
 
@@ -255,4 +263,209 @@ function get_status_color(status) {
 		case 'Obsolète': return '#dc3545';
 		default: return '#6c757d';
 	}
+}
+
+/**
+ * Charge le bouton "Fiche Article" dans le champ HTML fiche_article
+ * @param {object} frm - Le formulaire actuel
+ */
+function load_fiche_article_button(frm) {
+	const html_field = frm.fields_dict.fiche_article;
+	if (!html_field) {
+		console.warn("Le champ 'fiche_article' n'existe pas dans le formulaire Etude Technique.");
+		return;
+	}
+
+	// Vider le contenu précédent
+	html_field.$wrapper.html("");
+
+	// Si l'article n'est pas renseigné, ne rien afficher
+	if (!frm.doc.article) {
+		html_field.$wrapper.html(`
+			<div style="padding: 20px; text-align: center; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 15px;">
+				<div style="font-size: 14px; color: #8d99a6;">
+					<i class="fa fa-info-circle" style="margin-right: 8px;"></i>
+					Aucun article sélectionné
+				</div>
+			</div>
+		`);
+		return;
+	}
+
+	// Afficher le bouton Fiche Article
+	const html = `
+		<div style="padding: 10px;">
+			<button class="btn btn-primary btn-sm" onclick="show_item_technical_specs('${frm.doc.article}'); return false;">
+				Fiche Technique
+			</button>
+		</div>
+	`;
+
+	html_field.$wrapper.html(html);
+}
+
+/**
+ * Affiche et permet de modifier les spécifications techniques de l'article
+ * @param {string} article_name - Le nom de l'article
+ */
+if (!window.show_item_technical_specs) {
+	window.show_item_technical_specs = function(article_name) {
+		if (!article_name) {
+			frappe.msgprint({
+				title: __('Article non sélectionné'),
+				message: __('Veuillez d\'abord sélectionner un article.'),
+				indicator: 'orange'
+			});
+			return;
+		}
+		
+		// Récupérer les données de l'article
+		frappe.call({
+			method: "frappe.client.get",
+			args: {
+				doctype: "Item",
+				name: article_name
+			},
+			callback: function(r) {
+				if (r.message) {
+					const item = r.message;
+					const procede = item.custom_procédé || "";
+					
+					// Définir les champs à afficher selon le procédé
+					const champsOffset = [
+						"custom_fiche_technique_article",
+						"custom_conditionnement",
+						"custom_support_fourni", 
+						"custom_support", 
+						"custom_grammage", 
+						"custom_tolérance_",
+						"custom_impression", 
+						"custom_nbr_couleurs", 
+						"custom_nombre_de_poses", 
+						"custom_pelliculage", 
+						"custom_marquage_à_chaud", 
+						"custom_couleur_marquage_à_chaud", 
+						"custom_notice", 
+						"custom_cotations_article",
+						"custom_acrylique", 
+						"custom_uv", 
+						"custom_sélectif", 
+						"custom_drip_off", 
+						"custom_mat_gras", 
+						"custom_blister", 
+						"custom_recto_verso", 
+						"custom_fenêtre", 
+						"custom_dimension_fenêtre", 
+						"custom_epaisseur_fenêtre", 
+						"custom_gaufrage__estampage", 
+						"custom_massicot", 
+						"custom_collerette", 
+						"custom_blanc_couvrant", 
+						"custom_braille", 
+						"custom_texte_braille"
+					];
+					
+					const champsFlexo = [
+						"custom_fiche_technique_article",
+						"custom_conditionnement", 
+						"custom_désignation", 
+						"custom_type_support", 
+						"custom_complexage",
+						"custom_epaisseur",
+						"custom_epaisseur_2",
+						"custom_diametre_mandrin", 
+						"custom_diamètre_bobine", 
+						"custom_dimensions_h_x_l", 
+						"custom_sens_deroulement", 
+						"custom_sense_défilement_",
+						"custom_poids_bobine"
+					];
+					
+					// Sélectionner les champs à afficher selon le procédé
+					const champsAfficher = procede === "Offset" ? champsOffset : 
+										  procede === "Flexo" ? champsFlexo : [];
+					
+					// Récupérer tous les champs de l'onglet custom_fiche_technique
+					frappe.model.with_doctype("Item", function() {
+						const fields = [];
+						const meta = frappe.get_meta("Item");
+						
+						// Trouver tous les champs qui appartiennent à l'onglet custom_fiche_technique
+						meta.fields.forEach(field => {
+							if (field.fieldtype === "Tab Break" && field.fieldname === "custom_fiche_technique") {
+								meta.in_fiche_technique_tab = true;
+							} else if (field.fieldtype === "Tab Break" && meta.in_fiche_technique_tab) {
+								meta.in_fiche_technique_tab = false;
+							} else if (meta.in_fiche_technique_tab) {
+								if (["Section Break", "Column Break"].indexOf(field.fieldtype) === -1 && 
+									(champsAfficher.length === 0 || champsAfficher.includes(field.fieldname))) {
+									fields.push({
+										label: __(field.label),
+										fieldname: field.fieldname,
+										fieldtype: field.fieldtype,
+										options: field.options,
+										default: item[field.fieldname],
+										reqd: field.reqd
+									});
+								}
+							}
+						});
+						
+						// Si aucun champ n'a été trouvé, afficher un message
+						if (fields.length === 0) {
+							frappe.msgprint({
+								title: __('Aucune spécification technique'),
+								message: __('Aucun champ n\'a été trouvé dans l\'onglet Fiche Technique pour cet article.'),
+								indicator: 'blue'
+							});
+							return;
+						}
+						
+						// Créer une boîte de dialogue pour afficher et modifier les champs
+						const d = new frappe.ui.Dialog({
+							title: __('Spécifications Techniques - ') + item.item_name,
+							fields: fields,
+							primary_action_label: __('Mettre à jour'),
+							primary_action: function() {
+								const values = d.get_values();
+								
+								// Mettre à jour l'article
+								frappe.call({
+									method: "frappe.client.set_value",
+									args: {
+										doctype: "Item",
+										name: article_name,
+										fieldname: values
+									},
+									callback: function(r) {
+										if (r.message) {
+											frappe.show_alert({
+												message: __('Spécifications techniques mises à jour avec succès.'),
+												indicator: 'green'
+											}, 5);
+											d.hide();
+										} else {
+											frappe.msgprint({
+												title: __('Erreur'),
+												message: __('Une erreur est survenue lors de la mise à jour des spécifications techniques.'),
+												indicator: 'red'
+											});
+										}
+									}
+								});
+							}
+						});
+						
+						d.show();
+					});
+				} else {
+					frappe.msgprint({
+						title: __('Article non trouvé'),
+						message: __('Impossible de trouver l\'article sélectionné.'),
+						indicator: 'red'
+					});
+				}
+			}
+		});
+	};
 }

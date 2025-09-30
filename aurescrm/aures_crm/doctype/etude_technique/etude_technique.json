@@ -28,9 +28,11 @@
   "procede",
   "quantite",
   "donn\u00e9es_techniques_tab",
-  "nbr_poses",
+  "fiche_article",
+  "section_break_rhvy",
   "machine",
   "column_break_zsog",
+  "nbr_poses",
   "quant_feuilles",
   "section_break_ahbw",
   "observations",
@@ -160,6 +162,7 @@
    "fetch_from": "client.custom_commercial_attribu\u00e9",
    "fieldname": "commercial",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Commercial",
    "options": "User"
   },
@@ -357,6 +360,14 @@
    "fieldname": "fichier_bat",
    "fieldtype": "Attach Image",
    "label": "Fichier BAT"
+  },
+  {
+   "fieldname": "fiche_article",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "section_break_rhvy",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
@@ -364,7 +375,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-09-23 11:41:51.788050",
+ "modified": "2025-09-30 08:39:31.362781",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
