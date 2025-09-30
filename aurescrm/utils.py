@@ -97,6 +97,8 @@ def update_item_description(doc, method):
         base_info.append(f"{doc.custom_grammage}Gr")
     if doc.custom_cotations_article and str(doc.custom_cotations_article).lower() != 'sans':
         base_info.append(str(doc.custom_cotations_article))
+    if doc.custom_notice and str(doc.custom_notice).lower() != 'pas de notice':
+        base_info.append(str(doc.custom_notice))
     
     description_parts = []
     if base_info:
