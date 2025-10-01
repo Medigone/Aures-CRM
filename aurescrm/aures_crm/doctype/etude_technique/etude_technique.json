@@ -357,7 +357,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "bat.image",
+   "fetch_from": "bat.fichier_valide",
    "fieldname": "fichier_bat",
    "fieldtype": "Attach Image",
    "label": "Fichier BAT"
@@ -384,7 +384,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-01 17:06:45.926428",
+ "modified": "2025-10-01 17:13:02.032354",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
