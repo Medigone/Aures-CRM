@@ -596,6 +596,7 @@ function load_trace_imposition_links(frm) {
                                 { label: __('Format Laize/Palette'), fieldname: 'format_laize_palette', fieldtype: 'Data', reqd: 1, description: __('Pour Laize: chiffres uniquement (ex: 720.5). Pour Palette: format dimensions (ex: 720.2x1000)') },
                                 { label: __('Format Imposition'), fieldname: 'format_imp', fieldtype: 'Data', reqd: 1, description: __('Entrez le format (ex: 720x450)') },
                                 { label: __('Nombre de poses'), fieldname: 'nbr_poses', fieldtype: 'Int', reqd: 1, description: __('Entrez le nombre total de poses') },
+                                { label: __('Taux de chutes'), fieldname: 'taux_chutes', fieldtype: 'Percent', description: __('Entrez le taux de chutes (%)') },
                                 { label: __('Fichier Imposition'), fieldname: 'fichier_imp', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier d\'imposition') }
                             ],
                             primary_action_label: __('Enregistrer et Fermer'),
@@ -616,19 +617,33 @@ function load_trace_imposition_links(frm) {
                                 // Update the newly created Imposition document
                                 frappe.call({
                                     method: "frappe.client.set_value",
-                                    args: { doctype: "Imposition", name: imposition_id, fieldname: { format_imp: values.format_imp, format_laize_palette: values.format_laize_palette, laize_pal: values.laize_pal, nbr_poses: values.nbr_poses, fichier_imp: values.fichier_imp } },
+                                    args: { doctype: "Imposition", name: imposition_id, fieldname: { format_imp: values.format_imp, format_laize_palette: values.format_laize_palette, laize_pal: values.laize_pal, nbr_poses: values.nbr_poses, taux_chutes: values.taux_chutes, fichier_imp: values.fichier_imp } },
                                     freeze: true, freeze_message: __("Mise à jour de l'Imposition..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {
-                                            frappe.show_alert({message:__('Imposition créée et mise à jour avec succès.'), indicator:'green'}, 5);
-                                            // Save the Etude Faisabilite to persist the link, then refresh UI
-                                            frm.save()
-                                                .then(() => {
-                                                    load_trace_imposition_links(frm);
-                                                    refresh_attached_files(frm);
-                                                })
-                                                .catch((err) => { console.error("Save failed after Imposition creation:", err); });
-                                            d.hide();
+                                            // Synchroniser le taux de chutes vers l'Etude Faisabilite
+                                            frappe.call({
+                                                method: "aurescrm.aures_crm.doctype.imposition.imposition.sync_taux_chutes_to_etude",
+                                                args: {
+                                                    imposition_name: imposition_id,
+                                                    etude_faisabilite_name: frm.doc.name
+                                                },
+                                                callback: function(r_sync) {
+                                                    if (r_sync.message && r_sync.message.success) {
+                                                        // Mettre à jour le champ local taux_chutes
+                                                        frm.set_value('taux_chutes', r_sync.message.taux_chutes);
+                                                    }
+                                                    frappe.show_alert({message:__('Imposition créée et mise à jour avec succès.'), indicator:'green'}, 5);
+                                                    d.hide();
+                                                    // Save the Etude Faisabilite to persist the link and taux_chutes, then refresh UI
+                                                    frm.save()
+                                                        .then(() => {
+                                                            load_trace_imposition_links(frm);
+                                                            refresh_attached_files(frm);
+                                                        })
+                                                        .catch((err) => { console.error("Save failed after Imposition creation:", err); });
+                                                }
+                                            });
                                         } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de l'Imposition."), indicator: 'red' }); }
                                     },
                                     error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de l'Imposition.") + "<br>" + err_update.message, indicator: 'red' });}
@@ -654,7 +669,7 @@ function load_trace_imposition_links(frm) {
              // 1. Get current values
             frappe.call({
                 method: "frappe.client.get_value",
-                args: { doctype: "Imposition", fieldname: ["format_imp", "format_laize_palette", "laize_pal", "nbr_poses", "fichier_imp"], filters: { name: imposition_id } },
+                args: { doctype: "Imposition", fieldname: ["format_imp", "format_laize_palette", "laize_pal", "nbr_poses", "taux_chutes", "fichier_imp"], filters: { name: imposition_id } },
                 callback: function(r) {
                     if (r.message) {
                         let current_values = r.message;
@@ -667,6 +682,7 @@ function load_trace_imposition_links(frm) {
                                 { label: __('Format Laize/Palette'), fieldname: 'format_laize_palette', fieldtype: 'Data', reqd: 1, default: current_values.format_laize_palette || "", description: __('Pour Laize: chiffres uniquement (ex: 720.5). Pour Palette: format dimensions (ex: 720.2x1000)') },
                                 { label: __('Format Imposition'), fieldname: 'format_imp', fieldtype: 'Data', reqd: 1, default: current_values.format_imp || "", description: __('Entrez le format (ex: 720x450)') },
                                 { label: __('Nombre de poses'), fieldname: 'nbr_poses', fieldtype: 'Int', reqd: 1, default: current_values.nbr_poses || 0, description: __('Entrez le nombre total de poses') },
+                                { label: __('Taux de chutes'), fieldname: 'taux_chutes', fieldtype: 'Percent', default: current_values.taux_chutes || 0, description: __('Entrez le taux de chutes (%)') },
                                 { label: __('Fichier Imposition'), fieldname: 'fichier_imp', fieldtype: 'Attach', reqd: 1, default: current_values.fichier_imp || "", description: __('Joignez le nouveau fichier') },
                                 { fieldtype: 'HTML', fieldname: 'current_file_info_imp', options: current_values.fichier_imp ? `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: var(--text-muted);">Fichier actuel: <a href="${current_values.fichier_imp}" target="_blank">${current_values.fichier_imp.split('/').pop()}</a></div>` : `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: #888;">Aucun fichier actuel.</div>`}
                             ],
@@ -688,14 +704,33 @@ function load_trace_imposition_links(frm) {
                                 // 3. Update the document
                                 frappe.call({
                                     method: "frappe.client.set_value",
-                                    args: { doctype: "Imposition", name: imposition_id, fieldname: { format_imp: values.format_imp, format_laize_palette: values.format_laize_palette, laize_pal: values.laize_pal, nbr_poses: values.nbr_poses, fichier_imp: values.fichier_imp } },
+                                    args: { doctype: "Imposition", name: imposition_id, fieldname: { format_imp: values.format_imp, format_laize_palette: values.format_laize_palette, laize_pal: values.laize_pal, nbr_poses: values.nbr_poses, taux_chutes: values.taux_chutes, fichier_imp: values.fichier_imp } },
                                     freeze: true, freeze_message: __("Mise à jour de l'Imposition..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {
-                                            frappe.show_alert({message:__('Imposition mise à jour avec succès.'), indicator:'green'}, 5);
-                                            d.hide();
-                                            load_trace_imposition_links(frm); // Refresh HTML links/buttons
-                                            refresh_attached_files(frm);    // Refresh local file field
+                                            // Synchroniser le taux de chutes vers l'Etude Faisabilite
+                                            frappe.call({
+                                                method: "aurescrm.aures_crm.doctype.imposition.imposition.sync_taux_chutes_to_etude",
+                                                args: {
+                                                    imposition_name: imposition_id,
+                                                    etude_faisabilite_name: frm.doc.name
+                                                },
+                                                callback: function(r_sync) {
+                                                    if (r_sync.message && r_sync.message.success) {
+                                                        // Mettre à jour le champ local taux_chutes
+                                                        frm.set_value('taux_chutes', r_sync.message.taux_chutes);
+                                                    }
+                                                    frappe.show_alert({message:__('Imposition mise à jour avec succès.'), indicator:'green'}, 5);
+                                                    d.hide();
+                                                    // Sauvegarder l'Etude Faisabilite pour persister le taux_chutes, puis rafraîchir
+                                                    frm.save()
+                                                        .then(() => {
+                                                            load_trace_imposition_links(frm); // Refresh HTML links/buttons
+                                                            refresh_attached_files(frm);    // Refresh local file field
+                                                        })
+                                                        .catch((err) => { console.error("Save failed after Imposition update:", err); });
+                                                }
+                                            });
                                         } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de l'Imposition."), indicator: 'red' }); }
                                     },
                                     error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de l'Imposition.") + "<br>" + err_update.message, indicator: 'red' }); }

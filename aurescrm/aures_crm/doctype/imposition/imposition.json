@@ -21,6 +21,8 @@
   "forme_decoupe",
   "column_break_rdzb",
   "nbr_poses",
+  "column_break_ffra",
+  "taux_chutes",
   "section_break_xfpk",
   "an_num_fd",
   "column_break_mkej",
@@ -153,12 +155,22 @@
    "fieldname": "format_laize_palette",
    "fieldtype": "Data",
    "label": "Format Laize / Palette"
+  },
+  {
+   "fieldname": "column_break_ffra",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "taux_chutes",
+   "fieldtype": "Percent",
+   "label": "Taux de chutes",
+   "precision": "2"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-23 16:31:28.231394",
+ "modified": "2025-10-01 15:14:23.045466",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Imposition",
