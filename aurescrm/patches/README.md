@@ -49,6 +49,45 @@ bench console
 >>> frappe.db.count("Imposition", {"taux_chutes": [">", 0]})
 ```
 
+### add_color_fields_to_maquette.py
+
+**Date**: Octobre 2025  
+**Objectif**: Ajouter les champs de gestion des couleurs CMJN et Pantone au Doctype Maquette.
+
+#### Contexte
+Le Doctype Maquette a été amélioré pour gérer les couleurs en imprimerie, permettant de distinguer les couleurs CMJN (quadrichromie) et Pantone (couleurs directes).
+
+#### Ce que fait le patch
+- Recharge les doctypes Maquette, Maquette CMJN Ligne et Maquette Spot Color
+- Vérifie que les nouveaux champs sont bien créés :
+  - `mode_couleur` : Sélection du mode (CMJN, Pantone uniquement, CMJN + Pantone)
+  - `resume_couleurs` : Résumé automatique des couleurs
+  - `profil_icc_sortie` : Fichier ICC pour le contrôle qualité
+  - `tolerance_delta_e` : Tolérance ΔE
+  - `cmjn_details` : Table enfant pour les canaux CMJN
+  - `spot_colors` : Table enfant pour les couleurs Pantone
+- Ne modifie **aucune donnée existante** (les anciennes maquettes restent intactes)
+- Affiche un rapport de migration
+
+#### Exécution du patch
+
+Le patch s'exécutera automatiquement lors de la prochaine migration :
+
+```bash
+cd /home/wezri/frappe-bench
+bench migrate
+```
+
+#### Exécution manuelle (si nécessaire)
+
+```bash
+bench execute aurescrm.patches.add_color_fields_to_maquette.execute
+```
+
+#### Documentation complète
+
+Consultez le fichier `aurescrm/aures_crm/doctype/maquette/README_COULEUR.md` pour la documentation complète de la fonctionnalité.
+
 ## Comment créer un nouveau patch
 
 1. Créer un nouveau fichier Python dans ce dossier

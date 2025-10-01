@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-01 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "canal",
+  "taux_max_encrage",
+  "remarque"
+ ],
+ "fields": [
+  {
+   "fieldname": "canal",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Canal",
+   "options": "C\nM\nJ\nN",
+   "reqd": 1
+  },
+  {
+   "fieldname": "taux_max_encrage",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Taux Max Encrage (%)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "remarque",
+   "fieldtype": "Data",
+   "label": "Remarque"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-01 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Maquette CMJN Ligne",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+
