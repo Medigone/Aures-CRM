@@ -167,8 +167,12 @@ doc_events = {
          "on_update": "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.update_demande_status_from_etudes"
     },
     "Quotation": {
-        # Mise à jour du chemin
-        "on_submit": "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_quotation"
+        "on_submit": [
+            # Mise à jour du chemin
+            "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_quotation",
+            # Notification au commercial attribué quand le devis est validé
+            "aurescrm.notifications.notify_commercial_devis_valide"
+        ]
     },
     # Add the hook for Sales Order submission
     "Sales Order": {
@@ -311,22 +315,22 @@ scheduler_events = {
 # }
 
 fixtures = [
-        {
-        "doctype": "Role",
-        "filters": [["is_custom", "=", 1]]  # Export uniquement les rôles custom
-    },
+    #     {
+    #     "doctype": "Role",
+    #     "filters": [["is_custom", "=", 1]]  # Export uniquement les rôles custom
+    # },
     {
         "doctype": "Custom DocPerm",
         "filters": []  # Export uniquement les permissions personnalisées
     },
     # "Custom HTML Block",
     # "Client Script",
-    "Workflow",
-    "Workflow State",
-    "Workflow Transition",
-    "Workflow Action",
-    "Workflow Action Master",
-    "Workflow Document State",
+    # "Workflow",
+    # "Workflow State",
+    # "Workflow Transition",
+    # "Workflow Action",
+    # "Workflow Action Master",
+    # "Workflow Document State",
     # "Workspace",
     # "Number Card"
     
