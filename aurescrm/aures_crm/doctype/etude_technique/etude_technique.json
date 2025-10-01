@@ -30,10 +30,11 @@
   "donn\u00e9es_techniques_tab",
   "fiche_article",
   "section_break_rhvy",
+  "nbr_poses",
   "machine",
   "column_break_zsog",
-  "nbr_poses",
   "quant_feuilles",
+  "taux_chutes",
   "section_break_ahbw",
   "observations",
   "observations_tab",
@@ -368,6 +369,14 @@
   {
    "fieldname": "section_break_rhvy",
    "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "imposition.taux_chutes",
+   "fieldname": "taux_chutes",
+   "fieldtype": "Percent",
+   "label": "Taux de chutes",
+   "precision": "2",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -375,7 +384,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-09-30 08:39:31.362781",
+ "modified": "2025-10-01 17:06:45.926428",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
