@@ -102,28 +102,20 @@ def notify_commercial_devis_valide(doc, method=None):
 	</div>
 	"""
 	
-	# Envoyer l'email avec le PDF du devis en pièce jointe
+	# Envoyer l'email
 	try:
-		# Créer l'objet email avec le PDF attaché
 		frappe.sendmail(
 			recipients=[commercial_email],
 			subject=subject,
 			message=message,
 			reference_doctype="Quotation",
 			reference_name=doc.name,
-			attachments=[
-				frappe.attach_print(
-					"Quotation",
-					doc.name,
-					print_format=None  # None = utiliser le format par défaut
-				)
-			],
 			now=True  # Envoyer immédiatement
 		)
 		
 		# Log pour confirmation
 		frappe.logger().info(
-			f"Email avec PDF envoyé au commercial {commercial_attribue} pour le devis {doc.name}"
+			f"Email envoyé au commercial {commercial_attribue} pour le devis {doc.name}"
 		)
 		
 	except Exception as e:
