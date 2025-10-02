@@ -643,25 +643,25 @@ function load_trace_imposition_links(frm) {
     if (!window.show_imposition_choice_dialog) {
         window.show_imposition_choice_dialog = function(frm, imposition_ideale) {
             var choice_dialog = new frappe.ui.Dialog({
-                title: __('Imposition idéale trouvée'),
+                title: `<div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724;">
+                    <span style="font-size: 16px;">✓</span>
+                    <span>Imposition idéale disponible</span>
+                </div>`,
                 fields: [
                     {
                         fieldtype: 'HTML',
                         fieldname: 'info_html',
                         options: `
-                            <div style="padding: 15px; margin-bottom: 15px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-radius: 8px; border: 1px solid #c3e6cb;">
-                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                    <span style="font-size: 24px;">✓</span>
-                                    <div style="font-size: 16px; font-weight: 600; color: #155724;">
-                                        Imposition idéale disponible
-                                    </div>
+                            <div style="padding: 15px; margin-bottom: 15px; background-color: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
+                                <div style="font-size: 14px; color: #495057; margin-bottom: 8px;">
+                                    <strong style="color: #155724;">${imposition_ideale.name}</strong> avec un taux de chutes de <strong style="color: #155724;">${imposition_ideale.taux_chutes}%</strong>
                                 </div>
-                                <div style="font-size: 13px; color: #155724; margin-left: 34px;">
-                                    <strong>${imposition_ideale.name}</strong> avec un taux de chutes de <strong>${imposition_ideale.taux_chutes}%</strong>
+                                <div style="font-size: 13px; color: #6c757d;">
+                                    Cette imposition a le taux de chutes le plus bas pour cette combinaison Client/Article/Tracé.
                                 </div>
                             </div>
-                            <div style="font-size: 13px; color: #6c757d; margin-bottom: 15px;">
-                                Souhaitez-vous utiliser cette imposition idéale ou en créer une nouvelle ?
+                            <div style="font-size: 13px; color: #495057; font-weight: 500;">
+                                Souhaitez-vous utiliser cette imposition ou en créer une nouvelle ?
                             </div>
                         `
                     }
