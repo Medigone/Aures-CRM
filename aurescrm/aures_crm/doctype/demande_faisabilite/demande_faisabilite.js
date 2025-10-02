@@ -1,10 +1,50 @@
 // Copyright (c) 2025, Medigo and contributors
 // For license information, please see license.txt
+
+/**
+ * Nettoie automatiquement les lignes vides du tableau liste_articles
+ * Une ligne est considérée comme vide si le champ 'article' est vide
+ */
+function clean_empty_rows_js(frm) {
+    if (!frm.doc.liste_articles || frm.doc.liste_articles.length === 0) {
+        return;
+    }
+    
+    let has_empty_rows = false;
+    let valid_rows = [];
+    
+    // Filtrer les lignes qui ont un article
+    frm.doc.liste_articles.forEach(function(row) {
+        if (row.article && row.article.trim() !== '') {
+            valid_rows.push(row);
+        } else {
+            has_empty_rows = true;
+        }
+    });
+    
+    // Si des lignes vides ont été trouvées, nettoyer le tableau
+    if (has_empty_rows) {
+        frm.clear_table('liste_articles');
+        valid_rows.forEach(function(row) {
+            let new_row = frm.add_child('liste_articles');
+            Object.assign(new_row, row);
+        });
+        frm.refresh_field('liste_articles');
+        // Sauvegarder uniquement si le document existe déjà
+        if (!frm.is_new()) {
+            frm.save();
+        }
+    }
+}
+
 frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
         // // Masquer les champs is_reprint et essai_blanc car ils sont gérés automatiquement
         // frm.get_field('is_reprint').$wrapper.hide();
         // frm.get_field('essai_blanc').$wrapper.hide();
+        
+        // Nettoyer automatiquement les lignes vides du tableau
+        clean_empty_rows_js(frm);
         
         // Cacher le bouton 'add row' par défaut
         frm.get_field('liste_articles').grid.wrapper.find('.grid-add-row').hide();
@@ -78,8 +118,8 @@ frappe.ui.form.on('Demande Faisabilite', {
         }
 
         // --- Bouton "Confirmer" ---
-        // Vérifier que la demande est dans le statut initial "Brouillon"
-        if (frm.doc.status === "Brouillon") {
+        // Vérifier que la demande est dans le statut initial "Brouillon" et que le document existe
+        if (frm.doc.status === "Brouillon" && !frm.is_new()) {
             frm.add_custom_button("Confirmer", function() {
                 // Validation supplémentaire côté client
                 if (frm.doc.status !== "Brouillon") {

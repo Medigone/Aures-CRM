@@ -206,7 +206,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Mode Couleur",
-   "options": "CMJN\nPantone uniquement\nCMJN + Pantone"
+   "options": "\nCMJN\nPantone uniquement\nCMJN + Pantone"
   },
   {
    "fieldname": "resume_couleurs",
@@ -288,7 +288,7 @@
  "image_field": "fichier_maquette",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-01 18:10:21.294473",
+ "modified": "2025-10-02 10:34:51.806012",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",

@@ -107,11 +107,84 @@ class DemandeFaisabilite(Document):
 
 # --- Fonctions copiées depuis faisabilite_hook.py ---
 
+def clean_empty_rows(demande):
+	"""
+	Supprime les lignes vides du tableau liste_articles
+	Une ligne est considérée comme vide si le champ 'article' est vide
+	"""
+	if not demande.get("liste_articles"):
+		return
+	
+	# Filtrer les lignes qui ont un article
+	valid_rows = [row for row in demande.liste_articles if row.article]
+	
+	# Vider la table et réinsérer uniquement les lignes valides
+	demande.liste_articles = []
+	for row in valid_rows:
+		demande.append("liste_articles", row)
+	
+	# Sauvegarder les modifications
+	demande.save(ignore_permissions=True)
+
+
+def create_maquette_if_not_exists(client, article):
+	"""
+	Crée une Maquette pour l'article si elle n'existe pas déjà
+	Vérifie l'existence d'une maquette pour le couple (client, article)
+	
+	Args:
+		client: Le nom du client (Customer)
+		article: Le nom de l'article (Item)
+	
+	Returns:
+		str: Le nom de la maquette existante ou nouvellement créée
+	"""
+	if not client or not article:
+		return None
+	
+	# Vérifier si une maquette existe déjà pour ce client et cet article
+	existing_maquette = frappe.db.get_value(
+		"Maquette",
+		{
+			"client": client,
+			"article": article
+		},
+		"name"
+	)
+	
+	if existing_maquette:
+		frappe.msgprint(f"Maquette existante trouvée pour l'article {article} : {existing_maquette}")
+		return existing_maquette
+	
+	# Créer une nouvelle maquette
+	try:
+		maquette = frappe.new_doc("Maquette")
+		maquette.client = client
+		maquette.article = article
+		maquette.status = "A référencer"
+		maquette.ver = 0
+		maquette.id_responsable = frappe.session.user
+		# Laisser mode_couleur vide pour éviter les validations de couleur
+		maquette.mode_couleur = ""
+		
+		maquette.insert(ignore_permissions=True)
+		frappe.msgprint(f"Nouvelle maquette créée pour l'article {article} : {maquette.name}")
+		return maquette.name
+	except Exception as e:
+		frappe.log_error(
+			message=f"Erreur lors de la création de la maquette pour {article}: {str(e)}",
+			title="Erreur création Maquette"
+		)
+		# Ne pas bloquer le processus si la création de la maquette échoue
+		return None
+
+
 @frappe.whitelist()
 def generate_etude_faisabilite(docname):
     """
     Pour chaque ligne de la table 'liste_articles' du document Demande Faisabilite,
     crée un nouveau document 'Etude Faisabilite' ou 'Etude Faisabilite Flexo' selon le procédé,
+    crée une Maquette si elle n'existe pas déjà pour l'article,
     puis met à jour le statut de la demande.
     """
     try:
@@ -132,6 +205,9 @@ def generate_etude_faisabilite(docname):
         flexo_fields = communs + []
 
         for row in demande.get("liste_articles"):
+            # Créer une maquette si elle n'existe pas pour cet article
+            create_maquette_if_not_exists(demande.client, row.article)
+            
             procede = row.procede_article or ""
             base_values = {
                 "demande_faisabilite": demande.name,
