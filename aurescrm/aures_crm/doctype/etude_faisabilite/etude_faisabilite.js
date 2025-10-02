@@ -614,6 +614,87 @@ function load_trace_imposition_links(frm) {
                 frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir Client, Article et Tracé avant de créer une Imposition.'), indicator: 'orange' });
                 return;
             }
+            
+            // Vérifier d'abord s'il existe une imposition idéale
+            frappe.call({
+                method: 'aurescrm.aures_crm.doctype.imposition.imposition.get_imposition_ideale',
+                args: {
+                    client: frm.doc.client,
+                    article: frm.doc.article,
+                    trace: frm.doc.trace,
+                    current_imposition: null
+                },
+                callback: function(r_check) {
+                    if (r_check.message) {
+                        // Une imposition idéale existe, proposer de la lier
+                        show_imposition_choice_dialog(frm, r_check.message);
+                    } else {
+                        // Aucune imposition idéale, créer directement
+                        create_new_imposition(frm);
+                    }
+                }
+            });
+        };
+    }
+    
+    /**
+     * Affiche un dialogue de choix entre utiliser l'imposition idéale ou en créer une nouvelle
+     */
+    if (!window.show_imposition_choice_dialog) {
+        window.show_imposition_choice_dialog = function(frm, imposition_ideale) {
+            var choice_dialog = new frappe.ui.Dialog({
+                title: __('Imposition idéale trouvée'),
+                fields: [
+                    {
+                        fieldtype: 'HTML',
+                        fieldname: 'info_html',
+                        options: `
+                            <div style="padding: 15px; margin-bottom: 15px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-radius: 8px; border: 1px solid #c3e6cb;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <span style="font-size: 24px;">✓</span>
+                                    <div style="font-size: 16px; font-weight: 600; color: #155724;">
+                                        Imposition idéale disponible
+                                    </div>
+                                </div>
+                                <div style="font-size: 13px; color: #155724; margin-left: 34px;">
+                                    <strong>${imposition_ideale.name}</strong> avec un taux de chutes de <strong>${imposition_ideale.taux_chutes}%</strong>
+                                </div>
+                            </div>
+                            <div style="font-size: 13px; color: #6c757d; margin-bottom: 15px;">
+                                Souhaitez-vous utiliser cette imposition idéale ou en créer une nouvelle ?
+                            </div>
+                        `
+                    }
+                ],
+                primary_action_label: __('Utiliser l\'imposition idéale'),
+                primary_action: function() {
+                    // Lier l'imposition idéale existante
+                    frm.set_value('imposition', imposition_ideale.name);
+                    frm.set_value('taux_chutes', imposition_ideale.taux_chutes);
+                    frappe.show_alert({message: __('Imposition idéale liée avec succès'), indicator: 'green'}, 3);
+                    choice_dialog.hide();
+                    // Sauvegarder et rafraîchir
+                    frm.save()
+                        .then(() => {
+                            load_trace_imposition_links(frm);
+                            refresh_attached_files(frm);
+                        });
+                },
+                secondary_action_label: __('Créer une nouvelle'),
+                secondary_action: function() {
+                    choice_dialog.hide();
+                    create_new_imposition(frm);
+                }
+            });
+            choice_dialog.show();
+        };
+    }
+    
+    /**
+     * Crée une nouvelle imposition
+     */
+    if (!window.create_new_imposition) {
+        window.create_new_imposition = function(frm) {
             frappe.call({
                 method: "frappe.client.insert",
                 args: { doc: { doctype: "Imposition", client: frm.doc.client, article: frm.doc.article, trace: frm.doc.trace /*, etude_faisabilite: frm.doc.name // Optional link */ } },
