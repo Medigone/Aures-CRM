@@ -472,6 +472,7 @@ function load_trace_imposition_links(frm) {
                             fields: [
                                 { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${trace_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${trace_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
                                 { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, description: __('Entrez les dimensions du tracé') },
+                                { label: __('Points colle'), fieldname: 'points_colle', fieldtype: 'Int', description: __('Nombre de points de colle') },
                                 { label: __('Fichier Tracé'), fieldname: 'fichier_trace', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier du tracé') }
                             ],
                             primary_action_label: __('Enregistrer et Fermer'),
@@ -484,7 +485,7 @@ function load_trace_imposition_links(frm) {
                                 // Update the newly created Trace document
                                 frappe.call({
                                     method: "frappe.client.set_value",
-                                    args: { doctype: "Trace", name: trace_id, fieldname: { dimensions: values.dimensions, fichier_trace: values.fichier_trace } },
+                                    args: { doctype: "Trace", name: trace_id, fieldname: { dimensions: values.dimensions, points_colle: values.points_colle, fichier_trace: values.fichier_trace } },
                                     freeze: true, freeze_message: __("Mise à jour de la Trace..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {
@@ -522,7 +523,7 @@ function load_trace_imposition_links(frm) {
             // 1. Get current values
             frappe.call({
                 method: "frappe.client.get_value",
-                args: { doctype: "Trace", fieldname: ["dimensions", "fichier_trace"], filters: { name: trace_id } },
+                args: { doctype: "Trace", fieldname: ["dimensions", "points_colle", "fichier_trace"], filters: { name: trace_id } },
                 callback: function(r) {
                     if (r.message) {
                         let current_values = r.message;
@@ -532,6 +533,7 @@ function load_trace_imposition_links(frm) {
                             fields: [
                                 { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${trace_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${trace_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
                                 { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, default: current_values.dimensions || "", description: __('Entrez les nouvelles dimensions') },
+                                { label: __('Points colle'), fieldname: 'points_colle', fieldtype: 'Int', default: current_values.points_colle || 0, description: __('Nombre de points de colle') },
                                 { label: __('Fichier Tracé'), fieldname: 'fichier_trace', fieldtype: 'Attach', reqd: 1, default: current_values.fichier_trace || "", description: __('Joignez le nouveau fichier') },
                                 { fieldtype: 'HTML', fieldname: 'current_file_info', options: current_values.fichier_trace ? `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: var(--text-muted);">Fichier actuel: <a href="${current_values.fichier_trace}" target="_blank">${current_values.fichier_trace.split('/').pop()}</a></div>` : `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: #888;">Aucun fichier actuel.</div>`}
                             ],
@@ -545,7 +547,7 @@ function load_trace_imposition_links(frm) {
                                 // 3. Update the document
                                 frappe.call({
                                     method: "frappe.client.set_value",
-                                    args: { doctype: "Trace", name: trace_id, fieldname: { dimensions: values.dimensions, fichier_trace: values.fichier_trace } },
+                                    args: { doctype: "Trace", name: trace_id, fieldname: { dimensions: values.dimensions, points_colle: values.points_colle, fichier_trace: values.fichier_trace } },
                                     freeze: true, freeze_message: __("Mise à jour du Tracé..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {

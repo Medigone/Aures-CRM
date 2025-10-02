@@ -12,6 +12,7 @@
   "article",
   "section_break_lwnz",
   "dimensions",
+  "points_colle",
   "column_break_xrmo",
   "fichier_trace"
  ],
@@ -75,11 +76,16 @@
   {
    "fieldname": "section_break_bihv",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "points_colle",
+   "fieldtype": "Int",
+   "label": "Points colle"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 14:04:46.464133",
+ "modified": "2025-10-02 11:09:07.305224",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Trace",
@@ -157,6 +163,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "client,article,dimensions",
  "sort_field": "modified",
  "sort_order": "DESC",
