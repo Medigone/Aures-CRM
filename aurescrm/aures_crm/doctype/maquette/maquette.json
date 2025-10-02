@@ -30,11 +30,6 @@
   "couleur_tab",
   "mode_couleur",
   "resume_couleurs",
-  "section_break_qualite",
-  "profil_icc_sortie",
-  "fichier_icc",
-  "column_break_delta_e",
-  "tolerance_delta_e",
   "section_break_cmjn",
   "nombre_couleurs_process",
   "cmjn_details",
@@ -216,27 +211,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "section_break_qualite",
-   "fieldtype": "Section Break",
-   "label": "Contr\u00f4le Qualit\u00e9"
-  },
-  {
-   "fieldname": "profil_icc_sortie",
-   "fieldtype": "Select",
-   "label": "Profil ICC Sortie",
-   "options": "\nProfil machine sp\u00e9cifique\nISO Coated v2 (FOGRA39)\nISO Coated v2 300% (FOGRA39)\nPSO Coated v3 (FOGRA51)\nPSO Uncoated v3 (FOGRA52)\nPSO Uncoated ISO12647 (FOGRA29/47)\nISOnewspaper26v4 (FOGRA48)\nGRACoL 2006 Coated1v2\nGRACoL 2013 Coated1 (CRPC6)\nSWOP2006 Coated3v2\nSWOP2006 Coated5v2\nDigital Coated (FOGRA39)\nDigital Uncoated (FOGRA47)"
-  },
-  {
-   "fieldname": "column_break_delta_e",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "tolerance_delta_e",
-   "fieldtype": "Float",
-   "label": "Tol\u00e9rance \u0394E",
-   "precision": "2"
-  },
-  {
    "depends_on": "eval:doc.mode_couleur && (doc.mode_couleur === 'CMJN' || doc.mode_couleur === 'CMJN + Pantone')",
    "fieldname": "section_break_cmjn",
    "fieldtype": "Section Break",
@@ -277,18 +251,12 @@
    "fieldtype": "Table",
    "label": "Couleurs Spot",
    "options": "Maquette Spot Color"
-  },
-  {
-   "description": "Pour stocker le fichier ICC si n\u00e9cessaire (par ex. un profil machine custom",
-   "fieldname": "fichier_icc",
-   "fieldtype": "Attach",
-   "label": "Fichier ICC"
   }
  ],
  "image_field": "fichier_maquette",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-02 10:34:51.806012",
+ "modified": "2025-10-02 11:23:18.524625",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
