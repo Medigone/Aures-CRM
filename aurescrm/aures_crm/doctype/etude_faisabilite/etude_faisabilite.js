@@ -489,15 +489,29 @@ function load_trace_imposition_links(frm) {
                                     freeze: true, freeze_message: __("Mise à jour de la Trace..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {
-                                            frappe.show_alert({message:__('Trace créée et mise à jour avec succès.'), indicator:'green'}, 5);
-                                            // Save the Etude Faisabilite to persist the link, then refresh UI
-                                            frm.save()
-                                                .then(() => {
-                                                    load_trace_imposition_links(frm);
-                                                    refresh_attached_files(frm);
-                                                })
-                                                .catch((err) => { console.error("Save failed after linking existing Trace:", err); });
-                                            d.hide();
+                                            // Synchroniser les points de colle vers l'Etude Faisabilite
+                                            frappe.call({
+                                                method: "aurescrm.aures_crm.doctype.trace.trace.sync_points_colle_to_etude",
+                                                args: {
+                                                    trace_name: trace_id,
+                                                    etude_faisabilite_name: frm.doc.name
+                                                },
+                                                callback: function(r_sync) {
+                                                    if (r_sync.message && r_sync.message.success) {
+                                                        // Mettre à jour le champ local points_colle
+                                                        frm.set_value('points_colle', r_sync.message.points_colle);
+                                                    }
+                                                    frappe.show_alert({message:__('Trace créée et mise à jour avec succès.'), indicator:'green'}, 5);
+                                                    d.hide();
+                                                    // Save the Etude Faisabilite to persist the link and points_colle, then refresh UI
+                                                    frm.save()
+                                                        .then(() => {
+                                                            load_trace_imposition_links(frm);
+                                                            refresh_attached_files(frm);
+                                                        })
+                                                        .catch((err) => { console.error("Save failed after linking existing Trace:", err); });
+                                                }
+                                            });
                                         } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Trace."), indicator: 'red' }); }
                                     },
                                     error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de la Trace.") + "<br>" + err_update.message, indicator: 'red' });}
@@ -551,10 +565,29 @@ function load_trace_imposition_links(frm) {
                                     freeze: true, freeze_message: __("Mise à jour du Tracé..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {
-                                            frappe.show_alert({message:__('Trace mise à jour avec succès.'), indicator:'green'}, 5);
-                                            d.hide();
-                                            load_trace_imposition_links(frm); // Refresh HTML links/buttons
-                                            refresh_attached_files(frm);    // Refresh local file field
+                                            // Synchroniser les points de colle vers l'Etude Faisabilite
+                                            frappe.call({
+                                                method: "aurescrm.aures_crm.doctype.trace.trace.sync_points_colle_to_etude",
+                                                args: {
+                                                    trace_name: trace_id,
+                                                    etude_faisabilite_name: frm.doc.name
+                                                },
+                                                callback: function(r_sync) {
+                                                    if (r_sync.message && r_sync.message.success) {
+                                                        // Mettre à jour le champ local points_colle
+                                                        frm.set_value('points_colle', r_sync.message.points_colle);
+                                                    }
+                                                    frappe.show_alert({message:__('Trace mise à jour avec succès.'), indicator:'green'}, 5);
+                                                    d.hide();
+                                                    // Sauvegarder l'Etude Faisabilite pour persister les points_colle, puis rafraîchir
+                                                    frm.save()
+                                                        .then(() => {
+                                                            load_trace_imposition_links(frm); // Refresh HTML links/buttons
+                                                            refresh_attached_files(frm);    // Refresh local file field
+                                                        })
+                                                        .catch((err) => { console.error("Save failed after Trace update:", err); });
+                                                }
+                                            });
                                         } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Trace."), indicator: 'red' }); }
                                     },
                                     error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de la Trace.") + "<br>" + err_update.message, indicator: 'red' }); }

@@ -26,6 +26,8 @@
   "section_break_zxac",
   "html_doc",
   "section_break_jugd",
+  "points_colle",
+  "column_break_fphf",
   "taux_chutes",
   "section_break_uigs",
   "est_conception",
@@ -157,7 +159,6 @@
    "label": "Observations"
   },
   {
-   "description": "Obligatoire pour pouvoir passer en <strong>R\u00e9alisable</strong>",
    "fieldname": "taux_chutes",
    "fieldtype": "Float",
    "label": "Taux de chutes",
@@ -295,13 +296,24 @@
    "fieldtype": "Check",
    "label": "Essai Blanc",
    "read_only": 1
+  },
+  {
+   "fetch_from": "trace.points_colle",
+   "fieldname": "points_colle",
+   "fieldtype": "Int",
+   "label": "Points de colle",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_fphf",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-01 15:21:50.277749",
+ "modified": "2025-10-02 11:41:12.200835",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
