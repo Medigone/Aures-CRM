@@ -169,6 +169,7 @@ def create_maquette_if_not_exists(client, article):
 		
 		maquette.insert(ignore_permissions=True)
 		frappe.msgprint(f"Nouvelle maquette créée pour l'article {article} : {maquette.name}")
+		
 		return maquette.name
 	except Exception as e:
 		frappe.log_error(

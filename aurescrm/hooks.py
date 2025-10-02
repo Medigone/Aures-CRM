@@ -166,6 +166,10 @@ doc_events = {
          # Mise à jour du chemin
          "on_update": "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.update_demande_status_from_etudes"
     },
+    "Maquette": {
+        # Notification au commercial attribué quand une nouvelle maquette est créée
+        "after_insert": "aurescrm.notifications.notify_commercial_nouvelle_maquette"
+    },
     "Quotation": {
         "on_submit": [
             # Mise à jour du chemin
