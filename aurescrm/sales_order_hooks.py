@@ -188,7 +188,7 @@ def generate_technical_studies(sales_order_name):
                     break
 
             # Save the technical study
-            technical_study.insert()
+            technical_study.insert(ignore_permissions=True)
             created_studies += 1
         
         if created_studies > 0:
@@ -377,7 +377,7 @@ def auto_generate_technical_studies_on_submit(doc, method):
                         break
                 
                 # Sauvegarder l'étude technique
-                technical_study.insert()
+                technical_study.insert(ignore_permissions=True)
                 created_studies += 1
             
             if created_studies > 0:

@@ -167,7 +167,7 @@ def get_imposition_ideale(client, article, trace, current_imposition=None):
 				"trace": trace,
 				"defaut": 1
 			},
-			fields=["name", "taux_chutes"],
+			fields=["name", "taux_chutes", "format_imp", "laize_pal", "format_laize_palette", "nbr_poses"],
 			limit=1
 		)
 		
@@ -177,12 +177,17 @@ def get_imposition_ideale(client, article, trace, current_imposition=None):
 		imposition_ideale = impositions[0]
 		
 		# Si l'imposition actuelle est déjà l'idéale, retourner None
-		if current_imposition and imposition_ideale.name == current_imposition:
+		if current_imposition and imposition_ideale.get("name") == current_imposition:
 			return None
 		
+		# Retourner les informations de l'imposition idéale
 		return {
-			"name": imposition_ideale.name,
-			"taux_chutes": imposition_ideale.taux_chutes or 0
+			"name": imposition_ideale.get("name") or "",
+			"taux_chutes": imposition_ideale.get("taux_chutes") or 0,
+			"format_imp": imposition_ideale.get("format_imp") or "",
+			"laize_pal": imposition_ideale.get("laize_pal") or "",
+			"format_laize_palette": imposition_ideale.get("format_laize_palette") or "",
+			"nbr_poses": imposition_ideale.get("nbr_poses") or 0
 		}
 	except Exception as e:
 		frappe.log_error(message=str(e), title="Erreur get_imposition_ideale")

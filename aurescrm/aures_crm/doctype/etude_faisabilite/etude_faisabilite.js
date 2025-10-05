@@ -653,10 +653,33 @@ function load_trace_imposition_links(frm) {
                         fieldname: 'info_html',
                         options: `
                             <div style="padding: 15px; margin-bottom: 15px; background-color: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
-                                <div style="font-size: 14px; color: #495057; margin-bottom: 8px;">
-                                    <strong style="color: #155724;">${imposition_ideale.name}</strong> avec un taux de chutes de <strong style="color: #155724;">${imposition_ideale.taux_chutes}%</strong>
+                                <div style="font-size: 14px; color: #495057; margin-bottom: 12px;">
+                                    <strong style="color: #155724; font-size: 15px;">${imposition_ideale.name}</strong> 
+                                    <span style="margin-left: 10px; padding: 2px 8px; background-color: #d4edda; color: #155724; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                                        Taux: ${imposition_ideale.taux_chutes}%
+                                    </span>
                                 </div>
-                                <div style="font-size: 13px; color: #6c757d;">
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                                    <div style="font-size: 12px;">
+                                        <span style="color: #6c757d; font-weight: 500;">Format d'impression:</span><br>
+                                        <strong style="color: #495057;">${imposition_ideale.format_imp || 'N/A'}</strong>
+                                    </div>
+                                    <div style="font-size: 12px;">
+                                        <span style="color: #6c757d; font-weight: 500;">Nombre de poses:</span><br>
+                                        <strong style="color: #495057;">${imposition_ideale.nbr_poses || 'N/A'}</strong>
+                                    </div>
+                                    <div style="font-size: 12px;">
+                                        <span style="color: #6c757d; font-weight: 500;">Laize / Palette:</span><br>
+                                        <strong style="color: #495057;">${imposition_ideale.laize_pal || 'N/A'}</strong>
+                                    </div>
+                                    <div style="font-size: 12px;">
+                                        <span style="color: #6c757d; font-weight: 500;">Format Laize/Palette:</span><br>
+                                        <strong style="color: #495057;">${imposition_ideale.format_laize_palette || 'N/A'}</strong>
+                                    </div>
+                                </div>
+                                
+                                <div style="font-size: 12px; color: #6c757d; font-style: italic; padding-top: 8px; border-top: 1px solid #dee2e6;">
                                     Cette imposition a le taux de chutes le plus bas pour cette combinaison Client/Article/Tracé.
                                 </div>
                             </div>
