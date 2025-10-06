@@ -33,7 +33,7 @@
   "section_break_cmjn",
   "nombre_couleurs_process",
   "cmjn_details",
-  "column_break_mzqv",
+  "section_break_nkhd",
   "nombre_spot_colors",
   "spot_colors",
   "suivi_tab",
@@ -211,7 +211,6 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.mode_couleur && (doc.mode_couleur === 'CMJN' || doc.mode_couleur === 'CMJN + Pantone')",
    "fieldname": "section_break_cmjn",
    "fieldtype": "Section Break"
   },
@@ -231,7 +230,7 @@
    "options": "Maquette CMJN Ligne"
   },
   {
-   "depends_on": "eval:doc.mode_couleur && (doc.mode_couleur === 'Pantone uniquement' || doc.mode_couleur === 'CMJN + Pantone')",
+   "depends_on": "eval:in_list(['Pantone uniquement','CMJN + Pantone'], doc.mode_couleur)",
    "fieldname": "nombre_spot_colors",
    "fieldtype": "Int",
    "label": "Nombre de Couleurs Spot",
@@ -239,21 +238,21 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.mode_couleur && (doc.mode_couleur === 'Pantone uniquement' || doc.mode_couleur === 'CMJN + Pantone')",
+   "depends_on": "eval:in_list(['Pantone uniquement','CMJN + Pantone'], doc.mode_couleur)",
    "fieldname": "spot_colors",
    "fieldtype": "Table",
    "label": "Couleurs Spot",
    "options": "Maquette Spot Color"
   },
   {
-   "fieldname": "column_break_mzqv",
-   "fieldtype": "Column Break"
+   "fieldname": "section_break_nkhd",
+   "fieldtype": "Section Break"
   }
  ],
  "image_field": "fichier_maquette",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-02 12:09:18.127336",
+ "modified": "2025-10-06 12:52:24.781288",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",

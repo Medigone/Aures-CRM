@@ -51,14 +51,6 @@ class Maquette(Document):
                     _("Le mode couleur '{0}' nécessite au moins une ligne dans les détails CMJN.").format(self.mode_couleur),
                     title=_("Erreur de configuration CMJN")
                 )
-            
-            # Avertissement si pas exactement 4 canaux (non bloquant, juste info)
-            if len(self.cmjn_details) != 4:
-                frappe.msgprint(
-                    _("Recommandation : Le mode CMJN devrait contenir 4 canaux (C, M, J, N). Actuellement : {0}").format(len(self.cmjn_details)),
-                    indicator='orange',
-                    title=_("Avertissement CMJN")
-                )
 
         # Vérification Pantone/Spot
         if self.mode_couleur in ['Pantone uniquement', 'CMJN + Pantone']:

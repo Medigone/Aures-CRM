@@ -91,22 +91,16 @@ frappe.ui.form.on('Maquette', {
         ensure_cmjn_rows(frm);
         sync_counters(frm);
         build_resume_couleurs(frm);
+        
+        // Forcer un refresh complet du formulaire pour s'assurer que les depends_on sont recalculés
+        setTimeout(() => {
+            frm.refresh();
+        }, 100);
     },
 
     validate: function(frm) {
         // Synchroniser les compteurs et vérifier la cohérence avant sauvegarde
         sync_counters(frm);
-        
-        // Vérifier que CMJN a 4 canaux (avertissement seulement)
-        if (frm.doc.mode_couleur && (frm.doc.mode_couleur === 'CMJN' || frm.doc.mode_couleur === 'CMJN + Pantone')) {
-            if (frm.doc.nombre_couleurs_process !== 4) {
-                frappe.msgprint({
-                    title: __('Avertissement'),
-                    indicator: 'orange',
-                    message: __('Le mode CMJN devrait normalement contenir 4 canaux (C, M, J, N). Actuellement : {0}', [frm.doc.nombre_couleurs_process || 0])
-                });
-            }
-        }
 
         // Recalculer le résumé
         build_resume_couleurs(frm);
@@ -159,11 +153,11 @@ function update_section_visibility(frm) {
         return;
     }
 
-    const has_cmjn = frm.doc.mode_couleur === 'CMJN' || frm.doc.mode_couleur === 'CMJN + Pantone';
-    const has_pantone = frm.doc.mode_couleur === 'Pantone uniquement' || frm.doc.mode_couleur === 'CMJN + Pantone';
-
-    // Note: depends_on dans le JSON gère déjà la visibilité, mais on peut forcer un refresh
+    // Laisser depends_on gérer la visibilité, juste forcer un refresh
+    frm.refresh_field('section_break_cmjn');
+    frm.refresh_field('nombre_couleurs_process');
     frm.refresh_field('cmjn_details');
+    frm.refresh_field('nombre_spot_colors');
     frm.refresh_field('spot_colors');
 }
 
