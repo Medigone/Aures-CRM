@@ -191,6 +191,7 @@ doc_events = {
             # Nouvelle fonction pour créer automatiquement les études techniques
             "aurescrm.sales_order_hooks.auto_generate_technical_studies_on_submit"
         ],
+        "on_cancel": "aurescrm.sales_order_hooks.update_quotation_status_on_so_cancel",
         "before_submit": "aurescrm.sales_order_hooks.validate_bon_de_commande"
         # Vous pourriez avoir d'autres hooks ici
     },

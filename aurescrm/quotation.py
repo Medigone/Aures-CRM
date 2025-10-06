@@ -7,9 +7,105 @@ from frappe.model.mapper import get_mapped_doc # Import needed for get_mapped_do
 @frappe.whitelist()
 def make_sales_order_draft(source_name):
     """
-    Génère une Sales Order en brouillon à partir d'un Devis,
-    en utilisant la logique native pour remplir les champs standards,
-    puis en copiant les champs custom nécessaires et en peuplant la table des maquettes.
+    Génère une Sales Order en brouillon à partir d'un Devis.
+    Si le devis a déjà des commandes partielles, crée une commande avec les articles restants.
+    Sinon, crée une commande complète avec tous les articles.
+    """
+    try:
+        # Importer la fonction d'analyse depuis sales_order_hooks
+        from aurescrm.sales_order_hooks import analyze_quotation_command_status
+        
+        # Analyser l'état de commande du devis
+        command_analysis = analyze_quotation_command_status(source_name)
+        
+        # Si le devis est entièrement commandé, on ne peut pas créer de nouvelle commande
+        if command_analysis["custom_status"] == "Entièrement commandé":
+            frappe.throw(_("Devis entièrement commandé. Impossible de créer une nouvelle commande."))
+        
+        # Vérifier s'il y a des commandes en brouillon
+        if command_analysis.get("has_draft_orders", False):
+            draft_count = command_analysis.get("draft_orders_count", 0)
+            frappe.msgprint(_("Attention : Il y a {0} commande(s) en brouillon liée(s) à ce devis. Vous pouvez les finaliser au lieu d'en créer une nouvelle.").format(draft_count), 
+                           indicator='orange', 
+                           title=_('Commandes en brouillon existantes'))
+        
+        # Si le devis a déjà des commandes partielles, créer une commande avec les articles restants
+        if command_analysis["custom_status"] == "Partiellement commandé":
+            return create_smart_sales_order_with_remaining_items(source_name, command_analysis)
+        
+        # Sinon, créer une commande complète avec tous les articles (logique originale)
+        return create_complete_sales_order(source_name)
+        
+    except Exception as e:
+        frappe.log_error(f"Failed to create sales order for quotation {source_name}: {e}", 
+                        "make_sales_order_draft")
+        frappe.throw(_("Erreur lors de la création de la commande."))
+
+
+def create_smart_sales_order_with_remaining_items(source_name, command_analysis):
+    """
+    Crée une commande avec seulement les articles restants à commander
+    """
+    # Récupérer les articles restants
+    remaining_items = command_analysis["remaining_items"]
+    
+    if not remaining_items:
+        frappe.throw(_("Aucun article restant à commander."))
+    
+    # Créer la commande avec les articles restants
+    quotation = frappe.get_doc("Quotation", source_name)
+    so = frappe.new_doc("Sales Order")
+    
+    # Copier les informations du devis
+    so.customer = quotation.party_name
+    so.order_type = quotation.order_type or "Sales"
+    so.delivery_date = quotation.custom_date_de_livraison
+    
+    # Copier les champs personnalisés
+    if hasattr(quotation, 'custom_demande_faisabilité'):
+        so.custom_demande_de_faisabilité = quotation.custom_demande_faisabilité
+    so.custom_devis = source_name
+    
+    # Ajouter seulement les articles restants
+    for item_data in remaining_items:
+        # Récupérer les détails complets de l'article depuis le devis original
+        quotation_item = frappe.get_all(
+            "Quotation Item",
+            filters={
+                "parent": source_name,
+                "item_code": item_data["item_code"]
+            },
+            fields=["item_name", "rate", "uom", "description"],
+            limit=1
+        )
+        
+        if quotation_item:
+            item = quotation_item[0]
+            so.append("items", {
+                "item_code": item_data["item_code"],
+                "item_name": item.item_name,
+                "qty": item_data["remaining_qty"],
+                "rate": item.rate,
+                "uom": item.uom,
+                "description": item.description
+            })
+    
+    # Sauvegarder la commande en brouillon
+    so.insert(ignore_permissions=True)
+    
+    # Peupler la table des maquettes
+    populate_maquettes_for_sales_order(so, quotation)
+    
+    frappe.msgprint(_("Commande créée : {0}").format(so.name), 
+                   indicator='green', 
+                   title=_('Commande Créée'))
+    
+    return so.name
+
+
+def create_complete_sales_order(source_name):
+    """
+    Crée une commande complète avec tous les articles du devis (logique originale)
     """
     # 1) Use get_mapped_doc to create a Sales Order in memory (Draft)
     #    from the source Quotation.
@@ -56,36 +152,42 @@ def make_sales_order_draft(source_name):
     val_faisab = frappe.db.get_value(
         "Quotation", source_name, "custom_demande_faisabilité" # Correct field name for Quotation
     )
-    # Add logging to see the fetched value (optional, can be removed after testing)
-    frappe.log_error(f"Fetched custom_demande_faisabilité from {source_name}: {val_faisab}", "make_sales_order_draft Debug")
 
     if val_faisab:
         # Assign the value to the correct field name in Sales Order
         so.custom_demande_de_faisabilité = val_faisab # Correct field name for Sales Order
-        # Add logging to confirm assignment (optional, can be removed after testing)
-        frappe.log_error(f"Assigned {val_faisab} to custom_demande_de_faisabilité in new SO", "make_sales_order_draft Debug")
-    else:
-       # Optional logging
-       frappe.log_error(f"Value for custom_demande_faisabilité not found or empty in Quotation {source_name}", "make_sales_order_draft Debug")
-
 
     # Set the custom field linking back to the source Quotation using the correct field name
     so.custom_devis = source_name # Use the actual field name 'custom_devis'
 
-    # --- Start: Populate custom_liste_maquettes ---
+    # 3) Save the Sales Order to the database (remains in Draft status)
+    so.insert(ignore_permissions=True)
+
+    # 4) Populate custom_liste_maquettes
+    quotation = frappe.get_doc("Quotation", source_name)
+    populate_maquettes_for_sales_order(so, quotation)
+
+    frappe.msgprint(_("Commande créée : {0}").format(so.name), 
+                   indicator='green', 
+                   title=_('Commande Créée'))
+
+    return so.name
+
+
+def populate_maquettes_for_sales_order(so, quotation):
+    """
+    Peuple la table custom_liste_maquettes pour la nouvelle commande
+    """
     so.custom_liste_maquettes = []
-    # missing_maquette_items = [] # No longer needed to store for frontend
-
-    qtn_items = frappe.get_all("Quotation Item", filters={"parent": source_name}, fields=["item_code"])
-
-    for item in qtn_items:
+    
+    for item in so.items:
         item_code = item.item_code
         if not item_code:
-            continue # Skip if item_code is missing in quotation item
-
-        maquette_name = None # Initialize maquette_name as None
-
-        # Find the active Maquette for this item_code
+            continue
+        
+        maquette_name = None
+        
+        # Trouver la maquette active pour cet article
         active_maquette = frappe.get_list(
             "Maquette",
             filters={
@@ -95,32 +197,21 @@ def make_sales_order_draft(source_name):
             fields=["name"],
             limit_page_length=1
         )
-
+        
         if active_maquette:
-            maquette_name = active_maquette[0].name # Assign if found
+            maquette_name = active_maquette[0].name
         else:
-            # Optional: Log if no active maquette is found for an item (backend only)
             frappe.log_error(
-                f"No active Maquette found for item {item_code} from Quotation {source_name}",
-                "make_sales_order_draft Info"
+                f"No active Maquette for item {item_code}",
+                "populate_maquettes_for_sales_order"
             )
-
-        # Always append a row for the item
-        # The 'maquette' field will be None if no active_maquette was found
+        
+        # Ajouter la ligne dans la table des maquettes
         so.append("custom_liste_maquettes", {
-            "article": item_code, # Replace 'article' if the field name in the child table is different
-            "maquette": maquette_name # Replace 'maquette' if the field name in the child table is different
+            "article": item_code,
+            "maquette": maquette_name
         })
+    
+    # Sauvegarder les modifications
+    so.save(ignore_permissions=True)
 
-    # --- End: Populate custom_liste_maquettes ---
-
-    # --- Remove the section storing missing maquette info ---
-    # if missing_maquette_items:
-    #     so.custom_missing_maquettes_info = json.dumps(missing_maquette_items)
-    # else:
-    #     so.custom_missing_maquettes_info = None
-
-    # 3) Save the Sales Order to the database (remains in Draft status)
-    so.insert(ignore_permissions=True)
-
-    return so.name

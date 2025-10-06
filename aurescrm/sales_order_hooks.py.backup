@@ -5,7 +5,6 @@ def update_quotation_status_on_so_submit(doc, method):
     """
     Hook called on Sales Order submission.
     Updates both the status and custom command status of the linked Quotation.
-    Works even if the quotation is already "Ordered" to handle cancellations.
     """
     # Check if this Sales Order has a linked source Quotation via the custom field 'custom_devis'
     if doc.custom_devis:
@@ -20,25 +19,24 @@ def update_quotation_status_on_so_submit(doc, method):
                 frappe.log_error(f"Source Quotation {quotation_name} not found for Sales Order {doc.name}", "update_quotation_status_on_so_submit")
                 return
 
-            # Analyser l'état de commande du devis (toujours, même si déjà "Ordered")
-            command_analysis = analyze_quotation_command_status(quotation_name)
-            
-            # Mettre à jour le statut standard
-            if command_analysis["is_fully_ordered"]:
-                new_status = "Ordered"
-                status_message = "Commandé"
-            else:
-                new_status = "Open"  # Remettre à "Open" si plus entièrement commandé
-                status_message = "Ouvert"
-            
-            # Mettre à jour les champs
-            frappe.db.set_value("Quotation", quotation_name, "status", new_status)
-            frappe.db.set_value("Quotation", quotation_name, "custom_statut_commande", command_analysis["custom_status"])
-            frappe.db.set_value("Quotation", quotation_name, "custom_pourcentage_commande", command_analysis["percentage"])
-            frappe.db.set_value("Quotation", quotation_name, "modified", frappe.utils.now())
-            
-            # Message seulement si le statut a changé
-            if current_status != new_status:
+            # Check if the status is eligible for update (e.g., it's 'Open' or 'Submitted')
+            if current_status in ["Open", "Submitted"]:
+                # Analyser l'état de commande du devis
+                command_analysis = analyze_quotation_command_status(quotation_name)
+                
+                # Mettre à jour le statut standard
+                if command_analysis["is_fully_ordered"]:
+                    new_status = "Ordered"
+                    status_message = "Commandé"
+                else:
+                    new_status = "Open"  # Garder "Open" pour les partiels
+                    status_message = "Ouvert"
+                
+                # Mettre à jour les champs
+                frappe.db.set_value("Quotation", quotation_name, "status", new_status)
+                frappe.db.set_value("Quotation", quotation_name, "custom_statut_commande", command_analysis["custom_status"])
+                frappe.db.set_value("Quotation", quotation_name, "modified", frappe.utils.now())
+                
                 frappe.msgprint(_("Devis {0} mis à jour - Statut: {1}, Commande: {2} ({3}%)").format(
                     quotation_name, status_message, command_analysis["custom_status"], command_analysis["percentage"]
                 ))
@@ -48,51 +46,6 @@ def update_quotation_status_on_so_submit(doc, method):
             frappe.log_error(f"Failed to update Quotation {quotation_name} status from SO {doc.name}: {e}", "update_quotation_status_on_so_submit")
             # Provide feedback to the user
             frappe.msgprint(_("Échec de la mise à jour du statut du Devis lié : {0}").format(e), indicator='red', title=_('Erreur'))
-
-
-def update_quotation_status_on_so_cancel(doc, method):
-    """
-    Hook called on Sales Order cancellation.
-    Updates the status and custom command status of the linked Quotation.
-    """
-    if doc.custom_devis:
-        quotation_name = doc.custom_devis
-        
-        try:
-            # Get the current status of the quotation
-            current_status = frappe.db.get_value("Quotation", quotation_name, "status")
-
-            if current_status is None:
-                frappe.log_error(f"Source Quotation {quotation_name} not found for Sales Order {doc.name}", "update_quotation_status_on_so_cancel")
-                return
-
-            # Analyser l'état de commande du devis
-            command_analysis = analyze_quotation_command_status(quotation_name)
-            
-            # Mettre à jour le statut standard
-            if command_analysis["is_fully_ordered"]:
-                new_status = "Ordered"
-                status_message = "Commandé"
-            else:
-                new_status = "Open"  # Remettre à Open si plus entièrement commandé
-                status_message = "Ouvert"
-            
-            # Mettre à jour les champs
-            frappe.db.set_value("Quotation", quotation_name, "status", new_status)
-            frappe.db.set_value("Quotation", quotation_name, "custom_statut_commande", command_analysis["custom_status"])
-            frappe.db.set_value("Quotation", quotation_name, "custom_pourcentage_commande", command_analysis["percentage"])
-            frappe.db.set_value("Quotation", quotation_name, "modified", frappe.utils.now())
-            
-            # Message seulement si le statut a changé
-            if current_status != new_status:
-                frappe.msgprint(_("Devis {0} mis à jour - Statut: {1}, Commande: {2} ({3}%)").format(
-                    quotation_name, status_message, command_analysis["custom_status"], command_analysis["percentage"]
-                ))
-                
-        except Exception as e:
-            frappe.log_error(f"Failed to update Quotation {quotation_name} status from SO {doc.name}: {e}", "update_quotation_status_on_so_cancel")
-            frappe.msgprint(_("Échec de la mise à jour du statut du Devis lié : {0}").format(e), indicator=red, title=_(Erreur))
-
 
 @frappe.whitelist()
 def generate_technical_studies(sales_order_name):
@@ -475,22 +428,18 @@ def analyze_quotation_command_status(quotation_name):
     
     # Analyser chaque article
     for item in quotation_items:
-        # Pour le statut principal, ne compter que les commandes validées
         ordered_qty = get_total_ordered_qty_for_item(quotation_name, item.item_code)
         
         if ordered_qty >= item.qty:
             ordered_items += 1
         else:
-            # Pour les articles restants, calculer en tenant compte de TOUTES les commandes (y compris brouillons)
-            total_ordered_qty_all = get_total_ordered_qty_for_item_all_orders(quotation_name, item.item_code)
-            remaining_qty = item.qty - total_ordered_qty_all
-            if remaining_qty > 0:  # Seulement si il reste vraiment quelque chose à commander
-                remaining_items.append({
-                    "item_code": item.item_code,
-                    "remaining_qty": remaining_qty,
-                    "ordered_qty": total_ordered_qty_all,
-                    "total_qty": item.qty
-                })
+            remaining_qty = item.qty - ordered_qty
+            remaining_items.append({
+                "item_code": item.item_code,
+                "remaining_qty": remaining_qty,
+                "ordered_qty": ordered_qty,
+                "total_qty": item.qty
+            })
     
     # Calculer le pourcentage
     percentage = round((ordered_items / total_items) * 100, 1)
@@ -521,31 +470,7 @@ def analyze_quotation_command_status(quotation_name):
 def get_total_ordered_qty_for_item(quotation_name, item_code):
     """
     Calcule la quantité totale commandée pour un article donné
-    Prend en compte UNIQUEMENT les commandes validées (docstatus = 1)
-    """
-    # Récupérer UNIQUEMENT les commandes validées
-    sales_orders = frappe.get_all(
-        "Sales Order",
-        filters={"custom_devis": quotation_name, "docstatus": 1},  # Seulement les validées
-        fields=["name", "docstatus"]
-    )
-    
-    total_qty = 0
-    for so in sales_orders:
-        so_items = frappe.get_all(
-            "Sales Order Item",
-            filters={"parent": so.name, "item_code": item_code},
-            fields=["qty"]
-        )
-        total_qty += sum(item.qty for item in so_items)
-    
-    return total_qty
-
-
-def get_total_ordered_qty_for_item_all_orders(quotation_name, item_code):
-    """
-    Calcule la quantité totale commandée pour un article donné
-    Prend en compte TOUTES les commandes liées (brouillon ET validées, sauf annulées)
+    Prend en compte TOUTES les commandes liées (même celles en brouillon)
     """
     # Récupérer TOUTES les commandes liées (brouillon ET soumises)
     sales_orders = frappe.get_all(
