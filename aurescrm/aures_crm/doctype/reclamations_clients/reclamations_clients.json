@@ -94,12 +94,15 @@
    "set_only_once": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "type_reclamation",
    "fieldtype": "Select",
+   "in_standard_filter": 1,
    "label": "Type R\u00e9clamation",
-   "options": "\nQualit\u00e9\nRetards Livraison\nAutres",
+   "options": "\nPr\u00e9presse\nImpression\nD\u00e9coupe\nPliage/Collage\nCoupe Massicot\nPliage/Collage Notice\nConditionnement/Transport\nRetards Livraison\nComplexage\nFa\u00e7onnage\nSleeve",
    "reqd": 1,
-   "set_only_once": 1
+   "set_only_once": 1,
+   "sort_options": 1
   },
   {
    "fetch_from": "client.custom_commercial_attribu\u00e9",
@@ -187,10 +190,11 @@
    "options": "\nOffset\nFlexo"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-11 15:13:47.388898",
+ "modified": "2025-10-06 11:03:17.305821",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
@@ -267,6 +271,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [
