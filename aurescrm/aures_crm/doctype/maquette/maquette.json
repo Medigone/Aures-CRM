@@ -252,7 +252,7 @@
  "image_field": "fichier_maquette",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-06 12:52:24.781288",
+ "modified": "2025-10-07 07:49:41.839036",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
@@ -315,6 +315,10 @@
    "role": "Responsable Devis"
   },
   {
+   "read": 1,
+   "role": "Responsable Qualit\u00e9 Aures"
+  },
+  {
    "create": 1,
    "email": 1,
    "read": 1,
@@ -336,6 +340,10 @@
    "role": "\u00c9tude Flexo",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 Qualit\u00e9"
   }
  ],
  "row_format": "Dynamic",
