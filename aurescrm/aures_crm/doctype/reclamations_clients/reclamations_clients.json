@@ -99,7 +99,7 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Type R\u00e9clamation",
-   "options": "\nPr\u00e9presse\nImpression\nD\u00e9coupe\nPliage/Collage\nCoupe Massicot\nPliage/Collage Notice\nConditionnement/Transport\nRetards Livraison\nComplexage\nFa\u00e7onnage\nSleeve",
+   "options": "\nPr\u00e9presse\nImpression\nD\u00e9coupe\nPliage/Collage\nCoupe Massicot\nPliage/Collage Notice\nConditionnement/Transport\nRetards Livraison\nComplexage\nFa\u00e7onnage\nSleeve\nAluminium\nOpercule",
    "reqd": 1,
    "sort_options": 1
   },
@@ -193,7 +193,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-07 14:41:35.283791",
+ "modified": "2025-10-08 08:46:58.766059",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Reclamations Clients",
