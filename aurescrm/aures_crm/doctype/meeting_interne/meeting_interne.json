@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "naming_series:",
+ "autoname": "naming_series:[naming_series]",
  "creation": "2025-10-27 10:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -319,10 +319,11 @@
  "index_web_pages_for_search": 1,
  "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2025-10-28 10:28:13.988306",
+ "modified": "2025-10-28 10:32:03.537415",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Meeting Interne",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
@@ -335,6 +336,12 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "All",
    "write": 1
   }
  ],
