@@ -1,0 +1,148 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:nom_type",
+ "creation": "2025-10-25 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "identification_section",
+  "nom_type",
+  "code",
+  "categorie",
+  "column_break_1",
+  "is_active",
+  "parametres_section",
+  "duree_standard",
+  "workstation_type_defaut",
+  "column_break_2",
+  "couleur",
+  "competences_section",
+  "competences_requises",
+  "nombre_operateurs_requis",
+  "section_break_3",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "identification_section",
+   "fieldtype": "Section Break",
+   "label": "Identification"
+  },
+  {
+   "fieldname": "nom_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom du type",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "categorie",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cat\u00e9gorie",
+   "options": "Impression\nD\u00e9coupe\nPliage\nCollage\nFinition\nContr\u00f4le\nEmballage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Actif"
+  },
+  {
+   "fieldname": "parametres_section",
+   "fieldtype": "Section Break",
+   "label": "Param\u00e8tres Standards"
+  },
+  {
+   "fieldname": "duree_standard",
+   "fieldtype": "Float",
+   "label": "Dur\u00e9e standard (heures)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "workstation_type_defaut",
+   "fieldtype": "Link",
+   "label": "Type de poste de travail par d\u00e9faut",
+   "options": "Workstation Type"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "couleur",
+   "fieldtype": "Color",
+   "label": "Couleur (pour dashboard)"
+  },
+  {
+   "fieldname": "competences_section",
+   "fieldtype": "Section Break",
+   "label": "Comp\u00e9tences et Ressources"
+  },
+  {
+   "fieldname": "competences_requises",
+   "fieldtype": "Small Text",
+   "label": "Comp\u00e9tences requises"
+  },
+  {
+   "default": "1",
+   "fieldname": "nombre_operateurs_requis",
+   "fieldtype": "Int",
+   "label": "Nombre d'op\u00e9rateurs requis"
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-25 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Type Operation Production",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+

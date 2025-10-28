@@ -200,6 +200,14 @@ doc_events = {
     #     "before_insert": "aurescrm.aures_crm.doctype.suivi_creance.suivi_creance.recuperer_factures_impayees"
     # }
     # Vous pourriez avoir d'autres DocTypes ici
+    "Meeting Interne": {
+        "before_save": "aurescrm.aures_crm.doctype.meeting_interne.meeting_interne.calculate_meeting_metrics",
+        "after_insert": [
+            "aurescrm.aures_crm.doctype.meeting_interne.meeting_interne.generate_recurring_meetings",
+            "aurescrm.aures_crm.doctype.meeting_interne.meeting_interne.notify_participants"
+        ],
+        "on_update": "aurescrm.aures_crm.doctype.meeting_interne.meeting_interne.update_meeting_data"
+    }
 }
 
 
@@ -222,6 +230,9 @@ scheduler_events = {
             "aurescrm.aures_crm.doctype.reclamations_clients.reclamations_clients.update_reclamations_status"
         ]
     },
+    "hourly": [
+        "aurescrm.aures_crm.doctype.meeting_interne.meeting_interne.check_and_send_all_reminders"
+    ],
     "weekly": [
         "aurescrm.utils.update_all_items_description"
     ]
@@ -342,6 +353,7 @@ fixtures = [
     # "Workspace",
     # "Number Card"
     
-    
+    # Fixtures pour le module Meeting Interne
+    # "Type Meeting"
 ]
 

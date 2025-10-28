@@ -1,0 +1,233 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{ordre_production}-P-{###}-{YY}{MM}{DD}",
+ "creation": "2025-10-25 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "identification_section",
+  "numero_unique",
+  "ordre_production",
+  "column_break_1",
+  "qr_code",
+  "code_barres",
+  "contenu_section",
+  "type_unite",
+  "article",
+  "quantite",
+  "column_break_2",
+  "poids",
+  "dimensions",
+  "tracabilite_section",
+  "numero_lot_matiere_premiere",
+  "date_heure_creation",
+  "etape_actuelle",
+  "column_break_3",
+  "statut",
+  "localisation_actuelle",
+  "production_section",
+  "quantite_ok",
+  "quantite_defectueuse",
+  "column_break_4",
+  "operateur_actuel",
+  "section_break_5",
+  "observations_globales",
+  "historique_section",
+  "historique"
+ ],
+ "fields": [
+  {
+   "fieldname": "identification_section",
+   "fieldtype": "Section Break",
+   "label": "Identification"
+  },
+  {
+   "fieldname": "numero_unique",
+   "fieldtype": "Data",
+   "label": "Num\u00e9ro unique",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ordre_production",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Ordre de Production",
+   "options": "Ordre de Production",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "qr_code",
+   "fieldtype": "Attach Image",
+   "label": "QR Code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "code_barres",
+   "fieldtype": "Barcode",
+   "label": "Code-barres",
+   "options": "{\"barcode_type\": \"Code128\"}"
+  },
+  {
+   "fieldname": "contenu_section",
+   "fieldtype": "Section Break",
+   "label": "Contenu"
+  },
+  {
+   "fieldname": "type_unite",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type d'unit\u00e9",
+   "options": "Palette\nBobine\nLot\nCaisse\nAutre",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "ordre_production.article",
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 (pi\u00e8ces)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "poids",
+   "fieldtype": "Float",
+   "label": "Poids (kg)",
+   "precision": "3"
+  },
+  {
+   "fieldname": "dimensions",
+   "fieldtype": "Data",
+   "label": "Dimensions (LxlxH)"
+  },
+  {
+   "fieldname": "tracabilite_section",
+   "fieldtype": "Section Break",
+   "label": "Tra\u00e7abilit\u00e9"
+  },
+  {
+   "fieldname": "numero_lot_matiere_premiere",
+   "fieldtype": "Data",
+   "label": "Num\u00e9ro lot mati\u00e8re premi\u00e8re"
+  },
+  {
+   "default": "Now",
+   "fieldname": "date_heure_creation",
+   "fieldtype": "Datetime",
+   "label": "Date/heure cr\u00e9ation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "etape_actuelle",
+   "fieldtype": "Data",
+   "label": "\u00c9tape actuelle"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "En production",
+   "fieldname": "statut",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "En production\nTermin\u00e9e\nEn attente\nRebut\u00e9e",
+   "reqd": 1
+  },
+  {
+   "fieldname": "localisation_actuelle",
+   "fieldtype": "Link",
+   "label": "Localisation actuelle",
+   "options": "Workstation"
+  },
+  {
+   "fieldname": "production_section",
+   "fieldtype": "Section Break",
+   "label": "Production"
+  },
+  {
+   "fieldname": "quantite_ok",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 OK"
+  },
+  {
+   "fieldname": "quantite_defectueuse",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 d\u00e9fectueuse"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "operateur_actuel",
+   "fieldtype": "Link",
+   "label": "Op\u00e9rateur actuel",
+   "options": "User"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "observations_globales",
+   "fieldtype": "Text Editor",
+   "label": "Observations globales"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "historique_section",
+   "fieldtype": "Section Break",
+   "label": "Historique des \u00e9tapes"
+  },
+  {
+   "fieldname": "historique",
+   "fieldtype": "Table",
+   "label": "Historique",
+   "options": "Historique Etape Unite"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-25 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Unite de Production",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+

@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-25 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ordre",
+  "nom_etape",
+  "type_operation",
+  "type_etape",
+  "workstation",
+  "nombre_passages",
+  "duree_estimee",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "ordre",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Ordre",
+   "reqd": 1
+  },
+  {
+   "fieldname": "nom_etape",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom de l'\u00e9tape",
+   "reqd": 1
+  },
+  {
+   "fieldname": "type_operation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Type d'Op\u00e9ration",
+   "options": "Type Operation Production"
+  },
+  {
+   "fieldname": "type_etape",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type d'\u00e9tape",
+   "options": "Impression\nD\u00e9coupe\nPliage\nCollage\nFinition\nContr\u00f4le Qualit\u00e9\nEmballage\nAutre"
+  },
+  {
+   "fieldname": "workstation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Poste de travail",
+   "options": "Workstation"
+  },
+  {
+   "default": "1",
+   "fieldname": "nombre_passages",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Nombre de passages",
+   "reqd": 1
+  },
+  {
+   "fieldname": "duree_estimee",
+   "fieldtype": "Float",
+   "label": "Dur\u00e9e estim\u00e9e (heures)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-25 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Etape Route",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
+

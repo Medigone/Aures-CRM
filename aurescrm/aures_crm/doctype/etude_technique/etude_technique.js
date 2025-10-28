@@ -6,6 +6,29 @@ frappe.ui.form.on("Etude Technique", {
 		// Charger le bouton Fiche Article dans le champ HTML
 		load_fiche_article_button(frm);
 		
+		// Bouton Créer Ordre de Production
+		if (frm.doc.docstatus === 1 && !frm.doc.ordre_production) {
+			frm.add_custom_button(__('Créer Ordre de Production'), function() {
+				frappe.call({
+					method: 'aurescrm.aures_crm.doctype.etude_technique.etude_technique.create_ordre_production',
+					args: { etude_name: frm.doc.name },
+					callback: function(r) {
+						if (r.message) {
+							frappe.msgprint(__('Ordre créé : ') + r.message);
+							frm.reload_doc();
+						}
+					}
+				});
+			}, __('Production'));
+		}
+		
+		// Bouton Voir Ordre de Production
+		if (frm.doc.ordre_production) {
+			frm.add_custom_button(__('Voir Ordre de Production'), function() {
+				frappe.set_route('Form', 'Ordre de Production', frm.doc.ordre_production);
+			}, __('Production'));
+		}
+		
 		// Bouton 'Attribuer à moi'
 		if (!frm.doc.__islocal && frm.doc.status === 'Nouveau') {
 			frm.add_custom_button(__('À moi'), function() {

@@ -1,0 +1,419 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{ordre_production}-OPE-{###}",
+ "creation": "2025-10-25 12:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "liens_section",
+  "ordre_production",
+  "type_operation",
+  "numero_sequence",
+  "nom_operation",
+  "column_break_liens",
+  "numero_passage",
+  "total_passages",
+  "statut_section",
+  "statut",
+  "priorite",
+  "column_break_statut",
+  "couleur_statut",
+  "planification_section",
+  "date_heure_prevue_debut",
+  "date_heure_prevue_fin",
+  "duree_estimee",
+  "column_break_plan",
+  "workstation",
+  "operateur_assigne",
+  "operateur_assigne_nom",
+  "execution_section",
+  "date_heure_debut_reelle",
+  "date_heure_fin_reelle",
+  "operateur_reel",
+  "column_break_exec",
+  "responsable",
+  "superviseur",
+  "temps_section",
+  "duree_reelle",
+  "temps_arret",
+  "temps_productif",
+  "column_break_temps",
+  "ecart_duree",
+  "pourcentage_avancement",
+  "resultats_section",
+  "quantite_prevue",
+  "quantite_traitee",
+  "column_break_result",
+  "quantite_ok",
+  "quantite_rebutee",
+  "taux_rebut",
+  "etat_problemes_section",
+  "est_en_retard",
+  "heures_retard",
+  "column_break_pb",
+  "probleme_signale",
+  "type_probleme",
+  "description_probleme",
+  "observations_section",
+  "observations",
+  "photos",
+  "matieres_section",
+  "matieres"
+ ],
+ "fields": [
+  {
+   "fieldname": "liens_section",
+   "fieldtype": "Section Break",
+   "label": "Liens"
+  },
+  {
+   "fieldname": "ordre_production",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Ordre de Production",
+   "options": "Ordre de Production",
+   "reqd": 1
+  },
+  {
+   "fieldname": "type_operation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type d'Op\u00e9ration",
+   "options": "Type Operation Production",
+   "reqd": 1
+  },
+  {
+   "fieldname": "numero_sequence",
+   "fieldtype": "Float",
+   "label": "N\u00b0 S\u00e9quence",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "type_operation.nom_type",
+   "fieldname": "nom_operation",
+   "fieldtype": "Data",
+   "label": "Nom de l'Op\u00e9ration",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_liens",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "numero_passage",
+   "fieldtype": "Int",
+   "label": "N\u00b0 Passage"
+  },
+  {
+   "fieldname": "total_passages",
+   "fieldtype": "Int",
+   "label": "Total Passages"
+  },
+  {
+   "fieldname": "statut_section",
+   "fieldtype": "Section Break",
+   "label": "Statut"
+  },
+  {
+   "default": "En attente",
+   "fieldname": "statut",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Assign\u00e9e\nEn attente\nEn cours\nTermin\u00e9e\nEn pause\nBloqu\u00e9e",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "ordre_production.priorite",
+   "fieldname": "priorite",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Priorit\u00e9",
+   "options": "Normale\nUrgente\nTr\u00e8s Urgente",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_statut",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "couleur_statut",
+   "fieldtype": "Color",
+   "label": "Couleur Statut",
+   "read_only": 1
+  },
+  {
+   "fieldname": "planification_section",
+   "fieldtype": "Section Break",
+   "label": "Planification"
+  },
+  {
+   "fieldname": "date_heure_prevue_debut",
+   "fieldtype": "Datetime",
+   "label": "Date/Heure Pr\u00e9vue D\u00e9but"
+  },
+  {
+   "fieldname": "date_heure_prevue_fin",
+   "fieldtype": "Datetime",
+   "label": "Date/Heure Pr\u00e9vue Fin"
+  },
+  {
+   "fieldname": "duree_estimee",
+   "fieldtype": "Float",
+   "label": "Dur\u00e9e Estim\u00e9e (heures)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_plan",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "workstation",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Poste de Travail",
+   "options": "Workstation"
+  },
+  {
+   "fieldname": "operateur_assigne",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Op\u00e9rateur Assign\u00e9",
+   "options": "User"
+  },
+  {
+   "fetch_from": "operateur_assigne.full_name",
+   "fieldname": "operateur_assigne_nom",
+   "fieldtype": "Data",
+   "label": "Nom Op\u00e9rateur",
+   "read_only": 1
+  },
+  {
+   "fieldname": "execution_section",
+   "fieldtype": "Section Break",
+   "label": "Ex\u00e9cution"
+  },
+  {
+   "fieldname": "date_heure_debut_reelle",
+   "fieldtype": "Datetime",
+   "label": "Date/Heure D\u00e9but R\u00e9elle",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_heure_fin_reelle",
+   "fieldtype": "Datetime",
+   "label": "Date/Heure Fin R\u00e9elle",
+   "read_only": 1
+  },
+  {
+   "fieldname": "operateur_reel",
+   "fieldtype": "Link",
+   "label": "Op\u00e9rateur R\u00e9el",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_exec",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "responsable",
+   "fieldtype": "Link",
+   "label": "Responsable",
+   "options": "User"
+  },
+  {
+   "fieldname": "superviseur",
+   "fieldtype": "Link",
+   "label": "Superviseur",
+   "options": "User"
+  },
+  {
+   "fieldname": "temps_section",
+   "fieldtype": "Section Break",
+   "label": "Temps"
+  },
+  {
+   "fieldname": "duree_reelle",
+   "fieldtype": "Float",
+   "label": "Dur\u00e9e R\u00e9elle (heures)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "temps_arret",
+   "fieldtype": "Float",
+   "label": "Temps d'Arr\u00eat (heures)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "temps_productif",
+   "fieldtype": "Float",
+   "label": "Temps Productif (heures)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_temps",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ecart_duree",
+   "fieldtype": "Float",
+   "label": "\u00c9cart Dur\u00e9e (heures)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pourcentage_avancement",
+   "fieldtype": "Percent",
+   "label": "% Avancement",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resultats_section",
+   "fieldtype": "Section Break",
+   "label": "R\u00e9sultats"
+  },
+  {
+   "fetch_from": "ordre_production.quantite_a_produire",
+   "fieldname": "quantite_prevue",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 Pr\u00e9vue",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quantite_traitee",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 Trait\u00e9e",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_result",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "quantite_ok",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 OK"
+  },
+  {
+   "default": "0",
+   "fieldname": "quantite_rebutee",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 Rebut\u00e9e"
+  },
+  {
+   "fieldname": "taux_rebut",
+   "fieldtype": "Percent",
+   "label": "Taux de Rebut",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "etat_problemes_section",
+   "fieldtype": "Section Break",
+   "label": "\u00c9tat et Probl\u00e8mes"
+  },
+  {
+   "default": "0",
+   "fieldname": "est_en_retard",
+   "fieldtype": "Check",
+   "label": "En Retard",
+   "read_only": 1
+  },
+  {
+   "fieldname": "heures_retard",
+   "fieldtype": "Float",
+   "label": "Heures de Retard",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_pb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "probleme_signale",
+   "fieldtype": "Check",
+   "label": "Probl\u00e8me Signal\u00e9"
+  },
+  {
+   "depends_on": "eval:doc.probleme_signale",
+   "fieldname": "type_probleme",
+   "fieldtype": "Select",
+   "label": "Type de Probl\u00e8me",
+   "options": "Panne machine\nManque mati\u00e8re\nQualit\u00e9\nAutre"
+  },
+  {
+   "depends_on": "eval:doc.probleme_signale",
+   "fieldname": "description_probleme",
+   "fieldtype": "Text",
+   "label": "Description du Probl\u00e8me"
+  },
+  {
+   "fieldname": "observations_section",
+   "fieldtype": "Section Break",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Text Editor",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "photos",
+   "fieldtype": "Attach",
+   "label": "Photos / Pi\u00e8ces jointes"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "matieres_section",
+   "fieldtype": "Section Break",
+   "label": "Mati\u00e8res"
+  },
+  {
+   "fieldname": "matieres",
+   "fieldtype": "Table",
+   "label": "Mati\u00e8res",
+   "options": "Matiere Operation Production"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-25 22:23:33.158364",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Operation Production",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+}

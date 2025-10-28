@@ -1,0 +1,296 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-10-25 10:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "statut_section",
+  "status",
+  "etape_actuelle",
+  "priorite",
+  "column_break_2",
+  "est_planifie",
+  "color_indicator",
+  "dashboard_section",
+  "dashboard_operations",
+  "section_break_bsur",
+  "naming_series",
+  "references_section",
+  "etude_technique",
+  "sales_order",
+  "column_break_1",
+  "client",
+  "article",
+  "bat",
+  "dates_section",
+  "date_debut_prevue",
+  "date_fin_prevue",
+  "column_break_3",
+  "date_debut_reelle",
+  "date_fin_reelle",
+  "temps_total_production",
+  "column_break_4",
+  "delai_livraison",
+  "production_tab",
+  "production_section",
+  "quantite_a_produire",
+  "quantite_produite",
+  "quantite_rebutee",
+  "column_break_5",
+  "taux_rebut",
+  "route_production",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "S\u00e9rie",
+   "options": "OP-.YYYY.-",
+   "reqd": 1
+  },
+  {
+   "fieldname": "references_section",
+   "fieldtype": "Section Break",
+   "label": "R\u00e9f\u00e9rences"
+  },
+  {
+   "fieldname": "etude_technique",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "\u00c9tude Technique",
+   "options": "Etude Technique",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "etude_technique.commande",
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Commande",
+   "options": "Sales Order"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "etude_technique.client",
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "etude_technique.article",
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "fetch_from": "etude_technique.bat",
+   "fieldname": "bat",
+   "fieldtype": "Link",
+   "label": "BAT",
+   "options": "BAT"
+  },
+  {
+   "fieldname": "dashboard_section",
+   "fieldtype": "Section Break",
+   "label": "Dashboard \u00c9tapes"
+  },
+  {
+   "fieldname": "dashboard_operations",
+   "fieldtype": "HTML",
+   "label": "Dashboard Op\u00e9rations Temps R\u00e9el"
+  },
+  {
+   "fieldname": "statut_section",
+   "fieldtype": "Section Break",
+   "label": "Statut"
+  },
+  {
+   "fieldname": "etape_actuelle",
+   "fieldtype": "Data",
+   "label": "\u00c9tape actuelle",
+   "read_only": 1
+  },
+  {
+   "default": "Normale",
+   "fieldname": "priorite",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Priorit\u00e9",
+   "options": "Normale\nUrgente\nTr\u00e8s Urgente",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "est_planifie",
+   "fieldtype": "Check",
+   "label": "Est planifi\u00e9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "color_indicator",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Color Indicator",
+   "options": "Green\nOrange\nRed\nBlue\nGrey"
+  },
+  {
+   "fieldname": "dates_section",
+   "fieldtype": "Section Break",
+   "label": "Dates et Planification"
+  },
+  {
+   "fieldname": "date_debut_prevue",
+   "fieldtype": "Date",
+   "label": "Date d\u00e9but pr\u00e9vue"
+  },
+  {
+   "fieldname": "date_fin_prevue",
+   "fieldtype": "Date",
+   "label": "Date fin pr\u00e9vue",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_debut_reelle",
+   "fieldtype": "Datetime",
+   "label": "Date d\u00e9but r\u00e9elle",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_fin_reelle",
+   "fieldtype": "Datetime",
+   "label": "Date fin r\u00e9elle",
+   "read_only": 1
+  },
+  {
+   "fieldname": "temps_total_production",
+   "fieldtype": "Float",
+   "label": "Temps total production (heures)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "sales_order.delivery_date",
+   "fieldname": "delai_livraison",
+   "fieldtype": "Date",
+   "label": "D\u00e9lai livraison"
+  },
+  {
+   "fieldname": "production_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "quantite_a_produire",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 \u00e0 produire",
+   "reqd": 1
+  },
+  {
+   "fieldname": "quantite_produite",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 produite",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quantite_rebutee",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 rebut\u00e9e",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "taux_rebut",
+   "fieldtype": "Percent",
+   "label": "Taux de rebut",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "route_production",
+   "fieldtype": "Link",
+   "label": "Route de production",
+   "options": "Route de Production",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_bsur",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Nouveau",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Nouveau\nPlanifi\u00e9\nEn Production\nEn Pause\nTermin\u00e9\nAnnul\u00e9",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Ordre de Production",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "production_tab",
+   "fieldtype": "Tab Break",
+   "label": "Production"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-26 09:29:56.395070",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Ordre de Production",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+}

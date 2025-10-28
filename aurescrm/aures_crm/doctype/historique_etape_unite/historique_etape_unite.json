@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-25 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "etape",
+  "date_heure_entree",
+  "date_heure_sortie",
+  "column_break_1",
+  "operateur",
+  "operateur_nom",
+  "scan_timestamp",
+  "resultats_section",
+  "quantite_traitee",
+  "quantite_ok",
+  "quantite_rebut",
+  "section_break_2",
+  "observations"
+ ],
+ "fields": [
+  {
+   "fieldname": "etape",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "\u00c9tape",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_heure_entree",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Date/heure entr\u00e9e"
+  },
+  {
+   "fieldname": "date_heure_sortie",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Date/heure sortie"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "operateur",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Op\u00e9rateur",
+   "options": "User"
+  },
+  {
+   "fetch_from": "operateur.full_name",
+   "fieldname": "operateur_nom",
+   "fieldtype": "Data",
+   "label": "Nom op\u00e9rateur",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scan_timestamp",
+   "fieldtype": "Datetime",
+   "label": "Horodatage scan"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "resultats_section",
+   "fieldtype": "Section Break",
+   "label": "R\u00e9sultats"
+  },
+  {
+   "fieldname": "quantite_traitee",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 trait\u00e9e"
+  },
+  {
+   "fieldname": "quantite_ok",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 OK"
+  },
+  {
+   "fieldname": "quantite_rebut",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 rebut"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Text",
+   "label": "Observations"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-25 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Historique Etape Unite",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
+

@@ -271,3 +271,63 @@ def link_existing_bat_to_etude(etude_name, bat_name):
 	except Exception as e:
 		frappe.log_error(f"Erreur lors de la liaison du BAT {bat_name} à l'étude {etude_name}: {str(e)}")
 		return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def create_ordre_production(etude_name):
+	"""Créer un ordre de production depuis une étude technique"""
+	try:
+		etude = frappe.get_doc("Etude Technique", etude_name)
+		
+		# Vérifications
+		if etude.ordre_production:
+			frappe.throw("Un ordre de production existe déjà pour cette étude")
+		
+		if etude.docstatus != 1:
+			frappe.throw("L'étude technique doit être soumise avant de créer un ordre")
+		
+		# Déterminer la route selon le procédé
+		route = frappe.db.get_value(
+			"Route de Production",
+			{"procede": etude.procede, "is_active": 1},
+			"name"
+		)
+		
+		if not route:
+			frappe.throw(f"Aucune route de production active trouvée pour le procédé {etude.procede}")
+		
+		# Créer l'ordre
+		ordre = frappe.get_doc({
+			"doctype": "Ordre de Production",
+			"etude_technique": etude.name,
+			"sales_order": etude.commande,
+			"client": etude.client,
+			"article": etude.article,
+			"bat": etude.bat,
+			"quantite_a_produire": etude.quantite,
+			"route_production": route,
+			"statut": "Nouveau",
+			"priorite": "Normale"
+		})
+		
+		ordre.insert()
+		
+		# Générer automatiquement les opérations depuis la route
+		ordre.generer_operations_depuis_route()
+		
+		# Lier l'ordre à l'étude
+		frappe.db.set_value("Etude Technique", etude.name, "ordre_production", ordre.name)
+		frappe.db.commit()
+		
+		# Compter les opérations créées
+		nb_operations = frappe.db.count("Operation Production", {"ordre_production": ordre.name})
+		
+		frappe.msgprint(
+			f"Ordre de production {ordre.name} créé avec {nb_operations} opération(s)",
+			indicator="green"
+		)
+		return ordre.name
+		
+	except Exception as e:
+		frappe.log_error(f"Erreur lors de la création de l'ordre de production: {str(e)}")
+		frappe.throw(str(e))

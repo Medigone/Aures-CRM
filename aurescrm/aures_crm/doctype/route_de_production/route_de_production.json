@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:nom_route",
+ "creation": "2025-10-25 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "nom_route",
+  "procede",
+  "type_finition",
+  "column_break_1",
+  "is_active",
+  "section_break_2",
+  "description",
+  "section_break_3",
+  "etapes"
+ ],
+ "fields": [
+  {
+   "fieldname": "nom_route",
+   "fieldtype": "Data",
+   "label": "Nom de la route",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "procede",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Proc\u00e9d\u00e9",
+   "options": "Offset\nFlexo\nH\u00e9lio\nS\u00e9rigraphie\nNum\u00e9rique\nAutre",
+   "reqd": 1
+  },
+  {
+   "fieldname": "type_finition",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type de finition",
+   "options": "Standard\nVernis\nPelliculage\nGaufrage\nDorure\nD\u00e9coupe\nAutre"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Route active"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "\u00c9tapes de production"
+  },
+  {
+   "fieldname": "etapes",
+   "fieldtype": "Table",
+   "label": "\u00c9tapes",
+   "options": "Etape Route",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-25 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Route de Production",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+
