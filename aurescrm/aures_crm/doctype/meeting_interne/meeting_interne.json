@@ -9,7 +9,7 @@
   "naming_series",
   "section_break_info_generale",
   "titre",
-  "statut",
+  "status",
   "column_break_info",
   "type_meeting",
   "date_meeting",
@@ -73,16 +73,6 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Titre du Meeting",
-   "reqd": 1
-  },
-  {
-   "default": "Planifi\u00e9",
-   "fieldname": "statut",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Statut",
-   "options": "Planifi\u00e9\nEn Cours\nTermin\u00e9\nReport\u00e9\nAnnul\u00e9",
    "reqd": 1
   },
   {
@@ -314,12 +304,22 @@
    "fieldname": "prochaines_etapes",
    "fieldtype": "Text Editor",
    "label": "Prochaines \u00c9tapes"
+  },
+  {
+   "default": "Planifi\u00e9",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Planifi\u00e9\nEn Cours\nTermin\u00e9\nReport\u00e9\nAnnul\u00e9",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2025-10-28 10:32:03.537415",
+ "modified": "2025-10-28 10:32:46.352574",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Meeting Interne",

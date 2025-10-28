@@ -15,7 +15,7 @@ class MeetingInterne(Document):
 			self.date_meeting = getdate(self.date_heure)
 		
 		# Valider que la date n'est pas dans le passé pour un meeting planifié
-		if self.statut == "Planifié" and self.date_heure:
+		if self.status == "Planifié" and self.date_heure:
 			if get_datetime(self.date_heure) < now_datetime():
 				frappe.msgprint(
 					"La date et l'heure du meeting sont dans le passé.",
@@ -174,7 +174,7 @@ def check_and_send_all_reminders():
 		filters={
 			"envoyer_rappel": 1,
 			"rappel_envoye": 0,
-			"statut": ["in", ["Planifié", "Confirmé"]]
+			"status": ["in", ["Planifié", "Confirmé"]]
 		},
 		fields=["name", "date_heure", "delai_rappel"]
 	)
