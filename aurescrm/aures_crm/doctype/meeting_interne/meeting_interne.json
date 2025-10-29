@@ -1,12 +1,10 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "naming_series:[naming_series]",
  "creation": "2025-10-27 10:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "naming_series",
   "section_break_info_generale",
   "titre",
   "status",
@@ -54,14 +52,6 @@
   "prochaines_etapes"
  ],
  "fields": [
-  {
-   "default": "MEET-.YYYY.-.#####",
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "hidden": 1,
-   "label": "S\u00e9rie de Num\u00e9rotation",
-   "options": "MEET-.YYYY.-.#####"
-  },
   {
    "fieldname": "section_break_info_generale",
    "fieldtype": "Section Break",

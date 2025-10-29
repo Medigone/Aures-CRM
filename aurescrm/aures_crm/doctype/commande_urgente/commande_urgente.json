@@ -1,0 +1,270 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-29 09:11:27.987612",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_info",
+  "date",
+  "column_break_1",
+  "section_break_commande",
+  "client",
+  "nom_client",
+  "column_break_2",
+  "commande",
+  "n_commande_client",
+  "section_break_commercial",
+  "id_commercial",
+  "commercial",
+  "column_break_3",
+  "section_break_classification",
+  "procede",
+  "column_break_4",
+  "raison",
+  "section_break_observations",
+  "observations",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_info",
+   "fieldtype": "Section Break",
+   "label": "Informations g\u00e9n\u00e9rales"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_commande",
+   "fieldtype": "Section Break",
+   "label": "D\u00e9tails commande"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "label": "Raison Sociale",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commande",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Commande",
+   "options": "Sales Order",
+   "search_index": 1
+  },
+  {
+   "fieldname": "n_commande_client",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "N\u00b0 Commande Client"
+  },
+  {
+   "fieldname": "section_break_commercial",
+   "fieldtype": "Section Break",
+   "label": "Commercial"
+  },
+  {
+   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fieldname": "id_commercial",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "ID Commercial",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "id_commercial.full_name",
+   "fieldname": "commercial",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Commercial",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_classification",
+   "fieldtype": "Section Break",
+   "label": "Classification"
+  },
+  {
+   "fieldname": "procede",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Proc\u00e9d\u00e9",
+   "options": "\nOffset\nFlexo",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "raison",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Raison",
+   "options": "\nMauvaise planification client\nOublie commercial\nMati\u00e8re premi\u00e8re\nProbl\u00e8me Machine\nManque effectif\nManque donn\u00e9es techniques\nManque validation essai",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "section_break_observations",
+   "fieldtype": "Section Break",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Text Editor",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Commande Urgente",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-29 09:12:01.311422",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Commande Urgente",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Coordination",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Coordination",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+}

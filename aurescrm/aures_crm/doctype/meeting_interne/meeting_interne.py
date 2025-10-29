@@ -8,6 +8,11 @@ from datetime import datetime, timedelta
 
 
 class MeetingInterne(Document):
+	def autoname(self):
+		"""Générer automatiquement le nom du document"""
+		from frappe.model.naming import make_autoname
+		self.name = make_autoname("MEET-.YYYY.-.#####")
+	
 	def validate(self):
 		"""Validations avant sauvegarde"""
 		# Extraire la date de date_heure si date_meeting est vide
