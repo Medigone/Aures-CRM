@@ -134,7 +134,7 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Raison",
-   "options": "\nMauvaise planification client\nOublie commercial\nMati\u00e8re premi\u00e8re\nProbl\u00e8me Machine\nManque effectif\nManque donn\u00e9es techniques\nManque validation essai",
+   "options": "\nMauvaise planification client\nOublie commercial\nMati\u00e8re premi\u00e8re\nProbl\u00e8me Machine\nManque effectif\nManque donn\u00e9es techniques\nManque validation essai\nOpportunit\u00e9 Client",
    "permlevel": 1
   },
   {
@@ -160,7 +160,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-29 09:12:01.311422",
+ "modified": "2025-10-29 09:40:09.505319",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Commande Urgente",

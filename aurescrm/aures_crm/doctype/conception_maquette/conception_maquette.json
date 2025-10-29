@@ -1,0 +1,350 @@
+{
+ "actions": [],
+ "creation": "2025-10-29 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "infos",
+  "section_break_tbub",
+  "date_creation",
+  "status",
+  "section_break_info",
+  "client",
+  "nom_client",
+  "column_break_client",
+  "article",
+  "designation_article",
+  "section_break_etjf",
+  "priorite",
+  "column_break_xnez",
+  "points_effort",
+  "points_complexite",
+  "section_break_assign",
+  "infographe_assigne",
+  "column_break_charge",
+  "nom_infographe",
+  "section_break_desc",
+  "description_demande",
+  "suivi_tab",
+  "section_break_dates",
+  "date_debut",
+  "column_break_dates",
+  "date_fin",
+  "date_validation",
+  "section_break_temps",
+  "temps_total",
+  "liens_tab",
+  "section_break_liaison",
+  "maquette_creee",
+  "column_break_liaison",
+  "section_break_nldt",
+  "notes_internes"
+ ],
+ "fields": [
+  {
+   "default": "Nouveau",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Nouveau\nEn Cours\nTermin\u00e9\nValid\u00e9\nAnnul\u00e9",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_info",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "label": "Nom Client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_client",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Article",
+   "options": "Item",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "article.item_code",
+   "fieldname": "designation_article",
+   "fieldtype": "Data",
+   "label": "D\u00e9signation Article",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_desc",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "description_demande",
+   "fieldtype": "Text Editor",
+   "label": "Description de la demande"
+  },
+  {
+   "fieldname": "section_break_assign",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Assignation et Charge"
+  },
+  {
+   "fieldname": "infographe_assigne",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Infographe assign\u00e9",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "infographe_assigne.full_name",
+   "fieldname": "nom_infographe",
+   "fieldtype": "Data",
+   "label": "Nom Infographe",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_charge",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "points_effort",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Effort",
+   "options": "Simple\nMoyen\nComplexe",
+   "reqd": 1
+  },
+  {
+   "fieldname": "points_complexite",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Points Complexit\u00e9",
+   "read_only": 1
+  },
+  {
+   "default": "Normale",
+   "fieldname": "priorite",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Priorit\u00e9",
+   "options": "Normale\nHaute\nUrgente",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_dates",
+   "fieldtype": "Section Break",
+   "label": "Suivi des dates"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "label": "Date cr\u00e9ation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_debut",
+   "fieldtype": "Datetime",
+   "label": "Date et heure d\u00e9but",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dates",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_fin",
+   "fieldtype": "Datetime",
+   "label": "Date et heure fin",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_validation",
+   "fieldtype": "Date",
+   "label": "Date validation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_temps",
+   "fieldtype": "Section Break",
+   "label": "Temps de travail"
+  },
+  {
+   "description": "Temps total pass\u00e9 sur la conception (calcul\u00e9 automatiquement)",
+   "fieldname": "temps_total",
+   "fieldtype": "Float",
+   "label": "Temps total (heures)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_liaison",
+   "fieldtype": "Section Break",
+   "label": "Liaison avec r\u00e9sultat"
+  },
+  {
+   "fieldname": "maquette_creee",
+   "fieldtype": "Link",
+   "label": "Maquette cr\u00e9\u00e9e",
+   "options": "Maquette"
+  },
+  {
+   "fieldname": "column_break_liaison",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "notes_internes",
+   "fieldtype": "Text Editor",
+   "label": "Notes internes"
+  },
+  {
+   "fieldname": "section_break_etjf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_xnez",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "suivi_tab",
+   "fieldtype": "Tab Break",
+   "label": "Suivi"
+  },
+  {
+   "fieldname": "liens_tab",
+   "fieldtype": "Tab Break",
+   "label": "Liens"
+  },
+  {
+   "fieldname": "section_break_nldt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "infos",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "section_break_tbub",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-29 11:33:05.779457",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Conception Maquette",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Responsable Prepresse",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Technicien Prepresse",
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Coordination"
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Administrateur Ventes"
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant"
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Orange",
+   "title": "En Cours"
+  },
+  {
+   "color": "Purple",
+   "title": "Termin\u00e9"
+  },
+  {
+   "color": "Green",
+   "title": "Valid\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "Annul\u00e9"
+  }
+ ],
+ "track_changes": 1
+}
