@@ -3,11 +3,39 @@
 
 frappe.ui.form.on('Accueil Client', {
 	refresh: function(frm) {
-		// Affichage conditionnel selon le statut
-		if (frm.doc.status === "Planifiée") {
-			// Focus sur la préparation
-			frappe.model.set_value(frm.doctype, frm.doc.name, 'status', 'Planifiée');
-		}
+		// Protéger les champs de base quand le statut n'est pas "Planifiée"
+		const champs_proteges = [
+			'client',
+			'date_visite_prevue',
+			'heure_prevue',
+			'raison_visite',
+			'ordre_du_jour',
+			'utilisateur_receveur'
+		];
+		
+		const est_planifiee = frm.doc.status === "Planifiée";
+		
+		champs_proteges.forEach(function(fieldname) {
+			frm.set_df_property(fieldname, 'read_only', !est_planifiee);
+		});
+	},
+	
+	status: function(frm) {
+		// Mettre à jour la protection des champs quand le statut change
+		const champs_proteges = [
+			'client',
+			'date_visite_prevue',
+			'heure_prevue',
+			'raison_visite',
+			'ordre_du_jour',
+			'utilisateur_receveur'
+		];
+		
+		const est_planifiee = frm.doc.status === "Planifiée";
+		
+		champs_proteges.forEach(function(fieldname) {
+			frm.set_df_property(fieldname, 'read_only', !est_planifiee);
+		});
 	},
 	
 	client: function(frm) {

@@ -44,7 +44,7 @@ class AccueilClient(Document):
 	
 	def before_submit(self):
 		"""Exécuté juste avant la soumission du document"""
-		if self.status == "Terminée":
+		if self.status in ["Terminée", "Validé"]:
 			self.set_fin_visite_et_duree()
 	
 	def set_debut_visite(self):

@@ -19,6 +19,12 @@
  },
  {
   "doctype": "Workflow State",
+  "name": "Validé",
+  "workflow_state_name": "Validé",
+  "style": "Success"
+ },
+ {
+  "doctype": "Workflow State",
   "name": "Annulée",
   "workflow_state_name": "Annulée",
   "style": "Danger"
@@ -32,6 +38,11 @@
   "doctype": "Workflow Action Master",
   "name": "Terminer Visite",
   "workflow_action_name": "Terminer Visite"
+ },
+ {
+  "doctype": "Workflow Action Master",
+  "name": "Valider Visite",
+  "workflow_action_name": "Valider Visite"
  },
  {
   "doctype": "Workflow Action Master",
@@ -70,7 +81,7 @@
    },
    {
     "state": "Terminée",
-    "doc_status": "1",
+    "doc_status": "0",
     "update_field": "status",
     "update_value": "Terminée",
     "is_optional_state": 0,
@@ -78,6 +89,17 @@
     "allow_edit": "All",
     "action": "",
     "workflow_state_name": "Terminée"
+   },
+   {
+    "state": "Validé",
+    "doc_status": "1",
+    "update_field": "status",
+    "update_value": "Validé",
+    "is_optional_state": 0,
+    "next_action_email_template": "",
+    "allow_edit": "All",
+    "action": "",
+    "workflow_state_name": "Validé"
    },
    {
     "state": "Annulée",
@@ -166,6 +188,42 @@
    },
    {
     "state": "Terminée",
+    "action": "Valider Visite",
+    "next_state": "Validé",
+    "allowed": "System Manager",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Valider Visite"
+   },
+   {
+    "state": "Terminée",
+    "action": "Valider Visite",
+    "next_state": "Validé",
+    "allowed": "Administrateur Ventes",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Valider Visite"
+   },
+   {
+    "state": "Terminée",
+    "action": "Valider Visite",
+    "next_state": "Validé",
+    "allowed": "Commercial Itinérant",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Valider Visite"
+   },
+   {
+    "state": "Terminée",
+    "action": "Valider Visite",
+    "next_state": "Validé",
+    "allowed": "Commercial Sédentaire",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Valider Visite"
+   },
+   {
+    "state": "Validé",
     "action": "Annuler Visite",
     "next_state": "Annulée",
     "allowed": "System Manager",
@@ -174,7 +232,7 @@
     "workflow_action_name": "Annuler Visite"
    },
    {
-    "state": "Terminée",
+    "state": "Validé",
     "action": "Annuler Visite",
     "next_state": "Annulée",
     "allowed": "Administrateur Ventes",
@@ -183,7 +241,7 @@
     "workflow_action_name": "Annuler Visite"
    },
    {
-    "state": "Terminée",
+    "state": "Validé",
     "action": "Annuler Visite",
     "next_state": "Annulée",
     "allowed": "Superviseur CRM",
