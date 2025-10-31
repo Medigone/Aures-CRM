@@ -15,6 +15,8 @@
   "nom_createur",
   "utilisateur_receveur",
   "nom_receveur",
+  "section_break_rmni",
+  "ordre_du_jour",
   "section_break_cuez",
   "date_visite_reelle",
   "duree_visite",
@@ -24,7 +26,6 @@
   "tab_preparation",
   "personnes_rencontrees",
   "notes_preparation",
-  "ordre_du_jour",
   "tab_notes",
   "notes",
   "tab_suivi",
@@ -219,12 +220,16 @@
   {
    "fieldname": "column_break_nisn",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_rmni",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-31 14:12:29.966219",
+ "modified": "2025-10-31 16:59:54.720709",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Accueil Client",
