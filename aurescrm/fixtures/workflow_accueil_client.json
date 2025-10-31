@@ -1,0 +1,196 @@
+[
+ {
+  "doctype": "Workflow State",
+  "name": "Planifiée",
+  "workflow_state_name": "Planifiée",
+  "style": "Info"
+ },
+ {
+  "doctype": "Workflow State",
+  "name": "En Cours",
+  "workflow_state_name": "En Cours",
+  "style": "Warning"
+ },
+ {
+  "doctype": "Workflow State",
+  "name": "Terminée",
+  "workflow_state_name": "Terminée",
+  "style": "Success"
+ },
+ {
+  "doctype": "Workflow State",
+  "name": "Annulée",
+  "workflow_state_name": "Annulée",
+  "style": "Danger"
+ },
+ {
+  "doctype": "Workflow Action Master",
+  "name": "Démarrer Visite",
+  "workflow_action_name": "Démarrer Visite"
+ },
+ {
+  "doctype": "Workflow Action Master",
+  "name": "Terminer Visite",
+  "workflow_action_name": "Terminer Visite"
+ },
+ {
+  "doctype": "Workflow Action Master",
+  "name": "Annuler Visite",
+  "workflow_action_name": "Annuler Visite"
+ },
+ {
+  "doctype": "Workflow",
+  "name": "Workflow Accueil Client",
+  "workflow_name": "Workflow Accueil Client",
+  "document_type": "Accueil Client",
+  "is_active": 1,
+  "workflow_state_field": "status",
+  "states": [
+   {
+    "state": "Planifiée",
+    "doc_status": "0",
+    "update_field": "status",
+    "update_value": "Planifiée",
+    "is_optional_state": 0,
+    "next_action_email_template": "",
+    "allow_edit": "All",
+    "action": "",
+    "workflow_state_name": "Planifiée"
+   },
+   {
+    "state": "En Cours",
+    "doc_status": "0",
+    "update_field": "status",
+    "update_value": "En Cours",
+    "is_optional_state": 0,
+    "next_action_email_template": "",
+    "allow_edit": "All",
+    "action": "",
+    "workflow_state_name": "En Cours"
+   },
+   {
+    "state": "Terminée",
+    "doc_status": "1",
+    "update_field": "status",
+    "update_value": "Terminée",
+    "is_optional_state": 0,
+    "next_action_email_template": "",
+    "allow_edit": "All",
+    "action": "",
+    "workflow_state_name": "Terminée"
+   },
+   {
+    "state": "Annulée",
+    "doc_status": "2",
+    "update_field": "status",
+    "update_value": "Annulée",
+    "is_optional_state": 0,
+    "next_action_email_template": "",
+    "allow_edit": "All",
+    "action": "",
+    "workflow_state_name": "Annulée"
+   }
+  ],
+  "transitions": [
+   {
+    "state": "Planifiée",
+    "action": "Démarrer Visite",
+    "next_state": "En Cours",
+    "allowed": "System Manager",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Démarrer Visite"
+   },
+   {
+    "state": "Planifiée",
+    "action": "Démarrer Visite",
+    "next_state": "En Cours",
+    "allowed": "Administrateur Ventes",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Démarrer Visite"
+   },
+   {
+    "state": "Planifiée",
+    "action": "Démarrer Visite",
+    "next_state": "En Cours",
+    "allowed": "Commercial Itinérant",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Démarrer Visite"
+   },
+   {
+    "state": "Planifiée",
+    "action": "Démarrer Visite",
+    "next_state": "En Cours",
+    "allowed": "Commercial Sédentaire",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Démarrer Visite"
+   },
+   {
+    "state": "En Cours",
+    "action": "Terminer Visite",
+    "next_state": "Terminée",
+    "allowed": "System Manager",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Terminer Visite"
+   },
+   {
+    "state": "En Cours",
+    "action": "Terminer Visite",
+    "next_state": "Terminée",
+    "allowed": "Administrateur Ventes",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Terminer Visite"
+   },
+   {
+    "state": "En Cours",
+    "action": "Terminer Visite",
+    "next_state": "Terminée",
+    "allowed": "Commercial Itinérant",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Terminer Visite"
+   },
+   {
+    "state": "En Cours",
+    "action": "Terminer Visite",
+    "next_state": "Terminée",
+    "allowed": "Commercial Sédentaire",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Terminer Visite"
+   },
+   {
+    "state": "Terminée",
+    "action": "Annuler Visite",
+    "next_state": "Annulée",
+    "allowed": "System Manager",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Annuler Visite"
+   },
+   {
+    "state": "Terminée",
+    "action": "Annuler Visite",
+    "next_state": "Annulée",
+    "allowed": "Administrateur Ventes",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Annuler Visite"
+   },
+   {
+    "state": "Terminée",
+    "action": "Annuler Visite",
+    "next_state": "Annulée",
+    "allowed": "Superviseur CRM",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Annuler Visite"
+   }
+  ]
+ }
+]

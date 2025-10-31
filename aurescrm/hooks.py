@@ -344,16 +344,17 @@ fixtures = [
     },
     # "Custom HTML Block",
     # "Client Script",
-    # "Workflow",
-    # "Workflow State",
+    "Workflow",
+    "Workflow State",
+    "Workflow Action Master",
     # "Workflow Transition",
     # "Workflow Action",
-    # "Workflow Action Master",
     # "Workflow Document State",
     # "Workspace",
     # "Number Card"
     
     # Fixtures pour le module Meeting Interne
     # "Type Meeting"
+    "Raisons Accueil Client"
 ]
 

@@ -1,0 +1,311 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-15 10:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tab_informations_generales",
+  "status",
+  "client",
+  "date_visite_prevue",
+  "heure_prevue",
+  "column_break_dates",
+  "raison_visite",
+  "nom_createur",
+  "utilisateur_receveur",
+  "nom_receveur",
+  "section_break_cuez",
+  "date_visite_reelle",
+  "duree_visite",
+  "column_break_nisn",
+  "heure_arrivee",
+  "heure_depart",
+  "tab_preparation",
+  "personnes_rencontrees",
+  "notes_preparation",
+  "ordre_du_jour",
+  "tab_notes",
+  "notes",
+  "tab_suivi",
+  "suite_a_donner",
+  "prochaine_visite_prevue",
+  "tab_utilisateurs",
+  "amended_from",
+  "utilisateur_createur",
+  "column_break_receveur"
+ ],
+ "fields": [
+  {
+   "fieldname": "tab_informations_generales",
+   "fieldtype": "Tab Break",
+   "label": "Informations G\u00e9n\u00e9rales"
+  },
+  {
+   "default": "Planifi\u00e9e",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Planifi\u00e9e\nEn Cours\nTermin\u00e9e\nAnnul\u00e9e",
+   "read_only": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "date_visite_prevue",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date Visite Pr\u00e9vue",
+   "reqd": 1
+  },
+  {
+   "fieldname": "heure_prevue",
+   "fieldtype": "Time",
+   "label": "Heure Pr\u00e9vue"
+  },
+  {
+   "fieldname": "column_break_dates",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_visite_reelle",
+   "fieldtype": "Date",
+   "label": "Date Visite R\u00e9elle",
+   "read_only": 1
+  },
+  {
+   "fieldname": "heure_arrivee",
+   "fieldtype": "Datetime",
+   "label": "Heure Arriv\u00e9e",
+   "read_only": 1
+  },
+  {
+   "fieldname": "heure_depart",
+   "fieldtype": "Datetime",
+   "label": "Heure D\u00e9part",
+   "read_only": 1
+  },
+  {
+   "description": "En minutes",
+   "fieldname": "duree_visite",
+   "fieldtype": "Data",
+   "label": "Dur\u00e9e Visite",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tab_utilisateurs",
+   "fieldtype": "Tab Break",
+   "label": "Autres"
+  },
+  {
+   "fieldname": "utilisateur_createur",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Utilisateur Cr\u00e9ateur",
+   "options": "User",
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "fetch_from": "utilisateur_createur.full_name",
+   "fieldname": "nom_createur",
+   "fieldtype": "Data",
+   "label": "Cr\u00e9e Par",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_receveur",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "utilisateur_receveur",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Personne en charge",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "utilisateur_receveur.full_name",
+   "fieldname": "nom_receveur",
+   "fieldtype": "Data",
+   "label": "Nom",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tab_preparation",
+   "fieldtype": "Tab Break",
+   "label": "Pr\u00e9paration"
+  },
+  {
+   "fieldname": "raison_visite",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Raison Visite",
+   "options": "Raisons Accueil Client",
+   "reqd": 1
+  },
+  {
+   "fieldname": "personnes_rencontrees",
+   "fieldtype": "Table",
+   "label": "Personnes Rencontr\u00e9es",
+   "options": "Personnes Rencontrees"
+  },
+  {
+   "fieldname": "notes_preparation",
+   "fieldtype": "Text Editor",
+   "label": "Notes Pr\u00e9paration"
+  },
+  {
+   "fieldname": "ordre_du_jour",
+   "fieldtype": "Text Editor",
+   "label": "Ordre du Jour"
+  },
+  {
+   "fieldname": "tab_notes",
+   "fieldtype": "Tab Break",
+   "label": "Notes"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "tab_suivi",
+   "fieldtype": "Tab Break",
+   "label": "Suivi"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "suite_a_donner",
+   "fieldtype": "Text Editor",
+   "label": "Suite \u00e0 Donner"
+  },
+  {
+   "fieldname": "prochaine_visite_prevue",
+   "fieldtype": "Date",
+   "label": "Prochaine Visite Pr\u00e9vue"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Accueil Client",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_cuez",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_nisn",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-10-31 14:12:29.966219",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Accueil Client",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "if_owner": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Commercial Itin\u00e9rant",
+   "select": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Planifi\u00e9e"
+  },
+  {
+   "color": "Yellow",
+   "title": "En Cours"
+  },
+  {
+   "color": "Green",
+   "title": "Termin\u00e9e"
+  },
+  {
+   "color": "Red",
+   "title": "Annul\u00e9e"
+  }
+ ],
+ "track_changes": 1
+}

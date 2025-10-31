@@ -1,0 +1,98 @@
+[
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Reunion Commerciale",
+  "nom_raison": "Réunion Commerciale"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Presentation Produit",
+  "nom_raison": "Présentation Produit"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Formation Client",
+  "nom_raison": "Formation Client"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Suivi Commande",
+  "nom_raison": "Suivi Commande"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Demonstration Machine",
+  "nom_raison": "Démonstration Machine"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Negociation Devis",
+  "nom_raison": "Négociation Devis"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Controle Qualite",
+  "nom_raison": "Contrôle Qualité"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Resolution Probleme",
+  "nom_raison": "Résolution Problème"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Visite Technique",
+  "nom_raison": "Visite Technique"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Etude Faisabilite",
+  "nom_raison": "Étude Faisabilité"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Presentation Nouveau Procede",
+  "nom_raison": "Présentation Nouveau Procédé"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Validation BAT",
+  "nom_raison": "Validation BAT"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Visite Production",
+  "nom_raison": "Visite Production"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Recueil Besoins",
+  "nom_raison": "Recueil Besoins"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Conseil Packaging",
+  "nom_raison": "Conseil Packaging"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Revue Performance",
+  "nom_raison": "Revue Performance"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Signature Contrat",
+  "nom_raison": "Signature Contrat"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Audit Qualite",
+  "nom_raison": "Audit Qualité"
+ },
+ {
+  "doctype": "Raisons Accueil Client",
+  "name": "Formation Imposition",
+  "nom_raison": "Formation Imposition"
+ }
+]
+
