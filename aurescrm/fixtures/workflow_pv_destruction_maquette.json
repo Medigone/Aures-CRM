@@ -1,0 +1,147 @@
+[
+ {
+  "doctype": "Workflow State",
+  "name": "Brouillon PV Destruction",
+  "workflow_state_name": "Brouillon",
+  "style": "Warning"
+ },
+ {
+  "doctype": "Workflow State",
+  "name": "Validé PV Destruction",
+  "workflow_state_name": "Validé",
+  "style": "Success"
+ },
+ {
+  "doctype": "Workflow State",
+  "name": "Annulé PV Destruction",
+  "workflow_state_name": "Annulé",
+  "style": "Danger"
+ },
+ {
+  "doctype": "Workflow Action Master",
+  "name": "Valider PV",
+  "workflow_action_name": "Valider PV"
+ },
+ {
+  "doctype": "Workflow Action Master",
+  "name": "Annuler PV",
+  "workflow_action_name": "Annuler PV"
+ },
+ {
+  "doctype": "Workflow",
+  "name": "Workflow PV Destruction Maquette",
+  "workflow_name": "Workflow PV Destruction Maquette",
+  "document_type": "PV Destruction Maquette",
+  "is_active": 1,
+  "workflow_state_field": "status",
+  "states": [
+   {
+    "state": "Brouillon",
+    "doc_status": "0",
+    "update_field": "status",
+    "update_value": "Brouillon",
+    "is_optional_state": 0,
+    "next_action_email_template": "",
+    "allow_edit": "All",
+    "action": "",
+    "workflow_state_name": "Brouillon"
+   },
+   {
+    "state": "Validé",
+    "doc_status": "1",
+    "update_field": "status",
+    "update_value": "Validé",
+    "is_optional_state": 0,
+    "next_action_email_template": "",
+    "allow_edit": "All",
+    "action": "",
+    "workflow_state_name": "Validé"
+   },
+   {
+    "state": "Annulé",
+    "doc_status": "2",
+    "update_field": "status",
+    "update_value": "Annulé",
+    "is_optional_state": 0,
+    "next_action_email_template": "",
+    "allow_edit": "All",
+    "action": "",
+    "workflow_state_name": "Annulé"
+   }
+  ],
+  "transitions": [
+   {
+    "state": "Brouillon",
+    "action": "Valider PV",
+    "next_state": "Validé",
+    "allowed": "System Manager",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Valider PV"
+   },
+   {
+    "state": "Brouillon",
+    "action": "Valider PV",
+    "next_state": "Validé",
+    "allowed": "Administrateur Ventes",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Valider PV"
+   },
+   {
+    "state": "Brouillon",
+    "action": "Valider PV",
+    "next_state": "Validé",
+    "allowed": "Responsable Prepresse",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Valider PV"
+   },
+   {
+    "state": "Brouillon",
+    "action": "Valider PV",
+    "next_state": "Validé",
+    "allowed": "Technicien Prepresse",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Valider PV"
+   },
+   {
+    "state": "Brouillon",
+    "action": "Valider PV",
+    "next_state": "Validé",
+    "allowed": "Étude Flexo",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Valider PV"
+   },
+   {
+    "state": "Validé",
+    "action": "Annuler PV",
+    "next_state": "Annulé",
+    "allowed": "System Manager",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Annuler PV"
+   },
+   {
+    "state": "Validé",
+    "action": "Annuler PV",
+    "next_state": "Annulé",
+    "allowed": "Administrateur Ventes",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Annuler PV"
+   },
+   {
+    "state": "Validé",
+    "action": "Annuler PV",
+    "next_state": "Annulé",
+    "allowed": "Responsable Prepresse",
+    "allow_self_approval": 1,
+    "condition": "",
+    "workflow_action_name": "Annuler PV"
+   }
+  ]
+ }
+]

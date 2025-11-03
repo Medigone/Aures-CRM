@@ -1,0 +1,276 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-27 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "is_submittable": 1,
+ "field_order": [
+  "status",
+  "section_break_main",
+  "maquette",
+  "column_break_info",
+  "date_creation",
+  "section_break_destruction",
+  "date_destruction",
+  "column_break_validation",
+  "nom_valide_par",
+  "valide_par",
+  "section_break_client",
+  "client",
+  "column_break_article",
+  "article",
+  "section_break_file",
+  "fichier_valide_client",
+  "section_break_creation",
+  "cree_par"
+ ],
+ "fields": [
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Brouillon\nValid\u00e9\nAnnul\u00e9"
+  },
+  {
+   "fieldname": "section_break_main",
+   "fieldtype": "Section Break",
+   "label": "Informations principales"
+  },
+  {
+   "fieldname": "maquette",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Maquette",
+   "options": "Maquette",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_info",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date de cr\u00e9ation",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_destruction",
+   "fieldtype": "Section Break",
+   "label": "Destruction"
+  },
+  {
+   "fieldname": "date_destruction",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date de destruction",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_validation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "valide_par.full_name",
+   "fieldname": "nom_valide_par",
+   "fieldtype": "Data",
+   "label": "Valid\u00e9 par",
+   "read_only": 1
+  },
+  {
+   "fieldname": "valide_par",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Valid\u00e9 par (ID)",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_client",
+   "fieldtype": "Section Break",
+   "label": "Informations li\u00e9es"
+  },
+  {
+   "fetch_from": "maquette.client",
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_article",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "maquette.article",
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Article",
+   "options": "Item",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_file",
+   "fieldtype": "Section Break",
+   "label": "Document valid\u00e9 par le client"
+  },
+  {
+   "fieldname": "fichier_valide_client",
+   "fieldtype": "Attach",
+   "label": "Fichier valid\u00e9 par le client"
+  },
+  {
+   "fieldname": "section_break_creation",
+   "fieldtype": "Section Break",
+   "label": "Cr\u00e9ation"
+  },
+  {
+   "default": "User",
+   "fieldname": "cree_par",
+   "fieldtype": "Link",
+   "label": "Cr\u00e9\u00e9 par",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-01-27 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "PV Destruction Maquette",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Coordination"
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant"
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Responsable \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Charg\u00e9 Devis"
+  },
+  {
+   "email": 1,
+   "read": 1,
+   "role": "Responsable Devis"
+  },
+  {
+   "read": 1,
+   "role": "Responsable Qualit\u00e9 Aures"
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "read": 1,
+   "role": "Technicien Prepresse",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Responsable Prepresse",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "\u00c9tude Flexo",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 Qualit\u00e9"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Orange",
+   "title": "Brouillon"
+  },
+  {
+   "color": "Green",
+   "title": "Valid\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "Annul\u00e9"
+  }
+ ],
+ "track_changes": 1
+}
+

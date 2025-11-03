@@ -52,10 +52,28 @@ frappe.ui.form.on('Maquette', {
                             ],
                             function(data) {
                                 frm.call('create_new_version', { desc_changements: data.desc_changements }).then(r => {
+                                    let message = '';
+                                    let version_name = '';
+                                    
+                                    if (typeof r.message === 'object' && r.message.new_version) {
+                                        // Un PV a été créé
+                                        version_name = r.message.new_version;
+                                        message = `Nouvelle version créée : ${version_name}`;
+                                        if (r.message.pv_destruction) {
+                                            message += `<br>PV de destruction créé : <a href="#Form/PV Destruction Maquette/${r.message.pv_destruction}">${r.message.pv_destruction}</a>`;
+                                        }
+                                    } else {
+                                        // Pas de PV créé
+                                        version_name = r.message;
+                                        message = `Nouvelle version créée : ${version_name}`;
+                                    }
+                                    
                                     frappe.msgprint(
-                                        `Nouvelle version créée : ${r.message}`,
+                                        message,
                                         function() {
-                                            frappe.set_route('Form', 'Maquette', r.message);
+                                            if (version_name) {
+                                                frappe.set_route('Form', 'Maquette', version_name);
+                                            }
                                         }
                                     );
                                 });

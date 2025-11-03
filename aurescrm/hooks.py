@@ -171,7 +171,9 @@ doc_events = {
     },
     "Maquette": {
         # Notification au commercial attribué quand une nouvelle maquette est créée
-        "after_insert": "aurescrm.notifications.notify_commercial_nouvelle_maquette"
+        "after_insert": "aurescrm.notifications.notify_commercial_nouvelle_maquette",
+        # Mise à jour des BAT lors de l'activation d'une nouvelle version
+        "on_update": "aurescrm.aures_crm.doctype.maquette.maquette.update_bats_on_maquette_activation"
     },
     "Quotation": {
         "on_submit": [

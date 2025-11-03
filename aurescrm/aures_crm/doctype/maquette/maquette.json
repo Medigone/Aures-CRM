@@ -37,6 +37,7 @@
   "nombre_spot_colors",
   "spot_colors",
   "suivi_tab",
+  "pv_destruction",
   "desc_changements",
   "obs_internes"
  ],
@@ -47,7 +48,7 @@
    "hidden": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "A r\u00e9f\u00e9rencer\nR\u00e9f\u00e9renc\u00e9e\nVersion Activ\u00e9e\nObsol\u00e8te"
+   "options": "A r\u00e9f\u00e9rencer\nR\u00e9f\u00e9renc\u00e9e\nVersion Activ\u00e9e\nObsol\u00e8te\nD\u00e9truite"
   },
   {
    "fieldname": "section_break_lpvd",
@@ -101,6 +102,13 @@
    "fieldname": "suivi_tab",
    "fieldtype": "Tab Break",
    "label": "Suivi"
+  },
+  {
+   "fieldname": "pv_destruction",
+   "fieldtype": "Link",
+   "label": "PV Destruction",
+   "options": "PV Destruction Maquette",
+   "read_only": 1
   },
   {
    "fieldname": "obs_internes",
@@ -365,6 +373,10 @@
   {
    "color": "Red",
    "title": "Obsol\u00e8te"
+  },
+  {
+   "color": "Gray",
+   "title": "D\u00e9truite"
   }
  ],
  "track_changes": 1
