@@ -32,6 +32,31 @@ class DemandeFaisabilite(Document):
 			frappe.throw("Incohérence détectée : Type 'Retirage' mais essai_blanc est coché")
 		if self.type == "Premier Tirage" and self.essai_blanc != 0:
 			frappe.throw("Incohérence détectée : Type 'Premier Tirage' mais essai_blanc est coché")
+		
+		# Validation pour éviter les doublons de bon de commande client pour les retirages
+		if self.type == "Retirage" and self.n_bon_commande:
+			# Chercher les autres demandes avec le même numéro de bon de commande
+			filters = {
+				"n_bon_commande": self.n_bon_commande,
+				"type": "Retirage"
+			}
+			# Exclure le document actuel pour permettre les modifications
+			if not self.is_new():
+				filters["name"] = ["!=", self.name]
+			
+			existing_demandes = frappe.get_all(
+				"Demande Faisabilite",
+				filters=filters,
+				fields=["name"]
+			)
+			
+			if existing_demandes:
+				frappe.throw(
+					_("Un numéro de bon de commande client '{0}' existe déjà pour une autre demande de retirage (Demande : {1}). Veuillez utiliser un numéro différent.").format(
+						self.n_bon_commande,
+						existing_demandes[0].name
+					)
+				)
 
 	def can_generate_etudes(self):
 		"""
@@ -567,6 +592,43 @@ def set_demande_status_from_sales_order(doc, method):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), f"Erreur mise à jour statut Demande Faisabilite depuis Sales Order {doc.name}")
         frappe.msgprint(_("Erreur lors de la mise à jour du statut de la Demande Faisabilité liée."))
+
+
+@frappe.whitelist()
+def check_bon_commande_exists(n_bon_commande, current_name=None):
+	"""
+	Vérifie si un numéro de bon de commande existe déjà pour une autre demande de retirage.
+	
+	Args:
+		n_bon_commande (str): Le numéro de bon de commande à vérifier
+		current_name (str, optional): Le nom du document actuel à exclure de la recherche
+		
+	Returns:
+		dict: {"exists": bool, "demande_name": str ou None} - True si un doublon existe, False sinon
+	"""
+	if not n_bon_commande:
+		return {"exists": False, "demande_name": None}
+	
+	filters = {
+		"n_bon_commande": n_bon_commande,
+		"type": "Retirage"
+	}
+	
+	# Exclure le document actuel si fourni
+	if current_name:
+		filters["name"] = ["!=", current_name]
+	
+	existing_demande = frappe.get_all(
+		"Demande Faisabilite",
+		filters=filters,
+		fields=["name"],
+		limit=1
+	)
+	
+	if existing_demande:
+		return {"exists": True, "demande_name": existing_demande[0].name}
+	
+	return {"exists": False, "demande_name": None}
 
 
 @frappe.whitelist()

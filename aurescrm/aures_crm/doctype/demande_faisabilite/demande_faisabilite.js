@@ -50,6 +50,9 @@ frappe.ui.form.on('Demande Faisabilite', {
         frm.get_field('liste_articles').grid.wrapper.find('.grid-add-row').hide();
         load_etude_links(frm);
         frm.clear_custom_buttons(); // Clear existing buttons first
+        
+        // --- Bouton "Générer numéro de bon de commande" ---
+        setup_bouton_generer(frm);
 
         // --- Bouton "Ajouter un article" ---
         // (Keep existing logic for adding the button)
@@ -341,6 +344,8 @@ frappe.ui.form.on('Demande Faisabilite', {
             frm.set_value("essai_blanc", 1);
             frm.set_value("is_reprint", 0);
         }
+        // Mettre à jour le bouton générer quand le type change
+        setup_bouton_generer(frm);
     },
 
     // Fonction pour gérer le changement du champ is_reprint (au cas où)
@@ -366,6 +371,18 @@ frappe.ui.form.on('Demande Faisabilite', {
         // This function could potentially update defaults if the prompt logic was more complex,
         // but setting 'default: frm.doc.date_livraison' in the prompt itself is usually sufficient.
         // You can add logic here if needed in the future.
+    },
+    
+    // Handler pour vérifier les doublons de bon de commande en temps réel
+    n_bon_commande: function(frm) {
+        if (frm.doc.type === "Retirage" && frm.doc.n_bon_commande) {
+            check_bon_commande_duplicate(frm);
+        }
+    },
+    
+    // Handler pour mettre à jour le bouton générer quand le client change
+    client: function(frm) {
+        setup_bouton_generer(frm);
     }
 });
 
@@ -520,4 +537,77 @@ function get_status_badge(status) {
 
     return "<span style='background-color: " + style.color + "; font-size: 11px; color: " + style.textColor + "; border-radius: 4px; padding: 2px 4px; margin-right: 4px;'>" +
            displayStatus + "</span>";
+}
+
+// Fonction pour configurer le bouton de génération automatique du numéro de bon de commande
+function setup_bouton_generer(frm) {
+    // Vider le contenu du champ HTML bouton_generer
+    var bouton_wrapper = frm.get_field('bouton_generer').$wrapper;
+    bouton_wrapper.empty();
+    
+    // Afficher le bouton uniquement si type == "Retirage" et client est sélectionné
+    if (frm.doc.type === "Retirage" && frm.doc.client) {
+        var button_html = '<button id="generate-bon-commande-btn" class="btn btn-sm btn-secondary" style="margin-top: 5px;">Générer automatiquement</button>';
+        bouton_wrapper.html(button_html);
+        
+        // Attacher l'événement click au bouton
+        bouton_wrapper.find('#generate-bon-commande-btn').off('click').on('click', function() {
+            generate_bon_commande_format(frm);
+        });
+    }
+}
+
+// Fonction pour générer le format automatique "ID Client - DD-MM-YY"
+function generate_bon_commande_format(frm) {
+    if (!frm.doc.client) {
+        frappe.msgprint({
+            title: __("Erreur"),
+            message: __("Veuillez sélectionner un client avant de générer le numéro de bon de commande."),
+            indicator: "red"
+        });
+        return;
+    }
+    
+    // Obtenir la date du jour au format DD-MM-YY
+    var today = frappe.datetime.now_date();
+    var date_parts = today.split('-');
+    var formatted_date = date_parts[2] + '-' + date_parts[1] + '-' + date_parts[0].substring(2);
+    
+    // Générer le format : ID Client - DD-MM-YY
+    var bon_commande = frm.doc.client + ' - ' + formatted_date;
+    
+    // Mettre à jour le champ n_bon_commande
+    frm.set_value('n_bon_commande', bon_commande);
+    
+    // Déclencher la vérification de doublon après génération
+    setTimeout(function() {
+        check_bon_commande_duplicate(frm);
+    }, 100);
+}
+
+// Fonction pour vérifier les doublons de bon de commande en temps réel
+function check_bon_commande_duplicate(frm) {
+    if (!frm.doc.n_bon_commande || frm.doc.type !== "Retirage") {
+        return;
+    }
+    
+    frappe.call({
+        method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.check_bon_commande_exists",
+        args: {
+            n_bon_commande: frm.doc.n_bon_commande,
+            current_name: frm.doc.name || null
+        },
+        callback: function(r) {
+            if (r.message && r.message.exists) {
+                frappe.msgprint({
+                    title: __("Attention"),
+                    message: __("Un numéro de bon de commande client '{0}' existe déjà pour une autre demande de retirage (Demande : {1}). Veuillez utiliser un numéro différent.", [
+                        frm.doc.n_bon_commande,
+                        r.message.demande_name
+                    ]),
+                    indicator: "orange"
+                });
+            }
+        }
+    });
 }

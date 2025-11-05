@@ -19,6 +19,7 @@
   "type",
   "column_break_auvj",
   "n_bon_commande",
+  "bouton_generer",
   "section_break_jdmh",
   "client",
   "date_livraison",
@@ -212,12 +213,16 @@
    "fieldtype": "Check",
    "label": "Essai Blanc",
    "read_only": 1
+  },
+  {
+   "fieldname": "bouton_generer",
+   "fieldtype": "HTML"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 09:17:03.639934",
+ "modified": "2025-11-05 12:56:21.121096",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
