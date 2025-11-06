@@ -6,7 +6,8 @@ def custom_item_naming(doc, method):
     """
     Génère automatiquement le nom de l'article selon le type d'article :
     - Type "Client" : <ID_Client>-<numéro séquentiel>
-    - Type "Général" : ITEM-<numéro séquentiel>
+    - Type "Général" + item_group "Support d'impression" : SUPPORT-<numéro séquentiel>
+    - Type "Général" (autres item_group) : ITEM-<numéro séquentiel>
     """
     if not doc.get("custom_type_article"):
         frappe.throw("Veuillez sélectionner un type d'article pour générer un code Item.")
@@ -34,8 +35,13 @@ def custom_item_naming(doc, method):
         doc.name = f"{customer_id}-{next_number:03}"
         
     elif doc.custom_type_article == "Général":
-        # Articles généraux (matières premières, consommables, etc.)
-        doc.name = make_autoname("ITEM-.####")
+        # Vérifier si c'est un support d'impression
+        if doc.item_group == "Support d'impression":
+            # Articles de type Support d'impression avec compteur séparé
+            doc.name = make_autoname("SUPPORT-.####")
+        else:
+            # Articles généraux (matières premières, consommables, etc.)
+            doc.name = make_autoname("ITEM-.####")
         
     else:
         frappe.throw(f"Type d'article '{doc.custom_type_article}' non reconnu.")
@@ -86,6 +92,11 @@ def update_item_description(doc, method):
     """Met à jour la description de l'article en combinant plusieurs champs organisés par sections."""
     # Debug: vérifier si la fonction est appelée
     frappe.logger().info(f"update_item_description appelée pour l'article: {doc.item_code}")
+    
+    # Pour les articles de type "Général", utiliser uniquement le item_code comme description
+    if doc.get("custom_type_article") == "Général":
+        doc.description = doc.item_code if doc.item_code else ''
+        return
     
     # Informations de base (première ligne)
     base_info = []
