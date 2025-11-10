@@ -1,0 +1,530 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-11-01 10:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_break_info_generale",
+  "site_entrepot",
+  "date_visite",
+  "column_break_info",
+  "visiteur",
+  "responsable_entrepot",
+  "section_break_points",
+  "points_forts",
+  "points_faibles",
+  "idees_amelioration",
+  "section_break_validation",
+  "signature_responsable",
+  "commentaires_validation",
+  "organisation_et_zones_tab",
+  "section_break_organisation",
+  "surface_m2",
+  "column_break_capacite",
+  "capacite_palettes",
+  "column_break_evaluation",
+  "capacite_lineaires",
+  "section_break_vmca",
+  "securite",
+  "column_break_pdox",
+  "proprete",
+  "column_break_yiyt",
+  "signaletique",
+  "entr\u00e9es_et_r\u00e9ception_tab",
+  "section_break_entrees",
+  "saisie_actuelle",
+  "column_break_saisie",
+  "delai_reception_stock",
+  "section_break_zuji",
+  "controle_qualite_entree",
+  "section_break_auho",
+  "documents_utilises",
+  "stockage_et_emplacements_tab",
+  "section_break_stockage",
+  "regles_fifo_fefo",
+  "column_break_stockage",
+  "section_break_lvja",
+  "codification_emplacements",
+  "column_break_cyyz",
+  "etiquetage_lot_dlu",
+  "section_break_fqob",
+  "commentaires_stockage",
+  "sorties__picking_tab",
+  "section_break_sorties",
+  "tra\u00e7abilite_sortie",
+  "column_break_sorties",
+  "section_break_rxzy",
+  "demande_formalisee",
+  "column_break_gyvu",
+  "controle_avant_sortie",
+  "section_break_fwlc",
+  "commentaires_sorties",
+  "transferts_inter_sites_tab",
+  "section_break_transferts",
+  "preuve_livraison",
+  "column_break_transferts",
+  "section_break_eqwb",
+  "demande_approbation",
+  "section_break_gvjl",
+  "commentaires_transferts",
+  "inventaires_tab",
+  "section_break_inventaires",
+  "frequence_inventaire",
+  "column_break_inventaires",
+  "section_break_gfwj",
+  "ecarts_inventaire",
+  "commentaires_inventaire",
+  "outils__documents_tab",
+  "section_break_outils",
+  "modeles_excel",
+  "column_break_outils",
+  "formulaires_papier",
+  "section_break_xmms",
+  "rapports_utilises"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_info_generale",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "site_entrepot",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Site / Entrep\u00f4t",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_visite",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date de Visite",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_info",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "visiteur",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Visiteur",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "responsable_entrepot",
+   "fieldtype": "Data",
+   "label": "Responsable Entrep\u00f4t"
+  },
+  {
+   "fieldname": "section_break_organisation",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "surface_m2",
+   "fieldtype": "Float",
+   "label": "Surface (m\u00b2)"
+  },
+  {
+   "fieldname": "capacite_palettes",
+   "fieldtype": "Int",
+   "label": "Capacit\u00e9 Palettes"
+  },
+  {
+   "fieldname": "column_break_capacite",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "capacite_lineaires",
+   "fieldtype": "Int",
+   "label": "Capacit\u00e9 Lin\u00e9aires"
+  },
+  {
+   "fieldname": "signaletique",
+   "fieldtype": "Select",
+   "label": "Signal\u00e9tique",
+   "options": "\nExcellente\nBonne\nMoyenne\nInsuffisante"
+  },
+  {
+   "fieldname": "proprete",
+   "fieldtype": "Select",
+   "label": "Propret\u00e9",
+   "options": "\nExcellente\nBonne\nMoyenne\nInsuffisante"
+  },
+  {
+   "fieldname": "column_break_evaluation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "securite",
+   "fieldtype": "Select",
+   "label": "S\u00e9curit\u00e9",
+   "options": "\nExcellente\nBonne\nMoyenne\nInsuffisante"
+  },
+  {
+   "fieldname": "section_break_entrees",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "controle_qualite_entree",
+   "fieldtype": "Check",
+   "label": "Contr\u00f4le Qualit\u00e9 \u00e0 l'Entr\u00e9e"
+  },
+  {
+   "fieldname": "documents_utilises",
+   "fieldtype": "Text Editor",
+   "label": "Documents Utilis\u00e9s"
+  },
+  {
+   "fieldname": "column_break_saisie",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "saisie_actuelle",
+   "fieldtype": "Select",
+   "label": "Saisie Actuelle",
+   "options": "\nERP\nExcel\nPapier\nMixte"
+  },
+  {
+   "fieldname": "delai_reception_stock",
+   "fieldtype": "Int",
+   "label": "D\u00e9lai R\u00e9ception \u2192 Stock (minutes)"
+  },
+  {
+   "fieldname": "section_break_stockage",
+   "fieldtype": "Section Break",
+   "label": "Stockage & Emplacements"
+  },
+  {
+   "default": "0",
+   "fieldname": "codification_emplacements",
+   "fieldtype": "Check",
+   "label": "Codification Claire (all\u00e9e-trav\u00e9e-niveau)"
+  },
+  {
+   "default": "0",
+   "fieldname": "etiquetage_lot_dlu",
+   "fieldtype": "Check",
+   "label": "\u00c9tiquetage Lot / DLU"
+  },
+  {
+   "fieldname": "regles_fifo_fefo",
+   "fieldtype": "Select",
+   "label": "R\u00e8gles FIFO/FEFO",
+   "options": "\nFIFO\nFEFO\nAucune\nPartielle"
+  },
+  {
+   "fieldname": "column_break_stockage",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commentaires_stockage",
+   "fieldtype": "Text Editor",
+   "label": "Commentaires Stockage"
+  },
+  {
+   "fieldname": "section_break_sorties",
+   "fieldtype": "Section Break",
+   "label": "Sorties / Picking"
+  },
+  {
+   "default": "0",
+   "fieldname": "demande_formalisee",
+   "fieldtype": "Check",
+   "label": "Demande Formalis\u00e9e (OF / BL interne)"
+  },
+  {
+   "default": "0",
+   "fieldname": "controle_avant_sortie",
+   "fieldtype": "Check",
+   "label": "Contr\u00f4le Avant Sortie"
+  },
+  {
+   "fieldname": "tra\u00e7abilite_sortie",
+   "fieldtype": "Select",
+   "label": "Tra\u00e7abilit\u00e9 Sortie",
+   "options": "\nScan\nBon Sign\u00e9\nAucune\nPartielle"
+  },
+  {
+   "fieldname": "column_break_sorties",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commentaires_sorties",
+   "fieldtype": "Text Editor",
+   "label": "Commentaires Sorties"
+  },
+  {
+   "fieldname": "section_break_transferts",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "demande_approbation",
+   "fieldtype": "Check",
+   "label": "Demande & Approbation Formalis\u00e9e"
+  },
+  {
+   "fieldname": "preuve_livraison",
+   "fieldtype": "Select",
+   "label": "Preuve de Livraison",
+   "options": "\nDocument\nScan\nAucune\nPartielle"
+  },
+  {
+   "fieldname": "column_break_transferts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commentaires_transferts",
+   "fieldtype": "Text Editor",
+   "label": "Commentaires Transferts"
+  },
+  {
+   "fieldname": "section_break_inventaires",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "frequence_inventaire",
+   "fieldtype": "Select",
+   "label": "Fr\u00e9quence Inventaire",
+   "options": "\nTournant\nAnnuel\nTrimestriel\nMensuel\nAucun"
+  },
+  {
+   "fieldname": "ecarts_inventaire",
+   "fieldtype": "Text Editor",
+   "label": "\u00c9carts Observ\u00e9s et Traitement"
+  },
+  {
+   "fieldname": "column_break_inventaires",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commentaires_inventaire",
+   "fieldtype": "Text Editor",
+   "label": "Commentaires Inventaires"
+  },
+  {
+   "fieldname": "section_break_outils",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "modeles_excel",
+   "fieldtype": "Attach",
+   "label": "Mod\u00e8les Excel"
+  },
+  {
+   "fieldname": "formulaires_papier",
+   "fieldtype": "Attach",
+   "label": "Formulaires Papier"
+  },
+  {
+   "fieldname": "column_break_outils",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rapports_utilises",
+   "fieldtype": "Text Editor",
+   "label": "Rapports Utilis\u00e9s"
+  },
+  {
+   "fieldname": "section_break_points",
+   "fieldtype": "Section Break",
+   "label": "Points Forts / Points Faibles"
+  },
+  {
+   "fieldname": "points_forts",
+   "fieldtype": "Text Editor",
+   "label": "Points Forts"
+  },
+  {
+   "fieldname": "points_faibles",
+   "fieldtype": "Text Editor",
+   "label": "Points Faibles / Irritants"
+  },
+  {
+   "fieldname": "idees_amelioration",
+   "fieldtype": "Text Editor",
+   "label": "Id\u00e9es d'Am\u00e9lioration"
+  },
+  {
+   "fieldname": "section_break_validation",
+   "fieldtype": "Section Break",
+   "label": "Validation"
+  },
+  {
+   "fieldname": "signature_responsable",
+   "fieldtype": "Data",
+   "label": "Nom & Signature Responsable"
+  },
+  {
+   "fieldname": "commentaires_validation",
+   "fieldtype": "Text Editor",
+   "label": "Commentaires Validation"
+  },
+  {
+   "fieldname": "organisation_et_zones_tab",
+   "fieldtype": "Tab Break",
+   "label": "Organisation"
+  },
+  {
+   "fieldname": "entr\u00e9es_et_r\u00e9ception_tab",
+   "fieldtype": "Tab Break",
+   "label": "Entr\u00e9es / R\u00e9ception"
+  },
+  {
+   "fieldname": "stockage_et_emplacements_tab",
+   "fieldtype": "Tab Break",
+   "label": "Stockage / Emplacements"
+  },
+  {
+   "fieldname": "sorties__picking_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sorties / Picking"
+  },
+  {
+   "fieldname": "transferts_inter_sites_tab",
+   "fieldtype": "Tab Break",
+   "label": "Transferts Inter Sites"
+  },
+  {
+   "fieldname": "inventaires_tab",
+   "fieldtype": "Tab Break",
+   "label": "Inventaires"
+  },
+  {
+   "fieldname": "outils__documents_tab",
+   "fieldtype": "Tab Break",
+   "label": "Outils / Documents"
+  },
+  {
+   "default": "Planifi\u00e9",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Planifi\u00e9\nEn Cours\nTermin\u00e9\nAnnul\u00e9",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_vmca",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_pdox",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_yiyt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_auho",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_fqob",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_fwlc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_gvjl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_gfwj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_xmms",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_zuji",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_lvja",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_cyyz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_rxzy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_gyvu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_eqwb",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-10 09:21:20.443810",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Visite Entrepot",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Stock User",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Planifi\u00e9"
+  },
+  {
+   "color": "Orange",
+   "title": "En Cours"
+  },
+  {
+   "color": "Green",
+   "title": "Termin\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "Annul\u00e9"
+  }
+ ],
+ "title_field": "site_entrepot",
+ "track_changes": 1
+}
