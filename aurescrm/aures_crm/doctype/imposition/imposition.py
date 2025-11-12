@@ -152,6 +152,46 @@ def recalculate_for_combination(client, article, trace):
 
 
 @frappe.whitelist()
+def get_all_impositions_for_trace(client, article, trace):
+	"""
+	Récupère toutes les impositions pour une combinaison Client/Article/Tracé
+	Retourne une liste triée par taux de chutes croissant (meilleur taux en premier)
+	"""
+	try:
+		# Récupérer toutes les impositions avec la même combinaison
+		impositions = frappe.get_all(
+			"Imposition",
+			filters={
+				"client": client,
+				"article": article,
+				"trace": trace
+			},
+			fields=["name", "taux_chutes", "format_imp", "nbr_poses", "defaut"]
+		)
+		
+		# Convertir en liste de dictionnaires avec valeurs par défaut
+		result = []
+		for imp in impositions:
+			taux_chutes = imp.get("taux_chutes")
+			result.append({
+				"name": imp.get("name") or "",
+				"taux_chutes": taux_chutes,  # Garder None pour le tri
+				"format_imp": imp.get("format_imp") or "",
+				"nbr_poses": imp.get("nbr_poses") or 0,
+				"defaut": imp.get("defaut") or 0
+			})
+		
+		# Trier par taux de chutes croissant (None/null en dernier)
+		# Utiliser une clé de tri qui met None à la fin
+		result.sort(key=lambda x: (x["taux_chutes"] is None, x["taux_chutes"] if x["taux_chutes"] is not None else float('inf')))
+		
+		return result
+	except Exception as e:
+		frappe.log_error(message=str(e), title="Erreur get_all_impositions_for_trace")
+		return []
+
+
+@frappe.whitelist()
 def get_imposition_ideale(client, article, trace, current_imposition=None):
 	"""
 	Récupère l'imposition idéale pour une combinaison Client/Article/Tracé

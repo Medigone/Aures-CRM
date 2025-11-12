@@ -373,14 +373,15 @@ function load_trace_imposition_links(frm) {
                         <button class='btn btn-xs btn-light' onclick="openAttachedFile('Imposition', '${frm.doc.imposition}'); return false;" title="${__('Ouvrir le fichier Imposition attaché')}">
                             Ouvrir Fichier
                        </button>
+                        ${frm.doc.status === "En étude" && frm.doc.trace ? `<button class='btn btn-xs btn-primary' onclick="changeImposition('${frm.docname}'); return false;" title="${__('Changer l\'imposition sélectionnée')}">Changer d'imposition</button>` : ''}
                     </div>
                  </div>`;
     } else {
         html += `<p style='font-size: 11px; color: var(--text-muted);'>Aucune imposition liée.</p>`;
-        // Show "Create Imposition" button only if status allows, trace exists, and imposition doesn't
+        // Show "Create/Select Imposition" button only if status allows, trace exists, and imposition doesn't
         if (frm.doc.status === "En étude" && frm.doc.trace && !frm.doc.imposition) {
             html += `<div class='ef-create-btn'>
-                        <button class='btn btn-xs btn-primary' onclick="createImposition('${frm.docname}'); return false;">Créer Imposition</button>
+                        <button class='btn btn-xs btn-primary' onclick="createImposition('${frm.docname}'); return false;">Créer/Sélectionner Imposition</button>
                      </div>`;
         } else if (frm.doc.status === "En étude" && !frm.doc.trace) {
             html += `<p style='font-size: 11px; color: var(--text-muted);'>Créez ou liez un Tracé pour créer une Imposition.</p>`;
@@ -615,21 +616,20 @@ function load_trace_imposition_links(frm) {
                 return;
             }
             
-            // Vérifier d'abord s'il existe une imposition idéale
+            // Récupérer toutes les impositions disponibles pour ce trace
             frappe.call({
-                method: 'aurescrm.aures_crm.doctype.imposition.imposition.get_imposition_ideale',
+                method: 'aurescrm.aures_crm.doctype.imposition.imposition.get_all_impositions_for_trace',
                 args: {
                     client: frm.doc.client,
                     article: frm.doc.article,
-                    trace: frm.doc.trace,
-                    current_imposition: null
+                    trace: frm.doc.trace
                 },
                 callback: function(r_check) {
-                    if (r_check.message) {
-                        // Une imposition idéale existe, proposer de la lier
-                        show_imposition_choice_dialog(frm, r_check.message);
+                    if (r_check.message && r_check.message.length > 0) {
+                        // Des impositions existent, afficher la liste
+                        show_impositions_list_dialog(frm, r_check.message);
                     } else {
-                        // Aucune imposition idéale, créer directement
+                        // Aucune imposition, créer directement
                         create_new_imposition(frm);
                     }
                 }
@@ -638,78 +638,145 @@ function load_trace_imposition_links(frm) {
     }
     
     /**
-     * Affiche un dialogue de choix entre utiliser l'imposition idéale ou en créer une nouvelle
+     * Ouvre la fenêtre de sélection pour changer l'imposition sélectionnée
+     * @param {string} docname - Name of the current Etude Faisabilite document.
      */
-    if (!window.show_imposition_choice_dialog) {
-        window.show_imposition_choice_dialog = function(frm, imposition_ideale) {
-            var choice_dialog = new frappe.ui.Dialog({
-                title: `<div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724;">
-                    <span style="font-size: 16px;">✓</span>
-                    <span>Imposition idéale disponible</span>
-                </div>`,
+    if (!window.changeImposition) {
+        window.changeImposition = function(docname) {
+            var frm = cur_frm;
+            if (!frm.doc.client || !frm.doc.article || !frm.doc.trace) {
+                frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir Client, Article et Tracé avant de changer l\'Imposition.'), indicator: 'orange' });
+                return;
+            }
+            
+            // Récupérer toutes les impositions disponibles pour ce trace
+            frappe.call({
+                method: 'aurescrm.aures_crm.doctype.imposition.imposition.get_all_impositions_for_trace',
+                args: {
+                    client: frm.doc.client,
+                    article: frm.doc.article,
+                    trace: frm.doc.trace
+                },
+                callback: function(r_check) {
+                    if (r_check.message && r_check.message.length > 0) {
+                        // Des impositions existent, afficher la liste
+                        show_impositions_list_dialog(frm, r_check.message);
+                    } else {
+                        // Aucune imposition, proposer de créer une nouvelle
+                        frappe.confirm(
+                            __('Aucune imposition disponible pour ce trace. Voulez-vous en créer une nouvelle ?'),
+                            function() {
+                                // Oui - créer une nouvelle imposition
+                                create_new_imposition(frm);
+                            },
+                            function() {
+                                // Non - annuler
+                            }
+                        );
+                    }
+                }
+            });
+        };
+    }
+    
+    /**
+     * Affiche un dialogue listant toutes les impositions disponibles avec possibilité de sélection ou création
+     */
+    if (!window.show_impositions_list_dialog) {
+        window.show_impositions_list_dialog = function(frm, impositions) {
+            // Construire le HTML du tableau
+            let tableRows = '';
+            const currentImposition = frm.doc.imposition;
+            impositions.forEach(function(imp) {
+                const isCurrent = imp.name === currentImposition;
+                const badgeHtml = imp.defaut === 1 || imp.defaut === '1' || imp.defaut === true
+                    ? `<span style="padding: 2px 8px; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; border-radius: 8px; font-size: 11px; font-weight: 600;">Idéale</span>`
+                    : '';
+                const currentBadgeHtml = isCurrent
+                    ? `<span style="padding: 2px 8px; background-color: #cfe2ff; border: 1px solid #9ec5fe; color: #084298; border-radius: 8px; font-size: 11px; font-weight: 600; margin-left: 5px;">Actuelle</span>`
+                    : '';
+                const rowStyle = isCurrent ? 'border-bottom: 1px solid #d1d8dd; background-color: #f0f7ff;' : 'border-bottom: 1px solid #d1d8dd;';
+                
+                tableRows += `
+                    <tr style="${rowStyle}">
+                        <td style="padding: 12px; vertical-align: middle; text-align: center;">
+                            ${imp.format_imp || 'N/A'}
+                        </td>
+                        <td style="padding: 12px; vertical-align: middle; text-align: center;">
+                            ${imp.nbr_poses || 0}
+                        </td>
+                        <td style="padding: 12px; vertical-align: middle; text-align: center;">
+                            ${imp.taux_chutes != null ? imp.taux_chutes : 0}%
+                        </td>
+                        <td style="padding: 12px; vertical-align: middle; text-align: center;">
+                            ${badgeHtml}${currentBadgeHtml}
+                        </td>
+                        <td style="padding: 12px; vertical-align: middle; text-align: center;">
+                            <button class="btn btn-xs btn-primary" onclick="selectImposition('${imp.name}', ${imp.taux_chutes != null ? imp.taux_chutes : 0}); return false;" ${isCurrent ? 'disabled' : ''}>
+                                ${isCurrent ? 'Sélectionnée' : 'Sélectionner'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            const tableHtml = `
+                <div style="margin-bottom: 20px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background-color: #f8f9fa; border-bottom: 2px solid #d1d8dd;">
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Dimensions</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Nombre de poses</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Taux de chutes</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Statut</th>
+                                <th style="padding: 12px; text-align: center; font-weight: 600;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            var list_dialog = new frappe.ui.Dialog({
+                title: __('Sélectionner une Imposition'),
                 fields: [
                     {
                         fieldtype: 'HTML',
-                        fieldname: 'info_html',
-                        options: `
-                            <div style="padding: 15px; margin-bottom: 15px; background-color: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
-                                <div style="font-size: 14px; color: #495057; margin-bottom: 12px;">
-                                    <strong style="color: #155724; font-size: 15px;">${imposition_ideale.name}</strong> 
-                                    <span style="margin-left: 10px; padding: 2px 8px; background-color: #d4edda; color: #155724; border-radius: 8px; font-size: 12px; font-weight: 600;">
-                                        Taux: ${imposition_ideale.taux_chutes}%
-                                    </span>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-                                    <div style="font-size: 12px;">
-                                        <span style="color: #6c757d; font-weight: 500;">Format d'impression:</span><br>
-                                        <strong style="color: #495057;">${imposition_ideale.format_imp || 'N/A'}</strong>
-                                    </div>
-                                    <div style="font-size: 12px;">
-                                        <span style="color: #6c757d; font-weight: 500;">Nombre de poses:</span><br>
-                                        <strong style="color: #495057;">${imposition_ideale.nbr_poses || 'N/A'}</strong>
-                                    </div>
-                                    <div style="font-size: 12px;">
-                                        <span style="color: #6c757d; font-weight: 500;">Laize / Palette:</span><br>
-                                        <strong style="color: #495057;">${imposition_ideale.laize_pal || 'N/A'}</strong>
-                                    </div>
-                                    <div style="font-size: 12px;">
-                                        <span style="color: #6c757d; font-weight: 500;">Format Laize/Palette:</span><br>
-                                        <strong style="color: #495057;">${imposition_ideale.format_laize_palette || 'N/A'}</strong>
-                                    </div>
-                                </div>
-                                
-                                <div style="font-size: 12px; color: #6c757d; font-style: italic; padding-top: 8px; border-top: 1px solid #dee2e6;">
-                                    Cette imposition a le taux de chutes le plus bas pour cette combinaison Client/Article/Tracé.
-                                </div>
-                            </div>
-                            <div style="font-size: 13px; color: #495057; font-weight: 500;">
-                                Souhaitez-vous utiliser cette imposition ou en créer une nouvelle ?
-                            </div>
-                        `
+                        fieldname: 'impositions_table',
+                        options: tableHtml
                     }
                 ],
-                primary_action_label: __('Utiliser l\'imposition idéale'),
+                primary_action_label: __('Créer une nouvelle imposition'),
                 primary_action: function() {
-                    // Lier l'imposition idéale existante
-                    frm.set_value('imposition', imposition_ideale.name);
-                    frm.set_value('taux_chutes', imposition_ideale.taux_chutes);
-                    frappe.show_alert({message: __('Imposition idéale liée avec succès'), indicator: 'green'}, 3);
-                    choice_dialog.hide();
-                    // Sauvegarder et rafraîchir
-                    frm.save()
-                        .then(() => {
-                            load_trace_imposition_links(frm);
-                            refresh_attached_files(frm);
-                        });
-                },
-                secondary_action_label: __('Créer une nouvelle'),
-                secondary_action: function() {
-                    choice_dialog.hide();
+                    list_dialog.hide();
                     create_new_imposition(frm);
+                },
+                secondary_action_label: __('Annuler'),
+                secondary_action: function() {
+                    list_dialog.hide();
                 }
             });
-            choice_dialog.show();
+            
+            // Fonction pour sélectionner une imposition (définie dans le scope de la fonction pour accéder à list_dialog)
+            var selectImposition = function(imposition_name, taux_chutes) {
+                frm.set_value('imposition', imposition_name);
+                frm.set_value('taux_chutes', taux_chutes);
+                frappe.show_alert({message: __('Imposition sélectionnée avec succès'), indicator: 'green'}, 3);
+                list_dialog.hide();
+                // Sauvegarder et rafraîchir
+                frm.save()
+                    .then(() => {
+                        load_trace_imposition_links(frm);
+                        refresh_attached_files(frm);
+                    });
+            };
+            
+            // Exposer la fonction globalement pour qu'elle soit accessible depuis les boutons onclick
+            window.selectImposition = selectImposition;
+            
+            list_dialog.show();
         };
     }
     
