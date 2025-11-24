@@ -53,3 +53,46 @@ class VisiteCommerciale(Document):
         """
         if self.status == "En Cours":
             self.date = today()
+
+@frappe.whitelist()
+def get_events(start, end, filters=None):
+    """
+    Récupère les événements pour le calendrier avec des couleurs personnalisées selon le statut.
+    """
+    if not frappe.has_permission("Visite Commerciale", "read"):
+        return []
+
+    conditions = [
+        ["date", ">=", start],
+        ["date", "<=", end]
+    ]
+    
+    if filters:
+        if isinstance(filters, str):
+            import json
+            filters = json.loads(filters)
+        
+        if isinstance(filters, dict):
+            for key, value in filters.items():
+                conditions.append([key, "=", value])
+        elif isinstance(filters, list):
+            for filter in filters:
+                conditions.append(filter)
+
+    events = frappe.db.get_all("Visite Commerciale", filters=conditions, fields=["name", "date", "nom_client", "client", "status"])
+
+    for event in events:
+        event["start"] = event.get("date")
+        event["end"] = event.get("date")
+        event["title"] = event.get("nom_client") or event.get("client")
+        
+        if event["status"] == "Nouveau":
+            event["color"] = "#d0ebff" # Bleu clair
+        elif event["status"] == "En Cours":
+            event["color"] = "#ffec99" # Orange clair
+        elif event["status"] == "Terminé":
+            event["color"] = "#b2f2bb" # Vert clair
+        elif event["status"] == "Annulé":
+            event["color"] = "#e9ecef" # Gris clair
+            
+    return events

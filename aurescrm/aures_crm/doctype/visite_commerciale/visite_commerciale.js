@@ -85,3 +85,14 @@ function updateMap(frm, gpsCoords) {
     const mapUrl = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBhtddbDMEu4OoBJAxlfYADptjTspOqflw&q=${latitude},${longitude}&zoom=15`;
     $(frm.fields_dict['carte'].wrapper).html(`<iframe width="100%" height="300" frameborder="0" style="border:0" src="${mapUrl}" allowfullscreen></iframe>`);
 }
+
+// Configuration du calendrier pour "Visite Commerciale"
+frappe.views.calendar["Visite Commerciale"] = {
+    field_map: {
+        "start": "date",    // Date prévue de la visite
+        "end": "date",      // Même champ pour les visites ponctuelles
+        "id": "name",              // Identifiant unique
+        "title": "nom_client"      // Utiliser le nom du client (customer_name)
+    },
+    get_events_method: "aurescrm.aures_crm.doctype.visite_commerciale.visite_commerciale.get_events"
+};

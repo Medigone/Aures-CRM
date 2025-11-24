@@ -1,17 +1,17 @@
 {
  "actions": [],
- "allow_auto_repeat": 1,
+ "allow_events_in_timeline": 1,
  "allow_rename": 1,
  "autoname": "format:VC-{MM}-{YY}-{####}",
  "creation": "2024-08-13 14:34:07.593727",
+ "default_view": "List",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "section_break_bceu",
   "status",
-  "date_prevue",
-  "type_visite",
   "date",
+  "type_visite",
   "date_rdv",
   "column_break_bntm",
   "utilisateur",
@@ -19,6 +19,7 @@
   "amended_from",
   "section_break_jq1i",
   "client",
+  "nom_client",
   "column_break_yzkg",
   "groupe_client",
   "notes_tab",
@@ -78,12 +79,13 @@
    "set_only_once": 1
   },
   {
+   "default": "Today",
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Date",
-   "read_only": 1
+   "reqd": 1
   },
   {
    "allow_in_quick_entry": 1,
@@ -96,6 +98,13 @@
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "label": "Nom Client",
+   "read_only": 1
   },
   {
    "fetch_from": "client.custom_commune",
@@ -241,17 +250,10 @@
    "fieldtype": "Tab Break",
    "label": "Liens",
    "show_dashboard": 1
-  },
-  {
-   "default": "Today",
-   "fieldname": "date_prevue",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Date Pr\u00e9vue"
   }
  ],
  "grid_page_length": 50,
+ "is_calendar_and_gantt": 1,
  "is_submittable": 1,
  "links": [
   {
@@ -259,7 +261,7 @@
    "link_fieldname": "visite"
   }
  ],
- "modified": "2025-11-24 20:01:24.424429",
+ "modified": "2025-11-24 21:42:48.852288",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
@@ -334,5 +336,6 @@
    "title": "Annul\u00e9"
   }
  ],
+ "title_field": "nom_client",
  "track_changes": 1
 }
