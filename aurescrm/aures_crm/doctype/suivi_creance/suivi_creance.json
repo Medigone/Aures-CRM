@@ -4,10 +4,11 @@
  "creation": "2025-05-14 14:04:51.887055",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": [
-  "section_break_cosn",
-  "status",
-  "date",
+"field_order": [
+ "section_break_cosn",
+ "status",
+ "mode_calcul_montant",
+ "date",
   "column_break_agrw",
   "date_prom_paiement",
   "id_utilisateur",
@@ -47,6 +48,14 @@
    "hidden": 1,
    "label": "Statut",
    "options": "Nouveau\nPromesse de paiement\nPartiellement r\u00e9gl\u00e9\nTotalement r\u00e9gl\u00e9\nLitige\nObsol\u00e8te"
+  },
+  {
+   "default": "Manuel",
+   "fieldname": "mode_calcul_montant",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Mode de calcul",
+   "options": "Manuel\nAutomatique"
   },
   {
    "fieldname": "section_break_dbcd",
@@ -101,7 +110,7 @@
    "in_list_view": 1,
    "label": "Montant total d\u00fb",
    "precision": "2",
-   "read_only": 1
+  "read_only": 0
   },
   {
    "fieldname": "observations",

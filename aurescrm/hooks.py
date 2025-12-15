@@ -104,11 +104,11 @@ after_install = "aurescrm.install.after_install"
 # Permissions evaluated in scripted ways
 
 permission_query_conditions = {
-    # "Customer": "aurescrm.custom_permissions.get_customer_permission_query_conditions",
+    "Customer": "aurescrm.custom_permissions.get_customer_permission_query_conditions",
     "Quotation": "aurescrm.custom_permissions.get_quotation_permission_query_conditions",
     "Sales Order": "aurescrm.custom_permissions.get_sales_order_permission_query_conditions",
     "Delivery Note": "aurescrm.custom_permissions.get_delivery_note_permission_query_conditions",
-    # "Item": "aurescrm.custom_permissions.get_item_permission_query_conditions",
+    "Item": "aurescrm.custom_permissions.get_item_permission_query_conditions",
     "Sales Invoice": "aurescrm.custom_permissions.get_sales_invoice_permission_query_conditions",
     "Payment Entry": "aurescrm.custom_permissions.get_payment_entry_permission_query_conditions",
     "BOM": "aurescrm.custom_permissions.get_bom_permission_query_conditions",
@@ -197,10 +197,9 @@ doc_events = {
         "before_submit": "aurescrm.sales_order_hooks.validate_bon_de_commande"
         # Vous pourriez avoir d'autres hooks ici
     },
-    # Ajout du hook pour Suivi Creance
-    # "Suivi Creance": {
-    #     "before_insert": "aurescrm.aures_crm.doctype.suivi_creance.suivi_creance.recuperer_factures_impayees"
-    # }
+    "Suivi Creance": {
+        "before_save": "aurescrm.aures_crm.doctype.suivi_creance.suivi_creance.trigger_facture_recovery_on_mode_change"
+    },
     # Vous pourriez avoir d'autres DocTypes ici
     "Meeting Interne": {
         "before_save": "aurescrm.aures_crm.doctype.meeting_interne.meeting_interne.calculate_meeting_metrics",

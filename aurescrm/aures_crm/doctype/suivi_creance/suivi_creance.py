@@ -6,13 +6,9 @@ from frappe.model.document import Document
 
 
 class SuiviCreance(Document):
-    def after_insert(self):
-        """Appelé automatiquement après l'insertion d'un nouveau document"""
-        self.recuperer_factures_impayees()
-    
     def validate(self):
         """Appelé avant l'enregistrement du document"""
-        self.calculer_pourcentage_recouvrement()
+        self.mettre_a_jour_montants_recouvrement()
     
     def calculer_pourcentage_recouvrement(self):
         """Calcule le pourcentage de recouvrement"""
@@ -21,14 +17,34 @@ class SuiviCreance(Document):
         else:
             self.pourcentage_recouvrement = 0
     
+    def mettre_a_jour_montants_recouvrement(self):
+        """Met à jour les montants dérivés du recouvrement"""
+        if self.mode_calcul_montant == "Automatique":
+            self.montant_tot_du = sum((row.montant_du or 0) for row in self.factures)
+
+        self.calculer_pourcentage_recouvrement()
+        total_du = self.montant_tot_du or 0
+        paiement = self.montant_payement or 0
+        montant_restant = total_du - paiement
+        self.montant_restant = montant_restant if montant_restant > 0 else 0
+
     def recuperer_factures_impayees(self):
         """Récupère toutes les factures impayées pour le client sélectionné"""
         frappe.logger().debug(f"Début récupération factures pour client: {self.id_client}")
-        
+
+        if self.mode_calcul_montant != "Automatique":
+            frappe.logger().debug("Mode manuel, récupération des factures ignorée")
+            return
+
         if not self.id_client:
             frappe.logger().debug("Pas de client sélectionné")
+            self.set("factures", [])
+            self.montant_tot_du = 0
+            self.mettre_a_jour_montants_recouvrement()
             return
-                
+
+        self.set("factures", [])
+
         factures = frappe.get_all(
             "Sales Invoice",
             filters={
@@ -38,9 +54,8 @@ class SuiviCreance(Document):
             },
             fields=["name", "posting_date", "outstanding_amount"]
         )
-        
+
         frappe.logger().debug(f"Factures trouvées: {len(factures)}")
-        # Ajouter les factures à la table enfant
         for facture in factures:
             self.append("factures", {
                 "facture": facture.name,
@@ -48,12 +63,9 @@ class SuiviCreance(Document):
                 "montant_du": facture.outstanding_amount,
                 "montant_paiement": 0
             })
-        
-        # Calculer le montant total dû
+
         self.montant_tot_du = sum(row.montant_du for row in self.factures)
-        
-        # Sauvegarder les modifications
-        self.save(ignore_permissions=True)
+        self.mettre_a_jour_montants_recouvrement()
     
     @frappe.whitelist()
     def generer_ecritures_paiement(self):
@@ -109,3 +121,20 @@ class SuiviCreance(Document):
         
         montant_formate = frappe.format_value(montant_total, "Currency", currency="DZD")
         frappe.msgprint(f"Écriture de paiement créée pour un montant total de <strong>{montant_formate}</strong>")
+
+
+def trigger_facture_recovery_on_mode_change(doc, method=None):
+    """Hook: synchronise les factures lors du passage en mode automatique"""
+    if getattr(doc.flags, "skip_mode_calcul_hook", False):
+        return
+
+    if doc.mode_calcul_montant != "Automatique":
+        return
+
+    if doc.is_new():
+        doc.recuperer_factures_impayees()
+        return
+
+    previous_mode = frappe.db.get_value(doc.doctype, doc.name, "mode_calcul_montant")
+    if previous_mode != "Automatique":
+        doc.recuperer_factures_impayees()

@@ -10,6 +10,8 @@ frappe.ui.form.on("Suivi Creance", {
 			return; // Sortir de la fonction pour ne pas afficher les boutons
 		}
 
+		toggleMontantTotDuState(frm);
+
 		// Mettre à jour la barre de progression
 		updateProgressBar(frm);
 
@@ -82,6 +84,36 @@ frappe.ui.form.on("Suivi Creance", {
 
 		// Gestionnaire d'événement pour le bouton Paiement
 		$(frm.fields_dict.html_bout_payement.wrapper).find("#btn-paiement").on("click", () => {
+			const hasInvoices = Array.isArray(frm.doc.factures) && frm.doc.factures.length > 0;
+			let dialogInstance;
+
+			const toggleRepartitionSection = () => {
+				if (!hasInvoices || !dialogInstance) {
+					return;
+				}
+
+				const type_paiement = dialogInstance.get_value('type_paiement');
+				const montant = dialogInstance.get_value('montant_payement') || 0;
+
+				if (type_paiement && montant > 0) {
+					dialogInstance.set_value('montant_restant', montant);
+
+					let montant_restant = montant;
+					frm.doc.factures.forEach(function(row) {
+						if (montant_restant > 0) {
+							const montant_du = row.montant_du || 0;
+							const montant_a_repartir = Math.min(montant_restant, montant_du);
+							dialogInstance.set_value(`paiement_${row.name}`, montant_a_repartir);
+							montant_restant -= montant_a_repartir;
+						} else {
+							dialogInstance.set_value(`paiement_${row.name}`, 0);
+						}
+					});
+
+					dialogInstance.set_value('montant_restant', montant_restant);
+				}
+			};
+
 			let fields = [
 				{
 					fieldtype: "Section Break",
@@ -108,7 +140,7 @@ frappe.ui.form.on("Suivi Creance", {
 					reqd: 1,
 					default: frm.doc.type_paiement,
 					onchange: function() {
-						toggleRepartitionSection(d);
+						toggleRepartitionSection();
 					}
 				},
 				{
@@ -147,74 +179,80 @@ frappe.ui.form.on("Suivi Creance", {
 					options: "د.ج",
 					depends_on: "eval:doc.type_paiement",
 					onchange: function() {
-						toggleRepartitionSection(d);
+						toggleRepartitionSection();
 					}
-				},
-				{
-					fieldtype: "Section Break",
-					fieldname: "section_repartition",
-					label: "Répartition du paiement",
-					depends_on: "eval:doc.type_paiement"
-				},
-				{
-					label: "Montant restant à répartir",
-					fieldname: "montant_restant",
-					fieldtype: "Currency",
-					read_only: 1,
-					default: 0,
-					options: "د.ج",
-					bold: 1,
-					depends_on: "eval:doc.type_paiement"
 				}
 			];
 
-			// Ajouter dynamiquement les champs pour chaque facture
-			frm.doc.factures.forEach(function(row) {
-				fields.push({
-					label: `Paiement pour ${row.facture} (Montant dû: ${format_currency(row.montant_du, "د.ج", 'ar-DZ')})`,
-					fieldname: `paiement_${row.name}`,
-					fieldtype: "Currency",
-					default: 0,
-					read_only: 0,
-					options: "د.ج",
-					depends_on: "eval:doc.type_paiement",
-					onchange: function() {
-						let montant_saisi = d.get_value(`paiement_${row.name}`) || 0;
-						let montant_du = row.montant_du || 0;
-
-						// Vérifier si le montant saisi dépasse le montant dû
-						if (montant_saisi > montant_du) {
-							frappe.msgprint({
-								title: "Erreur",
-								indicator: "red",
-								message: `Le montant du paiement (${format_currency(montant_saisi, "د.ج", 'ar-DZ')}) ne peut pas dépasser le montant dû (${format_currency(montant_du, "د.ج", 'ar-DZ')}) pour la facture ${row.facture}`
-							});
-							d.set_value(`paiement_${row.name}`, montant_du);
-							montant_saisi = montant_du;
-						}
-
-						let total_reparti = 0;
-						frm.doc.factures.forEach(function(r) {
-							total_reparti += d.get_value(`paiement_${r.name}`) || 0;
-						});
-						
-						let montant_total = d.get_value('montant_payement') || 0;
-						let montant_restant = montant_total - total_reparti;
-						
-						d.set_value('montant_restant', montant_restant);
-						
-						if (total_reparti > montant_total) {
-							frappe.msgprint({
-								title: "Erreur",
-								indicator: "red",
-								message: "Montant réparti supérieur au paiement"
-							});
-						}
+			if (hasInvoices) {
+				fields = fields.concat([
+					{
+						fieldtype: "Section Break",
+						fieldname: "section_repartition",
+						label: "Répartition du paiement",
+						depends_on: "eval:doc.type_paiement"
+					},
+					{
+						label: "Montant restant à répartir",
+						fieldname: "montant_restant",
+						fieldtype: "Currency",
+						read_only: 1,
+						default: 0,
+						options: "د.ج",
+						bold: 1,
+						depends_on: "eval:doc.type_paiement"
 					}
-				});
-			});
+				]);
 
-			let d = new frappe.ui.Dialog({
+				frm.doc.factures.forEach(function(row) {
+					fields.push({
+						label: `Paiement pour ${row.facture} (Montant dû: ${format_currency(row.montant_du, "د.ج", 'ar-DZ')})`,
+						fieldname: `paiement_${row.name}`,
+						fieldtype: "Currency",
+						default: 0,
+						read_only: 0,
+						options: "د.ج",
+						depends_on: "eval:doc.type_paiement",
+						onchange: function() {
+							if (!dialogInstance) {
+								return;
+							}
+							let montant_saisi = dialogInstance.get_value(`paiement_${row.name}`) || 0;
+							const montant_du = row.montant_du || 0;
+
+							if (montant_saisi > montant_du) {
+								frappe.msgprint({
+									title: "Erreur",
+									indicator: "red",
+									message: `Le montant du paiement (${format_currency(montant_saisi, "د.ج", 'ar-DZ')}) ne peut pas dépasser le montant dû (${format_currency(montant_du, "د.ج", 'ar-DZ')}) pour la facture ${row.facture}`
+								});
+								dialogInstance.set_value(`paiement_${row.name}`, montant_du);
+								montant_saisi = montant_du;
+							}
+
+							let total_reparti = 0;
+							frm.doc.factures.forEach(function(r) {
+								total_reparti += dialogInstance.get_value(`paiement_${r.name}`) || 0;
+							});
+
+							const montant_total = dialogInstance.get_value('montant_payement') || 0;
+							const montant_restant = montant_total - total_reparti;
+
+							dialogInstance.set_value('montant_restant', montant_restant);
+
+							if (total_reparti > montant_total) {
+								frappe.msgprint({
+									title: "Erreur",
+									indicator: "red",
+									message: "Montant réparti supérieur au paiement"
+								});
+							}
+						}
+					});
+				});
+			}
+
+			dialogInstance = new frappe.ui.Dialog({
 				title: "Saisir le paiement",
 				fields: fields,
 				primary_action_label: "Valider",
@@ -228,75 +266,58 @@ frappe.ui.form.on("Suivi Creance", {
 						return;
 					}
 
-					let total_reparti = 0;
-					frm.doc.factures.forEach(function(row) {
-						total_reparti += values[`paiement_${row.name}`] || 0;
-					});
-
-					if (total_reparti > values.montant_payement) {
-						frappe.msgprint({
-							title: "Erreur",
-							indicator: "red",
-							message: "Impossible de valider : le montant réparti est supérieur au montant du paiement"
+					if (hasInvoices) {
+						let total_reparti = 0;
+						frm.doc.factures.forEach(function(row) {
+							total_reparti += values[`paiement_${row.name}`] || 0;
 						});
-						return;
-					}
 
-					// Vérifier que tout le montant est réparti
-					if (Math.abs(values.montant_restant) > 0.01) {
-						frappe.msgprint({
-							title: "Erreur",
-							indicator: "red",
-							message: "Veuillez répartir la totalité du montant du paiement sur les factures"
+						if (total_reparti > values.montant_payement) {
+							frappe.msgprint({
+								title: "Erreur",
+								indicator: "red",
+								message: "Impossible de valider : le montant réparti est supérieur au montant du paiement"
+							});
+							return;
+						}
+
+						const reste_a_repartir = values.montant_payement - total_reparti;
+						if (Math.abs(reste_a_repartir) > 0.01) {
+							frappe.msgprint({
+								title: "Erreur",
+								indicator: "red",
+								message: "Veuillez répartir la totalité du montant du paiement sur les factures"
+							});
+							return;
+						}
+
+						frm.doc.factures.forEach(function(row) {
+							frappe.model.set_value(row.doctype, row.name, 'montant_paiement',
+								values[`paiement_${row.name}`] || 0);
 						});
-						return;
 					}
-
-					// Mettre à jour les montants de paiement dans les factures
-					frm.doc.factures.forEach(function(row) {
-						frappe.model.set_value(row.doctype, row.name, 'montant_paiement', 
-							values[`paiement_${row.name}`] || 0);
-					});
 
 					frm.set_value("type_paiement", values.type_paiement);
 					frm.set_value("date_doc_payement", values.date_doc_payement);
 					frm.set_value("n_doc", values.n_doc);
 					frm.set_value("photo", values.photo);
 					frm.set_value("montant_payement", values.montant_payement);
+
+					if (!hasInvoices) {
+						const montant_du = frm.doc.montant_tot_du || 0;
+						const montant_restant = montant_du - values.montant_payement;
+						frm.set_value("montant_restant", montant_restant > 0 ? montant_restant : 0);
+					}
+
 					updateStatus(frm);
 					frm.refresh_field('factures');
 					frm.save();
-					d.hide();
+					dialogInstance.hide();
 				}
 			});
 
-			// Fonction pour gérer l'affichage de la section répartition
-			function toggleRepartitionSection(dialog) {
-				let type_paiement = dialog.get_value('type_paiement');
-				let montant = dialog.get_value('montant_payement') || 0;
-				
-				if (type_paiement && montant > 0) {
-					dialog.set_value('montant_restant', montant);
-					
-					// Pré-remplir les répartitions
-					let montant_restant = montant;
-					frm.doc.factures.forEach(function(row) {
-						if (montant_restant > 0) {
-							let montant_du = row.montant_du || 0;
-							let montant_a_repartir = Math.min(montant_restant, montant_du);
-							dialog.set_value(`paiement_${row.name}`, montant_a_repartir);
-							montant_restant -= montant_a_repartir;
-						} else {
-							dialog.set_value(`paiement_${row.name}`, 0);
-						}
-					});
-					
-					// Mettre à jour le montant restant après la répartition
-					dialog.set_value('montant_restant', montant_restant);
-				}
-			}
-
-			d.show();
+			dialogInstance.show();
+			toggleRepartitionSection();
 		});
 
 		// Gestionnaire d'événement pour le bouton Promesse de paiement
@@ -391,6 +412,22 @@ frappe.ui.form.on("Suivi Creance", {
 				}
 			}
 		}
+	},
+
+	mode_calcul_montant(frm) {
+		toggleMontantTotDuState(frm);
+	},
+
+	montant_tot_du(frm) {
+		if (frm.doc.mode_calcul_montant === 'Automatique') {
+			return;
+		}
+
+		const montant_du = frm.doc.montant_tot_du || 0;
+		const montant_payement = frm.doc.montant_payement || 0;
+		const montant_restant = montant_du - montant_payement;
+		frm.set_value('montant_restant', montant_restant > 0 ? montant_restant : 0);
+		updateStatus(frm);
 	},
 	
 	id_client: function(frm) {
@@ -491,4 +528,10 @@ function updateProgressBar(frm) {
 	if (frm.fields_dict["progression"]) {
         frm.fields_dict["progression"].$wrapper.html(gaugeHTML);
     }
+}
+
+function toggleMontantTotDuState(frm) {
+	const isAuto = frm.doc.mode_calcul_montant === 'Automatique';
+	frm.set_df_property('montant_tot_du', 'read_only', Boolean(isAuto));
+	frm.refresh_field('montant_tot_du');
 }
