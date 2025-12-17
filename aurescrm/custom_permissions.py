@@ -1,9 +1,49 @@
 import frappe
 
+
 def is_exempt_user(user):
     """Renvoie True si l'utilisateur possède le rôle 'Administrator' ou 'System Manager'."""
     roles = frappe.get_roles(user)
     return "Administrator" in roles or "System Manager" in roles
+
+
+@frappe.whitelist()
+def can_edit_customer(customer_name):
+    """
+    API pour vérifier si l'utilisateur courant peut éditer un client.
+    Retourne un dict avec:
+    - can_edit: True/False
+    - commercial_attribue: email du commercial attribué (ou None)
+    - nom_commercial: nom affiché du commercial (ou None)
+    - reason: raison si non éditable
+    """
+    user = frappe.session.user
+    
+    # Admin et System Manager: tout autorisé
+    if is_exempt_user(user):
+        return {"can_edit": True, "commercial_attribue": None, "nom_commercial": None, "reason": "exempt"}
+    
+    # Récupérer le commercial attribué et son nom directement en base (bypass permlevel)
+    customer_data = frappe.db.get_value(
+        "Customer", 
+        customer_name, 
+        ["custom_commercial_attribué", "custom_nom_commercial"],
+        as_dict=True
+    )
+    
+    commercial_attribue = customer_data.get("custom_commercial_attribué") if customer_data else None
+    nom_commercial = customer_data.get("custom_nom_commercial") if customer_data else None
+    
+    # Si pas de commercial attribué, tout le monde peut éditer
+    if not commercial_attribue:
+        return {"can_edit": True, "commercial_attribue": None, "nom_commercial": None, "reason": "not_assigned"}
+    
+    # Si l'utilisateur est le commercial attribué
+    if commercial_attribue == user:
+        return {"can_edit": True, "commercial_attribue": commercial_attribue, "nom_commercial": nom_commercial, "reason": "owner"}
+    
+    # Sinon, lecture seule
+    return {"can_edit": False, "commercial_attribue": commercial_attribue, "nom_commercial": nom_commercial, "reason": "other_commercial"}
 
 
 def has_customer_permission(doc, ptype, user):

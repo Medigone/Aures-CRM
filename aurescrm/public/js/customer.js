@@ -3,48 +3,43 @@
  * - Met le formulaire en lecture seule si l'utilisateur n'est pas le commercial attribué
  * - Masque tous les onglets sauf "Détails"
  */
+
 frappe.ui.form.on("Customer", {
     refresh: function(frm) {
-        apply_customer_restrictions(frm);
-    },
-    
-    onload: function(frm) {
-        apply_customer_restrictions(frm);
+        // Ne rien faire pour les nouveaux documents
+        if (frm.is_new()) {
+            return;
+        }
+        
+        // Appeler l'API serveur pour vérifier les permissions
+        frappe.call({
+            method: "aurescrm.custom_permissions.can_edit_customer",
+            args: {
+                customer_name: frm.doc.name
+            },
+            callback: function(r) {
+                if (r.message && !r.message.can_edit) {
+                    // Utiliser le nom du commercial s'il existe, sinon l'email
+                    const commercial_display = r.message.nom_commercial || r.message.commercial_attribue;
+                    
+                    // Mettre le formulaire en lecture seule
+                    set_form_read_only(frm, commercial_display);
+                    
+                    // Masquer les onglets sauf "Détails"
+                    hide_tabs_except_details(frm);
+                }
+            }
+        });
     }
 });
 
-function apply_customer_restrictions(frm) {
-    // Ne rien faire pour les nouveaux documents
-    if (frm.is_new()) {
-        return;
-    }
-    
-    const user = frappe.session.user;
-    const commercial_attribue = frm.doc.custom_commercial_attribué;
-    
-    // Vérifier si l'utilisateur est exempté (Admin ou System Manager)
-    const is_exempt = frappe.user_roles.includes("Administrator") || 
-                      frappe.user_roles.includes("System Manager");
-    
-    if (is_exempt) {
-        return;
-    }
-    
-    // Si le commercial est attribué et différent de l'utilisateur courant
-    const is_restricted = commercial_attribue && commercial_attribue !== user;
-    
-    if (is_restricted) {
-        // Mettre le formulaire en lecture seule
-        set_form_read_only(frm);
-        
-        // Masquer les onglets sauf "Détails"
-        hide_tabs_except_details(frm);
-    }
-}
-
-function set_form_read_only(frm) {
-    // Désactiver tous les champs
-    frm.set_read_only();
+function set_form_read_only(frm, commercial_attribue) {
+    // Désactiver tous les champs un par un
+    frm.fields.forEach(function(field) {
+        if (field.df && field.df.fieldname) {
+            frm.set_df_property(field.df.fieldname, "read_only", 1);
+        }
+    });
     
     // Désactiver le bouton de sauvegarde
     frm.disable_save();
@@ -53,39 +48,44 @@ function set_form_read_only(frm) {
     frm.page.clear_primary_action();
     frm.page.clear_secondary_action();
     
-    // Afficher un message d'information
-    frm.dashboard.add_comment(
-        __("Ce client est attribué à un autre commercial. Vous êtes en mode lecture seule."),
-        "blue",
-        true
+    // Masquer le bouton Menu > Supprimer et autres actions
+    frm.page.clear_menu();
+    
+    // Afficher un message d'information en haut du formulaire
+    frm.set_intro(
+        __("Ce client est attribué à <b>{0}</b>. Vous êtes en mode lecture seule.", [commercial_attribue]),
+        "blue"
     );
 }
 
 function hide_tabs_except_details(frm) {
-    // Récupérer tous les Tab Break du formulaire
-    const tab_breaks = frm.meta.fields.filter(df => df.fieldtype === "Tab Break");
-    
-    if (!tab_breaks.length) {
-        return;
-    }
-    
-    // Labels autorisés pour l'onglet "Détails" (français et anglais)
-    const allowed_labels = ["Détails", "Details", "détails", "details"];
-    
-    tab_breaks.forEach(function(df) {
-        const translated_label = __(df.label);
-        const is_details_tab = allowed_labels.some(label => 
-            translated_label.toLowerCase() === label.toLowerCase() ||
-            (df.label && df.label.toLowerCase() === label.toLowerCase())
-        );
+    // Utiliser setTimeout pour s'assurer que le DOM est prêt
+    setTimeout(function() {
+        // Sélectionner tous les liens d'onglets dans le formulaire
+        const tab_links = frm.page.wrapper.find('.form-tabs .nav-item');
         
-        if (!is_details_tab) {
-            // Masquer l'onglet
-            frm.set_df_property(df.fieldname, "hidden", 1);
+        if (!tab_links.length) {
+            return;
         }
-    });
-    
-    // Forcer le rafraîchissement de l'affichage des onglets
-    frm.refresh_fields();
+        
+        // Labels autorisés pour l'onglet "Détails" (insensible à la casse et aux accents)
+        const allowed_patterns = ["détails", "details", "detils"];
+        
+        tab_links.each(function() {
+            const $tab = $(this);
+            const tab_text = $tab.find('a').text().trim().toLowerCase();
+            
+            // Normaliser le texte (enlever les accents pour comparaison)
+            const normalized_text = tab_text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
+            const is_details_tab = allowed_patterns.some(pattern => {
+                const normalized_pattern = pattern.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                return normalized_text === normalized_pattern || tab_text === pattern;
+            });
+            
+            if (!is_details_tab) {
+                $tab.hide();
+            }
+        });
+    }, 100);
 }
-
