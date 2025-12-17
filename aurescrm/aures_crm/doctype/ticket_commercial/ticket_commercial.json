@@ -1,0 +1,221 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-17 10:00:00",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_break_besd",
+  "creation_date",
+  "due_date",
+  "column_break_tfwi",
+  "owner_user",
+  "section_info",
+  "customer",
+  "customer_name",
+  "column_break_info",
+  "priority",
+  "section_demande",
+  "request_type",
+  "column_break_demande",
+  "channel",
+  "section_description",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_info",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom Client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_info",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Nouveau",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Nouveau\nEn cours\nEn attente\nClos\nAnnul\u00e9",
+   "reqd": 1
+  },
+  {
+   "default": "Moyenne",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Priorit\u00e9",
+   "options": "Basse\nMoyenne\nHaute\nUrgente",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_demande",
+   "fieldtype": "Section Break",
+   "label": "Demande"
+  },
+  {
+   "fieldname": "request_type",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Type de demande",
+   "options": "\nProspection\nR\u00e9clamation commerciale\nSuivi\nN\u00e9gociation\nAutre"
+  },
+  {
+   "fieldname": "column_break_demande",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "channel",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Canal",
+   "options": "\nT\u00e9l\u00e9phone\nEmail\nVisite\nWhatsApp\nAutre"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "\u00c9ch\u00e9ance"
+  },
+  {
+   "fieldname": "section_description",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description d\u00e9taill\u00e9e"
+  },
+  {
+   "default": "__user",
+   "fieldname": "owner_user",
+   "fieldtype": "Link",
+   "label": "Cr\u00e9\u00e9 par",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "creation_date",
+   "fieldtype": "Date",
+   "label": "Date de cr\u00e9ation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_besd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_tfwi",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-17 10:23:46.853272",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Ticket Commercial",
+ "naming_rule": "By script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Administrateur Ventes",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Yellow",
+   "title": "En cours"
+  },
+  {
+   "color": "Orange",
+   "title": "En attente"
+  },
+  {
+   "color": "Green",
+   "title": "Clos"
+  },
+  {
+   "color": "Red",
+   "title": "Annul\u00e9"
+  }
+ ],
+ "title_field": "customer",
+ "track_changes": 1,
+ "track_seen": 1
+}

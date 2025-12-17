@@ -17,7 +17,7 @@
    "label": "Visites par Groupe Client"
   }
  ],
- "content": "[{\"id\":\"jIhouKomOM\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Visites\",\"col\":12}},{\"id\":\"WPsutyJJhu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"wkeLPJ7LfZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":3}},{\"id\":\"g1Yvnhuq8r\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"P4EmfgkTtj\",\"type\":\"chart\",\"data\":{\"chart_name\":\"\u00c9volution Visites\",\"col\":6}},{\"id\":\"paYzM807-h\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Statut\",\"col\":6}},{\"id\":\"JiqKKWi62Y\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Groupe Client\",\"col\":6}},{\"id\":\"lztL-i7uqS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Wilaya\",\"col\":6}}]",
+ "content": "[{\"id\":\"jIhouKomOM\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Menu Visites\",\"col\":12}},{\"id\":\"WPsutyJJhu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Visites Commerciales\",\"col\":3}},{\"id\":\"wkeLPJ7LfZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clients\",\"col\":3}},{\"id\":\"tCkt8Xm3qR\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Tickets Commerciaux\",\"col\":3}},{\"id\":\"g1Yvnhuq8r\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"P4EmfgkTtj\",\"type\":\"chart\",\"data\":{\"chart_name\":\"\u00c9volution Visites\",\"col\":6}},{\"id\":\"paYzM807-h\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Statut\",\"col\":6}},{\"id\":\"JiqKKWi62Y\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Groupe Client\",\"col\":6}},{\"id\":\"lztL-i7uqS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Visites par Wilaya\",\"col\":6}}]",
  "creation": "2024-08-25 14:23:31.031813",
  "custom_blocks": [
   {
@@ -70,6 +70,14 @@
    "doc_view": "List",
    "label": "Clients",
    "link_to": "Customer",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "label": "Tickets Commerciaux",
+   "link_to": "Ticket Commercial",
    "stats_filter": "[]",
    "type": "DocType"
   }

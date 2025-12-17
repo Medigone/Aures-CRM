@@ -5,14 +5,41 @@ def is_exempt_user(user):
     roles = frappe.get_roles(user)
     return "Administrator" in roles or "System Manager" in roles
 
-def get_customer_permission_query_conditions(user):
+
+def has_customer_permission(doc, ptype, user):
+    """
+    Vérifie les permissions sur Customer:
+    - Lecture (read, select, report, email, print): autorisée pour tous
+    - Création (create): autorisée pour tous
+    - Écriture/suppression (write, delete, submit, cancel, etc.):
+      autorisée si custom_commercial_attribué est vide OU égal à l'utilisateur
+    """
     if not user:
         user = frappe.session.user
+
+    # Admin et System Manager: tout autorisé
     if is_exempt_user(user):
-        return ""
-    if "Commercial Itinérant" in frappe.get_roles(user):
-        return "`tabCustomer`.custom_commercial_attribué = '{0}'".format(user)
-    return ""
+        return True
+
+    # Permissions de lecture: autorisées pour tous
+    read_permissions = ("read", "select", "report", "email", "print")
+    if ptype in read_permissions:
+        return True
+
+    # Création: autorisée pour tous
+    if ptype == "create":
+        return True
+
+    # Écriture/suppression: autorisée si non attribué ou attribué à l'utilisateur
+    commercial_attribue = doc.get("custom_commercial_attribué") if doc else None
+    if not commercial_attribue or commercial_attribue == user:
+        return True
+
+    return False
+
+
+# Note: get_customer_permission_query_conditions n'est plus utilisé
+# car on affiche maintenant tous les clients (restriction supprimée de hooks.py)
 
 def get_quotation_permission_query_conditions(user):
     if not user:

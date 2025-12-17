@@ -28,7 +28,7 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {"Customer": "public/js/customer.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -104,7 +104,6 @@ after_install = "aurescrm.install.after_install"
 # Permissions evaluated in scripted ways
 
 permission_query_conditions = {
-    "Customer": "aurescrm.custom_permissions.get_customer_permission_query_conditions",
     "Quotation": "aurescrm.custom_permissions.get_quotation_permission_query_conditions",
     "Sales Order": "aurescrm.custom_permissions.get_sales_order_permission_query_conditions",
     "Delivery Note": "aurescrm.custom_permissions.get_delivery_note_permission_query_conditions",
@@ -117,10 +116,9 @@ permission_query_conditions = {
     "Reclamations Clients": "aurescrm.custom_permissions.get_reclamations_clients_permission_query_conditions"
 }
 
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+has_permission = {
+    "Customer": "aurescrm.custom_permissions.has_customer_permission",
+}
 
 # DocType Class
 # ---------------
