@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from aurescrm.commercial_assignment import get_customer_commercial
 
 
 class CommandeUrgente(Document):
@@ -19,9 +20,11 @@ class CommandeUrgente(Document):
 		if self.client and not self.nom_client:
 			self.nom_client = frappe.db.get_value("Customer", self.client, "customer_name")
 		
+		# Utiliser le module utilitaire pour récupérer le commercial (table enfant + fallback legacy)
 		if self.client and not self.id_commercial:
-			self.id_commercial = frappe.db.get_value("Customer", self.client, "custom_commercial_attribué")
-		
-		if self.id_commercial and not self.commercial:
+			commercial_info = get_customer_commercial(self.client)
+			self.id_commercial = commercial_info.get('commercial')
+			self.commercial = commercial_info.get('commercial_name')
+		elif self.id_commercial and not self.commercial:
 			self.commercial = frappe.db.get_value("User", self.id_commercial, "full_name")
 

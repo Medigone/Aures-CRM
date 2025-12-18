@@ -1,4 +1,5 @@
 import frappe
+from aurescrm.commercial_assignment import get_customer_commercial, get_customer_commercials, is_user_commercial_for_customer
 
 
 def is_exempt_user(user):
@@ -11,54 +12,111 @@ def is_exempt_user(user):
 def can_edit_customer(customer_name):
     """
     API pour vérifier si l'utilisateur courant peut éditer un client.
+    La restriction ne s'applique qu'aux utilisateurs ayant le rôle "Commercial Itinérant".
+    Gère maintenant plusieurs commerciaux par société.
+    
     Retourne un dict avec:
     - can_edit: True/False
-    - commercial_attribue: email du commercial attribué (ou None)
-    - nom_commercial: nom affiché du commercial (ou None)
+    - commercial_attribue: email du premier commercial attribué (ou None) - pour compatibilité
+    - nom_commercial: nom affiché du premier commercial (ou None) - pour compatibilité
+    - commercials: liste de tous les commerciaux [{'commercial': email, 'commercial_name': nom}, ...]
     - reason: raison si non éditable
+    - source: 'child_table' | 'legacy' | 'none' (pour debug)
     """
     user = frappe.session.user
+    user_roles = frappe.get_roles(user)
     
     # Admin et System Manager: tout autorisé
     if is_exempt_user(user):
-        return {"can_edit": True, "commercial_attribue": None, "nom_commercial": None, "reason": "exempt"}
+        return {
+            "can_edit": True,
+            "commercial_attribue": None,
+            "nom_commercial": None,
+            "commercials": [],
+            "reason": "exempt",
+            "source": "none"
+        }
     
-    # Récupérer le commercial attribué et son nom directement en base (bypass permlevel)
-    customer_data = frappe.db.get_value(
-        "Customer", 
-        customer_name, 
-        ["custom_commercial_attribué", "custom_nom_commercial"],
-        as_dict=True
-    )
+    # Si l'utilisateur n'a pas le rôle "Commercial Itinérant", pas de restriction
+    if "Commercial Itinérant" not in user_roles:
+        return {
+            "can_edit": True,
+            "commercial_attribue": None,
+            "nom_commercial": None,
+            "commercials": [],
+            "reason": "not_commercial_itinerant",
+            "source": "none"
+        }
     
-    commercial_attribue = customer_data.get("custom_commercial_attribué") if customer_data else None
-    nom_commercial = customer_data.get("custom_nom_commercial") if customer_data else None
+    # Vérifier si l'utilisateur est un des commerciaux attribués (gère plusieurs commerciaux)
+    is_commercial, commercials_info = is_user_commercial_for_customer(user, customer_name)
+    
+    commercials_list = commercials_info.get('commercials', [])
+    source = commercials_info.get('source', 'none')
     
     # Si pas de commercial attribué, tout le monde peut éditer
-    if not commercial_attribue:
-        return {"can_edit": True, "commercial_attribue": None, "nom_commercial": None, "reason": "not_assigned"}
+    if not commercials_list:
+        return {
+            "can_edit": True,
+            "commercial_attribue": None,
+            "nom_commercial": None,
+            "commercials": [],
+            "reason": "not_assigned",
+            "source": source
+        }
     
-    # Si l'utilisateur est le commercial attribué
-    if commercial_attribue == user:
-        return {"can_edit": True, "commercial_attribue": commercial_attribue, "nom_commercial": nom_commercial, "reason": "owner"}
+    # Récupérer le premier commercial pour compatibilité avec l'UI existante
+    first_commercial = commercials_list[0] if commercials_list else {}
+    commercial_attribue = first_commercial.get('commercial')
+    nom_commercial = first_commercial.get('commercial_name')
+    
+    # Si l'utilisateur est un des commerciaux attribués
+    if is_commercial:
+        return {
+            "can_edit": True,
+            "commercial_attribue": commercial_attribue,
+            "nom_commercial": nom_commercial,
+            "commercials": commercials_list,
+            "reason": "owner",
+            "source": source
+        }
     
     # Sinon, lecture seule
-    return {"can_edit": False, "commercial_attribue": commercial_attribue, "nom_commercial": nom_commercial, "reason": "other_commercial"}
+    # Construire le message avec tous les commerciaux
+    commercial_names = [c.get('commercial_name') or c.get('commercial') for c in commercials_list if c.get('commercial')]
+    nom_commercial_display = ", ".join(commercial_names) if commercial_names else nom_commercial
+    
+    return {
+        "can_edit": False,
+        "commercial_attribue": commercial_attribue,
+        "nom_commercial": nom_commercial_display,
+        "commercials": commercials_list,
+        "reason": "other_commercial",
+        "source": source
+    }
 
 
 def has_customer_permission(doc, ptype, user):
     """
     Vérifie les permissions sur Customer:
+    La restriction ne s'applique qu'aux utilisateurs ayant le rôle "Commercial Itinérant".
+    Utilise la table enfant d'attribution commerciale avec fallback legacy.
+    
     - Lecture (read, select, report, email, print): autorisée pour tous
     - Création (create): autorisée pour tous
     - Écriture/suppression (write, delete, submit, cancel, etc.):
-      autorisée si custom_commercial_attribué est vide OU égal à l'utilisateur
+      autorisée si commercial non attribué OU attribué à l'utilisateur
     """
     if not user:
         user = frappe.session.user
 
     # Admin et System Manager: tout autorisé
     if is_exempt_user(user):
+        return True
+    
+    # Si l'utilisateur n'a pas le rôle "Commercial Itinérant", pas de restriction
+    user_roles = frappe.get_roles(user)
+    if "Commercial Itinérant" not in user_roles:
         return True
 
     # Permissions de lecture: autorisées pour tous
@@ -70,12 +128,12 @@ def has_customer_permission(doc, ptype, user):
     if ptype == "create":
         return True
 
-    # Écriture/suppression: autorisée si non attribué ou attribué à l'utilisateur
-    commercial_attribue = doc.get("custom_commercial_attribué") if doc else None
-    if not commercial_attribue or commercial_attribue == user:
-        return True
+    # Écriture/suppression: utiliser le module utilitaire
+    if doc:
+        is_commercial, _ = is_user_commercial_for_customer(user, doc.name)
+        return is_commercial
 
-    return False
+    return True
 
 
 # Note: get_customer_permission_query_conditions n'est plus utilisé

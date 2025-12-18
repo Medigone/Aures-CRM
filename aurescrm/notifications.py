@@ -5,6 +5,7 @@ Module de gestion des notifications par email pour Aures CRM
 import frappe
 from frappe import _
 from frappe.utils import get_url
+from aurescrm.commercial_assignment import get_customer_commercial
 
 
 def notify_commercial_devis_valide(doc, method=None):
@@ -19,12 +20,9 @@ def notify_commercial_devis_valide(doc, method=None):
 	if not doc.party_name:
 		return
 	
-	# Récupérer le commercial attribué au client
-	commercial_attribue = frappe.db.get_value(
-		"Customer",
-		doc.party_name,
-		"custom_commercial_attribué"
-	)
+	# Récupérer le commercial attribué au client via le module utilitaire
+	commercial_info = get_customer_commercial(doc.party_name, doc.company)
+	commercial_attribue = commercial_info.get('commercial')
 	
 	if not commercial_attribue:
 		frappe.log_error(
@@ -140,12 +138,9 @@ def notify_commercial_nouvelle_maquette(doc, method=None):
 	if not doc.client or not doc.article:
 		return
 	
-	# Récupérer le commercial attribué au client
-	commercial_attribue = frappe.db.get_value(
-		"Customer",
-		doc.client,
-		"custom_commercial_attribué"
-	)
+	# Récupérer le commercial attribué au client via le module utilitaire
+	commercial_info = get_customer_commercial(doc.client)
+	commercial_attribue = commercial_info.get('commercial')
 	
 	if not commercial_attribue:
 		frappe.log_error(

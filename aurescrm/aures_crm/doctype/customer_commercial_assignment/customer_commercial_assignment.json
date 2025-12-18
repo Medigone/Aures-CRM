@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "creation": "2025-12-17 16:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "column_break_1",
+  "commercial",
+  "commercial_name",
+  "is_principal"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Soci\u00e9t\u00e9",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commercial",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Commercial",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "commercial.full_name",
+   "fieldname": "commercial_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom Commercial",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Cocher pour d\u00e9signer ce commercial comme principal pour cette soci\u00e9t\u00e9",
+   "fieldname": "is_principal",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Principal"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2025-12-18 08:56:04.753056",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Customer Commercial Assignment",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

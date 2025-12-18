@@ -25,10 +25,22 @@ frappe.ui.form.on("Commande Urgente", {
 	client(frm) {
 		// Rafraîchir automatiquement les champs fetch liés au client
 		if (frm.doc.client) {
-			frappe.db.get_value("Customer", frm.doc.client, ["customer_name", "custom_commercial_attribué"], (r) => {
+			// Récupérer le nom du client
+			frappe.db.get_value("Customer", frm.doc.client, "customer_name", (r) => {
 				if (r) {
 					frm.set_value("nom_client", r.customer_name);
-					frm.set_value("id_commercial", r.custom_commercial_attribué);
+				}
+			});
+			
+			// Récupérer le commercial via l'API utilitaire (table enfant + fallback legacy)
+			frappe.call({
+				method: "aurescrm.commercial_assignment.get_customer_commercial_api",
+				args: { customer_name: frm.doc.client },
+				callback: function(r) {
+					if (r.message) {
+						frm.set_value("id_commercial", r.message.commercial);
+						frm.set_value("commercial", r.message.commercial_name);
+					}
 				}
 			});
 			

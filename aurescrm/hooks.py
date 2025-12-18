@@ -148,6 +148,8 @@ doc_events = {
         "before_save": [
             "aurescrm.customer_hooks.uppercase_customer_name",
             "aurescrm.customer_hooks.set_default_commercial",
+            "aurescrm.customer_hooks.ensure_single_principal_per_company",
+            "aurescrm.customer_hooks.sync_principal_commercial_to_legacy_field",
         ]
     },
     "Item": {
@@ -174,6 +176,7 @@ doc_events = {
         "on_update": "aurescrm.aures_crm.doctype.maquette.maquette.update_bats_on_maquette_activation"
     },
     "Quotation": {
+        "before_validate": "aurescrm.commercial_assignment.set_commercial_on_quotation",
         "on_submit": [
             # Mise à jour du chemin
             "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_quotation",
@@ -183,6 +186,7 @@ doc_events = {
     },
     # Add the hook for Sales Order submission
     "Sales Order": {
+        "before_validate": "aurescrm.commercial_assignment.set_commercial_on_sales_order",
         # Assurez-vous que c'est une liste si vous avez plusieurs hooks
         "on_submit": [
             "aurescrm.sales_order_hooks.update_quotation_status_on_so_submit",
@@ -194,6 +198,12 @@ doc_events = {
         "on_cancel": "aurescrm.sales_order_hooks.update_quotation_status_on_so_cancel",
         "before_submit": "aurescrm.sales_order_hooks.validate_bon_de_commande"
         # Vous pourriez avoir d'autres hooks ici
+    },
+    "Demande Faisabilite": {
+        "before_validate": "aurescrm.commercial_assignment.set_commercial_on_demande_faisabilite"
+    },
+    "Commande Urgente": {
+        "before_validate": "aurescrm.commercial_assignment.set_commercial_on_commande_urgente"
     },
     "Suivi Creance": {
         "before_save": "aurescrm.aures_crm.doctype.suivi_creance.suivi_creance.trigger_facture_recovery_on_mode_change"

@@ -33,6 +33,26 @@ frappe.ui.form.on("Customer", {
     }
 });
 
+// Hook pour la child table des attributions commerciales
+frappe.ui.form.on("Customer Commercial Assignment", {
+    is_principal: function(frm, cdt, cdn) {
+        // Récupérer la ligne modifiée
+        const row = locals[cdt][cdn];
+        
+        // Si le commercial est marqué comme principal
+        if (row.is_principal) {
+            // Décocher tous les autres commerciaux de la même société
+            frm.doc.custom_commercial_assignments.forEach(function(assignment) {
+                if (assignment.name !== row.name && 
+                    assignment.company === row.company && 
+                    assignment.is_principal) {
+                    frappe.model.set_value(assignment.doctype, assignment.name, "is_principal", 0);
+                }
+            });
+        }
+    }
+});
+
 function set_form_read_only(frm, commercial_attribue) {
     // Désactiver tous les champs un par un
     frm.fields.forEach(function(field) {
