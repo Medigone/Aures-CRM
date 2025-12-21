@@ -139,17 +139,46 @@ def has_customer_permission(doc, ptype, user):
 # Note: get_customer_permission_query_conditions n'est plus utilisé
 # car on affiche maintenant tous les clients (restriction supprimée de hooks.py)
 
+
+def build_commercial_permission_query_condition(customer_field, user):
+    """
+    Construit une condition SQL pour vérifier si l'utilisateur est commercial pour un client.
+    Vérifie à la fois le champ legacy ET la table enfant Customer Commercial Assignment.
+    
+    Args:
+        customer_field: Nom du champ qui référence le Customer (ex: `tabQuotation`.party_name)
+        user: Email de l'utilisateur
+    
+    Returns:
+        str: Condition SQL à utiliser dans une clause WHERE ou EXISTS
+    """
+    # Échapper le nom d'utilisateur pour éviter les injections SQL
+    # Frappe utilise déjà des paramètres sécurisés, mais on double la sécurité
+    user_escaped = frappe.db.escape(user)
+    
+    return f"""exists (
+        select 1 from `tabCustomer`
+        where `tabCustomer`.name = {customer_field}
+          and (
+            `tabCustomer`.custom_commercial_attribué = {user_escaped}
+            or exists (
+                select 1 from `tabCustomer Commercial Assignment`
+                where `tabCustomer Commercial Assignment`.parent = `tabCustomer`.name
+                  and `tabCustomer Commercial Assignment`.parenttype = 'Customer'
+                  and `tabCustomer Commercial Assignment`.parentfield = 'custom_commercial_assignments'
+                  and `tabCustomer Commercial Assignment`.commercial = {user_escaped}
+            )
+          )
+    )"""
+
+
 def get_quotation_permission_query_conditions(user):
     if not user:
         user = frappe.session.user
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabQuotation`.party_name
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabQuotation`.party_name", user)
     return ""
 
 def get_sales_order_permission_query_conditions(user):
@@ -158,11 +187,7 @@ def get_sales_order_permission_query_conditions(user):
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabSales Order`.customer
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabSales Order`.customer", user)
     return ""
 
 def get_delivery_note_permission_query_conditions(user):
@@ -171,11 +196,7 @@ def get_delivery_note_permission_query_conditions(user):
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabDelivery Note`.customer
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabDelivery Note`.customer", user)
     return ""
 
 def get_item_permission_query_conditions(user):
@@ -184,11 +205,7 @@ def get_item_permission_query_conditions(user):
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabItem`.custom_client
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabItem`.custom_client", user)
     return ""
 
 def get_sales_invoice_permission_query_conditions(user):
@@ -197,11 +214,7 @@ def get_sales_invoice_permission_query_conditions(user):
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabSales Invoice`.customer
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabSales Invoice`.customer", user)
     return ""
 
 def get_payment_entry_permission_query_conditions(user):
@@ -211,11 +224,7 @@ def get_payment_entry_permission_query_conditions(user):
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabPayment Entry`.party
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabPayment Entry`.party", user)
     return ""
 
 def get_bom_permission_query_conditions(user):
@@ -224,11 +233,7 @@ def get_bom_permission_query_conditions(user):
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabBOM`.custom_client
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabBOM`.custom_client", user)
     return ""
 
 def get_feasibility_study_permission_query_conditions(user):
@@ -238,11 +243,7 @@ def get_feasibility_study_permission_query_conditions(user):
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabEtude Faisabilite`.client
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabEtude Faisabilite`.client", user)
     return ""
 
 def get_technical_study_permission_query_conditions(user):
@@ -252,11 +253,7 @@ def get_technical_study_permission_query_conditions(user):
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabEtude Technique`.client
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabEtude Technique`.client", user)
     return ""
 
 def get_reclamations_clients_permission_query_conditions(user):
@@ -266,9 +263,5 @@ def get_reclamations_clients_permission_query_conditions(user):
     if is_exempt_user(user):
         return ""
     if "Commercial Itinérant" in frappe.get_roles(user):
-        return f"""exists (
-            select 1 from `tabCustomer`
-            where `tabCustomer`.name = `tabReclamations Clients`.client
-              and `tabCustomer`.custom_commercial_attribué = '{user}'
-        )"""
+        return build_commercial_permission_query_condition("`tabReclamations Clients`.client", user)
     return ""

@@ -9,3 +9,4 @@ aurescrm.patches.add_color_fields_to_maquette
 aurescrm.patches.v0_1.populate_visite_nom_client
 aurescrm.patches.migrate_customer_commercial_to_child_table
 aurescrm.patches.mark_first_commercial_as_principal
+aurescrm.patches.sync_legacy_commercial_to_child_table
