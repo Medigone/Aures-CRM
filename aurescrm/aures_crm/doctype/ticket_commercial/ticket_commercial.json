@@ -62,7 +62,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn Cours\nEn Attente\nTermin\u00e9\nAnnul\u00e9",
+   "options": "Nouveau\nEn Cours\nPending\nTermin\u00e9\nAnnul\u00e9",
    "reqd": 1
   },
   {
@@ -242,7 +242,7 @@
   },
   {
    "color": "Yellow",
-   "title": "En attente"
+   "title": "Pending"
   },
   {
    "color": "Green",
