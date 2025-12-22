@@ -351,7 +351,7 @@ fixtures = [
         "doctype": "Custom DocPerm",
         "filters": []  # Export uniquement les permissions personnalisées
     },
-    # "Custom HTML Block",
+    "Custom HTML Block",
     # "Client Script",
     "Workflow",
     "Workflow State",

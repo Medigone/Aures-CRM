@@ -1,98 +1,135 @@
 [
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.309524",
   "name": "Reunion Commerciale",
   "nom_raison": "Réunion Commerciale"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.330542",
   "name": "Presentation Produit",
   "nom_raison": "Présentation Produit"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.349792",
   "name": "Formation Client",
   "nom_raison": "Formation Client"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.370804",
   "name": "Suivi Commande",
   "nom_raison": "Suivi Commande"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.392052",
   "name": "Demonstration Machine",
   "nom_raison": "Démonstration Machine"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.410783",
   "name": "Negociation Devis",
   "nom_raison": "Négociation Devis"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.431540",
   "name": "Controle Qualite",
   "nom_raison": "Contrôle Qualité"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.452441",
   "name": "Resolution Probleme",
   "nom_raison": "Résolution Problème"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.473705",
   "name": "Visite Technique",
   "nom_raison": "Visite Technique"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.491467",
   "name": "Etude Faisabilite",
   "nom_raison": "Étude Faisabilité"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.511031",
   "name": "Presentation Nouveau Procede",
   "nom_raison": "Présentation Nouveau Procédé"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.537064",
   "name": "Validation BAT",
   "nom_raison": "Validation BAT"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.561221",
   "name": "Visite Production",
   "nom_raison": "Visite Production"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.581998",
   "name": "Recueil Besoins",
   "nom_raison": "Recueil Besoins"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.604422",
   "name": "Conseil Packaging",
   "nom_raison": "Conseil Packaging"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.624129",
   "name": "Revue Performance",
   "nom_raison": "Revue Performance"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.643404",
   "name": "Signature Contrat",
   "nom_raison": "Signature Contrat"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.664883",
   "name": "Audit Qualite",
   "nom_raison": "Audit Qualité"
  },
  {
+  "docstatus": 0,
   "doctype": "Raisons Accueil Client",
+  "modified": "2025-12-21 15:37:48.683221",
   "name": "Formation Imposition",
   "nom_raison": "Formation Imposition"
  }
 ]
-
