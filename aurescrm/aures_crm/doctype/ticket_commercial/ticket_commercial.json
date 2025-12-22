@@ -9,20 +9,24 @@
   "status",
   "section_break_besd",
   "creation_date",
-  "due_date",
   "column_break_tfwi",
   "owner_user",
+  "owner_user_name",
   "section_info",
   "customer",
   "customer_name",
   "column_break_info",
+  "request_type",
   "priority",
   "section_demande",
-  "request_type",
+  "commercial",
+  "nom_commercial",
   "column_break_demande",
   "channel",
+  "fichier",
   "section_description",
-  "description"
+  "description",
+  "amended_from"
  ],
  "fields": [
   {
@@ -32,7 +36,6 @@
   {
    "fieldname": "customer",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Client",
    "options": "Customer",
@@ -55,10 +58,11 @@
    "default": "Nouveau",
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn cours\nEn attente\nClos\nAnnul\u00e9",
+   "options": "Nouveau\nEn Cours\nEn Attente\nTermin\u00e9\nAnnul\u00e9",
    "reqd": 1
   },
   {
@@ -68,20 +72,21 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Priorit\u00e9",
-   "options": "Basse\nMoyenne\nHaute\nUrgente",
+   "options": "\nBasse\nMoyenne\nHaute",
    "reqd": 1
   },
   {
    "fieldname": "section_demande",
-   "fieldtype": "Section Break",
-   "label": "Demande"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "request_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Type de demande",
-   "options": "\nProspection\nR\u00e9clamation commerciale\nSuivi\nN\u00e9gociation\nAutre"
+   "label": "Type",
+   "options": "\nCr\u00e9ation\nBon de commande\nDemande de devis\nMise \u00e0 jour donn\u00e9es\nR\u00e9clamation commerciale\nAutre",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_demande",
@@ -92,13 +97,7 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Canal",
-   "options": "\nT\u00e9l\u00e9phone\nEmail\nVisite\nWhatsApp\nAutre"
-  },
-  {
-   "fieldname": "due_date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "\u00c9ch\u00e9ance"
+   "options": "\nT\u00e9l\u00e9phone\nEmail\nWhatsApp\nRaven\nAutre"
   },
   {
    "fieldname": "section_description",
@@ -114,6 +113,7 @@
    "default": "__user",
    "fieldname": "owner_user",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Cr\u00e9\u00e9 par",
    "options": "User",
    "read_only": 1
@@ -132,11 +132,49 @@
   {
    "fieldname": "column_break_tfwi",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fichier",
+   "fieldtype": "Attach",
+   "label": "Fichier"
+  },
+  {
+   "default": "__user",
+   "fieldname": "commercial",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "ID Commercial",
+   "options": "User"
+  },
+  {
+   "fetch_from": "commercial.full_name",
+   "fieldname": "nom_commercial",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Commercial",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "owner_user.full_name",
+   "fieldname": "owner_user_name",
+   "fieldtype": "Data",
+   "label": "Cr\u00e9\u00e9 par"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Ticket Commercial",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-12-17 10:23:46.853272",
+ "modified": "2025-12-22 08:44:31.254902",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
@@ -199,23 +237,23 @@
    "title": "Nouveau"
   },
   {
-   "color": "Yellow",
+   "color": "Orange",
    "title": "En cours"
   },
   {
-   "color": "Orange",
+   "color": "Yellow",
    "title": "En attente"
   },
   {
    "color": "Green",
-   "title": "Clos"
+   "title": "Termin\u00e9"
   },
   {
    "color": "Red",
    "title": "Annul\u00e9"
   }
  ],
- "title_field": "customer",
+ "title_field": "customer_name",
  "track_changes": 1,
  "track_seen": 1
 }

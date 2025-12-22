@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
-from frappe.utils import getdate, today
+from frappe.utils import today
 
 
 class TicketCommercial(Document):
@@ -13,16 +13,35 @@ class TicketCommercial(Document):
         """Génère le nom du ticket au format TC-YY-MM-#####"""
         self.name = make_autoname("TC-.YY.-.MM.-.#####")
 
+    def before_insert(self):
+        """Définit les valeurs par défaut avant l'insertion"""
+        if not self.commercial:
+            self.commercial = frappe.session.user
+
     def validate(self):
         """Validations avant sauvegarde"""
-        self.validate_due_date()
+        self.validate_required_fields()
+        self.set_defaults()
 
-    def validate_due_date(self):
-        """Vérifie que l'échéance n'est pas dans le passé pour les tickets actifs"""
-        if self.due_date and self.status in ("Nouveau", "En cours"):
-            if getdate(self.due_date) < getdate(today()):
-                frappe.msgprint(
-                    _("L'échéance est dans le passé. Vérifiez la date si nécessaire."),
-                    indicator="orange",
-                    alert=True
-                )
+    def validate_required_fields(self):
+        """Vérifie les champs requis"""
+        if not self.customer:
+            frappe.throw(_("Le champ Client est obligatoire"))
+        
+        if not self.request_type:
+            frappe.throw(_("Le champ Type de demande est obligatoire"))
+        
+        if not self.priority:
+            frappe.throw(_("Le champ Priorité est obligatoire"))
+
+    def set_defaults(self):
+        """Définit les valeurs par défaut"""
+        if not self.owner_user:
+            self.owner_user = frappe.session.user
+        
+        if not self.creation_date:
+            self.creation_date = today()
+        
+        # Définir le commercial avec l'utilisateur créateur si non renseigné
+        if not self.commercial:
+            self.commercial = frappe.session.user
