@@ -886,7 +886,7 @@
    "print_hide_if_no_value": 0,
    "print_width": null,
    "read_only": 0,
-   "read_only_depends_on": "eval:!frappe.user_roles.includes(\"System Manager\") && !frappe.user_roles.includes(\"Administrator\")",
+   "read_only_depends_on": "eval:!frappe.user_roles.includes(\"System Manager\") && !frappe.user_roles.includes(\"Administrator\") && !frappe.user_roles.includes(\"Superviseur CRM\")",
    "report_hide": 0,
    "reqd": 0,
    "search_index": 0,

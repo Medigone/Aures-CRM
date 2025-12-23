@@ -3,9 +3,9 @@ from aurescrm.commercial_assignment import get_customer_commercial, get_customer
 
 
 def is_exempt_user(user):
-    """Renvoie True si l'utilisateur possède le rôle 'Administrator' ou 'System Manager'."""
+    """Renvoie True si l'utilisateur possède le rôle 'Administrator', 'System Manager' ou 'Superviseur CRM'."""
     roles = frappe.get_roles(user)
-    return "Administrator" in roles or "System Manager" in roles
+    return "Administrator" in roles or "System Manager" in roles or "Superviseur CRM" in roles
 
 
 @frappe.whitelist()
