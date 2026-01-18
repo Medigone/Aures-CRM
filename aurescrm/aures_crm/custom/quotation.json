@@ -707,7 +707,15 @@
  ],
  "custom_perms": [],
  "doctype": "Quotation",
- "links": [],
+ "links": [
+  {
+   "custom": 1,
+   "doctype": "DocType Link",
+   "group": "Calculs",
+   "link_doctype": "Calcul Devis",
+   "link_fieldname": "devis"
+  }
+ ],
  "property_setters": [
   {
    "_assign": null,

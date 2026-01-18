@@ -632,6 +632,93 @@ def check_bon_commande_exists(n_bon_commande, current_name=None):
 
 
 @frappe.whitelist()
+def create_quotation_with_calculs(docname):
+    """
+    Crée un Quotation côté serveur depuis une Demande Faisabilite,
+    puis génère automatiquement les Calcul Devis pour chaque article.
+    
+    Args:
+        docname: Nom de la Demande Faisabilite
+    
+    Returns:
+        dict: {quotation_name, calcul_devis_count, message}
+    """
+    try:
+        demande = frappe.get_doc("Demande Faisabilite", docname)
+        
+        # Récupérer les articles réalisables
+        etudes = frappe.get_all(
+            "Etude Faisabilite",
+            filters={
+                "demande_faisabilite": docname,
+                "status": "Réalisable"
+            },
+            fields=["article", "quantite", "date_livraison"]
+        )
+        
+        if not etudes:
+            frappe.throw(_("Aucun article réalisable trouvé dans les études associées."))
+        
+        # Récupérer les infos des articles
+        article_ids = [e.article for e in etudes]
+        items = frappe.get_all(
+            "Item",
+            filters={"name": ["in", article_ids]},
+            fields=["name", "item_name", "stock_uom"]
+        )
+        item_dict = {item.name: item for item in items}
+        
+        # Créer le Quotation
+        quotation = frappe.new_doc("Quotation")
+        quotation.quotation_to = "Customer"
+        quotation.party_name = demande.client
+        quotation.custom_id_client = demande.client
+        quotation.company = frappe.defaults.get_user_default("company") or frappe.db.get_single_value("Global Defaults", "default_company")
+        quotation.custom_demande_faisabilité = demande.name
+        quotation.custom_retirage = demande.is_reprint
+        quotation.custom_essai_blanc = demande.essai_blanc
+        
+        # Date de livraison depuis le premier article
+        if etudes[0].date_livraison:
+            quotation.custom_date_de_livraison = etudes[0].date_livraison
+        
+        # Ajouter les articles
+        for e in etudes:
+            item = item_dict.get(e.article)
+            if item:
+                quotation.append("items", {
+                    "item_code": e.article,
+                    "item_name": item.item_name,
+                    "uom": item.stock_uom,
+                    "qty": e.quantite
+                })
+        
+        # Sauvegarder le Quotation en base
+        quotation.insert(ignore_permissions=True)
+        
+        # Générer les Calcul Devis
+        from aurescrm.aures_crm.doctype.calcul_devis.calcul_devis import generate_calcul_devis_for_quotation
+        calcul_result = generate_calcul_devis_for_quotation(quotation.name)
+        
+        # Mettre à jour le statut de la demande
+        if demande.status in ["Finalisée", "Partiellement Finalisée"]:
+            demande.status = "Devis Établis"
+            demande.save(ignore_permissions=True)
+        
+        return {
+            "quotation_name": quotation.name,
+            "calcul_devis_count": calcul_result.get("created", 0),
+            "message": _("Devis {0} créé avec {1} Calcul(s) Devis").format(
+                quotation.name, calcul_result.get("created", 0)
+            )
+        }
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Erreur create_quotation_with_calculs")
+        frappe.throw(_("Erreur lors de la création du devis : {0}").format(str(e)))
+
+
+@frappe.whitelist()
 def duplicate_demande_for_reprint(docname, new_date_livraison):
     """
     Duplique une Demande Faisabilite pour créer un retirage.

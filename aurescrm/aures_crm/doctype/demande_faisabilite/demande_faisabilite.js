@@ -192,50 +192,31 @@ frappe.ui.form.on('Demande Faisabilite', {
 
         // --- Bouton "Devis" ---
         if (frm.doc.status === "Finalisée" || frm.doc.status === "Devis Établis" || frm.doc.status === "Partiellement Finalisée") {
-            // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button('Devis', function() {
-                frappe.call({
-                    // Mise à jour du chemin
-                    method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.get_articles_for_quotation",
-                    args: {
-                        docname: frm.doc.name
-                    },
-                    callback: function(r) {
-                        if (r.message && r.message.length > 0) {
-                            frappe.model.with_doctype("Quotation", function() {
-                                let doc = frappe.model.get_new_doc("Quotation");
-                                doc.quotation_to = 'Customer';
-                                doc.party_name = frm.doc.client;
-                                doc.custom_id_client = frm.doc.client;
-                                doc.company = frappe.defaults.get_default("company");
-                                doc.custom_demande_faisabilité = frm.doc.name;
-                                doc.custom_retirage = frm.doc.is_reprint;
-                                doc.custom_essai_blanc = frm.doc.essai_blanc;
-
-                                // Set the custom delivery date from the first feasible item
-                                // Ensure the field name 'custom_date_de_livraison' matches your Quotation field
-                                if (r.message[0].date_livraison) {
-                                    doc.custom_date_de_livraison = r.message[0].date_livraison;
+                frappe.confirm(
+                    __("Voulez-vous créer un Devis avec les Calculs Devis associés ?"),
+                    function() {
+                        frappe.call({
+                            method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.create_quotation_with_calculs",
+                            args: {
+                                docname: frm.doc.name
+                            },
+                            freeze: true,
+                            freeze_message: __("Création du Devis et des Calculs Devis..."),
+                            callback: function(r) {
+                                if (r.message && r.message.quotation_name) {
+                                    frappe.msgprint({
+                                        title: __("Succès"),
+                                        message: r.message.message,
+                                        indicator: "green"
+                                    });
+                                    // Rediriger vers le Devis créé
+                                    frappe.set_route("Form", "Quotation", r.message.quotation_name);
                                 }
-
-                                r.message.forEach(row => {
-                                    let item = frappe.model.add_child(doc, "Quotation Item", "items");
-                                    item.item_code = row.article;
-                                    item.item_name = row.item_name;
-                                    item.uom = row.uom;
-                                    item.qty = row.quantite;
-                                    // Note: We are setting one delivery date at the header level of the Quotation.
-                                    // If you need different dates per item in the Quotation,
-                                    // you'd need a custom date field in 'Quotation Item' and set item.custom_item_delivery_date = row.date_livraison;
-                                });
-
-                                frappe.set_route("Form", "Quotation", doc.name);
-                            });
-                        } else {
-                            frappe.msgprint("Aucun article réalisable trouvé dans les études associées.");
-                        }
+                            }
+                        });
                     }
-                });
+                );
             }, "Créer");
         }
 

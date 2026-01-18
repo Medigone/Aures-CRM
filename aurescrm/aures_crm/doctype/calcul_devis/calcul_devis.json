@@ -1,0 +1,815 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-01-12 10:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "date_calcul",
+  "column_break_bdcs",
+  "devis",
+  "amended_from",
+  "section_informations",
+  "client",
+  "column_break_info",
+  "article",
+  "item_name",
+  "section_gache",
+  "taux_gache_tirage",
+  "column_break_gache",
+  "quantite_feuilles_gache",
+  "section_calculs",
+  "total_couts_fixes",
+  "total_couts_variables",
+  "column_break_totaux",
+  "cout_total",
+  "cout_unitaire",
+  "section_prix",
+  "marge_percent",
+  "column_break_prix",
+  "prix_unitaire_propose",
+  "prix_total_propose",
+  "tab_2_tab",
+  "section_donnees_techniques",
+  "imposition",
+  "format_imp",
+  "nbr_poses",
+  "column_break_tech",
+  "taux_chutes",
+  "quantite",
+  "quantite_feuilles",
+  "tab_3_tab",
+  "section_support",
+  "grammage",
+  "surface_feuille",
+  "column_break_support",
+  "poids_feuille",
+  "cout_support_kg",
+  "cout_support_feuille",
+  "tab_5_tab",
+  "section_finitions",
+  "fin_pelliculage",
+  "cout_pelliculage_m2",
+  "fin_marquage_chaud",
+  "cout_marquage_chaud_m2",
+  "fin_acrylique",
+  "cout_acrylique_m2",
+  "column_break_fin1",
+  "fin_uv",
+  "cout_uv_m2",
+  "fin_selectif",
+  "cout_selectif_m2",
+  "fin_drip_off",
+  "cout_drip_off_m2",
+  "column_break_fin2",
+  "fin_mat_gras",
+  "cout_mat_gras_m2",
+  "fin_blister",
+  "cout_blister_m2",
+  "fin_recto_verso",
+  "cout_recto_verso_m2",
+  "section_finitions_2",
+  "fin_fenetre",
+  "cout_fenetre_m2",
+  "fin_braille",
+  "cout_braille_m2",
+  "fin_gaufrage",
+  "cout_gaufrage_m2",
+  "column_break_fin3",
+  "fin_massicot",
+  "cout_massicot_m2",
+  "fin_collerette",
+  "cout_collerette_m2",
+  "fin_blanc_couvrant",
+  "cout_blanc_couvrant_m2",
+  "section_couts_variables",
+  "cout_encres_feuille",
+  "cout_mo_feuille",
+  "column_break_variables",
+  "cout_autres_feuille",
+  "description_variables",
+  "section_total_finitions",
+  "total_cout_finitions_feuille",
+  "tab_4_tab",
+  "section_couts_fixes",
+  "cout_calage",
+  "cout_plaques_cliches",
+  "column_break_fixes",
+  "cout_forme_decoupe",
+  "cout_prepresse",
+  "cout_autres_fixes",
+  "description_fixes"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_informations",
+   "fieldtype": "Section Break",
+   "label": "Informations"
+  },
+  {
+   "fieldname": "devis",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Devis",
+   "options": "Quotation",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "devis.custom_id_client",
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_info",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Article",
+   "options": "Item",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "article.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Nom Article",
+   "read_only": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_calcul",
+   "fieldtype": "Date",
+   "label": "Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_donnees_techniques",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "imposition",
+   "fieldtype": "Link",
+   "label": "Imposition",
+   "options": "Imposition",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "imposition.format_imp",
+   "fieldname": "format_imp",
+   "fieldtype": "Data",
+   "label": "Format d'Impression",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "imposition.nbr_poses",
+   "fieldname": "nbr_poses",
+   "fieldtype": "Int",
+   "label": "Nombre de Poses",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_tech",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "imposition.taux_chutes",
+   "fieldname": "taux_chutes",
+   "fieldtype": "Percent",
+   "label": "Taux de Chutes (Imposition)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Quantit\u00e9 Command\u00e9e",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "quantite_feuilles",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 Feuilles N\u00e9cessaires",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_support",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "article.custom_grammage",
+   "fieldname": "grammage",
+   "fieldtype": "Int",
+   "label": "Grammage (g/m\u00b2)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "surface_feuille",
+   "fieldtype": "Float",
+   "label": "Surface Feuille (m\u00b2)",
+   "precision": "6",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_support",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "poids_feuille",
+   "fieldtype": "Float",
+   "label": "Poids Feuille (g)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_support_kg",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Support (par kg)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_support_feuille",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Support (par Feuille)",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "description": "Co\u00fbts ind\u00e9pendants de la quantit\u00e9 (une seule fois par commande)",
+   "fieldname": "section_couts_fixes",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "Temps de pr\u00e9paration et mise en route machine",
+   "fieldname": "cout_calage",
+   "fieldtype": "Currency",
+   "label": "Calage Machine",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "description": "Plaques offset ou clich\u00e9s flexo",
+   "fieldname": "cout_plaques_cliches",
+   "fieldtype": "Currency",
+   "label": "Plaques / Clich\u00e9s",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_fixes",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Fabrication ou utilisation forme d\u00e9coupe",
+   "fieldname": "cout_forme_decoupe",
+   "fieldtype": "Currency",
+   "label": "Forme D\u00e9coupe",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "description": "Pr\u00e9paration fichiers, BAT, etc.",
+   "fieldname": "cout_prepresse",
+   "fieldtype": "Currency",
+   "label": "Pr\u00e9presse",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_autres_fixes",
+   "fieldtype": "Currency",
+   "label": "Autres Co\u00fbts Fixes",
+   "precision": "2"
+  },
+  {
+   "fieldname": "description_fixes",
+   "fieldtype": "Small Text",
+   "label": "Description Autres Fixes"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_finitions",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "article.custom_pelliculage",
+   "fieldname": "fin_pelliculage",
+   "fieldtype": "Data",
+   "label": "Pelliculage",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_pelliculage && doc.fin_pelliculage !== 'Sans'",
+   "fieldname": "cout_pelliculage_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Pelliculage (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "fetch_from": "article.custom_marquage_\u00e0_chaud",
+   "fieldname": "fin_marquage_chaud",
+   "fieldtype": "Data",
+   "label": "Marquage \u00e0 Chaud",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_marquage_chaud && doc.fin_marquage_chaud !== 'Sans'",
+   "fieldname": "cout_marquage_chaud_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Marquage \u00e0 Chaud (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_acrylique",
+   "fieldname": "fin_acrylique",
+   "fieldtype": "Check",
+   "label": "Acrylique",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_acrylique == 1",
+   "fieldname": "cout_acrylique_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Acrylique (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_fin1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_uv",
+   "fieldname": "fin_uv",
+   "fieldtype": "Check",
+   "label": "UV",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_uv == 1",
+   "fieldname": "cout_uv_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt UV (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_s\u00e9lectif",
+   "fieldname": "fin_selectif",
+   "fieldtype": "Check",
+   "label": "S\u00e9lectif",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_selectif == 1",
+   "fieldname": "cout_selectif_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt S\u00e9lectif (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_drip_off",
+   "fieldname": "fin_drip_off",
+   "fieldtype": "Check",
+   "label": "Drip Off",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_drip_off == 1",
+   "fieldname": "cout_drip_off_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Drip Off (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_fin2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_mat_gras",
+   "fieldname": "fin_mat_gras",
+   "fieldtype": "Check",
+   "label": "Mat Gras",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_mat_gras == 1",
+   "fieldname": "cout_mat_gras_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Mat Gras (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_blister",
+   "fieldname": "fin_blister",
+   "fieldtype": "Check",
+   "label": "Blister",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_blister == 1",
+   "fieldname": "cout_blister_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Blister (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_recto_verso",
+   "fieldname": "fin_recto_verso",
+   "fieldtype": "Check",
+   "label": "Recto Verso",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_recto_verso == 1",
+   "fieldname": "cout_recto_verso_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Recto Verso (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_finitions_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_fen\u00eatre",
+   "fieldname": "fin_fenetre",
+   "fieldtype": "Check",
+   "label": "Fen\u00eatre",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_fenetre == 1",
+   "fieldname": "cout_fenetre_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Fen\u00eatre (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_braille",
+   "fieldname": "fin_braille",
+   "fieldtype": "Check",
+   "label": "Braille",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_braille == 1",
+   "fieldname": "cout_braille_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Braille (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_gaufrage__estampage",
+   "fieldname": "fin_gaufrage",
+   "fieldtype": "Check",
+   "label": "Gaufrage / Estampage",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_gaufrage == 1",
+   "fieldname": "cout_gaufrage_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Gaufrage (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_fin3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_massicot",
+   "fieldname": "fin_massicot",
+   "fieldtype": "Check",
+   "label": "Massicot",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_massicot == 1",
+   "fieldname": "cout_massicot_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Massicot (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_collerette",
+   "fieldname": "fin_collerette",
+   "fieldtype": "Check",
+   "label": "Collerette",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_collerette == 1",
+   "fieldname": "cout_collerette_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Collerette (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fetch_from": "article.custom_blanc_couvrant",
+   "fieldname": "fin_blanc_couvrant",
+   "fieldtype": "Check",
+   "label": "Blanc Couvrant",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fin_blanc_couvrant == 1",
+   "fieldname": "cout_blanc_couvrant_m2",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt Blanc Couvrant (par m\u00b2)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_total_finitions",
+   "fieldtype": "Section Break",
+   "label": "Total Finitions"
+  },
+  {
+   "default": "0",
+   "description": "Somme des co\u00fbts finitions \u00d7 Surface feuille",
+   "fieldname": "total_cout_finitions_feuille",
+   "fieldtype": "Currency",
+   "label": "Total Co\u00fbt Finitions (par Feuille)",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_couts_variables",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "Co\u00fbt encres par feuille imprim\u00e9e",
+   "fieldname": "cout_encres_feuille",
+   "fieldtype": "Currency",
+   "label": "Encres (par Feuille)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "description": "Main d'\u0153uvre tirage par feuille",
+   "fieldname": "cout_mo_feuille",
+   "fieldtype": "Currency",
+   "label": "Main d'\u0152uvre (par Feuille)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_variables",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_autres_feuille",
+   "fieldtype": "Currency",
+   "label": "Autres (par Feuille)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "description_variables",
+   "fieldtype": "Small Text",
+   "label": "Description Autres Variables"
+  },
+  {
+   "fieldname": "section_gache",
+   "fieldtype": "Section Break",
+   "label": "G\u00e2che de Tirage"
+  },
+  {
+   "default": "3",
+   "fieldname": "taux_gache_tirage",
+   "fieldtype": "Percent",
+   "label": "Taux de G\u00e2che Tirage (%)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_gache",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "quantite_feuilles_gache",
+   "fieldtype": "Int",
+   "label": "Feuilles avec G\u00e2che",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_calculs",
+   "fieldtype": "Section Break",
+   "label": "Calculs"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_couts_fixes",
+   "fieldtype": "Currency",
+   "label": "Total Co\u00fbts Fixes",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_couts_variables",
+   "fieldtype": "Currency",
+   "label": "Total Co\u00fbts Variables",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_totaux",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_total",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Co\u00fbt Total",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_unitaire",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Co\u00fbt Unitaire",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_prix",
+   "fieldtype": "Section Break",
+   "label": "Prix de Vente"
+  },
+  {
+   "default": "0",
+   "fieldname": "marge_percent",
+   "fieldtype": "Percent",
+   "label": "Marge (%)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_prix",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "prix_unitaire_propose",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Prix Unitaire Propos\u00e9",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "prix_total_propose",
+   "fieldtype": "Currency",
+   "label": "Prix Total Propos\u00e9",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bdcs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Calcul Devis",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "Donn\u00e9es Techniques"
+  },
+  {
+   "fieldname": "tab_3_tab",
+   "fieldtype": "Tab Break",
+   "label": "Support"
+  },
+  {
+   "fieldname": "tab_4_tab",
+   "fieldtype": "Tab Break",
+   "label": "Co\u00fbts Fixes"
+  },
+  {
+   "fieldname": "tab_5_tab",
+   "fieldtype": "Tab Break",
+   "label": "Co\u00fbts Variables"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-01-13 11:52:14.833472",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Calcul Devis",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Charg\u00e9 Devis",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Responsable Devis",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "devis,client,article",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
