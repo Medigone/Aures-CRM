@@ -692,7 +692,14 @@ def create_quotation_with_calculs(docname):
                     "uom": item.stock_uom,
                     "qty": e.quantite
                 })
-        
+
+        # Compléter les valeurs dépendantes (company/customer), appliquer le template de taxes
+        # et recalculer les totaux. Sans ça, `taxes_and_charges` peut être rempli mais la table
+        # enfant `taxes` reste vide, donc aucun calcul automatique n'est fait.
+        quotation.set_missing_values()
+        quotation.set_taxes()
+        quotation.calculate_taxes_and_totals()
+
         # Sauvegarder le Quotation en base
         quotation.insert(ignore_permissions=True)
         
