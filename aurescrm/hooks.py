@@ -350,15 +350,15 @@ fixtures = [
     #     "doctype": "Role",
     #     "filters": [["is_custom", "=", 1]]  # Export uniquement les rôles custom
     # },
-    {
-        "doctype": "Custom DocPerm",
-        "filters": []  # Export uniquement les permissions personnalisées
-    },
-    "Custom HTML Block",
+    # {
+    #     "doctype": "Custom DocPerm",
+    #     "filters": []  # Export uniquement les permissions personnalisées
+    # },
+    # "Custom HTML Block",
     # "Client Script",
-    "Workflow",
-    "Workflow State",
-    "Workflow Action Master",
+    # "Workflow",
+    # "Workflow State",
+    # "Workflow Action Master",
     # "Workflow Transition",
     # "Workflow Action",
     # "Workflow Document State",
@@ -367,6 +367,6 @@ fixtures = [
     
     # Fixtures pour le module Meeting Interne
     # "Type Meeting"
-    "Raisons Accueil Client"
+    # "Raisons Accueil Client"
 ]
 
