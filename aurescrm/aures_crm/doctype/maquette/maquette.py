@@ -1,6 +1,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe import _
+from frappe.utils import today
 
 
 def update_bats_on_maquette_activation(doc, method):
@@ -78,6 +79,14 @@ class Maquette(Document):
         elif self.status == 'Référencée':
             self.reference_par = frappe.session.user
             self.nom_reference_par = frappe.db.get_value('User', frappe.session.user, 'full_name')
+
+        # Enregistrer la date d'activation lors du passage au statut actif
+        if self.status == 'Version Activée' and not self.date_activation:
+            old_status = None
+            if self.name and frappe.db.exists('Maquette', self.name):
+                old_status = frappe.db.get_value('Maquette', self.name, 'status')
+            if self.is_new() or old_status != 'Version Activée':
+                self.date_activation = today()
 
         # Validation de la gestion des couleurs
         self.validate_color_mode()

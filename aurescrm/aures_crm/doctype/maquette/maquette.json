@@ -39,7 +39,9 @@
   "suivi_tab",
   "pv_destruction",
   "desc_changements",
-  "obs_internes"
+  "obs_internes",
+  "section_break_gyuz",
+  "date_activation"
  ],
  "fields": [
   {
@@ -255,12 +257,22 @@
   {
    "fieldname": "section_break_nkhd",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_gyuz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "date_activation",
+   "fieldtype": "Date",
+   "label": "Date Activation",
+   "read_only": 1
   }
  ],
  "image_field": "fichier_maquette",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-07 07:49:41.839036",
+ "modified": "2026-01-20 08:34:46.137781",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Maquette",
