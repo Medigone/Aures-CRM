@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe import _ # Ajout de l'import
-from frappe.utils import now_datetime, add_days, getdate # Ajout de l'import
+from frappe.utils import now_datetime, add_days, getdate, cint # Ajout de l'import
 
 
 class DemandeFaisabilite(Document):
@@ -693,36 +693,38 @@ def create_quotation_with_calculs(docname):
                     "qty": e.quantite
                 })
 
-        # Compléter les valeurs par défaut qui ne sont pas automatiquement récupérées
-        # lors d'une création côté serveur (les triggers UI ne s'exécutent pas)
+        # Sauvegarder le Quotation en base (ERPNext gère automatiquement les taxes via validate())
+        quotation.insert(ignore_permissions=True)
         
-        # 1. valid_till - récupérer depuis Paramètres CRM
+        # Post-traitement: compléter les valeurs qui ne sont pas automatiquement récupérées
+        # lors d'une création côté serveur (les triggers UI ne s'exécutent pas)
+        needs_save = False
+        
+        # 1. valid_till - récupérer depuis Paramètres CRM si non défini
         if not quotation.valid_till:
-            default_validity = frappe.db.get_single_value("CRM Settings", "default_valid_till") or 30
+            default_validity = cint(frappe.db.get_single_value("CRM Settings", "default_valid_till")) or 30
             quotation.valid_till = add_days(quotation.transaction_date or getdate(), default_validity)
+            needs_save = True
         
         # 2. tc_name → terms - récupérer le contenu des Terms and Conditions
         if quotation.tc_name and not quotation.terms:
             terms_content = frappe.db.get_value("Terms and Conditions", quotation.tc_name, "terms")
             if terms_content:
                 quotation.terms = terms_content
+                needs_save = True
         
-        # 3. Compléter les valeurs dépendantes (company/customer)
-        quotation.set_missing_values()
-        
-        # 4. Charger les taxes explicitement si taxes_and_charges est défini mais taxes est vide
-        # (set_taxes() ne le fait pas automatiquement car il suppose que c'est déjà géré)
+        # 3. Charger les taxes si taxes_and_charges est défini mais taxes est vide
         if quotation.taxes_and_charges and not quotation.taxes:
             from erpnext.controllers.accounts_controller import get_taxes_and_charges
             taxes = get_taxes_and_charges("Sales Taxes and Charges Template", quotation.taxes_and_charges)
             for tax in taxes:
                 quotation.append("taxes", tax)
+            quotation.calculate_taxes_and_totals()
+            needs_save = True
         
-        # 5. Recalculer les totaux avec les taxes
-        quotation.calculate_taxes_and_totals()
-
-        # Sauvegarder le Quotation en base
-        quotation.insert(ignore_permissions=True)
+        # Sauvegarder si des modifications ont été faites
+        if needs_save:
+            quotation.save(ignore_permissions=True)
         
         # Générer les Calcul Devis
         from aurescrm.aures_crm.doctype.calcul_devis.calcul_devis import generate_calcul_devis_for_quotation
