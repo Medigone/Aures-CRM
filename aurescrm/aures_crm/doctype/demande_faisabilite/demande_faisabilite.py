@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe import _ # Ajout de l'import
-from frappe.utils import now_datetime # Ajout de l'import
+from frappe.utils import now_datetime, add_days, getdate # Ajout de l'import
 
 
 class DemandeFaisabilite(Document):
@@ -693,11 +693,32 @@ def create_quotation_with_calculs(docname):
                     "qty": e.quantite
                 })
 
-        # Compléter les valeurs dépendantes (company/customer), appliquer le template de taxes
-        # et recalculer les totaux. Sans ça, `taxes_and_charges` peut être rempli mais la table
-        # enfant `taxes` reste vide, donc aucun calcul automatique n'est fait.
+        # Compléter les valeurs par défaut qui ne sont pas automatiquement récupérées
+        # lors d'une création côté serveur (les triggers UI ne s'exécutent pas)
+        
+        # 1. valid_till - récupérer depuis Paramètres CRM
+        if not quotation.valid_till:
+            default_validity = frappe.db.get_single_value("CRM Settings", "default_valid_till") or 30
+            quotation.valid_till = add_days(quotation.transaction_date or getdate(), default_validity)
+        
+        # 2. tc_name → terms - récupérer le contenu des Terms and Conditions
+        if quotation.tc_name and not quotation.terms:
+            terms_content = frappe.db.get_value("Terms and Conditions", quotation.tc_name, "terms")
+            if terms_content:
+                quotation.terms = terms_content
+        
+        # 3. Compléter les valeurs dépendantes (company/customer)
         quotation.set_missing_values()
-        quotation.set_taxes()
+        
+        # 4. Charger les taxes explicitement si taxes_and_charges est défini mais taxes est vide
+        # (set_taxes() ne le fait pas automatiquement car il suppose que c'est déjà géré)
+        if quotation.taxes_and_charges and not quotation.taxes:
+            from erpnext.controllers.accounts_controller import get_taxes_and_charges
+            taxes = get_taxes_and_charges("Sales Taxes and Charges Template", quotation.taxes_and_charges)
+            for tax in taxes:
+                quotation.append("taxes", tax)
+        
+        # 5. Recalculer les totaux avec les taxes
         quotation.calculate_taxes_and_totals()
 
         # Sauvegarder le Quotation en base
