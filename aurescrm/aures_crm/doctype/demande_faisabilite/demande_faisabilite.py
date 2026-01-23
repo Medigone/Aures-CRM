@@ -230,11 +230,31 @@ def generate_etude_faisabilite(docname):
         offset_fields = communs + []
         flexo_fields = communs + []
 
+        etudes_creees = 0
+        etudes_ignorees = 0
+        
         for row in demande.get("liste_articles"):
+            procede = row.procede_article or ""
+            
+            # Vérifier si une étude existe déjà pour cette demande et cet article
+            if procede == "Flexo":
+                existing_etude = frappe.db.exists("Etude Faisabilite Flexo", {
+                    "demande_faisabilite": demande.name,
+                    "article": row.article
+                })
+            else:
+                existing_etude = frappe.db.exists("Etude Faisabilite", {
+                    "demande_faisabilite": demande.name,
+                    "article": row.article
+                })
+            
+            if existing_etude:
+                etudes_ignorees += 1
+                continue  # Passer à l'article suivant, l'étude existe déjà
+            
             # Créer une maquette si elle n'existe pas pour cet article
             create_maquette_if_not_exists(demande.client, row.article)
             
-            procede = row.procede_article or ""
             base_values = {
                 "demande_faisabilite": demande.name,
                 "article": row.article,
@@ -253,6 +273,7 @@ def generate_etude_faisabilite(docname):
                     if field in fieldnames and field in base_values:
                         etude.set(field, base_values[field])
                 etude.insert(ignore_permissions=True)
+                etudes_creees += 1
             else:
                 etude = frappe.new_doc("Etude Faisabilite")
                 fieldnames = [f.fieldname for f in etude.meta.fields]
@@ -260,6 +281,14 @@ def generate_etude_faisabilite(docname):
                     if field in fieldnames and field in base_values:
                         etude.set(field, base_values[field])
                 etude.insert(ignore_permissions=True)
+                etudes_creees += 1
+        
+        # Message informatif si des études ont été ignorées
+        if etudes_ignorees > 0:
+            frappe.msgprint(
+                _("{0} étude(s) ignorée(s) car déjà existante(s) pour cette demande.").format(etudes_ignorees),
+                indicator="orange"
+            )
 
         demande.status = "Confirmée"
         demande.save(ignore_permissions=True)
@@ -333,34 +362,90 @@ def update_demande_status_from_etudes(doc, method):
 @frappe.whitelist()
 def cancel_etudes_faisabilite(docname):
     """
-    Tente d'annuler la Demande Faisabilite.
+    Tente d'annuler la Demande Faisabilite et supprimer/annuler les études liées.
     Retourne un dict avec :
       - status: "ok" si annulée
       - status: "blocked" si études bloquantes
       - blocked_etudes: liste des ID bloquants
+      - deleted_count: nombre d'études supprimées
     """
     try:
         parent = frappe.get_doc("Demande Faisabilite", docname)
 
-        etudes = frappe.get_all(
+        # Récupérer les études Offset
+        etudes_offset = frappe.get_all(
             "Etude Faisabilite",
             filters={"demande_faisabilite": docname},
-            fields=["name", "status"]
+            fields=["name", "status", "docstatus"]
+        )
+        
+        # Récupérer les études Flexo
+        etudes_flexo = frappe.get_all(
+            "Etude Faisabilite Flexo",
+            filters={"demande_faisabilite": docname},
+            fields=["name", "status", "docstatus"]
         )
 
-        bloquees = [e["name"] for e in etudes if e["status"] in ["Réalisable", "Non Réalisable"]]
+        # Vérifier les études bloquantes (Réalisable ou Non Réalisable) pour les deux types
+        bloquees = []
+        for e in etudes_offset:
+            if e["status"] in ["Réalisable", "Non Réalisable"]:
+                bloquees.append(f"Offset: {e['name']}")
+        for e in etudes_flexo:
+            if e["status"] in ["Réalisable", "Non Réalisable"]:
+                bloquees.append(f"Flexo: {e['name']}")
+        
         if bloquees:
             return {
                 "status": "blocked",
                 "blocked_etudes": bloquees
             }
 
-        # Pas de blocage, on peut annuler
+        # Pas de blocage, on peut supprimer/annuler les études
+        deleted_count = 0
+        cancelled_count = 0
+        
+        # Activer le flag pour ignorer les permissions
+        frappe.flags.ignore_permissions = True
+        
+        try:
+            # Traiter les études Offset
+            for e in etudes_offset:
+                if e["docstatus"] == 0:
+                    # Étude en brouillon : on la supprime
+                    frappe.delete_doc("Etude Faisabilite", e["name"], ignore_permissions=True, force=True)
+                    deleted_count += 1
+                elif e["docstatus"] == 1:
+                    # Étude soumise : on l'annule
+                    doc = frappe.get_doc("Etude Faisabilite", e["name"])
+                    doc.flags.ignore_permissions = True
+                    doc.cancel()
+                    cancelled_count += 1
+            
+            # Traiter les études Flexo
+            for e in etudes_flexo:
+                if e["docstatus"] == 0:
+                    # Étude en brouillon : on la supprime
+                    frappe.delete_doc("Etude Faisabilite Flexo", e["name"], ignore_permissions=True, force=True)
+                    deleted_count += 1
+                elif e["docstatus"] == 1:
+                    # Étude soumise : on l'annule
+                    doc = frappe.get_doc("Etude Faisabilite Flexo", e["name"])
+                    doc.flags.ignore_permissions = True
+                    doc.cancel()
+                    cancelled_count += 1
+        finally:
+            # Toujours remettre le flag à False
+            frappe.flags.ignore_permissions = False
+
+        # Annuler la demande
         parent.status = "Annulée"
         parent.save(ignore_permissions=True)
 
         return {
-            "status": "ok"
+            "status": "ok",
+            "deleted_count": deleted_count,
+            "cancelled_count": cancelled_count
         }
 
     except Exception as e:

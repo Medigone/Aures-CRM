@@ -140,6 +140,8 @@ frappe.ui.form.on('Demande Faisabilite', {
                         frappe.call({
                             method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.generate_etude_faisabilite",
                             args: { docname: frm.doc.name },
+                            freeze: true,
+                            freeze_message: __("Génération des études en cours..."),
                             callback: function(r) {
                                 if (r.message) {
                                     frappe.msgprint("La demande a été confirmée et les études de faisabilité générées.");
@@ -161,11 +163,11 @@ frappe.ui.form.on('Demande Faisabilite', {
         }
 
         // --- Bouton "Annuler" ---
-        if (frm.doc.status === "Partiellement Finalisée" || frm.doc.status === "Finalisée") {
+        if (["Confirmée", "En Cours", "Partiellement Finalisée", "Finalisée"].includes(frm.doc.status)) {
             // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button("Annuler", function() {
                 frappe.confirm(
-                    "Attention, cette action va annuler cette demande de Faisabilité. Voulez-vous vraiment continuer ?",
+                    "<b>Attention !</b><br><br>Cette action va :<br>• Annuler cette demande de Faisabilité<br>• <b>Supprimer toutes les études de faisabilité liées</b> (non finalisées)<br><br>Cette action est irréversible. Voulez-vous vraiment continuer ?",
                     function() {
                         frappe.call({
                             // Mise à jour du chemin
@@ -173,13 +175,24 @@ frappe.ui.form.on('Demande Faisabilite', {
                             args: { docname: frm.doc.name },
                             callback: function(r) {
                                 if (r.message && r.message.status === "ok") {
-                                    frappe.msgprint("Demande de Faisabilité annulée.");
+                                    var msg = "Demande de Faisabilité annulée.";
+                                    if (r.message.deleted_count > 0) {
+                                        msg += "<br>" + r.message.deleted_count + " étude(s) supprimée(s).";
+                                    }
+                                    if (r.message.cancelled_count > 0) {
+                                        msg += "<br>" + r.message.cancelled_count + " étude(s) annulée(s).";
+                                    }
+                                    frappe.msgprint({
+                                        title: __("Succès"),
+                                        message: msg,
+                                        indicator: "green"
+                                    });
                                     frm.reload_doc();
                                 } else if (r.message && r.message.status === "blocked") {
                                     frappe.msgprint({
                                         title: "Études bloquantes",
                                         message: "Impossible d'annuler la demande. Les études suivantes doivent être annulées ou supprimées au préalable :<br><b>• " +
-                                            r.message.blocked_etudes.join(", ") + "</b>",
+                                            r.message.blocked_etudes.join("<br>• ") + "</b>",
                                         indicator: "orange"
                                     });
                                 }
