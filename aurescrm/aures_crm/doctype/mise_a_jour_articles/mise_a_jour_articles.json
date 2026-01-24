@@ -13,10 +13,11 @@
    "fieldtype": "HTML"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-03 11:42:46.328827",
+ "modified": "2026-01-24 11:42:56.093232",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Mise a jour articles",
@@ -37,7 +38,9 @@
    "role": "Administrateur Ventes"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

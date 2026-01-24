@@ -108,9 +108,10 @@
    "read_only": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-17 19:15:44.204315",
+ "modified": "2026-01-24 11:42:58.257502",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAG",
@@ -129,7 +130,9 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-10-25 12:00:00.000000",
+ "creation": "2025-10-25 12:00:00",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -83,14 +83,15 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-25 12:00:00.000000",
+ "modified": "2026-01-24 11:42:43.738552",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Matiere Operation Production",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
-

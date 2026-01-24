@@ -107,9 +107,10 @@
    "label": "Nombre de poses"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-22 18:43:40.686175",
+ "modified": "2026-01-24 11:42:54.512926",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Forme Decoupe",
@@ -148,6 +149,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

@@ -34,9 +34,10 @@
    "reqd": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-04 15:28:02.955305",
+ "modified": "2026-01-24 11:42:56.472423",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Planche",
@@ -55,7 +56,9 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -52,7 +52,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 14:05:46.071848",
+ "modified": "2026-01-24 11:42:49.174372",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Developpement",
@@ -81,9 +81,11 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }

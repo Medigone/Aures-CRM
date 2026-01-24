@@ -118,9 +118,10 @@
    "label": "Date Rappel"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-07 13:45:29.387740",
+ "modified": "2026-01-24 11:42:57.122459",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Appel Telephonique",
@@ -191,6 +192,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [
@@ -210,5 +212,6 @@
    "color": "Red",
    "title": "Non R\u00e9pondu"
   }
- ]
+ ],
+ "track_changes": 1
 }

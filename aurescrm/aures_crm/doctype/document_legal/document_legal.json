@@ -155,9 +155,10 @@
    "label": "Date d\u2019\u00e9ch\u00e9ance"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-10 11:03:13.294015",
+ "modified": "2026-01-24 11:42:50.132352",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Document Legal",
@@ -195,6 +196,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "categorie,type_document",
  "sort_field": "modified",
  "sort_order": "DESC",
@@ -219,5 +221,6 @@
    "color": "Gray",
    "title": "Annul\u00e9"
   }
- ]
+ ],
+ "track_changes": 1
 }

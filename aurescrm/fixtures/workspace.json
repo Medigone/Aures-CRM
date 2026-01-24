@@ -12567,7 +12567,7 @@
  },
  {
   "charts": [],
-  "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"1OwS_622p8\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial accueil\",\"col\":12}},{\"id\":\"POpo0msWRB\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Technique accueil\",\"col\":12}},{\"id\":\"CorGvB7mkL\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Suivi créances\",\"col\":12}}]",
+  "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"s8UqVnLq2T\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Activités récentes\",\"col\":12}},{\"id\":\"1OwS_622p8\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial accueil\",\"col\":12}},{\"id\":\"POpo0msWRB\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Technique accueil\",\"col\":12}},{\"id\":\"CorGvB7mkL\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Suivi créances\",\"col\":12}}]",
   "custom_blocks": [
    {
     "custom_block_name": "Actions Rapides - Commercial accueil",
@@ -12584,6 +12584,13 @@
     "parenttype": "Workspace"
    },
    {
+   "custom_block_name": "Activités récentes",
+   "label": "Activités récentes",
+   "parent": "Home",
+   "parentfield": "custom_blocks",
+   "parenttype": "Workspace"
+  },
+  {
     "custom_block_name": "Suivi créances",
     "label": "Suivi créances",
     "parent": "Home",

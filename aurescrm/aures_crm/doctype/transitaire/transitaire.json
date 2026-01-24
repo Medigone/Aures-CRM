@@ -60,9 +60,10 @@
    "fieldtype": "Column Break"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-10 11:02:38.550448",
+ "modified": "2026-01-24 11:42:51.892163",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Transitaire",
@@ -98,6 +99,7 @@
    "select": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
@@ -115,5 +117,6 @@
    "title": "Bloqu\u00e9"
   }
  ],
- "title_field": "nom_transitaire"
+ "title_field": "nom_transitaire",
+ "track_changes": 1
 }

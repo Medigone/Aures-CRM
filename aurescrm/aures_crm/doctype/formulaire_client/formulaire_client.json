@@ -216,9 +216,10 @@
    "fieldtype": "Column Break"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-11-05 14:46:06.939120",
+ "modified": "2026-01-24 11:43:00.763730",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Formulaire Client",
@@ -237,7 +238,9 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

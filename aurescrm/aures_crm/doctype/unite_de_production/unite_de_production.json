@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "format:{ordre_production}-P-{###}-{YY}{MM}{DD}",
- "creation": "2025-10-25 10:00:00.000000",
+ "creation": "2025-10-25 10:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -205,7 +205,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-25 10:00:00.000000",
+ "modified": "2026-01-24 11:42:44.568981",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Unite de Production",
@@ -225,9 +225,9 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }
-

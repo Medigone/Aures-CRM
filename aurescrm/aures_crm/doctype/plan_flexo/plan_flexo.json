@@ -116,7 +116,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-16 14:04:22.603184",
+ "modified": "2026-01-24 11:42:48.693051",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Plan Flexo",
@@ -145,7 +145,9 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

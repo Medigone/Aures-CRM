@@ -44,16 +44,19 @@
    "precision": "2"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-15 08:26:23.306725",
+ "modified": "2026-01-24 11:42:57.625515",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Factures Creances",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -1,10 +1,9 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-01-27 10:00:00.000000",
+ "creation": "2025-01-27 10:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
- "is_submittable": 1,
  "field_order": [
   "status",
   "section_break_main",
@@ -23,7 +22,8 @@
   "section_break_file",
   "fichier_valide_client",
   "section_break_creation",
-  "cree_par"
+  "cree_par",
+  "amended_from"
  ],
  "fields": [
   {
@@ -149,11 +149,22 @@
    "label": "Cr\u00e9\u00e9 par",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "PV Destruction Maquette",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-01-27 10:00:00.000000",
+ "modified": "2026-01-24 11:42:36.856505",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "PV Destruction Maquette",
@@ -273,4 +284,3 @@
  ],
  "track_changes": 1
 }
-

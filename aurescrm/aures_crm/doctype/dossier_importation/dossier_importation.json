@@ -176,9 +176,10 @@
    "fieldtype": "HTML"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-10 16:44:53.390464",
+ "modified": "2026-01-24 11:42:51.409568",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Dossier Importation",
@@ -220,6 +221,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "nom_fournisseur,nom_transitaire",
  "sort_field": "modified",
  "sort_order": "DESC",
@@ -248,5 +250,6 @@
    "color": "Gray",
    "title": "Ferm\u00e9"
   }
- ]
+ ],
+ "track_changes": 1
 }

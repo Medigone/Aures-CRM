@@ -56,16 +56,19 @@
    "label": "Fiche Technique"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-08-25 17:17:54.576459",
+ "modified": "2026-01-24 11:43:02.297949",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Produits Flexo 1",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
