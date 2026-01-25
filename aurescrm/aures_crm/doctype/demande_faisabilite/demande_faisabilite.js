@@ -589,6 +589,7 @@ function check_bon_commande_duplicate(frm) {
         method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.check_bon_commande_exists",
         args: {
             n_bon_commande: frm.doc.n_bon_commande,
+            client: frm.doc.client || null,
             current_name: frm.doc.name || null
         },
         callback: function(r) {

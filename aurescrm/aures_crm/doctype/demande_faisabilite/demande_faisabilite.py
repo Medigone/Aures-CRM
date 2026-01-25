@@ -38,7 +38,8 @@ class DemandeFaisabilite(Document):
 			# Chercher les autres demandes avec le même numéro de bon de commande
 			filters = {
 				"n_bon_commande": self.n_bon_commande,
-				"type": "Retirage"
+				"type": "Retirage",
+				"client": self.client
 			}
 			# Exclure le document actuel pour permettre les modifications
 			if not self.is_new():
@@ -680,7 +681,7 @@ def set_demande_status_from_sales_order(doc, method):
 
 
 @frappe.whitelist()
-def check_bon_commande_exists(n_bon_commande, current_name=None):
+def check_bon_commande_exists(n_bon_commande, client=None, current_name=None):
 	"""
 	Vérifie si un numéro de bon de commande existe déjà pour une autre demande de retirage.
 	
@@ -698,6 +699,8 @@ def check_bon_commande_exists(n_bon_commande, current_name=None):
 		"n_bon_commande": n_bon_commande,
 		"type": "Retirage"
 	}
+	if client:
+		filters["client"] = client
 	
 	# Exclure le document actuel si fourni
 	if current_name:
