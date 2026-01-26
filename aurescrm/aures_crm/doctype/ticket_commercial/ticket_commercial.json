@@ -13,14 +13,16 @@
   "column_break_tfwi",
   "owner_user",
   "owner_user_name",
+  "assigne_a",
+  "assigne_a_nom",
   "commercial",
-  "nom_commercial",
   "section_info",
   "request_type",
   "priority",
   "column_break_info",
   "customer",
   "customer_name",
+  "nom_commercial",
   "section_demande",
   "channel",
   "column_break_demande",
@@ -156,6 +158,21 @@
    "label": "Cr\u00e9\u00e9 par"
   },
   {
+   "fieldname": "assigne_a",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Assign\u00e9 \u00e0",
+   "options": "User"
+  },
+  {
+   "fetch_from": "assigne_a.full_name",
+   "fieldname": "assigne_a_nom",
+   "fieldtype": "Data",
+   "label": "Assign\u00e9 \u00e0",
+   "read_only": 1
+  },
+  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -174,7 +191,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-24 11:42:33.373518",
+ "modified": "2026-01-26 09:07:27.649209",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",

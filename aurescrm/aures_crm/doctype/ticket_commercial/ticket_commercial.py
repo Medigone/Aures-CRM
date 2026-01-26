@@ -45,3 +45,60 @@ class TicketCommercial(Document):
         # Définir le commercial avec l'utilisateur créateur si non renseigné
         if not self.commercial:
             self.commercial = frappe.session.user
+
+
+@frappe.whitelist()
+def update_assigne_a(docname, assigne_user):
+    """Met à jour les champs assigne_a et assigne_a_nom pour un Ticket Commercial."""
+    try:
+        full_name = frappe.db.get_value("User", assigne_user, "full_name")
+        if not full_name:
+            full_name = assigne_user
+
+        frappe.db.set_value("Ticket Commercial", docname, {
+            "assigne_a": assigne_user,
+            "assigne_a_nom": full_name
+        }, update_modified=False)
+
+        frappe.db.commit()
+        return {"status": "success", "message": "Assignation mise à jour", "full_name": full_name}
+    except Exception as e:
+        frappe.log_error(f"Erreur update_assigne_a pour {docname}: {e}", frappe.get_traceback())
+        frappe.db.rollback()
+        return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def get_admin_ventes_users(doctype, txt, searchfield, start, page_len, filters):
+    """Retourne les utilisateurs actifs ayant le rôle Administrateur Ventes."""
+    users_with_role = frappe.get_all(
+        "Has Role",
+        filters={"role": "Administrateur Ventes", "parenttype": "User"},
+        fields=["parent"]
+    )
+    user_list = [d.parent for d in users_with_role]
+
+    if not user_list:
+        return []
+
+    search_condition = ""
+    if txt:
+        search_condition = "AND (`name` LIKE %(txt)s OR `full_name` LIKE %(txt)s)"
+
+    return frappe.db.sql(
+        f"""
+            SELECT `name`, `full_name` FROM `tabUser`
+            WHERE `name` IN %(user_list)s
+            AND `enabled` = 1
+            {search_condition}
+            ORDER BY `full_name`
+            LIMIT %(start)s, %(page_len)s
+        """,
+        {
+            "user_list": tuple(user_list),
+            "txt": f"%{txt}%",
+            "start": start,
+            "page_len": page_len
+        },
+        as_list=True
+    )

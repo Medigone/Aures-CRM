@@ -122,6 +122,15 @@ Exemple : `TC-25-12-00001` (Ticket Commercial créé en décembre 2025, numéro 
 - **Description** : Votre nom est automatiquement rempli, mais vous pouvez le modifier si nécessaire
 - **Comportement** : Le nom complet du commercial s'affiche automatiquement
 
+#### Assigné à (Back Office)
+- **Type** : Liste déroulante (utilisateurs)
+- **Description** : Permet d'assigner le ticket à un membre du back office
+- **Comportement** : Les boutons **Attribuer → À moi / Attribuer à...** sont visibles pour le rôle **Administrateur Ventes** tant que le ticket n'est pas **Terminé** ou **Annulé**
+
+#### Nom complet (assigné)
+- **Type** : Champ texte (lecture seule)
+- **Description** : Affiche automatiquement le nom complet de l'utilisateur assigné
+
 #### Fichier
 - **Type** : Pièce jointe
 - **Description** : Joignez tous les documents utiles (photos, PDF, emails, etc.)
