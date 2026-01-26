@@ -3,12 +3,15 @@
 
 frappe.ui.form.on("Ticket Commercial", {
     refresh: function(frm) {
+        frm.clear_custom_buttons();
+
         // Actions personnalisées au rafraîchissement du formulaire
         if (frm.doc.status === "Terminé" || frm.doc.status === "Annulé") {
             frm.set_read_only(true);
         }
 
         add_assign_buttons(frm);
+        add_create_buttons(frm);
     },
 
     customer: function(frm) {
@@ -108,6 +111,40 @@ function add_assign_buttons(frm) {
         });
         dialog.show();
     }, __("Attribuer"));
+}
+
+function add_create_buttons(frm) {
+    if (["Terminé", "Annulé"].includes(frm.doc.status)) {
+        return;
+    }
+
+    if (frappe.model.can_create("Demande Faisabilite")) {
+        frm.add_custom_button(__("Demande de faisabilité"), function() {
+            if (!frm.doc.customer) {
+                frappe.msgprint(__("Veuillez sélectionner un client avant de créer une demande de faisabilité."));
+                return;
+            }
+
+            frappe.new_doc("Demande Faisabilite", {
+                client: frm.doc.customer,
+                date_livraison: frm.doc.echeance || frappe.datetime.add_days(frappe.datetime.now_date(), 7),
+                type: "Premier Tirage"
+            });
+        }, __("Créer"));
+    }
+
+    if (frappe.model.can_create("Item")) {
+        frm.add_custom_button(__("Article"), function() {
+            if (!frm.doc.customer) {
+                frappe.msgprint(__("Veuillez sélectionner un client avant de créer un article."));
+                return;
+            }
+
+            frappe.new_doc("Item", {
+                custom_client: frm.doc.customer
+            });
+        }, __("Créer"));
+    }
 }
 
 function update_assigne_a(frm, assigne_user) {
