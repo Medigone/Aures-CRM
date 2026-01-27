@@ -78,8 +78,9 @@
   },
   {
    "fieldname": "site",
-   "fieldtype": "Data",
-   "label": "Site"
+   "fieldtype": "Link",
+   "label": "Site",
+   "options": "Site Production"
   },
   {
    "fieldname": "section_break_status",
@@ -105,7 +106,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-27 13:36:28.475334",
+ "modified": "2026-01-27 13:37:59.850145",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Annuaire Interne",
