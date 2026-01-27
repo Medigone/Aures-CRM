@@ -1,23 +1,24 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2026-01-27 00:00:00.000000",
+ "creation": "2026-01-27 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "section_break_info",
   "full_name",
   "user",
+  "photo",
   "column_break_contact",
   "email",
   "mobile",
   "section_break_role",
   "fonction",
-  "departement",
   "site",
+  "column_break_swqf",
+  "departement",
   "section_break_status",
-  "actif",
-  "photo"
+  "actif"
  ],
  "fields": [
   {
@@ -96,11 +97,15 @@
    "fieldname": "photo",
    "fieldtype": "Attach Image",
    "label": "Photo"
+  },
+  {
+   "fieldname": "column_break_swqf",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-27 00:00:00.000000",
+ "modified": "2026-01-27 13:36:28.475334",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Annuaire Interne",
