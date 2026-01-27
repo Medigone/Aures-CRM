@@ -3,6 +3,7 @@ import frappe
 # from erpnext.selling.doctype.quotation.quotation import _make_sales_order # Keep this commented or remove
 from frappe import _
 from frappe.model.mapper import get_mapped_doc # Import needed for get_mapped_doc
+from frappe.utils import getdate, nowdate
 
 @frappe.whitelist()
 def make_sales_order_draft(source_name):
@@ -37,9 +38,45 @@ def make_sales_order_draft(source_name):
         return create_complete_sales_order(source_name)
         
     except Exception as e:
-        frappe.log_error(f"Failed to create sales order for quotation {source_name}: {e}", 
-                        "make_sales_order_draft")
+        # IMPORTANT: utiliser des kwargs pour éviter l'inversion title/message
+        # et garder un titre <= 140 caractères.
+        frappe.log_error(
+            title=f"Création SO depuis Devis échouée: {source_name}",
+            message=f"{e}\n\n{frappe.get_traceback()}",
+        )
         frappe.throw(_("Erreur lors de la création de la commande."))
+
+def _ensure_sales_order_delivery_dates(so):
+    """
+    ERPNext impose: date(s) de livraison >= date de commande (transaction_date).
+    On aligne l'entête et les lignes pour éviter une ValidationError lors du insert().
+    """
+    tx_date = getdate(so.transaction_date or nowdate())
+
+    # Entête
+    header_delivery = getdate(so.delivery_date) if so.delivery_date else tx_date
+    if header_delivery < tx_date:
+        header_delivery = tx_date
+    so.delivery_date = header_delivery
+
+    # Lignes
+    for item in so.get("items") or []:
+        # Selon version ERPNext: Sales Order Item utilise généralement delivery_date.
+        item_delivery = None
+        if getattr(item, "delivery_date", None):
+            item_delivery = getdate(item.delivery_date)
+        elif getattr(item, "schedule_date", None):
+            item_delivery = getdate(item.schedule_date)
+        else:
+            item_delivery = header_delivery
+
+        if item_delivery < tx_date:
+            item_delivery = tx_date
+
+        if hasattr(item, "delivery_date"):
+            item.delivery_date = item_delivery
+        if hasattr(item, "schedule_date"):
+            item.schedule_date = item_delivery
 
 
 def create_smart_sales_order_with_remaining_items(source_name, command_analysis):
@@ -87,9 +124,13 @@ def create_smart_sales_order_with_remaining_items(source_name, command_analysis)
                 "qty": item_data["remaining_qty"],
                 "rate": item.rate,
                 "uom": item.uom,
-                "description": item.description
+                "description": item.description,
+                # Evite l'erreur ERPNext si la date de livraison est vide/ancienne
+                "delivery_date": so.delivery_date or so.transaction_date or nowdate(),
             })
     
+    _ensure_sales_order_delivery_dates(so)
+
     # Sauvegarder la commande en brouillon
     so.insert(ignore_permissions=True)
     
@@ -160,6 +201,8 @@ def create_complete_sales_order(source_name):
     # Set the custom field linking back to the source Quotation using the correct field name
     so.custom_devis = source_name # Use the actual field name 'custom_devis'
 
+    _ensure_sales_order_delivery_dates(so)
+
     # 3) Save the Sales Order to the database (remains in Draft status)
     so.insert(ignore_permissions=True)
 
@@ -202,8 +245,8 @@ def populate_maquettes_for_sales_order(so, quotation):
             maquette_name = active_maquette[0].name
         else:
             frappe.log_error(
-                f"No active Maquette for item {item_code}",
-                "populate_maquettes_for_sales_order"
+                title="populate_maquettes_for_sales_order",
+                message=f"No active Maquette for item {item_code}",
             )
         
         # Ajouter la ligne dans la table des maquettes
