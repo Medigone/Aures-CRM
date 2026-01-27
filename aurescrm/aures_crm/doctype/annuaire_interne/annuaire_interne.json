@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-01-27 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_info",
+  "full_name",
+  "user",
+  "column_break_contact",
+  "email",
+  "mobile",
+  "section_break_role",
+  "fonction",
+  "departement",
+  "site",
+  "section_break_status",
+  "actif",
+  "photo"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_info",
+   "fieldtype": "Section Break",
+   "label": "Informations"
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Nom complet",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Utilisateur",
+   "options": "User",
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_contact",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "mobile",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Telephone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "section_break_role",
+   "fieldtype": "Section Break",
+   "label": "Poste"
+  },
+  {
+   "fieldname": "fonction",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fonction"
+  },
+  {
+   "fieldname": "departement",
+   "fieldtype": "Data",
+   "label": "Departement"
+  },
+  {
+   "fieldname": "site",
+   "fieldtype": "Data",
+   "label": "Site"
+  },
+  {
+   "fieldname": "section_break_status",
+   "fieldtype": "Section Break",
+   "label": "Statut"
+  },
+  {
+   "default": "1",
+   "fieldname": "actif",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Actif"
+  },
+  {
+   "fieldname": "photo",
+   "fieldtype": "Attach Image",
+   "label": "Photo"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-01-27 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Annuaire Interne",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "full_name",
+ "track_changes": 1
+}

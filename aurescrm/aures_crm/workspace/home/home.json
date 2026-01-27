@@ -41,6 +41,15 @@
  "quick_lists": [],
  "roles": [],
  "sequence_id": 1.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Annuaire Interne",
+   "link_to": "Annuaire Interne",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
  "title": "Home"
 }

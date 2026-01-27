@@ -155,6 +155,10 @@ doc_events = {
             "aurescrm.customer_hooks.sync_principal_commercial_to_legacy_field",
         ]
     },
+    "User": {
+        "after_insert": "aurescrm.annuaire_interne.user_hooks.create_annuaire_for_user",
+        "on_update": "aurescrm.annuaire_interne.user_hooks.disable_annuaire_on_user_disable"
+    },
     "Item": {
         "autoname": "aurescrm.utils.custom_item_naming",
         "before_save": [
