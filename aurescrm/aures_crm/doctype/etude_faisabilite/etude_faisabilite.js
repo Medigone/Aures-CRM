@@ -1162,7 +1162,8 @@ function show_item_technical_specs(article_name) {
                     "custom_tolérance_",
                     "custom_impression", 
                     "custom_nbr_couleurs", 
-                    "custom_nombre_de_poses", 
+                    "custom_nombre_de_poses",
+                    "custom_nombre_passages",
                     "custom_pelliculage", 
                     "custom_marquage_à_chaud", 
                     "custom_couleur_marquage_à_chaud", 
@@ -1202,6 +1203,7 @@ function show_item_technical_specs(article_name) {
                     "custom_dimensions_h_x_l", 
                     "custom_sens_deroulement", 
                     "custom_sense_défilement_",
+                    "custom_nombre_passages",
                     "custom_poids_bobine"
                 ];
                 
@@ -1346,7 +1348,8 @@ if (!window.showItemTechnicalSpecs) {
                         "custom_tolérance_",
                         "custom_impression", 
                         "custom_nbr_couleurs", 
-                        "custom_nombre_de_poses", 
+                        "custom_nombre_de_poses",
+                        "custom_nombre_passages",
                         "custom_pelliculage", 
                         "custom_marquage_à_chaud", 
                         "custom_couleur_marquage_à_chaud", 
@@ -1386,6 +1389,7 @@ if (!window.showItemTechnicalSpecs) {
                         "custom_dimensions_h_x_l", 
                         "custom_sens_deroulement", 
                         "custom_sense_défilement_",
+                        "custom_nombre_passages",
                         "custom_poids_bobine"
                     ];
                     
