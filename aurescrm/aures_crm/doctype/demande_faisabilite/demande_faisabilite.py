@@ -241,12 +241,14 @@ def generate_etude_faisabilite(docname):
             if procede == "Flexo":
                 existing_etude = frappe.db.exists("Etude Faisabilite Flexo", {
                     "demande_faisabilite": demande.name,
-                    "article": row.article
+                    "article": row.article,
+                    "quantite": row.quantite
                 })
             else:
                 existing_etude = frappe.db.exists("Etude Faisabilite", {
                     "demande_faisabilite": demande.name,
-                    "article": row.article
+                    "article": row.article,
+                    "quantite": row.quantite
                 })
             
             if existing_etude:
@@ -256,6 +258,10 @@ def generate_etude_faisabilite(docname):
             # Créer une maquette si elle n'existe pas pour cet article
             create_maquette_if_not_exists(demande.client, row.article)
             
+            row_essai_blanc = row.essai_blanc
+            if row_essai_blanc in (None, ""):
+                row_essai_blanc = demande.essai_blanc
+
             base_values = {
                 "demande_faisabilite": demande.name,
                 "article": row.article,
@@ -265,7 +271,7 @@ def generate_etude_faisabilite(docname):
                 "commercial": demande.commercial,
                 "id_commercial": demande.id_commercial,
                 "is_reprint": demande.is_reprint,
-                "essai_blanc": demande.essai_blanc
+                "essai_blanc": row_essai_blanc
             }
             if procede == "Flexo":
                 etude = frappe.new_doc("Etude Faisabilite Flexo")

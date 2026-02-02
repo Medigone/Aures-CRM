@@ -10,7 +10,8 @@
   "quantite",
   "date_livraison",
   "procede_article",
-  "est_creation"
+  "est_creation",
+  "essai_blanc"
  ],
  "fields": [
   {
@@ -53,13 +54,20 @@
    "in_list_view": 1,
    "label": "Date de livraison",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "essai_blanc",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Essai Blanc"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-01-25 15:57:38.559537",
+ "modified": "2026-02-02 08:20:36.431481",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Articles Demande Faisabilite",

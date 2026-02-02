@@ -37,6 +37,32 @@ function clean_empty_rows_js(frm) {
     }
 }
 
+function normalize_qty(value) {
+    return Number(value || 0);
+}
+
+function has_article_qty_duplicate(rows, article, quantite) {
+    const target_qty = normalize_qty(quantite);
+    return (rows || []).some(function(row) {
+        return row.article === article && normalize_qty(row.quantite) === target_qty;
+    });
+}
+
+function find_duplicate_article_qty(rows) {
+    const seen = new Set();
+    for (const row of rows || []) {
+        if (!row.article) {
+            continue;
+        }
+        const key = `${row.article}::${normalize_qty(row.quantite)}`;
+        if (seen.has(key)) {
+            return { article: row.article, quantite: normalize_qty(row.quantite) };
+        }
+        seen.add(key);
+    }
+    return null;
+}
+
 frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
         // // Masquer les champs is_reprint et essai_blanc car ils sont gérés automatiquement
@@ -93,23 +119,29 @@ frappe.ui.form.on('Demande Faisabilite', {
                         fieldtype: 'Check',
                         label: 'Est une nouvelle création',
                         default: 0
+                    },
+                    {
+                        fieldname: 'essai_blanc',
+                        fieldtype: 'Check',
+                        label: 'Essai Blanc',
+                        default: frm.doc.type === "Essai Blanc" ? 1 : 0
                     }
                 ],
                 function(values) {
-                    var already_exists = false;
-                    frm.doc.liste_articles.forEach(function(row) {
-                        if (row.article === values.article) {
-                            already_exists = true;
-                        }
-                    });
+                    var already_exists = has_article_qty_duplicate(
+                        frm.doc.liste_articles,
+                        values.article,
+                        values.quantite
+                    );
                     if (already_exists) {
-                        frappe.msgprint("Cet article existe déjà dans la liste.");
+                        frappe.msgprint("Cet article existe déjà avec la même quantité.");
                     } else {
                         var row = frm.add_child('liste_articles');
                         row.article = values.article;
                         row.quantite = values.quantite;
                         row.date_livraison = values.date_livraison;
                         row.est_creation = values.est_creation;
+                        row.essai_blanc = values.essai_blanc;
                         frm.refresh_field('liste_articles');
                         frm.save();
                     }
@@ -337,6 +369,12 @@ frappe.ui.form.on('Demande Faisabilite', {
         } else if (frm.doc.type === "Essai Blanc") {
             frm.set_value("essai_blanc", 1);
             frm.set_value("is_reprint", 0);
+            if (frm.doc.liste_articles && frm.doc.liste_articles.length) {
+                frm.doc.liste_articles.forEach(function(row) {
+                    row.essai_blanc = 1;
+                });
+                frm.refresh_field('liste_articles');
+            }
         }
         // Mettre à jour le bouton générer quand le type change
         setup_bouton_generer(frm);
@@ -377,6 +415,18 @@ frappe.ui.form.on('Demande Faisabilite', {
     // Handler pour mettre à jour le bouton générer quand le client change
     client: function(frm) {
         setup_bouton_generer(frm);
+    },
+    validate: function(frm) {
+        const duplicate = find_duplicate_article_qty(frm.doc.liste_articles);
+        if (duplicate) {
+            frappe.msgprint(
+                __("Doublon détecté : l'article {0} existe déjà avec la même quantité ({1}).", [
+                    duplicate.article,
+                    duplicate.quantite
+                ])
+            );
+            frappe.validated = false;
+        }
     }
 });
 
