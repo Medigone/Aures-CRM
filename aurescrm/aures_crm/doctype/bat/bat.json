@@ -44,6 +44,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "hidden": 1,
+   "in_standard_filter": 1,
    "label": "Statut",
    "options": "Nouveau\nBAT-E Valid\u00e9\nBAT-P Valid\u00e9\nObsol\u00e8te"
   },
@@ -257,7 +258,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-24 11:42:47.981382",
+ "modified": "2026-02-03 16:42:12.013900",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "BAT",
