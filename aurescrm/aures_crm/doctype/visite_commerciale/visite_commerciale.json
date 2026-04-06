@@ -136,7 +136,7 @@
   {
    "fieldname": "notes_tab",
    "fieldtype": "Tab Break",
-   "label": "Notes"
+   "label": "Rapport"
   },
   {
    "allow_on_submit": 1,
@@ -261,7 +261,7 @@
    "link_fieldname": "visite"
   }
  ],
- "modified": "2026-01-24 11:42:34.747039",
+ "modified": "2026-04-06 13:39:43.109372",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
