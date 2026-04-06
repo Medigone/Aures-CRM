@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "frappe-dev": {
+      "source": "/home/wezri/frappe-bench/apps/aurescrm/.cursor/skills/frappe-dev",
+      "sourceType": "local",
+      "computedHash": "9b6f9158445ef1a7933b4fbcdd1ad8a2e6b4ac891f61d252d70570c9a567f0ca"
+    }
+  }
+}
