@@ -275,3 +275,17 @@ def get_reclamations_clients_permission_query_conditions(user):
     if "Commercial Itinérant" in frappe.get_roles(user):
         return build_commercial_permission_query_condition("`tabReclamations Clients`.client", user)
     return ""
+
+
+def get_pilotage_commercial_permission_query_conditions(user):
+    """Liste Pilotage Commercial : commerciaux itinérants = leur fiche uniquement."""
+    if not user:
+        user = frappe.session.user
+    if is_exempt_user(user):
+        return ""
+    roles = frappe.get_roles(user)
+    if "Superviseur CRM" in roles or "Administrateur Ventes" in roles:
+        return ""
+    if "Commercial Itinérant" in roles:
+        return f"`tabPilotage Commercial`.`user` = {frappe.db.escape(user)}"
+    return "1=0"

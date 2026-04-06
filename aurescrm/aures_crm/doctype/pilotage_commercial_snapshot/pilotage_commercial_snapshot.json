@@ -1,0 +1,105 @@
+{
+ "actions": [],
+ "creation": "2026-04-06 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "snapshot_date",
+  "period_label",
+  "period_type",
+  "column_break_1",
+  "revenue_achieved",
+  "target_achievement_pct",
+  "visits_completed",
+  "coverage_rate",
+  "conversion_rate",
+  "column_break_2",
+  "portfolio_accounts_count",
+  "strategic_accounts_count",
+  "active_customers_count"
+ ],
+ "fields": [
+  {
+   "fieldname": "snapshot_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date snapshot",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Libell\u00e9 p\u00e9riode"
+  },
+  {
+   "fieldname": "period_type",
+   "fieldtype": "Select",
+   "label": "Type p\u00e9riode",
+   "options": "Monthly\nQuarterly\nYearly"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "revenue_achieved",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "CA r\u00e9alis\u00e9"
+  },
+  {
+   "fieldname": "target_achievement_pct",
+   "fieldtype": "Percent",
+   "label": "% atteinte objectif"
+  },
+  {
+   "fieldname": "visits_completed",
+   "fieldtype": "Int",
+   "label": "Visites"
+  },
+  {
+   "fieldname": "coverage_rate",
+   "fieldtype": "Percent",
+   "label": "Taux couverture"
+  },
+  {
+   "fieldname": "conversion_rate",
+   "fieldtype": "Percent",
+   "label": "Taux transformation"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "portfolio_accounts_count",
+   "fieldtype": "Int",
+   "label": "Nb comptes"
+  },
+  {
+   "fieldname": "strategic_accounts_count",
+   "fieldtype": "Int",
+   "label": "Nb grands comptes"
+  },
+  {
+   "fieldname": "active_customers_count",
+   "fieldtype": "Int",
+   "label": "Nb clients actifs"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-06 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Pilotage Commercial Snapshot",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

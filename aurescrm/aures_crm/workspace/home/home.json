@@ -49,6 +49,14 @@
    "link_to": "Annuaire Interne",
    "stats_filter": "[]",
    "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Pilotage Commercial",
+   "link_to": "Pilotage Commercial",
+   "stats_filter": "[]",
+   "type": "DocType"
   }
  ],
  "title": "Home"

@@ -30,7 +30,8 @@ app_license = "mit"
 # include js in doctype views
 doctype_js = {
     "Customer": "public/js/customer.js",
-    "Quotation": "public/js/quotation_calcul_devis.js"
+    "Quotation": "public/js/quotation_calcul_devis.js",
+    "Pilotage Commercial": "aures_crm/doctype/pilotage_commercial/pilotage_commercial.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -107,6 +108,7 @@ after_install = "aurescrm.install.after_install"
 # Permissions evaluated in scripted ways
 
 permission_query_conditions = {
+    "Pilotage Commercial": "aurescrm.custom_permissions.get_pilotage_commercial_permission_query_conditions",
     "Quotation": "aurescrm.custom_permissions.get_quotation_permission_query_conditions",
     "Sales Order": "aurescrm.custom_permissions.get_sales_order_permission_query_conditions",
     "Delivery Note": "aurescrm.custom_permissions.get_delivery_note_permission_query_conditions",
@@ -254,6 +256,9 @@ scheduler_events = {
             "aurescrm.aures_crm.doctype.reclamations_clients.reclamations_clients.update_reclamations_status"
         ]
     },
+    "daily": [
+        "aurescrm.pilotage_commercial_kpi.refresh_all_pilotage_kpis"
+    ],
     "hourly": [
         "aurescrm.aures_crm.doctype.meeting_interne.meeting_interne.check_and_send_all_reminders"
     ],

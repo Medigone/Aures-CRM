@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "creation": "2026-04-06 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "metric_code",
+  "period_type",
+  "period_start",
+  "period_end",
+  "column_break_1",
+  "fiscal_year",
+  "target_value",
+  "unit",
+  "achieved_value",
+  "achievement_pct",
+  "is_locked"
+ ],
+ "fields": [
+  {
+   "fieldname": "metric_code",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "M\u00e9trique",
+   "options": "revenue\nvisits\nnew_customers\ncoverage\nconversion",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type de p\u00e9riode",
+   "options": "Monthly\nQuarterly\nYearly",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period_start",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "D\u00e9but p\u00e9riode",
+   "reqd": 1
+  },
+  {
+   "fieldname": "period_end",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Fin p\u00e9riode",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fiscal_year",
+   "fieldtype": "Link",
+   "label": "Exercice fiscal",
+   "options": "Fiscal Year"
+  },
+  {
+   "fieldname": "target_value",
+   "fieldtype": "Float",
+   "label": "Objectif",
+   "reqd": 1
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Select",
+   "label": "Unit\u00e9",
+   "options": "currency\ncount\npercent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "achieved_value",
+   "fieldtype": "Float",
+   "label": "R\u00e9alis\u00e9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "achievement_pct",
+   "fieldtype": "Percent",
+   "label": "% atteinte",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_locked",
+   "fieldtype": "Check",
+   "label": "Verrouill\u00e9"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-06 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Pilotage Commercial Target",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 0
+}

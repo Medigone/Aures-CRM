@@ -1,0 +1,431 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:user",
+ "creation": "2026-04-06 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "identity_tab",
+  "user",
+  "display_name",
+  "column_break_id1",
+  "commercial_department",
+  "record_status",
+  "structure_tab",
+  "profile_category",
+  "sales_zone",
+  "column_break_st1",
+  "commercial_type",
+  "manager_user",
+  "portfolio_orientation",
+  "portfolio_tab",
+  "portfolio_accounts_count",
+  "strategic_accounts_count",
+  "column_break_pf1",
+  "active_customers_count",
+  "coverage_rate",
+  "portfolio_last_sync_at",
+  "discipline_tab",
+  "crm_discipline_score",
+  "weekly_preparation_status",
+  "column_break_dc1",
+  "process_compliance_score",
+  "last_manager_review_date",
+  "objectives_tab",
+  "monthly_revenue_target",
+  "annual_revenue_target",
+  "column_break_ob1",
+  "visit_target_current",
+  "new_customers_target_current",
+  "targets",
+  "stats_tab",
+  "revenue_achieved",
+  "target_achievement_pct",
+  "column_break_st2",
+  "visits_completed",
+  "conversion_rate",
+  "stats_last_refresh_at",
+  "pilotage_tab",
+  "reclassification_status",
+  "priority_level",
+  "column_break_pl1",
+  "priority_score",
+  "next_review_date",
+  "actions",
+  "comments_tab",
+  "observations",
+  "manager_notes",
+  "snapshots_tab",
+  "snapshots"
+ ],
+ "fields": [
+  {
+   "fieldname": "identity_tab",
+   "fieldtype": "Tab Break",
+   "label": "Identit\u00e9"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Utilisateur",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fetch_from": "user.full_name",
+   "fetch_if_empty": 1,
+   "fieldname": "display_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom affich\u00e9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_id1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commercial_department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "D\u00e9partement commercial",
+   "options": "Commercial Department",
+   "reqd": 1
+  },
+  {
+   "default": "Actif",
+   "fieldname": "record_status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Statut fiche",
+   "options": "Actif\nEn revue\nArchiv\u00e9",
+   "reqd": 1
+  },
+  {
+   "fieldname": "structure_tab",
+   "fieldtype": "Tab Break",
+   "label": "Structure commerciale"
+  },
+  {
+   "fieldname": "profile_category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cat\u00e9gorie de profil",
+   "options": "Commercial Profile",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sales_zone",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Zone commerciale",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "column_break_st1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "commercial_type",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Type de commercial",
+   "options": "Terrain\nHybride\nInterne",
+   "reqd": 1
+  },
+  {
+   "fieldname": "manager_user",
+   "fieldtype": "Link",
+   "label": "Responsable hi\u00e9rarchique",
+   "options": "User"
+  },
+  {
+   "fieldname": "portfolio_orientation",
+   "fieldtype": "Select",
+   "label": "Orientation portefeuille",
+   "options": "Fid\u00e9lisation\nProspection\nMixte",
+   "reqd": 1
+  },
+  {
+   "fieldname": "portfolio_tab",
+   "fieldtype": "Tab Break",
+   "label": "Portefeuille"
+  },
+  {
+   "fieldname": "portfolio_accounts_count",
+   "fieldtype": "Int",
+   "label": "Nb comptes attribu\u00e9s",
+   "read_only": 1
+  },
+  {
+   "fieldname": "strategic_accounts_count",
+   "fieldtype": "Int",
+   "label": "Nb comptes strat\u00e9giques",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_pf1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "active_customers_count",
+   "fieldtype": "Int",
+   "label": "Nb clients actifs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "coverage_rate",
+   "fieldtype": "Percent",
+   "label": "Taux de couverture (mois)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "portfolio_last_sync_at",
+   "fieldtype": "Datetime",
+   "label": "Derni\u00e8re synchro portefeuille",
+   "read_only": 1
+  },
+  {
+   "fieldname": "discipline_tab",
+   "fieldtype": "Tab Break",
+   "label": "Discipline op\u00e9rationnelle"
+  },
+  {
+   "fieldname": "crm_discipline_score",
+   "fieldtype": "Percent",
+   "label": "Score discipline CRM",
+   "read_only": 1
+  },
+  {
+   "default": "A jour",
+   "fieldname": "weekly_preparation_status",
+   "fieldtype": "Select",
+   "label": "Pr\u00e9paration hebdomadaire",
+   "options": "A jour\nPartielle\nEn retard"
+  },
+  {
+   "fieldname": "column_break_dc1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "process_compliance_score",
+   "fieldtype": "Percent",
+   "label": "Respect des processus"
+  },
+  {
+   "fieldname": "last_manager_review_date",
+   "fieldtype": "Date",
+   "label": "Dernier contr\u00f4le manag\u00e9rial"
+  },
+  {
+   "fieldname": "objectives_tab",
+   "fieldtype": "Tab Break",
+   "label": "Objectifs"
+  },
+  {
+   "fieldname": "monthly_revenue_target",
+   "fieldtype": "Currency",
+   "label": "Objectif CA mensuel courant",
+   "read_only": 1
+  },
+  {
+   "fieldname": "annual_revenue_target",
+   "fieldtype": "Currency",
+   "label": "Objectif CA annuel courant",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ob1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "visit_target_current",
+   "fieldtype": "Int",
+   "label": "Objectif visites courant",
+   "read_only": 1
+  },
+  {
+   "fieldname": "new_customers_target_current",
+   "fieldtype": "Int",
+   "label": "Objectif nouveaux clients courant",
+   "read_only": 1
+  },
+  {
+   "fieldname": "targets",
+   "fieldtype": "Table",
+   "label": "Objectifs par p\u00e9riode",
+   "options": "Pilotage Commercial Target"
+  },
+  {
+   "fieldname": "stats_tab",
+   "fieldtype": "Tab Break",
+   "label": "Statistiques"
+  },
+  {
+   "fieldname": "revenue_achieved",
+   "fieldtype": "Currency",
+   "label": "CA r\u00e9alis\u00e9 (mois)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "target_achievement_pct",
+   "fieldtype": "Percent",
+   "label": "% atteinte objectif",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_st2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "visits_completed",
+   "fieldtype": "Int",
+   "label": "Visites r\u00e9alis\u00e9es (mois)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "conversion_rate",
+   "fieldtype": "Percent",
+   "label": "Taux de transformation (mois)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stats_last_refresh_at",
+   "fieldtype": "Datetime",
+   "label": "Derni\u00e8re mise \u00e0 jour KPI",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pilotage_tab",
+   "fieldtype": "Tab Break",
+   "label": "Reclassification / pilotage"
+  },
+  {
+   "default": "Stable",
+   "fieldname": "reclassification_status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Statut de reclassification",
+   "options": "Stable\nA surveiller\n\u00c0 accompagner\n\u00c0 reclasser"
+  },
+  {
+   "fieldname": "priority_level",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Priorit\u00e9 manag\u00e9riale",
+   "options": "Basse\nNormale\nHaute\nCritique",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_pl1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "priority_score",
+   "fieldtype": "Percent",
+   "label": "Score de priorit\u00e9",
+   "read_only": 1
+  },
+  {
+   "fieldname": "next_review_date",
+   "fieldtype": "Date",
+   "label": "Prochaine revue"
+  },
+  {
+   "fieldname": "actions",
+   "fieldtype": "Table",
+   "label": "Actions \u00e0 mener",
+   "options": "Pilotage Commercial Action"
+  },
+  {
+   "fieldname": "comments_tab",
+   "fieldtype": "Tab Break",
+   "label": "Commentaires"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Small Text",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "manager_notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes manag\u00e9riales"
+  },
+  {
+   "fieldname": "snapshots_tab",
+   "fieldtype": "Tab Break",
+   "label": "Historique KPI"
+  },
+  {
+   "fieldname": "snapshots",
+   "fieldtype": "Table",
+   "label": "Snapshots",
+   "options": "Pilotage Commercial Snapshot"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-04-06 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Pilotage Commercial",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Commercial Itin\u00e9rant",
+   "select": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "display_name",
+ "track_changes": 1
+}
