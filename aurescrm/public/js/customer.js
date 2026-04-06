@@ -27,6 +27,9 @@ frappe.ui.form.on("Customer", {
                     
                     // Masquer les onglets sauf "Détails"
                     hide_tabs_except_details(frm);
+
+                    // Masquer le fil Activité et la zone de commentaire (données déjà vidées côté serveur)
+                    hide_customer_activity_ui(frm);
                 }
             }
         });
@@ -76,6 +79,17 @@ function set_form_read_only(frm, commercial_attribue) {
         __("Ce client est attribué à <b>{0}</b>. Vous êtes en mode lecture seule.", [commercial_attribue]),
         "blue"
     );
+}
+
+function hide_customer_activity_ui(frm) {
+    setTimeout(function() {
+        if (frm.footer && frm.footer.wrapper) {
+            frm.footer.wrapper.find(".comment-box").hide();
+        }
+        if (frm.timeline && frm.timeline.timeline_wrapper) {
+            frm.timeline.timeline_wrapper.hide();
+        }
+    }, 200);
 }
 
 function hide_tabs_except_details(frm) {

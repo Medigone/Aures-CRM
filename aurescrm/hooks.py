@@ -123,6 +123,11 @@ has_permission = {
     "Customer": "aurescrm.custom_permissions.has_customer_permission",
 }
 
+override_whitelisted_methods = {
+    "frappe.desk.form.load.get_docinfo": "aurescrm.customer_timeline.get_docinfo",
+    "frappe.desk.form.load.get_communications": "aurescrm.customer_timeline.get_communications",
+}
+
 # DocType Class
 # ---------------
 # Override standard doctype classes
@@ -144,6 +149,9 @@ override_doctype_dashboards = {
 # aurescrm/hooks.py
 # dans hooks.py
 doc_events = {
+    "Comment": {
+        "validate": "aurescrm.customer_timeline.validate_customer_timeline_comment",
+    },
     "Fiche Evaluation Clients": {
         "after_insert": "aurescrm.fiche_evaluation_client.calculate_global_score"
     },

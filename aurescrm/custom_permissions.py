@@ -1,5 +1,5 @@
 import frappe
-from aurescrm.commercial_assignment import get_customer_commercial, get_customer_commercials, is_user_commercial_for_customer
+from aurescrm.commercial_assignment import is_user_commercial_for_customer
 
 
 def is_exempt_user(user):
@@ -8,13 +8,93 @@ def is_exempt_user(user):
     return "Administrator" in roles or "System Manager" in roles or "Superviseur CRM" in roles
 
 
+def get_customer_edit_status(user, customer_name):
+    """
+    Statut d'édition (et d'accès au fil d'activité) pour un utilisateur sur un Customer.
+    Même règles que l'API can_edit_customer.
+    """
+    if not user:
+        user = frappe.session.user
+
+    user_roles = frappe.get_roles(user)
+
+    if is_exempt_user(user):
+        return {
+            "can_edit": True,
+            "commercial_attribue": None,
+            "nom_commercial": None,
+            "commercials": [],
+            "reason": "exempt",
+            "source": "none",
+        }
+
+    if "Commercial Itinérant" not in user_roles:
+        return {
+            "can_edit": True,
+            "commercial_attribue": None,
+            "nom_commercial": None,
+            "commercials": [],
+            "reason": "not_commercial_itinerant",
+            "source": "none",
+        }
+
+    is_commercial, commercials_info = is_user_commercial_for_customer(user, customer_name)
+    commercials_list = commercials_info.get("commercials", [])
+    source = commercials_info.get("source", "none")
+
+    if not commercials_list:
+        return {
+            "can_edit": True,
+            "commercial_attribue": None,
+            "nom_commercial": None,
+            "commercials": [],
+            "reason": "not_assigned",
+            "source": source,
+        }
+
+    first_commercial = commercials_list[0] if commercials_list else {}
+    commercial_attribue = first_commercial.get("commercial")
+    nom_commercial = first_commercial.get("commercial_name")
+
+    if is_commercial:
+        return {
+            "can_edit": True,
+            "commercial_attribue": commercial_attribue,
+            "nom_commercial": nom_commercial,
+            "commercials": commercials_list,
+            "reason": "owner",
+            "source": source,
+        }
+
+    commercial_names = [
+        c.get("commercial_name") or c.get("commercial")
+        for c in commercials_list
+        if c.get("commercial")
+    ]
+    nom_commercial_display = ", ".join(commercial_names) if commercial_names else nom_commercial
+
+    return {
+        "can_edit": False,
+        "commercial_attribue": commercial_attribue,
+        "nom_commercial": nom_commercial_display,
+        "commercials": commercials_list,
+        "reason": "other_commercial",
+        "source": source,
+    }
+
+
+def can_view_customer_activity(user, customer_name):
+    """Accès au fil Activité / communications / commentaires (aligné sur can_edit)."""
+    return bool(get_customer_edit_status(user, customer_name).get("can_edit"))
+
+
 @frappe.whitelist()
 def can_edit_customer(customer_name):
     """
     API pour vérifier si l'utilisateur courant peut éditer un client.
     La restriction ne s'applique qu'aux utilisateurs ayant le rôle "Commercial Itinérant".
     Gère maintenant plusieurs commerciaux par société.
-    
+
     Retourne un dict avec:
     - can_edit: True/False
     - commercial_attribue: email du premier commercial attribué (ou None) - pour compatibilité
@@ -23,77 +103,7 @@ def can_edit_customer(customer_name):
     - reason: raison si non éditable
     - source: 'child_table' | 'legacy' | 'none' (pour debug)
     """
-    user = frappe.session.user
-    user_roles = frappe.get_roles(user)
-    
-    # Admin et System Manager: tout autorisé
-    if is_exempt_user(user):
-        return {
-            "can_edit": True,
-            "commercial_attribue": None,
-            "nom_commercial": None,
-            "commercials": [],
-            "reason": "exempt",
-            "source": "none"
-        }
-    
-    # Si l'utilisateur n'a pas le rôle "Commercial Itinérant", pas de restriction
-    if "Commercial Itinérant" not in user_roles:
-        return {
-            "can_edit": True,
-            "commercial_attribue": None,
-            "nom_commercial": None,
-            "commercials": [],
-            "reason": "not_commercial_itinerant",
-            "source": "none"
-        }
-    
-    # Vérifier si l'utilisateur est un des commerciaux attribués (gère plusieurs commerciaux)
-    is_commercial, commercials_info = is_user_commercial_for_customer(user, customer_name)
-    
-    commercials_list = commercials_info.get('commercials', [])
-    source = commercials_info.get('source', 'none')
-    
-    # Si pas de commercial attribué, tout le monde peut éditer
-    if not commercials_list:
-        return {
-            "can_edit": True,
-            "commercial_attribue": None,
-            "nom_commercial": None,
-            "commercials": [],
-            "reason": "not_assigned",
-            "source": source
-        }
-    
-    # Récupérer le premier commercial pour compatibilité avec l'UI existante
-    first_commercial = commercials_list[0] if commercials_list else {}
-    commercial_attribue = first_commercial.get('commercial')
-    nom_commercial = first_commercial.get('commercial_name')
-    
-    # Si l'utilisateur est un des commerciaux attribués
-    if is_commercial:
-        return {
-            "can_edit": True,
-            "commercial_attribue": commercial_attribue,
-            "nom_commercial": nom_commercial,
-            "commercials": commercials_list,
-            "reason": "owner",
-            "source": source
-        }
-    
-    # Sinon, lecture seule
-    # Construire le message avec tous les commerciaux
-    commercial_names = [c.get('commercial_name') or c.get('commercial') for c in commercials_list if c.get('commercial')]
-    nom_commercial_display = ", ".join(commercial_names) if commercial_names else nom_commercial
-    
-    return {
-        "can_edit": False,
-        "commercial_attribue": commercial_attribue,
-        "nom_commercial": nom_commercial_display,
-        "commercials": commercials_list,
-        "reason": "other_commercial",
-        "source": source
-    }
+    return get_customer_edit_status(frappe.session.user, customer_name)
 
 
 def has_customer_permission(doc, ptype, user):
