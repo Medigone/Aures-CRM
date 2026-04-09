@@ -302,54 +302,54 @@ function getStatusColors(status, doctype = 'Cliche') {
     // Cliche status colors
     const clicheStatusColors = {
         'Nouveau': { 
-            background: '#f8f9fa', 
-            border: '#6c757d', 
-            text: '#495057' 
+            background: 'var(--bg-light-blue)', 
+            border: 'var(--blue-200)', 
+            text: 'var(--text-on-light-blue)' 
         },
         'En Cours': { 
-            background: '#e3f2fd', 
-            border: '#2196f3', 
-            text: '#1565c0' 
+            background: 'var(--bg-orange)', 
+            border: 'var(--orange-300)', 
+            text: 'var(--text-on-orange)' 
         },
         'En Devis': { 
-            background: '#fff8e1', 
-            border: '#ff9800', 
-            text: '#e65100' 
+            background: 'var(--bg-orange)', 
+            border: 'var(--orange-300)', 
+            text: 'var(--text-on-orange)' 
         },
         'Devis Prêt': { 
-            background: '#e8f5e8', 
-            border: '#4caf50', 
-            text: '#2e7d32' 
+            background: 'var(--bg-light-blue)', 
+            border: 'var(--blue-200)', 
+            text: 'var(--text-on-light-blue)' 
         },
         'Devis Accepté': { 
-            background: '#e8f5e8', 
-            border: '#4caf50', 
-            text: '#2e7d32' 
+            background: 'var(--bg-green)', 
+            border: 'var(--green-300)', 
+            text: 'var(--text-on-green)' 
         },
         'Devis Rejeté': { 
-            background: '#ffebee', 
-            border: '#f44336', 
-            text: '#c62828' 
+            background: 'var(--bg-red)', 
+            border: 'var(--red-300)', 
+            text: 'var(--text-on-red)' 
         },
         'A Réaliser': { 
-            background: '#e0f2f1', 
-            border: '#009688', 
-            text: '#00695c' 
+            background: 'var(--bg-light-blue)', 
+            border: 'var(--blue-200)', 
+            text: 'var(--text-on-light-blue)' 
         },
         'Réalisé': { 
-            background: '#e8f5e8', 
-            border: '#4caf50', 
-            text: '#2e7d32' 
+            background: 'var(--bg-green)', 
+            border: 'var(--green-300)', 
+            text: 'var(--text-on-green)' 
         },
         'Archivé': { 
-            background: '#f8f9fa', 
-            border: '#6c757d', 
-            text: '#495057' 
+            background: 'var(--gray-900)', 
+            border: 'var(--gray-900)', 
+            text: 'var(--gray-100)' 
         },
         'Annulé': { 
-            background: '#ffebee', 
-            border: '#f44336', 
-            text: '#c62828' 
+            background: 'var(--gray-900)', 
+            border: 'var(--gray-900)', 
+            text: 'var(--gray-100)' 
         }
     };
 
@@ -380,10 +380,31 @@ function getStatusColors(status, doctype = 'Cliche') {
     const statusColors = doctype === 'Maquette' ? maquetteStatusColors : clicheStatusColors;
     
     return statusColors[status] || { 
-        background: '#f8f9fa', 
-        border: '#6c757d', 
-        text: '#495057' 
+        background: 'var(--bg-gray)', 
+        border: 'var(--text-on-gray)', 
+        text: 'var(--text-on-gray)' 
     };
+}
+
+/**
+ * Classe d'indicateur Frappe pour le statut Cliché (Workflow State.style → couleur),
+ * identique à frappe.get_indicator (frappe/public/js/frappe/model/indicator.js)
+ * et aux styles définis dans aurescrm/fixtures/workflow_state.json pour ce workflow.
+ */
+function getClicheWorkflowIndicatorClass(status) {
+    const map = {
+        'Nouveau': 'light-blue',
+        'En Cours': 'orange',
+        'En Devis': 'orange',
+        'Devis Prêt': 'light-blue',
+        'Devis Accepté': 'green',
+        'Devis Rejeté': 'red',
+        'A Réaliser': 'light-blue',
+        'Réalisé': 'green',
+        'Archivé': 'ef-wf-inverse',
+        'Annulé': 'ef-wf-inverse',
+    };
+    return map[status] || 'gray';
 }
 
 /**
@@ -428,10 +449,10 @@ function load_flexo_linked_docs_html(frm) {
                     if (r.message && r.message.status) {
                         const statusElement = document.getElementById(`cliche-status-${frm.doc.cliche}`);
                         if (statusElement) {
-                            const statusColors = getStatusColors(r.message.status, 'Cliche');
-                            statusElement.style.backgroundColor = statusColors.background;
-                            statusElement.style.borderColor = statusColors.border;
-                            statusElement.style.color = statusColors.text;
+                            const pillClass = getClicheWorkflowIndicatorClass(r.message.status);
+                            statusElement.className =
+                                'ef-doc-status-badge ef-cliche-status indicator-pill no-indicator-dot ' +
+                                pillClass;
                             statusElement.textContent = r.message.status;
                         }
                     }
@@ -582,6 +603,52 @@ function load_flexo_linked_docs_html(frm) {
                 font-weight: 600; 
                 color: #1a1a1a; 
             }
+            /* Même gabarit Maquette / Cliché (padding + typo + hauteur naturelle) */
+            .ef-card-header .ef-doc-status-badge {
+                margin-left: 10px;
+                padding: 4px 8px !important;
+                font-size: 10px;
+                font-weight: 500;
+                line-height: 1.25;
+                align-self: center;
+                flex-shrink: 0;
+                border-width: 1px;
+                border-style: solid;
+                box-sizing: border-box;
+                border-radius: 8px;
+                height: auto !important;
+                min-height: 0;
+                display: inline-flex;
+                align-items: center;
+            }
+            .ef-card-header .ef-cliche-status.indicator-pill.ef-doc-status-badge {
+                border-color: transparent;
+            }
+            /* Contour comme la pastille Maquette (fond clair + bordure de la teinte du statut) */
+            .ef-card-header .ef-cliche-status.indicator-pill.ef-doc-status-badge.light-blue {
+                border-color: var(--text-on-light-blue);
+            }
+            .ef-card-header .ef-cliche-status.indicator-pill.ef-doc-status-badge.orange {
+                border-color: var(--text-on-orange);
+            }
+            .ef-card-header .ef-cliche-status.indicator-pill.ef-doc-status-badge.green {
+                border-color: var(--text-on-green);
+            }
+            .ef-card-header .ef-cliche-status.indicator-pill.ef-doc-status-badge.red {
+                border-color: var(--text-on-red);
+            }
+            .ef-card-header .ef-cliche-status.indicator-pill.ef-doc-status-badge.gray,
+            .ef-card-header .ef-cliche-status.indicator-pill.ef-doc-status-badge.grey {
+                border-color: var(--text-on-gray);
+            }
+            .ef-card-header .ef-cliche-status.indicator-pill.ef-doc-status-badge.ef-wf-inverse {
+                border-color: var(--gray-100);
+            }
+            /* Workflow State style Inverse (frappe.get_indicator → "black", pas de variante indicator.scss) */
+            .indicator-pill.ef-wf-inverse {
+                background: var(--gray-900);
+                color: var(--gray-100);
+            }
             .ef-card-content { 
                 padding: 20px; 
                 background-color: #ffffff; 
@@ -639,17 +706,10 @@ function load_flexo_linked_docs_html(frm) {
                 }
             }
             
-            /* Tablette: 2 colonnes */
-            @media (min-width: 768px) and (max-width: 1199px) {
+            /* Tablette et desktop: 2 cartes par ligne */
+            @media (min-width: 768px) {
                 .ef-container { 
-                    grid-template-columns: 1fr 1fr; 
-                }
-            }
-            
-            /* Desktop: 4 colonnes */
-            @media (min-width: 1200px) {
-                .ef-container { 
-                    grid-template-columns: repeat(4, 1fr); 
+                    grid-template-columns: repeat(2, 1fr); 
                 }
             }
             
@@ -796,7 +856,7 @@ function load_flexo_linked_docs_html(frm) {
                 <div class='ef-card' id='maquette-card-${frm.doc.maquette || 'none'}'>
                     <div class='ef-card-header'>
                         <span class='ef-card-title'>Maquette</span>
-                        ${frm.doc.maquette ? `<span id="maquette-status-${frm.doc.maquette}" style="margin-left: 10px; padding: 4px 8px; background-color: #f8f9fa; color: #495057; border: 1px solid #6c757d; border-radius: 8px; font-size: 10px; font-weight: 500;">Chargement...</span>` : ''}
+                        ${frm.doc.maquette ? `<span id="maquette-status-${frm.doc.maquette}" class="ef-doc-status-badge" style="background-color: #f8f9fa; color: #495057; border-color: #6c757d;">Chargement...</span>` : ''}
                     </div>
                     <div class='ef-card-content'>`;
     if (frm.doc.maquette) {
@@ -830,7 +890,7 @@ function load_flexo_linked_docs_html(frm) {
                 <div class='ef-card' id='cliche-card-${frm.doc.cliche || 'none'}'>
                     <div class='ef-card-header'>
                         <span class='ef-card-title'>Cliché</span>
-                        ${frm.doc.cliche ? `<span id="cliche-status-${frm.doc.cliche}" style="margin-left: 10px; padding: 4px 8px; background-color: #f8f9fa; color: #495057; border: 1px solid #6c757d; border-radius: 8px; font-size: 10px; font-weight: 500;">Chargement...</span>` : ''}
+                        ${frm.doc.cliche ? `<span id="cliche-status-${frm.doc.cliche}" class="ef-doc-status-badge ef-cliche-status indicator-pill no-indicator-dot gray">Chargement...</span>` : ''}
                     </div>
                     <div class='ef-card-content'>`;
     if (frm.doc.cliche) {
