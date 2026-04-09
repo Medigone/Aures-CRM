@@ -63,12 +63,33 @@ function find_duplicate_article_qty(rows) {
     return null;
 }
 
+frappe.ui.form.on("Articles Demande Faisabilite", {
+    article(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (!row.article) {
+            frappe.model.set_value(cdt, cdn, "designation_article", "");
+            return;
+        }
+        frappe.db.get_value("Item", row.article, "item_name", (message) => {
+            if (message && message.item_name) {
+                frappe.model.set_value(cdt, cdn, "designation_article", message.item_name || "");
+            }
+        });
+    },
+});
+
 frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
-        // // Masquer les champs is_reprint et essai_blanc car ils sont gérés automatiquement
-        // frm.get_field('is_reprint').$wrapper.hide();
-        // frm.get_field('essai_blanc').$wrapper.hide();
-        
+        // Filtrer les sous-articles dans la table enfant liste_articles
+        frm.set_query("article", "liste_articles", function() {
+            return {
+                filters: {
+                    custom_sous_article: 0,
+                    custom_client: frm.doc.client
+                }
+            };
+        });
+
         // Nettoyer automatiquement les lignes vides du tableau
         clean_empty_rows_js(frm);
         
@@ -96,7 +117,10 @@ frappe.ui.form.on('Demande Faisabilite', {
                         reqd: 1,
                         get_query: function() {
                             return {
-                                filters: { custom_client: frm.doc.client }
+                                filters: {
+                                    custom_client: frm.doc.client,
+                                    custom_sous_article: 0
+                                }
                             };
                         }
                     },
@@ -136,14 +160,17 @@ frappe.ui.form.on('Demande Faisabilite', {
                     if (already_exists) {
                         frappe.msgprint("Cet article existe déjà avec la même quantité.");
                     } else {
-                        var row = frm.add_child('liste_articles');
-                        row.article = values.article;
-                        row.quantite = values.quantite;
-                        row.date_livraison = values.date_livraison;
-                        row.est_creation = values.est_creation;
-                        row.essai_blanc = values.essai_blanc;
-                        frm.refresh_field('liste_articles');
-                        frm.save();
+                        frappe.db.get_value("Item", values.article, "item_name", function(message) {
+                            var row = frm.add_child('liste_articles');
+                            row.article = values.article;
+                            row.designation_article = (message && message.item_name) ? message.item_name : "";
+                            row.quantite = values.quantite;
+                            row.date_livraison = values.date_livraison;
+                            row.est_creation = values.est_creation;
+                            row.essai_blanc = values.essai_blanc;
+                            frm.refresh_field('liste_articles');
+                            frm.save();
+                        });
                     }
                 },
                 'Ajouter un article',

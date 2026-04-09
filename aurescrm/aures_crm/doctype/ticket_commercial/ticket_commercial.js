@@ -113,6 +113,28 @@ function add_assign_buttons(frm) {
     }, __("Attribuer"));
 }
 
+function open_new_doc_in_new_tab(doctype, defaults) {
+    const prev_route_options = frappe.route_options;
+    frappe.route_options = { ...defaults };
+    localStorage["route_options"] = JSON.stringify(frappe.route_options);
+
+    const new_name = frappe.model.get_new_name(doctype);
+    const converted = frappe.router.convert_from_standard_route(["Form", doctype, new_name]);
+    const sub_path = frappe.router.make_url(converted);
+
+    frappe.route_options = prev_route_options;
+
+    // Lien <a target="_blank"> : le navigateur ouvre en général un onglet ;
+    // window.open sans contexte « navigation » peut être traité comme popup (fenêtre).
+    const a = document.createElement("a");
+    a.href = sub_path;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
 function add_create_buttons(frm) {
     if (["Terminé", "Annulé"].includes(frm.doc.status)) {
         return;
@@ -125,7 +147,7 @@ function add_create_buttons(frm) {
                 return;
             }
 
-            frappe.new_doc("Demande Faisabilite", {
+            open_new_doc_in_new_tab("Demande Faisabilite", {
                 client: frm.doc.customer,
                 date_livraison: frm.doc.echeance || frappe.datetime.add_days(frappe.datetime.now_date(), 7),
                 type: "Premier Tirage"
@@ -140,7 +162,7 @@ function add_create_buttons(frm) {
                 return;
             }
 
-            frappe.new_doc("Item", {
+            open_new_doc_in_new_tab("Item", {
                 custom_client: frm.doc.customer
             });
         }, __("Créer"));

@@ -30,6 +30,7 @@ app_license = "mit"
 # include js in doctype views
 doctype_js = {
     "Customer": "public/js/customer.js",
+    "Item": "public/js/item.js",
     "Quotation": "public/js/quotation_calcul_devis.js",
     "Pilotage Commercial": "aures_crm/doctype/pilotage_commercial/pilotage_commercial.js",
 }
@@ -171,6 +172,7 @@ doc_events = {
     },
     "Item": {
         "autoname": "aurescrm.utils.custom_item_naming",
+        "before_validate": "aurescrm.utils.ensure_item_code_for_sous_article",
         "before_save": [
             "aurescrm.utils.format_item_fields",
             "aurescrm.utils.update_item_description"
@@ -180,7 +182,9 @@ doc_events = {
         "before_save": "aurescrm.utils.custom_delivery_address_naming"
     },
     "Etude Faisabilite": {
-         # Mise à jour du chemin
+         "on_update": "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.update_demande_status_from_etudes"
+    },
+    "Etude Faisabilite Flexo": {
          "on_update": "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.update_demande_status_from_etudes"
     },
     "Imposition": {

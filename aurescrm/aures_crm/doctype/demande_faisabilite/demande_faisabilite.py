@@ -10,6 +10,17 @@ from frappe.utils import now_datetime, add_days, getdate, cint # Ajout de l'impo
 class DemandeFaisabilite(Document):
 	def validate(self):
 		"""Validation automatique pour synchroniser type, is_reprint et essai_blanc"""
+		# Interdire les sous-articles dans la liste d'articles
+		for row in self.get("liste_articles"):
+			if row.article:
+				is_sub = frappe.db.get_value("Item", row.article, "custom_sous_article")
+				if cint(is_sub):
+					frappe.throw(
+						_("L'article {0} est un sous-article et ne peut pas être sélectionné "
+						  "dans la demande. Veuillez sélectionner l'article parent à la place."
+						).format(row.article)
+					)
+
 		# Synchronisation automatique entre type et is_reprint
 		if self.type == "Retirage":
 			self.is_reprint = 1
@@ -210,87 +221,88 @@ def create_maquette_if_not_exists(client, article):
 def generate_etude_faisabilite(docname):
     """
     Pour chaque ligne de la table 'liste_articles' du document Demande Faisabilite,
-    crée un nouveau document 'Etude Faisabilite' ou 'Etude Faisabilite Flexo' selon le procédé,
-    crée une Maquette si elle n'existe pas déjà pour l'article,
-    puis met à jour le statut de la demande.
+    crée un nouveau document 'Etude Faisabilite' ou 'Etude Faisabilite Flexo' selon le procédé.
+    Si l'article est un article composé, une étude est créée par sous-article
+    (quantité = quantité demandée × quantité sous-article).
+    Crée une Maquette si elle n'existe pas déjà, puis met à jour le statut de la demande.
     """
     try:
         demande = frappe.get_doc("Demande Faisabilite", docname)
-        
-        # Vérifier que la demande est dans un état valide pour générer des études
+
         if not demande.can_generate_etudes():
-            frappe.throw(f"Impossible de générer des études de faisabilité. Le statut actuel '{demande.status}' ne permet pas cette action. Seul le statut 'Brouillon' (statut initial) est autorisé pour générer des études.")
-        
+            frappe.throw(
+                f"Impossible de générer des études de faisabilité. "
+                f"Le statut actuel '{demande.status}' ne permet pas cette action. "
+                f"Seul le statut 'Brouillon' (statut initial) est autorisé."
+            )
+
         if not demande.get("liste_articles"):
             frappe.throw("Aucun article n'a été ajouté à la demande.")
 
         communs = [
-            "demande_faisabilite", "article", "quantite", "date_livraison", "client",
-            "commercial", "id_commercial", "is_reprint", "essai_blanc"
+            "demande_faisabilite", "article", "article_parent", "quantite",
+            "date_livraison", "client", "commercial", "id_commercial",
+            "is_reprint", "essai_blanc"
         ]
         offset_fields = communs + []
         flexo_fields = communs + []
 
         etudes_creees = 0
         etudes_ignorees = 0
-        
+
         for row in demande.get("liste_articles"):
-            procede = row.procede_article or ""
-            
-            # Vérifier si une étude existe déjà pour cette demande et cet article
-            if procede == "Flexo":
-                existing_etude = frappe.db.exists("Etude Faisabilite Flexo", {
-                    "demande_faisabilite": demande.name,
-                    "article": row.article,
-                    "quantite": row.quantite
-                })
-            else:
-                existing_etude = frappe.db.exists("Etude Faisabilite", {
-                    "demande_faisabilite": demande.name,
-                    "article": row.article,
-                    "quantite": row.quantite
-                })
-            
-            if existing_etude:
-                etudes_ignorees += 1
-                continue  # Passer à l'article suivant, l'étude existe déjà
-            
-            # Créer une maquette si elle n'existe pas pour cet article
-            create_maquette_if_not_exists(demande.client, row.article)
-            
             row_essai_blanc = row.essai_blanc
             if row_essai_blanc in (None, ""):
                 row_essai_blanc = demande.essai_blanc
 
-            base_values = {
-                "demande_faisabilite": demande.name,
-                "article": row.article,
-                "quantite": row.quantite,
-                "date_livraison": row.date_livraison,
-                "client": demande.client,
-                "commercial": demande.commercial,
-                "id_commercial": demande.id_commercial,
-                "is_reprint": demande.is_reprint,
-                "essai_blanc": row_essai_blanc
-            }
-            if procede == "Flexo":
-                etude = frappe.new_doc("Etude Faisabilite Flexo")
-                fieldnames = [f.fieldname for f in etude.meta.fields]
-                for field in flexo_fields:
-                    if field in fieldnames and field in base_values:
-                        etude.set(field, base_values[field])
-                etude.insert(ignore_permissions=True)
-                etudes_creees += 1
+            is_compose = cint(frappe.db.get_value("Item", row.article, "custom_article_compose"))
+
+            if is_compose:
+                sous_articles = frappe.get_all(
+                    "Item",
+                    filters={"custom_article_parent": row.article},
+                    fields=["name", "custom_quantite_sous_article", "custom_procédé"],
+                )
+                if not sous_articles:
+                    frappe.throw(
+                        _("L'article composé {0} n'a aucun sous-article. "
+                          "Veuillez d'abord créer des sous-articles.").format(row.article)
+                    )
+
+                for sa in sous_articles:
+                    sa_qty = float(sa.custom_quantite_sous_article or 1)
+                    computed_qty = int(row.quantite * sa_qty)
+                    sa_procede = sa.get("custom_procédé") or ""
+
+                    created, ignored = _create_etude(
+                        demande=demande,
+                        article=sa.name,
+                        article_parent=row.article,
+                        quantite=computed_qty,
+                        date_livraison=row.date_livraison,
+                        essai_blanc=row_essai_blanc,
+                        procede=sa_procede,
+                        offset_fields=offset_fields,
+                        flexo_fields=flexo_fields,
+                    )
+                    etudes_creees += created
+                    etudes_ignorees += ignored
             else:
-                etude = frappe.new_doc("Etude Faisabilite")
-                fieldnames = [f.fieldname for f in etude.meta.fields]
-                for field in offset_fields:
-                    if field in fieldnames and field in base_values:
-                        etude.set(field, base_values[field])
-                etude.insert(ignore_permissions=True)
-                etudes_creees += 1
-        
-        # Message informatif si des études ont été ignorées
+                procede = row.procede_article or ""
+                created, ignored = _create_etude(
+                    demande=demande,
+                    article=row.article,
+                    article_parent=None,
+                    quantite=row.quantite,
+                    date_livraison=row.date_livraison,
+                    essai_blanc=row_essai_blanc,
+                    procede=procede,
+                    offset_fields=offset_fields,
+                    flexo_fields=flexo_fields,
+                )
+                etudes_creees += created
+                etudes_ignorees += ignored
+
         if etudes_ignorees > 0:
             frappe.msgprint(
                 _("{0} étude(s) ignorée(s) car déjà existante(s) pour cette demande.").format(etudes_ignorees),
@@ -303,6 +315,44 @@ def generate_etude_faisabilite(docname):
     except Exception as e:
         frappe.log_error(message=str(e), title="Erreur generate_etude_faisabilite")
         frappe.throw(f"Une erreur est survenue lors de la génération des études de faisabilité : {str(e)}")
+
+
+def _create_etude(demande, article, article_parent, quantite, date_livraison,
+                  essai_blanc, procede, offset_fields, flexo_fields):
+    """Crée une étude (Offset ou Flexo) et la maquette associée. Retourne (created, ignored)."""
+    doctype = "Etude Faisabilite Flexo" if procede == "Flexo" else "Etude Faisabilite"
+
+    existing = frappe.db.exists(doctype, {
+        "demande_faisabilite": demande.name,
+        "article": article,
+        "quantite": quantite,
+    })
+    if existing:
+        return 0, 1
+
+    create_maquette_if_not_exists(demande.client, article)
+
+    base_values = {
+        "demande_faisabilite": demande.name,
+        "article": article,
+        "article_parent": article_parent or "",
+        "quantite": quantite,
+        "date_livraison": date_livraison,
+        "client": demande.client,
+        "commercial": demande.commercial,
+        "id_commercial": demande.id_commercial,
+        "is_reprint": demande.is_reprint,
+        "essai_blanc": essai_blanc,
+    }
+
+    fields_list = flexo_fields if procede == "Flexo" else offset_fields
+    etude = frappe.new_doc(doctype)
+    valid_fieldnames = {f.fieldname for f in etude.meta.fields}
+    for field in fields_list:
+        if field in valid_fieldnames and field in base_values:
+            etude.set(field, base_values[field])
+    etude.insert(ignore_permissions=True)
+    return 1, 0
 
 
 
@@ -330,12 +380,14 @@ def update_demande_status_from_etudes(doc, method):
     if parent.status in ["Devis Établis", "Annulée"]:
         return
 
-    # Récupérer les statuts de toutes les études liées
-    etudes = frappe.get_all("Etude Faisabilite", filters={"demande_faisabilite": parent_name}, fields=["status"])
-    if not etudes:
+    # Récupérer les statuts de toutes les études liées (Offset + Flexo)
+    etudes_offset = frappe.get_all("Etude Faisabilite", filters={"demande_faisabilite": parent_name}, fields=["status"])
+    etudes_flexo = frappe.get_all("Etude Faisabilite Flexo", filters={"demande_faisabilite": parent_name}, fields=["status"])
+    all_etudes = etudes_offset + etudes_flexo
+    if not all_etudes:
         return
 
-    statuses = [e.status for e in etudes]
+    statuses = [e.status for e in all_etudes]
 
     # Calcul du nouveau statut en fonction des règles
     if any(s == "En étude" for s in statuses):
@@ -463,51 +515,100 @@ def cancel_etudes_faisabilite(docname):
 @frappe.whitelist()
 def get_articles_for_quotation(docname):
     """
-    Retourne les articles des Études Faisabilité avec statut "Réalisable"
-    liés à la Demande Faisabilite, avec item_name, uom, et date_livraison.
+    Retourne les articles éligibles au devis pour une Demande Faisabilite.
+    Pour les articles composés, retourne l'article parent uniquement si TOUS
+    ses sous-articles sont réalisables. La quantité est celle de la demande.
     """
     try:
-        # Récupérer les études de faisabilité, incluant la date de livraison
-        etudes = frappe.get_all(
-            "Etude Faisabilite",
-            filters={
-                "demande_faisabilite": docname,
-                "status": "Réalisable"
-            },
-            fields=["article", "quantite", "date_livraison"] # Added date_livraison
-        )
-
-        if not etudes:
+        quotation_items = _resolve_quotation_articles(docname)
+        if not quotation_items:
             return []
 
-        # Récupérer tous les articles en une seule requête
-        article_ids = [e.article for e in etudes]
+        article_ids = [qi["article"] for qi in quotation_items]
         items = frappe.get_all(
             "Item",
             filters={"name": ["in", article_ids]},
-            fields=["name", "item_name", "stock_uom"]
+            fields=["name", "item_name", "stock_uom"],
         )
-
-        # Créer un dictionnaire pour un accès rapide aux données des articles
         item_dict = {item.name: item for item in items}
 
-        # Construire le résultat final
         results = []
-        for e in etudes:
-            item = item_dict.get(e.article)
+        for qi in quotation_items:
+            item = item_dict.get(qi["article"])
             if item:
                 results.append({
-                    "article": e.article,
-                    "quantite": e.quantite,
+                    "article": qi["article"],
+                    "quantite": qi["quantite"],
                     "item_name": item.item_name,
                     "uom": item.stock_uom,
-                    "date_livraison": e.date_livraison # Added date_livraison to the result
+                    "date_livraison": qi["date_livraison"],
                 })
-
         return results
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Erreur get_articles_for_quotation")
         frappe.throw(_("Impossible de récupérer les articles pour le devis."))
+
+
+def _resolve_quotation_articles(docname):
+    """
+    Résout la liste d'articles à mettre dans le devis en tenant compte
+    des articles composés (article_parent).
+    Cherche dans les deux types d'études (Offset + Flexo).
+    Retourne une liste de dicts : [{article, quantite, date_livraison}, ...]
+    """
+    demande = frappe.get_doc("Demande Faisabilite", docname)
+    demande_articles = {row.article: row for row in demande.get("liste_articles")}
+
+    common_filters = {"demande_faisabilite": docname, "status": "Réalisable"}
+    common_fields = ["article", "article_parent", "quantite", "date_livraison"]
+
+    etudes_realisables = (
+        frappe.get_all("Etude Faisabilite", filters=common_filters, fields=common_fields)
+        + frappe.get_all("Etude Faisabilite Flexo", filters=common_filters, fields=common_fields)
+    )
+
+    results = []
+    parents_seen = set()
+    articles_seen = set()
+
+    for e in etudes_realisables:
+        if e.article_parent:
+            if e.article_parent in parents_seen:
+                continue
+            parents_seen.add(e.article_parent)
+
+            all_etudes_for_parent = (
+                frappe.get_all(
+                    "Etude Faisabilite",
+                    filters={"demande_faisabilite": docname, "article_parent": e.article_parent},
+                    fields=["status"],
+                )
+                + frappe.get_all(
+                    "Etude Faisabilite Flexo",
+                    filters={"demande_faisabilite": docname, "article_parent": e.article_parent},
+                    fields=["status"],
+                )
+            )
+            all_statuses = [et.status for et in all_etudes_for_parent]
+
+            if all_statuses and all(s == "Réalisable" for s in all_statuses):
+                demande_row = demande_articles.get(e.article_parent)
+                if demande_row:
+                    results.append({
+                        "article": e.article_parent,
+                        "quantite": demande_row.quantite,
+                        "date_livraison": demande_row.date_livraison,
+                    })
+        else:
+            if e.article not in articles_seen:
+                articles_seen.add(e.article)
+                results.append({
+                    "article": e.article,
+                    "quantite": e.quantite,
+                    "date_livraison": e.date_livraison,
+                })
+
+    return results
 
 
 @frappe.whitelist()
@@ -730,84 +831,64 @@ def create_quotation_with_calculs(docname):
     """
     Crée un Quotation côté serveur depuis une Demande Faisabilite,
     puis génère automatiquement les Calcul Devis pour chaque article.
-    
-    Args:
-        docname: Nom de la Demande Faisabilite
-    
-    Returns:
-        dict: {quotation_name, calcul_devis_count, message}
+    Pour les articles composés, le devis affiche l'article parent
+    (uniquement si tous les sous-articles sont réalisables).
     """
     try:
         demande = frappe.get_doc("Demande Faisabilite", docname)
-        
-        # Récupérer les articles réalisables
-        etudes = frappe.get_all(
-            "Etude Faisabilite",
-            filters={
-                "demande_faisabilite": docname,
-                "status": "Réalisable"
-            },
-            fields=["article", "quantite", "date_livraison"]
-        )
-        
-        if not etudes:
+
+        quotation_items = _resolve_quotation_articles(docname)
+        if not quotation_items:
             frappe.throw(_("Aucun article réalisable trouvé dans les études associées."))
-        
-        # Récupérer les infos des articles
-        article_ids = [e.article for e in etudes]
+
+        article_ids = [qi["article"] for qi in quotation_items]
         items = frappe.get_all(
             "Item",
             filters={"name": ["in", article_ids]},
-            fields=["name", "item_name", "stock_uom"]
+            fields=["name", "item_name", "stock_uom"],
         )
         item_dict = {item.name: item for item in items}
-        
-        # Créer le Quotation
+
         quotation = frappe.new_doc("Quotation")
         quotation.quotation_to = "Customer"
         quotation.party_name = demande.client
         quotation.custom_id_client = demande.client
-        quotation.company = frappe.defaults.get_user_default("company") or frappe.db.get_single_value("Global Defaults", "default_company")
+        quotation.company = (
+            frappe.defaults.get_user_default("company")
+            or frappe.db.get_single_value("Global Defaults", "default_company")
+        )
         quotation.custom_demande_faisabilité = demande.name
         quotation.custom_retirage = demande.is_reprint
         quotation.custom_essai_blanc = demande.essai_blanc
-        
-        # Date de livraison depuis le premier article
-        if etudes[0].date_livraison:
-            quotation.custom_date_de_livraison = etudes[0].date_livraison
-        
-        # Ajouter les articles
-        for e in etudes:
-            item = item_dict.get(e.article)
+
+        if quotation_items[0]["date_livraison"]:
+            quotation.custom_date_de_livraison = quotation_items[0]["date_livraison"]
+
+        for qi in quotation_items:
+            item = item_dict.get(qi["article"])
             if item:
                 quotation.append("items", {
-                    "item_code": e.article,
+                    "item_code": qi["article"],
                     "item_name": item.item_name,
                     "uom": item.stock_uom,
-                    "qty": e.quantite
+                    "qty": qi["quantite"],
                 })
 
-        # Sauvegarder le Quotation en base (ERPNext gère automatiquement les taxes via validate())
         quotation.insert(ignore_permissions=True)
-        
-        # Post-traitement: compléter les valeurs qui ne sont pas automatiquement récupérées
-        # lors d'une création côté serveur (les triggers UI ne s'exécutent pas)
+
         needs_save = False
-        
-        # 1. valid_till - récupérer depuis Paramètres CRM si non défini
+
         if not quotation.valid_till:
             default_validity = cint(frappe.db.get_single_value("CRM Settings", "default_valid_till")) or 30
             quotation.valid_till = add_days(quotation.transaction_date or getdate(), default_validity)
             needs_save = True
-        
-        # 2. tc_name → terms - récupérer le contenu des Terms and Conditions
+
         if quotation.tc_name and not quotation.terms:
             terms_content = frappe.db.get_value("Terms and Conditions", quotation.tc_name, "terms")
             if terms_content:
                 quotation.terms = terms_content
                 needs_save = True
-        
-        # 3. Charger les taxes si taxes_and_charges est défini mais taxes est vide
+
         if quotation.taxes_and_charges and not quotation.taxes:
             from erpnext.controllers.accounts_controller import get_taxes_and_charges
             taxes = get_taxes_and_charges("Sales Taxes and Charges Template", quotation.taxes_and_charges)
@@ -815,28 +896,25 @@ def create_quotation_with_calculs(docname):
                 quotation.append("taxes", tax)
             quotation.calculate_taxes_and_totals()
             needs_save = True
-        
-        # Sauvegarder si des modifications ont été faites
+
         if needs_save:
             quotation.save(ignore_permissions=True)
-        
-        # Générer les Calcul Devis
+
         from aurescrm.aures_crm.doctype.calcul_devis.calcul_devis import generate_calcul_devis_for_quotation
         calcul_result = generate_calcul_devis_for_quotation(quotation.name)
-        
-        # Mettre à jour le statut de la demande
+
         if demande.status in ["Finalisée", "Partiellement Finalisée"]:
             demande.status = "Devis Établis"
             demande.save(ignore_permissions=True)
-        
+
         return {
             "quotation_name": quotation.name,
             "calcul_devis_count": calcul_result.get("created", 0),
             "message": _("Devis {0} créé avec {1} Calcul(s) Devis").format(
                 quotation.name, calcul_result.get("created", 0)
-            )
+            ),
         }
-        
+
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Erreur create_quotation_with_calculs")
         frappe.throw(_("Erreur lors de la création du devis : {0}").format(str(e)))

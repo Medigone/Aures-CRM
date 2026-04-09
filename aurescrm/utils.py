@@ -1,5 +1,7 @@
-from frappe.model.naming import make_autoname
 import frappe
+from frappe import _
+from frappe.model.naming import make_autoname
+from frappe.utils import cint
 
 
 def custom_item_naming(doc, method):
@@ -8,7 +10,13 @@ def custom_item_naming(doc, method):
     - Type "Client" : <ID_Client>-<numéro séquentiel>
     - Type "Général" + item_group "Support d'impression" : SUPPORT-<numéro séquentiel>
     - Type "Général" (autres item_group) : ITEM-<numéro séquentiel>
+    - Sous-article : <code_parent>-<incrément>
     """
+    if cint(doc.get("custom_sous_article")) and doc.get("custom_article_parent"):
+        count = frappe.db.count("Item", {"custom_article_parent": doc.custom_article_parent})
+        doc.name = f"{doc.custom_article_parent}-{count + 1}"
+        return
+
     if not doc.get("custom_type_article"):
         frappe.throw("Veuillez sélectionner un type d'article pour générer un code Item.")
     
@@ -76,11 +84,29 @@ def custom_delivery_address_naming(doc, method):
 
 
 
+def ensure_item_code_for_sous_article(doc, method):
+    """Avant validate : le code article doit exister pour les sous-articles (name vient de autoname)."""
+    if cint(doc.get("custom_sous_article")) and doc.get("custom_article_parent") and doc.get("name"):
+        doc.item_code = doc.name
+
+
 def format_item_fields(doc, method):
     """
     - Convertit `item_code` en majuscules.
     - Génère automatiquement `item_name` à partir de `item_code`.
+    - Sous-articles : `item_code` = `name` (ID technique) ; `item_name` = désignation (champ description).
     """
+    if cint(doc.get("custom_sous_article")) and doc.get("name"):
+        doc.item_code = doc.name
+        if doc.item_code:
+            doc.item_code = doc.item_code.upper()
+        # La désignation saisie au prompt est dans description (avant update_item_description)
+        if (doc.description or "").strip():
+            doc.item_name = (doc.description or "").strip().upper()
+        else:
+            doc.item_name = doc.item_code
+        return
+
     if doc.item_code:
         doc.item_code = doc.item_code.upper()
 
@@ -90,6 +116,10 @@ def format_item_fields(doc, method):
 
 def update_item_description(doc, method):
     """Met à jour la description de l'article en combinant plusieurs champs organisés par sections."""
+    # Sous-articles : la description est la désignation métier saisie à la création — ne pas reconstruire
+    if cint(doc.get("custom_sous_article")):
+        return
+
     # Debug: vérifier si la fonction est appelée
     frappe.logger().info(f"update_item_description appelée pour l'article: {doc.item_code}")
     
@@ -208,3 +238,67 @@ def update_all_items_description():
         "errors": count_errors,
         "message": message
     }
+
+
+@frappe.whitelist(methods=["GET", "POST"])
+def get_sub_articles(parent_item: str):
+    """Liste les sous-articles liés à un article parent."""
+    if not parent_item:
+        return []
+    parent = frappe.get_doc("Item", parent_item) if frappe.db.exists("Item", parent_item) else None
+    if not parent:
+        frappe.throw(_("Article parent introuvable."))
+    frappe.has_permission("Item", "read", doc=parent, throw=True)
+
+    return frappe.get_all(
+        "Item",
+        filters={"custom_article_parent": parent_item},
+        fields=["name", "description", "custom_quantite_sous_article"],
+        order_by="name asc",
+    )
+
+
+@frappe.whitelist(methods=["POST"])
+def create_sous_article(parent_item: str, designation: str, quantite: float):
+    """
+    Crée un Item sous-article à partir d'un article parent (article composé).
+    Copie les caractéristiques principales du parent ; nom = <parent>-<n>.
+    """
+    if not parent_item or not frappe.db.exists("Item", parent_item):
+        frappe.throw(_("Article parent invalide ou introuvable."))
+
+    designation = (designation or "").strip()
+    if not designation:
+        frappe.throw(_("La désignation du sous-article est obligatoire."))
+
+    quantite = float(quantite or 0)
+    if quantite <= 0:
+        frappe.throw(_("La quantité doit être strictement positive."))
+
+    parent = frappe.get_doc("Item", parent_item)
+    frappe.has_permission("Item", "write", doc=parent, throw=True)
+    frappe.has_permission("Item", "create", throw=True)
+
+    if cint(parent.get("custom_sous_article")):
+        frappe.throw(_("Un sous-article ne peut pas avoir de sous-articles."))
+
+    if not cint(parent.get("custom_article_compose")):
+        parent.db_set("custom_article_compose", 1, update_modified=False)
+
+    child = frappe.copy_doc(parent)
+    child.name = None
+    child.item_code = None
+    child.item_name = None
+    child.custom_article_compose = 0
+    child.custom_sous_article = 1
+    child.custom_article_parent = parent.name
+    child.custom_quantite_sous_article = quantite
+    child.description = designation
+
+    # Éviter les conflits de codes-barres uniques hérités du parent
+    if child.meta.get_field("barcodes"):
+        child.set("barcodes", [])
+
+    child.insert()
+
+    return child.name
