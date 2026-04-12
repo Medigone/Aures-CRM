@@ -14,7 +14,7 @@ VALID = ("", "Avec Pliage", "Sans Pliage")
 
 
 def execute():
-	if not frappe.db.has_column("tabItem", "custom_notice"):
+	if not frappe.db.has_column("Item", "custom_notice"):
 		return
 
 	frappe.db.sql(
