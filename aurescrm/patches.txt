@@ -11,3 +11,4 @@ aurescrm.patches.migrate_customer_commercial_to_child_table
 aurescrm.patches.mark_first_commercial_as_principal
 aurescrm.patches.sync_legacy_commercial_to_child_table
 aurescrm.patches.create_annuaire_from_active_users
+aurescrm.patches.migrate_item_custom_notice_options
