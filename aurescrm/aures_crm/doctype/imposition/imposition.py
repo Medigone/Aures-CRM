@@ -4,6 +4,8 @@
 import frappe
 from frappe.model.document import Document
 
+from aurescrm.aures_crm.doctype.etude_faisabilite.etude_faisabilite import compute_nbr_feuilles
+
 
 class Imposition(Document):
 	def after_save(self):
@@ -12,22 +14,23 @@ class Imposition(Document):
 		self.update_etude_faisabilite_taux_chutes()
 	
 	def update_etude_faisabilite_taux_chutes(self):
-		"""Met à jour le taux de chutes dans toutes les Etudes Faisabilite liées à cette Imposition"""
-		# Trouver toutes les Etudes Faisabilite qui utilisent cette Imposition
+		"""Met à jour le taux de chutes et le nombre de feuilles dans toutes les études liées à cette imposition."""
 		etudes = frappe.get_all(
 			"Etude Faisabilite",
 			filters={"imposition": self.name},
-			fields=["name"]
+			fields=["name", "quantite"],
 		)
-		
-		# Mettre à jour le taux_chutes pour chaque étude trouvée
+		nbr_poses = self.nbr_poses or 0
 		for etude in etudes:
+			nbr_feuilles = compute_nbr_feuilles(etude.quantite, nbr_poses)
 			frappe.db.set_value(
 				"Etude Faisabilite",
 				etude.name,
-				"taux_chutes",
-				self.taux_chutes or 0,
-				update_modified=False
+				{
+					"taux_chutes": self.taux_chutes or 0,
+					"nbr_feuilles": nbr_feuilles,
+				},
+				update_modified=False,
 			)
 	
 	def recalculate_imposition_ideale(self):
@@ -241,21 +244,24 @@ def sync_taux_chutes_to_etude(imposition_name, etude_faisabilite_name):
 	Cette méthode est appelée depuis le JavaScript après création/mise à jour d'une Imposition
 	"""
 	try:
-		# Récupérer l'Imposition
 		imposition = frappe.get_doc("Imposition", imposition_name)
-		
-		# Mettre à jour l'Etude Faisabilite
+		etude = frappe.get_doc("Etude Faisabilite", etude_faisabilite_name)
+		nbr_feuilles = compute_nbr_feuilles(etude.quantite, imposition.nbr_poses or 0)
+
 		frappe.db.set_value(
 			"Etude Faisabilite",
 			etude_faisabilite_name,
-			"taux_chutes",
-			imposition.taux_chutes or 0,
-			update_modified=False
+			{
+				"taux_chutes": imposition.taux_chutes or 0,
+				"nbr_feuilles": nbr_feuilles,
+			},
+			update_modified=False,
 		)
-		
+
 		return {
 			"success": True,
-			"taux_chutes": imposition.taux_chutes or 0
+			"taux_chutes": imposition.taux_chutes or 0,
+			"nbr_feuilles": nbr_feuilles,
 		}
 	except Exception as e:
 		frappe.log_error(message=str(e), title="Erreur sync_taux_chutes_to_etude")

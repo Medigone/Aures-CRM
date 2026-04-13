@@ -836,8 +836,10 @@ function load_trace_imposition_links(frm) {
                                                 },
                                                 callback: function(r_sync) {
                                                     if (r_sync.message && r_sync.message.success) {
-                                                        // Mettre à jour le champ local taux_chutes
                                                         frm.set_value('taux_chutes', r_sync.message.taux_chutes);
+                                                        if (r_sync.message.nbr_feuilles != null) {
+                                                            frm.set_value('nbr_feuilles', r_sync.message.nbr_feuilles);
+                                                        }
                                                     }
                                                     frappe.show_alert({message:__('Imposition créée et mise à jour avec succès.'), indicator:'green'}, 5);
                                                     d.hide();
@@ -923,8 +925,10 @@ function load_trace_imposition_links(frm) {
                                                 },
                                                 callback: function(r_sync) {
                                                     if (r_sync.message && r_sync.message.success) {
-                                                        // Mettre à jour le champ local taux_chutes
                                                         frm.set_value('taux_chutes', r_sync.message.taux_chutes);
+                                                        if (r_sync.message.nbr_feuilles != null) {
+                                                            frm.set_value('nbr_feuilles', r_sync.message.nbr_feuilles);
+                                                        }
                                                     }
                                                     frappe.show_alert({message:__('Imposition mise à jour avec succès.'), indicator:'green'}, 5);
                                                     d.hide();

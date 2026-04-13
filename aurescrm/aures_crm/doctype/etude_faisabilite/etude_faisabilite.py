@@ -1,8 +1,18 @@
 # Copyright (c) 2025, Medigo and contributors
 # For license information, please see license.txt
 
+import math
+
 import frappe
 from frappe.model.document import Document
+from frappe.utils import flt
+
+
+def compute_nbr_feuilles(quantite, nbr_poses):
+	"""Nombre de feuilles nécessaires : quantité / poses par feuille (arrondi supérieur, 2 décimales)."""
+	if not quantite or not nbr_poses or nbr_poses <= 0:
+		return 0
+	return flt(math.ceil(float(quantite) / float(nbr_poses)), 2)
 
 
 class EtudeFaisabilite(Document):
@@ -10,6 +20,16 @@ class EtudeFaisabilite(Document):
 		"""Vérifie si un tracé existe déjà pour l'article et le lie automatiquement"""
 		if self.article and not self.trace:
 			self.auto_link_existing_trace()
+
+	def validate(self):
+		self.set_nbr_feuilles()
+
+	def set_nbr_feuilles(self):
+		if not self.imposition:
+			self.nbr_feuilles = 0
+			return
+		nbr_poses = frappe.db.get_value("Imposition", self.imposition, "nbr_poses") or 0
+		self.nbr_feuilles = compute_nbr_feuilles(self.quantite, nbr_poses)
 	
 	def auto_link_existing_trace(self):
 		"""Recherche et lie automatiquement un tracé existant pour l'article"""

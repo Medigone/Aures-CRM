@@ -24,6 +24,7 @@
   "commercial",
   "item_name",
   "quantite",
+  "nbr_feuilles",
   "section_break_zxac",
   "html_doc",
   "section_break_jugd",
@@ -316,13 +317,23 @@
   {
    "fieldname": "column_break_fphf",
    "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "nbr_feuilles",
+   "fieldtype": "Float",
+   "label": "Nombre Feuilles",
+   "non_negative": 1,
+   "precision": "2",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-09 18:00:00.000000",
+ "modified": "2026-04-13 15:52:12.834873",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
