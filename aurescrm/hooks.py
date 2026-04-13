@@ -124,6 +124,7 @@ permission_query_conditions = {
 
 has_permission = {
     "Customer": "aurescrm.custom_permissions.has_customer_permission",
+    "Item": "aurescrm.custom_permissions.has_item_permission",
 }
 
 override_whitelisted_methods = {

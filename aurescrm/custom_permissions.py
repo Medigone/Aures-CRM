@@ -209,14 +209,45 @@ def get_delivery_note_permission_query_conditions(user):
         return build_commercial_permission_query_condition("`tabDelivery Note`.customer", user)
     return ""
 
+def _is_commercial_itinerant(user):
+    return "Commercial Itinérant" in frappe.get_roles(user)
+
+
 def get_item_permission_query_conditions(user):
     if not user:
         user = frappe.session.user
     if is_exempt_user(user):
         return ""
-    if "Commercial Itinérant" in frappe.get_roles(user):
-        return build_commercial_permission_query_condition("`tabItem`.custom_client", user)
+    if _is_commercial_itinerant(user):
+        customer_filter = build_commercial_permission_query_condition("`tabItem`.custom_client", user)
+        return f"(`tabItem`.`custom_type_article` = 'Client' AND {customer_filter})"
     return ""
+
+
+def has_item_permission(doc, ptype, user):
+    """
+    Les commerciaux itinérants ne voient que les articles « Client » (pas matière première / Général, etc.)
+    et uniquement ceux liés à un client dont ils sont l'un des commerciaux attribués.
+
+    Ne renvoie False que pour refuser explicitement ; sinon None pour laisser les DocPerm trancher.
+    """
+    if not user:
+        user = frappe.session.user
+    if is_exempt_user(user):
+        return None
+    if not _is_commercial_itinerant(user):
+        return None
+    if not doc or not getattr(doc, "name", None):
+        return None
+    if doc.get("custom_type_article") != "Client":
+        return False
+    custom_client = doc.get("custom_client")
+    if not custom_client:
+        return False
+    is_commercial, _ = is_user_commercial_for_customer(user, custom_client)
+    if not is_commercial:
+        return False
+    return None
 
 def get_sales_invoice_permission_query_conditions(user):
     if not user:
