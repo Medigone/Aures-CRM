@@ -17,12 +17,13 @@ def compute_nbr_feuilles(quantite, nbr_poses):
 
 class EtudeFaisabilite(Document):
 	def before_save(self):
-		"""Vérifie si un tracé existe déjà pour l'article et le lie automatiquement"""
 		if self.article and not self.trace:
 			self.auto_link_existing_trace()
+		self.set_format_machine()
 
 	def validate(self):
 		self.set_nbr_feuilles()
+		self.validate_imposition_machine_compatibility()
 
 	def set_nbr_feuilles(self):
 		if not self.imposition:
@@ -30,12 +31,65 @@ class EtudeFaisabilite(Document):
 			return
 		nbr_poses = frappe.db.get_value("Imposition", self.imposition, "nbr_poses") or 0
 		self.nbr_feuilles = compute_nbr_feuilles(self.quantite, nbr_poses)
-	
+
 	def auto_link_existing_trace(self):
-		"""Recherche et lie automatiquement un tracé existant pour l'article"""
 		existing_trace = frappe.db.exists("Trace", {"article": self.article})
 		if existing_trace:
 			self.trace = existing_trace
+
+	def set_format_machine(self):
+		if self.machine_prevue:
+			machine = frappe.db.get_value(
+				"Machine",
+				self.machine_prevue,
+				["format_max_laize", "format_max_developpement"],
+				as_dict=True,
+			)
+			if machine and machine.format_max_laize and machine.format_max_developpement:
+				self.format_machine = f"{machine.format_max_laize}x{machine.format_max_developpement}"
+			else:
+				self.format_machine = ""
+		else:
+			self.format_machine = ""
+
+	def validate_imposition_machine_compatibility(self):
+		if not self.machine_prevue or not self.imposition:
+			return
+
+		machine = frappe.db.get_value(
+			"Machine",
+			self.machine_prevue,
+			["format_max_laize", "format_max_developpement"],
+			as_dict=True,
+		)
+		imposition = frappe.db.get_value(
+			"Imposition",
+			self.imposition,
+			["format_laize", "format_developpement"],
+			as_dict=True,
+		)
+		if not machine or not imposition:
+			return
+
+		if imposition.format_laize and machine.format_max_laize:
+			if flt(imposition.format_laize) > flt(machine.format_max_laize):
+				frappe.msgprint(
+					_("La laize de l'imposition ({0} mm) dépasse le format max de la machine ({1} mm)").format(
+						imposition.format_laize, machine.format_max_laize
+					),
+					indicator="orange",
+					title=_("Attention"),
+				)
+
+		if imposition.format_developpement and machine.format_max_developpement:
+			if flt(imposition.format_developpement) > flt(machine.format_max_developpement):
+				frappe.msgprint(
+					_("Le développement de l'imposition ({0} mm) dépasse le format max de la machine ({1} mm)").format(
+						imposition.format_developpement, machine.format_max_developpement
+					),
+					indicator="orange",
+					title=_("Attention"),
+				)
 
 
 @frappe.whitelist()
@@ -68,11 +122,47 @@ def refresh_attached_files(docname):
 
 @frappe.whitelist()
 def get_existing_trace_for_article(article):
-    """
-    Vérifie si un tracé existe déjà pour un article donné et le retourne
-    """
-    if not article:
-        return None
-    
-    existing_trace = frappe.db.exists("Trace", {"article": article})
-    return existing_trace
+	if not article:
+		return None
+	existing_trace = frappe.db.exists("Trace", {"article": article})
+	return existing_trace
+
+
+@frappe.whitelist()
+def get_compatible_impositions(doctype, txt, searchfield, start, page_len, filters):
+	"""Return impositions compatible with the selected machine format."""
+	article = filters.get("article")
+	trace = filters.get("trace")
+	machine = filters.get("machine")
+
+	if not article or not trace:
+		return []
+
+	conditions = "i.article = %(article)s AND i.trace = %(trace)s"
+	params = {"article": article, "trace": trace, "txt": f"%{txt}%", "start": int(start), "page_len": int(page_len)}
+
+	if machine:
+		machine_doc = frappe.db.get_value(
+			"Machine", machine, ["format_max_laize", "format_max_developpement"], as_dict=True
+		)
+		if machine_doc:
+			if machine_doc.format_max_laize:
+				conditions += " AND (i.format_laize = 0 OR i.format_laize IS NULL OR i.format_laize <= %(max_laize)s)"
+				params["max_laize"] = machine_doc.format_max_laize
+			if machine_doc.format_max_developpement:
+				conditions += " AND (i.format_developpement = 0 OR i.format_developpement IS NULL OR i.format_developpement <= %(max_dev)s)"
+				params["max_dev"] = machine_doc.format_max_developpement
+
+	if txt:
+		conditions += " AND (i.name LIKE %(txt)s OR i.format_imp LIKE %(txt)s)"
+
+	return frappe.db.sql(
+		f"""
+		SELECT i.name, i.format_imp, i.nbr_poses, i.taux_chutes
+		FROM `tabImposition` i
+		WHERE {conditions}
+		ORDER BY i.modified DESC
+		LIMIT %(start)s, %(page_len)s
+		""",
+		params,
+	)

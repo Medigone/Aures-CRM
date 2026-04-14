@@ -20,6 +20,7 @@
   "references_section",
   "etude_technique",
   "sales_order",
+  "machine",
   "column_break_1",
   "client",
   "article",
@@ -70,6 +71,14 @@
    "fieldtype": "Link",
    "label": "Commande",
    "options": "Sales Order"
+  },
+  {
+   "fetch_from": "etude_technique.machine",
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "label": "Machine",
+   "options": "Machine",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_1",

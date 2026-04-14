@@ -25,6 +25,7 @@
   "duree_estimee",
   "column_break_plan",
   "workstation",
+  "machine",
   "operateur_assigne",
   "operateur_assigne_nom",
   "execution_section",
@@ -175,9 +176,15 @@
   {
    "fieldname": "workstation",
    "fieldtype": "Link",
-   "in_standard_filter": 1,
    "label": "Poste de Travail",
    "options": "Workstation"
+  },
+  {
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Machine",
+   "options": "Machine"
   },
   {
    "fieldname": "operateur_assigne",

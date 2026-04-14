@@ -4,47 +4,18 @@
  */
 
 frappe.ui.form.on('Etude Faisabilite', {
-    /**
-     * Refreshes the form view.
-     * @param {object} frm - The current form object.
-     */
     refresh: function(frm) {
-        // Apply dynamic filters
         set_filters(frm);
-        // Load or update the HTML section displaying Trace/Imposition info and actions
         load_trace_imposition_links(frm);
-        // Refresh local attachment fields based on linked documents
         refresh_attached_files(frm);
-        
-        // Ajouter le bouton pour afficher/modifier les spécifications techniques de l'article
-        // if (frm.doc.article) {
-        //     frm.add_custom_button(__('Spécifications Techniques'), function() {
-        //         show_item_technical_specs(frm.doc.article);
-        //     }, __('Article'));
-        // }
-    },
-    
-    /**
-     * Triggered when the client field changes.
-     * @param {object} frm - The current form object.
-     */
-    client: function(frm) {
-        // Re-apply filters as client impacts article list
-        set_filters(frm);
-        // Clear potentially invalid selections if client changes
-        // frm.set_value('article', null); // Optional: uncomment if needed
-        // frm.set_value('trace', null);
-        // frm.set_value('imposition', null);
-        // load_trace_imposition_links(frm); // Update HTML if fields are cleared
-        // refresh_attached_files(frm);
+        set_statut_machine_indicator(frm);
     },
 
-    /**
-     * Triggered when the article field changes.
-     * @param {object} frm - The current form object.
-     */
+    client: function(frm) {
+        set_filters(frm);
+    },
+
     article: function(frm) {
-        // Re-apply filters as article impacts trace/imposition lists
         set_filters(frm);
         
         // Vérifier s'il existe déjà un tracé pour cet article et le lier automatiquement
@@ -87,20 +58,61 @@ frappe.ui.form.on('Etude Faisabilite', {
      * @param {object} frm - The current form object.
      */
     imposition: function(frm) {
-        // Apply filters (might be relevant if imposition had dependencies)
         set_filters(frm);
-        // Update the HTML display
         load_trace_imposition_links(frm);
-        // Refresh local attachment fields
         refresh_attached_files(frm);
     },
 
-    /**
-     * Triggered when the status field changes.
-     * @param {object} frm - The current form object.
-     */
+    machine_prevue: function(frm) {
+        set_filters(frm);
+        set_statut_machine_indicator(frm);
+        if (frm.doc.machine_prevue && frm.doc.imposition) {
+            frappe.call({
+                method: 'frappe.client.get_value',
+                args: {
+                    doctype: 'Machine',
+                    filters: { name: frm.doc.machine_prevue },
+                    fieldname: ['format_max_laize', 'format_max_developpement']
+                },
+                callback: function(r) {
+                    if (!r.message) return;
+                    var machine = r.message;
+                    frappe.call({
+                        method: 'frappe.client.get_value',
+                        args: {
+                            doctype: 'Imposition',
+                            filters: { name: frm.doc.imposition },
+                            fieldname: ['format_laize', 'format_developpement']
+                        },
+                        callback: function(r2) {
+                            if (!r2.message) return;
+                            var imp = r2.message;
+                            if (imp.format_laize && machine.format_max_laize &&
+                                parseFloat(imp.format_laize) > parseFloat(machine.format_max_laize)) {
+                                frappe.msgprint({
+                                    title: __('Incompatibilité'),
+                                    message: __("La laize de l'imposition actuelle ({0} mm) dépasse le format max de la machine ({1} mm).",
+                                        [imp.format_laize, machine.format_max_laize]),
+                                    indicator: 'orange'
+                                });
+                            }
+                            if (imp.format_developpement && machine.format_max_developpement &&
+                                parseFloat(imp.format_developpement) > parseFloat(machine.format_max_developpement)) {
+                                frappe.msgprint({
+                                    title: __('Incompatibilité'),
+                                    message: __("Le développement de l'imposition actuelle ({0} mm) dépasse le format max de la machine ({1} mm).",
+                                        [imp.format_developpement, machine.format_max_developpement]),
+                                    indicator: 'orange'
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    },
+
     status: function(frm) {
-        // Reload the HTML section to show/hide Create/Update buttons based on status
         load_trace_imposition_links(frm);
     }
 });
@@ -110,45 +122,78 @@ frappe.ui.form.on('Etude Faisabilite', {
  * @param {object} frm - The current form object.
  */
 function set_filters(frm) {
-    // Filter Articles based on the selected Client
     frm.fields_dict.article.get_query = function(doc) {
         if (!doc.client) {
              frappe.throw(__("Veuillez d'abord sélectionner un Client."));
         }
         return {
             filters: {
-                'custom_client': doc.client // Ensure 'custom_client' is the correct field name in Article Doctype
+                'custom_client': doc.client
             }
         };
     };
-    frm.set_query("article"); // Apply the query immediately
+    frm.set_query("article");
 
-    // Filter Traces based on the selected Article
     frm.fields_dict.trace.get_query = function(doc) {
         if (!doc.article) {
              frappe.throw(__("Veuillez d'abord sélectionner un Article."));
         }
         return {
             filters: {
-                article: doc.article // Ensure 'article' is the correct field name in Trace Doctype
+                article: doc.article
             }
         };
     };
     frm.set_query("trace");
 
-    // Filter Impositions based on the selected Article and Trace
+    frm.set_query("machine_prevue", function() {
+        var filters = {
+            is_active: 1,
+            type_equipement: 'Presse Offset'
+        };
+        if (frm.doc.procede) {
+            filters.procede = frm.doc.procede;
+        }
+        return { filters: filters };
+    });
+
     frm.fields_dict.imposition.get_query = function(doc) {
         if (!doc.article || !doc.trace) {
              frappe.throw(__("Veuillez d'abord sélectionner un Article et un Tracé."));
         }
-        return {
-            filters: {
-                article: doc.article, // Ensure 'article' is the correct field name in Imposition Doctype
-                trace: doc.trace    // Ensure 'trace' is the correct field name in Imposition Doctype
-            }
+        var filters = {
+            article: doc.article,
+            trace: doc.trace
         };
+        if (doc.machine_prevue) {
+            return {
+                query: 'aurescrm.aures_crm.doctype.etude_faisabilite.etude_faisabilite.get_compatible_impositions',
+                filters: {
+                    article: doc.article,
+                    trace: doc.trace,
+                    machine: doc.machine_prevue
+                }
+            };
+        }
+        return { filters: filters };
     };
     frm.set_query("imposition");
+}
+
+function set_statut_machine_indicator(frm) {
+    var field = frm.fields_dict.statut_machine_prevue;
+    if (!field || !field.$wrapper) return;
+    var statut = frm.doc.statut_machine_prevue;
+    var color_map = {
+        'Operationnelle': 'green',
+        'En Maintenance': 'orange',
+        'En Panne': 'red',
+        'Hors Service': 'gray'
+    };
+    var color = color_map[statut] || '';
+    if (color && statut) {
+        field.$wrapper.find('.control-value, .like-disabled-input').css('color', color);
+    }
 }
 
 /**

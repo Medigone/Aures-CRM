@@ -1,0 +1,333 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:nom",
+ "creation": "2026-04-14 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "identification_section",
+  "nom",
+  "type_equipement",
+  "marque",
+  "column_break_ident",
+  "modele",
+  "statut_machine",
+  "site_production",
+  "column_break_ident2",
+  "is_active",
+  "image",
+  "parametres_section",
+  "vitesse_max",
+  "temps_calage",
+  "column_break_params",
+  "cout_horaire_calage",
+  "cout_horaire_roulage",
+  "presse_offset_section",
+  "procede",
+  "type_presse",
+  "retiration",
+  "column_break_offset1",
+  "nb_couleurs_recto",
+  "nb_couleurs_verso",
+  "gache_calage",
+  "format_section",
+  "format_max_laize",
+  "format_max_developpement",
+  "column_break_format",
+  "format_min_laize",
+  "format_min_developpement",
+  "observations_section",
+  "observations"
+ ],
+ "fields": [
+  {
+   "fieldname": "identification_section",
+   "fieldtype": "Section Break",
+   "label": "Identification"
+  },
+  {
+   "fieldname": "nom",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "type_equipement",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type d'\u00e9quipement",
+   "options": "Presse Offset\nPlieuse\nColleuse\nMassicot\nMachine D\u00e9coupe\nAutre",
+   "reqd": 1
+  },
+  {
+   "fieldname": "marque",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Marque"
+  },
+  {
+   "fieldname": "column_break_ident",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "modele",
+   "fieldtype": "Data",
+   "label": "Mod\u00e8le"
+  },
+  {
+   "default": "Operationnelle",
+   "fieldname": "statut_machine",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut Machine",
+   "options": "Operationnelle\nEn Maintenance\nEn Panne\nHors Service"
+  },
+  {
+   "fieldname": "site_production",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Site de Production",
+   "options": "Site Production"
+  },
+  {
+   "fieldname": "column_break_ident2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Active"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "fieldname": "parametres_section",
+   "fieldtype": "Section Break",
+   "label": "Param\u00e8tres de Production"
+  },
+  {
+   "fieldname": "vitesse_max",
+   "fieldtype": "Int",
+   "label": "Vitesse max (unit\u00e9s/heure)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "temps_calage",
+   "fieldtype": "Float",
+   "label": "Temps de calage (minutes)",
+   "non_negative": 1,
+   "precision": "1"
+  },
+  {
+   "fieldname": "column_break_params",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cout_horaire_calage",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt horaire calage",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "cout_horaire_roulage",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt horaire roulage",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "presse_offset_section",
+   "fieldtype": "Section Break",
+   "label": "Presse Offset"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "procede",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Proc\u00e9d\u00e9",
+   "options": "\nOffset\nFlexo\nAutre"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "type_presse",
+   "fieldtype": "Select",
+   "label": "Type de presse",
+   "options": "\nFeuille\nRotative"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "retiration",
+   "fieldtype": "Check",
+   "label": "Retiration (recto-verso en un passage)"
+  },
+  {
+   "fieldname": "column_break_offset1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "nb_couleurs_recto",
+   "fieldtype": "Int",
+   "label": "Nb couleurs recto",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "nb_couleurs_verso",
+   "fieldtype": "Int",
+   "label": "Nb couleurs verso",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "gache_calage",
+   "fieldtype": "Int",
+   "label": "G\u00e2che calage (feuilles)",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "format_section",
+   "fieldtype": "Section Break",
+   "label": "Format d'impression"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "format_max_laize",
+   "fieldtype": "Float",
+   "label": "Format max laize (mm)",
+   "non_negative": 1,
+   "precision": "1"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "format_max_developpement",
+   "fieldtype": "Float",
+   "label": "Format max d\u00e9veloppement (mm)",
+   "non_negative": 1,
+   "precision": "1"
+  },
+  {
+   "fieldname": "column_break_format",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "format_min_laize",
+   "fieldtype": "Float",
+   "label": "Format min laize (mm)",
+   "non_negative": 1,
+   "precision": "1"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "format_min_developpement",
+   "fieldtype": "Float",
+   "label": "Format min d\u00e9veloppement (mm)",
+   "non_negative": 1,
+   "precision": "1"
+  },
+  {
+   "fieldname": "observations_section",
+   "fieldtype": "Section Break",
+   "collapsible": 1,
+   "label": "Observations"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Text Editor",
+   "label": "Observations"
+  }
+ ],
+ "image_field": "image",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-04-14 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Machine",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9",
+   "select": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Responsable \u00c9tude Faisabilit\u00e9",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 Devis",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Responsable Devis",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Responsable Prepresse",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Technicien Prepresse",
+   "select": 1
+  }
+ ],
+ "search_fields": "type_equipement,marque,modele,statut_machine,procede",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "green",
+   "title": "Operationnelle"
+  },
+  {
+   "color": "orange",
+   "title": "En Maintenance"
+  },
+  {
+   "color": "red",
+   "title": "En Panne"
+  },
+  {
+   "color": "gray",
+   "title": "Hors Service"
+  }
+ ],
+ "title_field": "nom",
+ "track_changes": 1
+}

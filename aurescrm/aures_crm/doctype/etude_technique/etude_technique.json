@@ -326,8 +326,8 @@
    "description": "Machine",
    "fieldname": "machine",
    "fieldtype": "Link",
-   "label": "Station de travail",
-   "options": "Workstation"
+   "label": "Machine",
+   "options": "Machine"
   },
   {
    "fieldname": "column_break_zsog",

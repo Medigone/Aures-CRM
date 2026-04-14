@@ -25,6 +25,11 @@
   "item_name",
   "quantite",
   "nbr_feuilles",
+  "machine_section",
+  "machine_prevue",
+  "statut_machine_prevue",
+  "column_break_machine",
+  "format_machine",
   "section_break_zxac",
   "html_doc",
   "section_break_jugd",
@@ -326,6 +331,34 @@
    "label": "Nombre Feuilles",
    "non_negative": 1,
    "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "machine_section",
+   "fieldtype": "Section Break",
+   "label": "Machine pr\u00e9vue"
+  },
+  {
+   "fieldname": "machine_prevue",
+   "fieldtype": "Link",
+   "label": "Machine pr\u00e9vue",
+   "options": "Machine"
+  },
+  {
+   "fetch_from": "machine_prevue.statut_machine",
+   "fieldname": "statut_machine_prevue",
+   "fieldtype": "Data",
+   "label": "Statut machine",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_machine",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "format_machine",
+   "fieldtype": "Data",
+   "label": "Format machine (laize x d\u00e9v.)",
    "read_only": 1
   }
  ],

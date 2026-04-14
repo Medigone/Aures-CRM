@@ -25,6 +25,10 @@
   "nbr_poses",
   "column_break_ffra",
   "taux_chutes",
+  "dimensions_section",
+  "format_laize",
+  "column_break_dims",
+  "format_developpement",
   "section_break_xfpk",
   "an_num_fd",
   "column_break_mkej",
@@ -172,6 +176,29 @@
    "precision": "2"
   },
   {
+   "fieldname": "dimensions_section",
+   "fieldtype": "Section Break",
+   "label": "Dimensions num\u00e9riques"
+  },
+  {
+   "fieldname": "format_laize",
+   "fieldtype": "Float",
+   "label": "Format laize (mm)",
+   "non_negative": 1,
+   "precision": "1"
+  },
+  {
+   "fieldname": "column_break_dims",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "format_developpement",
+   "fieldtype": "Float",
+   "label": "Format d\u00e9veloppement (mm)",
+   "non_negative": 1,
+   "precision": "1"
+  },
+  {
    "fieldname": "html",
    "fieldtype": "HTML"
   },
@@ -252,7 +279,7 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "client,article,trace,nbr_poses,format_imp",
+ "search_fields": "client,article,trace,nbr_poses,format_imp,format_laize,format_developpement",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

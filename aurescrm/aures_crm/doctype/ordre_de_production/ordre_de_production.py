@@ -174,8 +174,11 @@ class OrdredeProduction(Document):
 				nom_op = etape_route.nom_etape
 				if nb_passages > 1:
 					nom_op += f" - Passage {passage}"
-				
-				# Créer l'opération
+
+				machine_for_op = etape_route.get("machine") or None
+				if not machine_for_op and etape_route.get("type_etape") == "Impression" and self.machine:
+					machine_for_op = self.machine
+
 				operation = frappe.get_doc({
 					"doctype": "Operation Production",
 					"ordre_production": self.name,
@@ -185,6 +188,7 @@ class OrdredeProduction(Document):
 					"numero_passage": passage if nb_passages > 1 else None,
 					"total_passages": nb_passages if nb_passages > 1 else None,
 					"workstation": etape_route.workstation,
+					"machine": machine_for_op,
 					"duree_estimee": etape_route.duree_estimee,
 					"quantite_prevue": self.quantite_a_produire,
 					"statut": "En attente"
@@ -418,7 +422,6 @@ def create_ordre_production(etude_name):
 		if not route:
 			frappe.throw(f"Aucune route de production active trouvée pour le procédé {etude.procede}")
 		
-		# Créer l'ordre
 		ordre = frappe.get_doc({
 			"doctype": "Ordre de Production",
 			"etude_technique": etude.name,
@@ -426,6 +429,7 @@ def create_ordre_production(etude_name):
 			"client": etude.client,
 			"article": etude.article,
 			"bat": etude.bat,
+			"machine": etude.machine,
 			"quantite_a_produire": etude.quantite,
 			"route_production": route,
 			"statut": "Nouveau",

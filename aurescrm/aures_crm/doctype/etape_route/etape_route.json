@@ -11,6 +11,7 @@
   "type_operation",
   "type_etape",
   "workstation",
+  "machine",
   "nombre_passages",
   "duree_estimee",
   "description"
@@ -47,9 +48,15 @@
   {
    "fieldname": "workstation",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Poste de travail",
    "options": "Workstation"
+  },
+  {
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Machine",
+   "options": "Machine"
   },
   {
    "default": "1",

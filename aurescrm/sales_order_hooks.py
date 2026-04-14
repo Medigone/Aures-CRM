@@ -125,7 +125,7 @@ def generate_technical_studies(sales_order_name):
                 "demande_faisabilite": feasibility_request_id,
                 "status": "Réalisable"
             },
-            fields=["name", "trace", "imposition"]
+            fields=["name", "trace", "imposition", "machine_prevue"]
         )
         
         if not feasibility_studies:
@@ -134,51 +134,38 @@ def generate_technical_studies(sales_order_name):
                            title=_('Attention'))
             return
         
-        # Counter for created studies
         created_studies = 0
         
-        # Calculate due date (creation date + 1 day)
         import datetime
         due_date = datetime.datetime.now() + datetime.timedelta(days=1)
         
-        # Get maquettes data from the child table
         maquettes_data = {}
         try:
-            # Try to get maquettes directly from the database
             maquettes_list = frappe.get_all(
                 "Maquettes Articles Commande",
                 filters={"parent": sales_order_name},
                 fields=["article", "maquette"]
             )
             
-            # Log what we found for debugging
-            frappe.log_error(f"Maquettes found for SO {sales_order_name}: {maquettes_list}", "generate_technical_studies")
-            
-            # Create mapping of item_code to maquette
             for m in maquettes_list:
                 if m.article and m.maquette:
                     maquettes_data[m.article] = m.maquette
         except Exception as e:
             frappe.log_error(f"Error retrieving maquettes for SO {sales_order_name}: {e}", "generate_technical_studies")
         
-        # For each item in the Sales Order
         for item in sales_order.items:
-            # Create a technical study for this item
             technical_study = frappe.new_doc("Etude Technique")
             technical_study.sales_order = sales_order_name
             technical_study.item_code = item.item_code
             technical_study.item_name = item.item_name
             technical_study.qty = item.qty
 
-            # Fix field names to match exactly what the doctype expects
             technical_study.client = sales_order.customer
             technical_study.date_echeance = due_date.strftime('%Y-%m-%d')
 
-            # Set article and quantite fields
             technical_study.article = item.item_code
             technical_study.quantite = item.qty
 
-            # Rechercher un BAT existant pour cet article (priorité au BAT-P Validé)
             existing_bat = frappe.get_all(
                 "BAT",
                 filters={
@@ -193,7 +180,6 @@ def generate_technical_studies(sales_order_name):
             if existing_bat:
                 technical_study.bat = existing_bat[0].name
             else:
-                # Si aucun BAT-P Validé, chercher un BAT-E Validé
                 existing_bat_e = frappe.get_all(
                     "BAT",
                     filters={
@@ -208,35 +194,29 @@ def generate_technical_studies(sales_order_name):
                 if existing_bat_e:
                     technical_study.bat = existing_bat_e[0].name
 
-            # Set the new fields: commande and demande_faisabilite
             technical_study.commande = sales_order_name
             technical_study.demande_faisabilite = sales_order.custom_demande_de_faisabilité
 
-            # Set the devis field from custom_devis in Sales Order
             if hasattr(sales_order, 'custom_devis') and sales_order.custom_devis:
                 technical_study.devis = sales_order.custom_devis
 
-            # --- NOUVEAU : Copier la valeur custom_retirage ---
-            # Vérifie si le champ custom_retirage existe et a une valeur (0 ou 1)
             if hasattr(sales_order, 'custom_retirage') and sales_order.custom_retirage is not None:
                  technical_study.is_reprint = sales_order.custom_retirage
             else:
-                 technical_study.is_reprint = 0 # Valeur par défaut si non trouvé
-            # --- Fin de la modification ---
+                 technical_study.is_reprint = 0
 
-            # Set maquette if available for this item
             if item.item_code in maquettes_data:
                 technical_study.maquette = maquettes_data[item.item_code]
 
-            # Use the first feasibility study that has both trace and imposition
             for study in feasibility_studies:
                 if study.trace and study.imposition:
                     technical_study.trace = study.trace
                     technical_study.imposition = study.imposition
                     technical_study.etude_faisabilite = study.name
+                    if study.machine_prevue:
+                        technical_study.machine = study.machine_prevue
                     break
 
-            # Save the technical study
             technical_study.insert(ignore_permissions=True)
             created_studies += 1
         
@@ -322,21 +302,18 @@ def auto_generate_technical_studies_on_submit(doc, method):
                     "demande_faisabilite": feasibility_request_id,
                     "status": "Réalisable"
                 },
-                fields=["name", "trace", "imposition"]
+                fields=["name", "trace", "imposition", "machine_prevue"]
             )
             
             if not feasibility_studies:
                 frappe.log_error(f"No feasible studies found for feasibility request {feasibility_request_id}", "auto_generate_technical_studies")
                 return
             
-            # Compteur pour les études créées
             created_studies = 0
             
-            # Calculer la date d'échéance (date de création + 1 jour)
             import datetime
             due_date = datetime.datetime.now() + datetime.timedelta(days=1)
             
-            # Obtenir les données des maquettes depuis la table enfant
             maquettes_data = {}
             try:
                 maquettes_list = frappe.get_all(
@@ -345,31 +322,25 @@ def auto_generate_technical_studies_on_submit(doc, method):
                     fields=["article", "maquette"]
                 )
                 
-                # Créer un mapping article_code -> maquette
                 for m in maquettes_list:
                     if m.article and m.maquette:
                         maquettes_data[m.article] = m.maquette
             except Exception as e:
                 frappe.log_error(f"Error retrieving maquettes for SO {doc.name}: {e}", "auto_generate_technical_studies")
             
-            # Pour chaque article dans la commande
             for item in doc.items:
-                # Créer une étude technique pour cet article
                 technical_study = frappe.new_doc("Etude Technique")
                 technical_study.sales_order = doc.name
                 technical_study.item_code = item.item_code
                 technical_study.item_name = item.item_name
                 technical_study.qty = item.qty
                 
-                # Définir les champs client et date d'échéance
                 technical_study.client = doc.customer
                 technical_study.date_echeance = due_date.strftime('%Y-%m-%d')
                 
-                # Définir les champs article et quantité
                 technical_study.article = item.item_code
                 technical_study.quantite = item.qty
                 
-                # Rechercher un BAT existant pour cet article (priorité au BAT-P Validé)
                 existing_bat = frappe.get_all(
                     "BAT",
                     filters={
@@ -384,7 +355,6 @@ def auto_generate_technical_studies_on_submit(doc, method):
                 if existing_bat:
                     technical_study.bat = existing_bat[0].name
                 else:
-                    # Si aucun BAT-P Validé, chercher un BAT-E Validé
                     existing_bat_e = frappe.get_all(
                         "BAT",
                         filters={
@@ -399,33 +369,29 @@ def auto_generate_technical_studies_on_submit(doc, method):
                     if existing_bat_e:
                         technical_study.bat = existing_bat_e[0].name
                 
-                # Définir les nouveaux champs : commande et demande_faisabilite
                 technical_study.commande = doc.name
                 technical_study.demande_faisabilite = doc.custom_demande_de_faisabilité
                 
-                # Définir le champ devis depuis custom_devis dans la commande
                 if hasattr(doc, 'custom_devis') and doc.custom_devis:
                     technical_study.devis = doc.custom_devis
                 
-                # Copier la valeur custom_retirage
                 if hasattr(doc, 'custom_retirage') and doc.custom_retirage is not None:
                     technical_study.is_reprint = doc.custom_retirage
                 else:
                     technical_study.is_reprint = 0
                 
-                # Définir la maquette si disponible pour cet article
                 if item.item_code in maquettes_data:
                     technical_study.maquette = maquettes_data[item.item_code]
                 
-                # Utiliser la première étude de faisabilité qui a à la fois trace et imposition
                 for study in feasibility_studies:
                     if study.trace and study.imposition:
                         technical_study.trace = study.trace
                         technical_study.imposition = study.imposition
                         technical_study.etude_faisabilite = study.name
+                        if study.machine_prevue:
+                            technical_study.machine = study.machine_prevue
                         break
                 
-                # Sauvegarder l'étude technique
                 technical_study.insert(ignore_permissions=True)
                 created_studies += 1
             
