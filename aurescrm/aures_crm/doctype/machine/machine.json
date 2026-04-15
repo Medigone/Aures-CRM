@@ -2,43 +2,46 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:nom",
- "creation": "2026-04-14 10:00:00.000000",
+ "creation": "2026-04-14 10:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "status",
   "identification_section",
-  "nom",
   "type_equipement",
+  "nom",
   "marque",
   "column_break_ident",
   "modele",
-  "statut_machine",
   "site_production",
-  "column_break_ident2",
-  "is_active",
-  "image",
+  "observations_section",
+  "observations",
+  "production_tab",
+  "presse_offset_section",
+  "procede",
+  "type_presse",
+  "column_break_offset1",
+  "nb_couleurs_recto",
+  "nb_couleurs_verso",
+  "gache_calage",
+  "section_break_yqyb",
+  "retiration",
   "parametres_section",
   "vitesse_max",
   "temps_calage",
   "column_break_params",
   "cout_horaire_calage",
   "cout_horaire_roulage",
-  "presse_offset_section",
-  "procede",
-  "type_presse",
-  "retiration",
-  "column_break_offset1",
-  "nb_couleurs_recto",
-  "nb_couleurs_verso",
-  "gache_calage",
   "format_section",
   "format_max_laize",
   "format_max_developpement",
   "column_break_format",
   "format_min_laize",
   "format_min_developpement",
-  "observations_section",
-  "observations"
+  "configuration",
+  "section_break_pmrq",
+  "is_active",
+  "image"
  ],
  "fields": [
   {
@@ -79,15 +82,6 @@
    "label": "Mod\u00e8le"
   },
   {
-   "default": "Operationnelle",
-   "fieldname": "statut_machine",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Statut Machine",
-   "options": "Operationnelle\nEn Maintenance\nEn Panne\nHors Service"
-  },
-  {
    "fieldname": "site_production",
    "fieldtype": "Link",
    "in_standard_filter": 1,
@@ -95,13 +89,10 @@
    "options": "Site Production"
   },
   {
-   "fieldname": "column_break_ident2",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "1",
    "fieldname": "is_active",
    "fieldtype": "Check",
+   "hidden": 1,
    "in_standard_filter": 1,
    "label": "Active"
   },
@@ -242,19 +233,47 @@
   {
    "fieldname": "observations_section",
    "fieldtype": "Section Break",
-   "collapsible": 1,
    "label": "Observations"
   },
   {
    "fieldname": "observations",
    "fieldtype": "Text Editor",
    "label": "Observations"
+  },
+  {
+   "fieldname": "section_break_pmrq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Operationnelle",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut Machine",
+   "options": "Operationnelle\nEn Maintenance\nEn Panne\nHors Service\nD\u00e9sactiv\u00e9",
+   "show_on_timeline": 1
+  },
+  {
+   "fieldname": "configuration",
+   "fieldtype": "Tab Break",
+   "label": "Configuration"
+  },
+  {
+   "fieldname": "production_tab",
+   "fieldtype": "Tab Break",
+   "label": "Param\u00e8tres"
+  },
+  {
+   "fieldname": "section_break_yqyb",
+   "fieldtype": "Section Break"
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-14 10:00:00.000000",
+ "modified": "2026-04-15 08:37:18.164087",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Machine",
@@ -306,26 +325,31 @@
    "select": 1
   }
  ],
- "search_fields": "type_equipement,marque,modele,statut_machine,procede",
+ "row_format": "Dynamic",
+ "search_fields": "type_equipement,marque,modele,status,procede",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [
   {
-   "color": "green",
+   "color": "Green",
    "title": "Operationnelle"
   },
   {
-   "color": "orange",
+   "color": "Orange",
    "title": "En Maintenance"
   },
   {
-   "color": "red",
+   "color": "Red",
    "title": "En Panne"
   },
   {
-   "color": "gray",
+   "color": "Gray",
    "title": "Hors Service"
+  },
+  {
+   "color": "Gray",
+   "title": "D\u00e9sactiv\u00e9"
   }
  ],
  "title_field": "nom",

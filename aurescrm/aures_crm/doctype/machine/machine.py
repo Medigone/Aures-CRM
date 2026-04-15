@@ -5,8 +5,12 @@ from frappe.model.document import Document
 
 class Machine(Document):
 	def validate(self):
+		self.set_is_active_from_status()
 		if self.type_equipement == "Presse Offset":
 			self.validate_format_dimensions()
+
+	def set_is_active_from_status(self):
+		self.is_active = 1 if self.status == "Operationnelle" else 0
 
 	def validate_format_dimensions(self):
 		if self.format_max_laize and self.format_min_laize:

@@ -148,7 +148,7 @@ function set_filters(frm) {
 
     frm.set_query("machine_prevue", function() {
         var filters = {
-            is_active: 1,
+            status: ['!=', 'Désactivé'],
             type_equipement: 'Presse Offset'
         };
         if (frm.doc.procede) {

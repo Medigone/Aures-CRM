@@ -345,7 +345,7 @@
    "options": "Machine"
   },
   {
-   "fetch_from": "machine_prevue.statut_machine",
+   "fetch_from": "machine_prevue.status",
    "fieldname": "statut_machine_prevue",
    "fieldtype": "Data",
    "label": "Statut machine",
