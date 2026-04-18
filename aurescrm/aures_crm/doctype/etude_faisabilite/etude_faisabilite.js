@@ -8,7 +8,7 @@ frappe.ui.form.on('Etude Faisabilite', {
         set_filters(frm);
         load_trace_imposition_links(frm);
         refresh_attached_files(frm);
-        set_statut_machine_indicator(frm);
+        load_machine_panel(frm, true);
     },
 
     client: function(frm) {
@@ -61,55 +61,16 @@ frappe.ui.form.on('Etude Faisabilite', {
         set_filters(frm);
         load_trace_imposition_links(frm);
         refresh_attached_files(frm);
+        load_machine_panel(frm, true);
+    },
+
+    quantite: function(frm) {
+        load_machine_panel(frm, false);
     },
 
     machine_prevue: function(frm) {
         set_filters(frm);
-        set_statut_machine_indicator(frm);
-        if (frm.doc.machine_prevue && frm.doc.imposition) {
-            frappe.call({
-                method: 'frappe.client.get_value',
-                args: {
-                    doctype: 'Machine',
-                    filters: { name: frm.doc.machine_prevue },
-                    fieldname: ['format_max_laize', 'format_max_developpement']
-                },
-                callback: function(r) {
-                    if (!r.message) return;
-                    var machine = r.message;
-                    frappe.call({
-                        method: 'frappe.client.get_value',
-                        args: {
-                            doctype: 'Imposition',
-                            filters: { name: frm.doc.imposition },
-                            fieldname: ['format_laize', 'format_developpement']
-                        },
-                        callback: function(r2) {
-                            if (!r2.message) return;
-                            var imp = r2.message;
-                            if (imp.format_laize && machine.format_max_laize &&
-                                parseFloat(imp.format_laize) > parseFloat(machine.format_max_laize)) {
-                                frappe.msgprint({
-                                    title: __('Incompatibilité'),
-                                    message: __("La laize de l'imposition actuelle ({0} mm) dépasse le format max de la machine ({1} mm).",
-                                        [imp.format_laize, machine.format_max_laize]),
-                                    indicator: 'orange'
-                                });
-                            }
-                            if (imp.format_developpement && machine.format_max_developpement &&
-                                parseFloat(imp.format_developpement) > parseFloat(machine.format_max_developpement)) {
-                                frappe.msgprint({
-                                    title: __('Incompatibilité'),
-                                    message: __("Le développement de l'imposition actuelle ({0} mm) dépasse le format max de la machine ({1} mm).",
-                                        [imp.format_developpement, machine.format_max_developpement]),
-                                    indicator: 'orange'
-                                });
-                            }
-                        }
-                    });
-                }
-            });
-        }
+        load_machine_panel(frm, true);
     },
 
     status: function(frm) {
@@ -180,20 +141,612 @@ function set_filters(frm) {
     frm.set_query("imposition");
 }
 
-function set_statut_machine_indicator(frm) {
-    var field = frm.fields_dict.statut_machine_prevue;
-    if (!field || !field.$wrapper) return;
-    var statut = frm.doc.statut_machine_prevue;
-    var color_map = {
-        'Operationnelle': 'green',
-        'En Maintenance': 'orange',
-        'En Panne': 'red',
-        'Hors Service': 'gray'
-    };
-    var color = color_map[statut] || '';
-    if (color && statut) {
-        field.$wrapper.find('.control-value, .like-disabled-input').css('color', color);
+function _ef_esc(s) {
+    return frappe.utils.escape_html(s == null ? '' : String(s));
+}
+
+/** Classes `indicator-pill` alignées sur les états du DocType Machine. */
+function _ef_machine_status_pill_class(status) {
+    return (
+        {
+            Operationnelle: 'green',
+            'En Maintenance': 'orange',
+            'En Panne': 'red',
+            'Hors Service': 'gray',
+            Désactivé: 'gray',
+        }[status] || 'gray'
+    );
+}
+
+/** Style bouton primaire noir (hors thème couleur accent). */
+var AURES_BTN_PRIMARY_BLACK_STYLE =
+    'background:#1f1f1f !important;border-color:#1f1f1f !important;color:#fff !important;';
+
+/** Styles minimalistes partagés (fiche + liste de choix). */
+var AURES_MACHINE_CARD_CSS =
+    '<style>' +
+    '.aures-mui{--line:rgba(15,23,42,.08);--muted:#6b7280;--txt:#111827;--surface:#fafbfc;--surface-2:#f4f6f8}' +
+    '.aures-mcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(15,23,42,.04);overflow:hidden}' +
+    '.aures-mcard-h{padding:14px 16px 12px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}' +
+    '.aures-mcard-h-main{min-width:0;flex:1}' +
+    '.aures-mcard-title-row{display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap}' +
+    '.aures-mcard-title{margin:0;font-size:1.08rem;font-weight:600;color:var(--txt);letter-spacing:-.02em;line-height:1.25;flex:0 1 auto;min-width:0;max-width:100%}' +
+    '.aures-mcard-title-row .indicator-pill{flex-shrink:0}' +
+    '.aures-mcard-sub{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.45}' +
+    '.aures-mcard-id{margin-top:4px;font-size:12px;color:var(--muted)}' +
+    '.aures-mcard-id a{color:var(--muted);text-decoration:none}' +
+    '.aures-mcard-id a:hover{color:var(--link-color);text-decoration:underline}' +
+    '.aures-mcard-b{padding:12px 14px 14px;display:grid;grid-template-columns:minmax(104px,124px) 1fr;gap:14px;align-items:start}' +
+    '@media(max-width:520px){.aures-mcard-b{grid-template-columns:1fr}}' +
+    '.aures-mcard-img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}' +
+    '.aures-mcard-ph{display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:30px}' +
+    '.aures-mcard-al{display:flex;align-items:center;margin-top:10px;padding:10px 12px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;font-size:12px;line-height:1.45;min-height:40px;box-sizing:border-box}' +
+    '.aures-mcard-al ul{margin:0;padding:0 0 0 18px;list-style-position:outside;flex:1;min-width:0}' +
+    '.aures-mcard-al li{margin:0;padding:2px 0}' +
+    '.aures-mcard-specg{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:6px 10px}' +
+    '.aures-mcard-spec{font-size:11px;line-height:1.25}' +
+    '.aures-mcard-spec-k{display:block;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:1px}' +
+    '.aures-mcard-spec-v{color:var(--txt);font-weight:500}' +
+    '.aures-mcard-cta{flex-shrink:0;display:flex;align-items:flex-start;justify-content:flex-end}' +
+    '.aures-mcard-media{min-width:0}' +
+    '.aures-mcard-main{min-width:0}' +
+    '.aures-mpick{display:flex;gap:14px;align-items:stretch;padding:14px 16px;margin-bottom:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);transition:border-color .15s ease,box-shadow .15s ease}' +
+    '.aures-mpick:hover{border-color:rgba(15,23,42,.14);box-shadow:0 2px 10px rgba(15,23,42,.06)}' +
+    '.aures-mpick--on{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}' +
+    '.aures-mpick-med{flex:0 0 88px;width:88px;min-width:88px;min-height:88px;flex-shrink:0;overflow:hidden;border-radius:10px}' +
+    '.aures-mpick-img{display:block;width:100%;height:88px;min-height:88px;object-fit:cover;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}' +
+    '.aures-mpick-med .aures-mcard-ph{height:88px;border-radius:10px;border:1px solid var(--line)}' +
+    '.aures-mpick-bd{flex:1;min-width:0;font-size:13px}' +
+    '.aures-mpick-top{display:flex;justify-content:flex-start;align-items:center;gap:10px;flex-wrap:wrap;row-gap:6px}' +
+    '.aures-mpick-top .aures-mpick-t{margin-bottom:0}' +
+    '.aures-mpick-top .indicator-pill{flex-shrink:0}' +
+    '.aures-mpick-t{font-weight:600;color:var(--txt);margin:0 0 4px;line-height:1.3;font-size:14px;flex:0 1 auto;min-width:0;max-width:100%}' +
+    '.aures-mpick-sub{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.45}' +
+    '.aures-mpick-ch{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}' +
+    '.aures-mpick-chip{font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(15,23,42,.05);color:var(--muted);font-weight:500}' +
+    '.aures-mpick-ct{flex:0 0 auto;align-self:center}' +
+    '</style>';
+
+/** URL utilisable en src pour fichiers / chemins Attach (y compris URL absolue renvoyée par le serveur). */
+function _ef_resolve_machine_image_src(imagePath) {
+    var p = imagePath == null ? '' : String(imagePath).trim();
+    if (!p) {
+        return '';
     }
+    if (p.indexOf('http://') === 0 || p.indexOf('https://') === 0) {
+        return p;
+    }
+    var normalized = frappe.utils.get_file_link(p);
+    return frappe.urllib.get_full_url(normalized);
+}
+
+function _ef_machine_image_html(imagePath, alt, variant) {
+    var imgCls = variant === 'pick' ? 'aures-mpick-img' : 'aures-mcard-img';
+    var src = _ef_resolve_machine_image_src(imagePath);
+    if (src) {
+        var lazyAttr = variant === 'pick' ? '' : ' loading="lazy"';
+        return (
+            '<img class="' +
+            imgCls +
+            '" src="' +
+            _ef_esc(src) +
+            '" alt="' +
+            _ef_esc(alt || '') +
+            '"' +
+            lazyAttr +
+            ' />'
+        );
+    }
+    return (
+        '<div class="' +
+        imgCls +
+        ' aures-mcard-ph" aria-hidden="true"><span class="fa fa-cubes"></span></div>'
+    );
+}
+
+/** True si l'utilisateur peut enregistrer un nouveau choix de machine sur ce document. */
+function _ef_can_pick_machine(frm) {
+    if (frm.read_only) {
+        return false;
+    }
+    if (typeof frm.has_perm === 'function' && !frm.has_perm('write')) {
+        return false;
+    }
+    return true;
+}
+
+/** Bouton toujours visible ; désactivé si modification interdite (workflow, droits, etc.). */
+function machine_panel_btn_select_html(frm) {
+    var can = _ef_can_pick_machine(frm);
+    var cls = can ? 'btn btn-primary btn-sm' : 'btn btn-default btn-sm';
+    var extra = can ? '' : ' disabled title="' + _ef_esc(__('Modification non autorisée')) + '"';
+    var st = can ? ' style="' + AURES_BTN_PRIMARY_BLACK_STYLE + '"' : '';
+    return (
+        '<button type="button" class="' +
+        cls +
+        ' aures-btn-select-machine"' +
+        st +
+        extra +
+        '>' +
+        _ef_esc(__('Sélectionner Machine')) +
+        '</button>'
+    );
+}
+
+function bind_machine_panel_select_button(frm) {
+    var html_field = frm.fields_dict.html_machine || (frm.get_field && frm.get_field('html_machine'));
+    if (!html_field || !html_field.$wrapper) {
+        return;
+    }
+    html_field.$wrapper.off('click.auresSelectMachine').on('click.auresSelectMachine', '.aures-btn-select-machine', function (ev) {
+        ev.preventDefault();
+        if ($(this).prop('disabled')) {
+            return;
+        }
+        if (!_ef_can_pick_machine(frm)) {
+            frappe.msgprint({
+                title: __('Action impossible'),
+                message: __('Vous ne pouvez pas modifier la machine sur ce document.'),
+                indicator: 'orange',
+            });
+            return;
+        }
+        show_machine_picker_dialog(frm);
+    });
+}
+
+function show_machine_picker_dialog(frm) {
+    if (!_ef_can_pick_machine(frm)) {
+        frappe.msgprint({
+            title: __('Action impossible'),
+            message: __('Vous ne pouvez pas modifier la machine sur ce document.'),
+            indicator: 'orange',
+        });
+        return;
+    }
+    var d = new frappe.ui.Dialog({
+        title: __('Choisir une machine'),
+        size: 'large',
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'machine_list',
+                options: '<p class="text-muted">' + _ef_esc(__('Chargement…')) + '</p>',
+            },
+        ],
+    });
+    d.show();
+    frappe.call({
+        method: 'aurescrm.aures_crm.doctype.etude_faisabilite.etude_faisabilite.get_machines_for_etude_selection',
+        args: { procede: frm.doc.procede || '' },
+        callback: function (r) {
+            var list = r.message || [];
+            var w = d.fields_dict.machine_list.$wrapper;
+
+            function bind_dialog_machine_actions() {
+                w.off('click.auresDlg').on('click.auresDlg', '.aures-pick-machine-row', function () {
+                    var mn = $(this).attr('data-machine');
+                    if (!mn) {
+                        return;
+                    }
+                    if (frm.doc.machine_prevue !== mn) {
+                        frm.set_value('machine_prevue', mn);
+                    }
+                    d.hide();
+                    load_machine_panel(frm, true);
+                });
+                w.off('click.auresDlgClear').on('click.auresDlgClear', '.aures-clear-machine', function () {
+                    if (frm.doc.machine_prevue) {
+                        frm.set_value('machine_prevue', '');
+                    }
+                    d.hide();
+                    load_machine_panel(frm, true);
+                });
+            }
+
+            var footer =
+                '<div class="aures-machine-dialog-footer" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-color);text-align:center;">' +
+                '<button type="button" class="btn btn-default btn-sm aures-clear-machine">' +
+                _ef_esc(__('Aucune')) +
+                '</button>' +
+                '</div>';
+
+            if (!list.length) {
+                w.html(
+                    '<p class="text-muted">' +
+                        _ef_esc(__('Aucune machine ne correspond aux critères.')) +
+                        '</p>' +
+                        footer
+                );
+                bind_dialog_machine_actions();
+                return;
+            }
+            var current = frm.doc.machine_prevue || '';
+            var scrollHint =
+                list.length > 8
+                    ? '<p class="text-muted" style="font-size:12px;margin:0 0 8px 0;">' +
+                      _ef_esc(__('Liste longue : faites défiler pour voir toutes les machines.')) +
+                      '</p>'
+                    : '';
+            var blocks = [
+                AURES_MACHINE_CARD_CSS,
+                scrollHint,
+                '<div class="aures-machine-dialog-scroll aures-mui" style="max-height:min(55vh,520px);overflow-y:auto;overflow-x:hidden;padding:4px 8px 8px 0;scrollbar-gutter:stable;">',
+            ];
+            list.forEach(function (mc) {
+                var is_current = current && mc.name === current;
+                var statut = mc.status || '';
+                var pill_class = _ef_machine_status_pill_class(statut);
+                var title = mc.nom || mc.name;
+                var mm = [mc.marque, mc.modele].filter(Boolean).join(' ');
+                var proc = [mc.procede, mc.type_presse].filter(Boolean).join(' · ');
+                var sub1 = [mc.type_equipement, mm].filter(Boolean).join(' · ');
+                var sub2 = proc;
+                var chips = [];
+                if (mc.format_max_laize && mc.format_max_developpement) {
+                    chips.push(
+                        __('Format max') +
+                            ' ' +
+                            mc.format_max_laize +
+                            '×' +
+                            mc.format_max_developpement
+                    );
+                }
+                if (mc.vitesse_max) {
+                    chips.push(__('Vitesse') + ' ' + mc.vitesse_max + ' u/h');
+                }
+                if (mc.min_qt) {
+                    chips.push(__('Min') + ' ' + mc.min_qt);
+                }
+                if (mc.site_production) {
+                    chips.push(mc.site_production);
+                }
+                var chipsHtml = chips
+                    .map(function (c) {
+                        return '<span class="aures-mpick-chip">' + _ef_esc(c) + '</span>';
+                    })
+                    .join('');
+                var btn =
+                    '<button type="button" class="btn btn-default btn-sm" disabled>' +
+                    _ef_esc(__('Machine actuelle')) +
+                    '</button>';
+                if (!is_current) {
+                    btn =
+                        '<button type="button" class="btn btn-primary btn-sm aures-pick-machine-row" style="' +
+                        AURES_BTN_PRIMARY_BLACK_STYLE +
+                        '" data-machine="' +
+                        _ef_esc(mc.name) +
+                        '">' +
+                        _ef_esc(__('Sélectionner')) +
+                        '</button>';
+                }
+                var subHtml =
+                    '<div class="aures-mpick-sub">' +
+                    (sub1 ? _ef_esc(sub1) : '') +
+                    (sub1 && sub2 ? '<br>' : '') +
+                    (sub2 ? _ef_esc(sub2) : '') +
+                    '<span style="opacity:.75;">' +
+                    (sub1 || sub2 ? ' · ' : '') +
+                    _ef_esc(mc.name) +
+                    '</span></div>';
+                blocks.push(
+                    '<div class="aures-mpick' +
+                        (is_current ? ' aures-mpick--on' : '') +
+                        '">' +
+                        '<div class="aures-mpick-med">' +
+                        _ef_machine_image_html(mc.image_href || mc.image, title, 'pick') +
+                        '</div>' +
+                        '<div class="aures-mpick-bd">' +
+                        '<div class="aures-mpick-top">' +
+                        '<div class="aures-mpick-t">' +
+                        _ef_esc(title) +
+                        '</div>' +
+                        (statut
+                            ? '<span class="indicator-pill ' + pill_class + '">' + _ef_esc(statut) + '</span>'
+                            : '') +
+                        '</div>' +
+                        subHtml +
+                        (chipsHtml ? '<div class="aures-mpick-ch">' + chipsHtml + '</div>' : '') +
+                        '</div>' +
+                        '<div class="aures-mpick-ct">' +
+                        btn +
+                        '</div></div>'
+                );
+            });
+            blocks.push('</div>');
+            blocks.push(footer);
+            w.html(blocks.join(''));
+            bind_dialog_machine_actions();
+        },
+    });
+}
+
+/**
+ * Affiche dans html_machine les infos machine utiles à l'étude + alertes (formats, min. feuilles).
+ * Met à jour les champs masqués statut_machine_prevue et format_machine (skip_dirty : dérivés du lien machine).
+ * @param {boolean} [immediate=true] — si false, différé (saisie quantité).
+ */
+function load_machine_panel(frm, immediate) {
+    var run = function () {
+        var html_field = frm.fields_dict.html_machine || (frm.get_field && frm.get_field('html_machine'));
+        if (!html_field || !html_field.$wrapper) {
+            return;
+        }
+
+        if (!frm.doc.machine_prevue) {
+            frm.set_value('statut_machine_prevue', '', undefined, true);
+            frm.set_value('format_machine', '', undefined, true);
+            var btn0 = machine_panel_btn_select_html(frm);
+            html_field.$wrapper.html(
+                '<div style="padding:8px 0;">' +
+                    '<p class="text-muted small" style="margin-bottom:10px;">' +
+                    _ef_esc(__('Sélectionnez une machine pour afficher le détail et les contrôles.')) +
+                    '</p>' +
+                    '<div>' +
+                    btn0 +
+                    '</div>' +
+                    '</div>'
+            );
+            bind_machine_panel_select_button(frm);
+            return;
+        }
+
+        var machine_fields = [
+            'nom',
+            'image',
+            'type_equipement',
+            'marque',
+            'modele',
+            'status',
+            'procede',
+            'type_presse',
+            'min_qt',
+            'format_max_laize',
+            'format_max_developpement',
+            'format_min_laize',
+            'format_min_developpement',
+            'vitesse_max',
+            'temps_calage',
+            'nb_couleurs_recto',
+            'nb_couleurs_verso',
+            'gache_calage',
+            'site_production',
+            'retiration'
+        ];
+
+        frappe.call({
+            method: 'frappe.client.get_value',
+            args: {
+                doctype: 'Machine',
+                filters: { name: frm.doc.machine_prevue },
+                fieldname: machine_fields
+            },
+            callback: function (r) {
+                if (!r.message) {
+                    var btnErr = machine_panel_btn_select_html(frm);
+                    html_field.$wrapper.html(
+                        '<div class="text-danger small">' +
+                            _ef_esc(__('Machine introuvable.')) +
+                            '</div>' +
+                            '<div style="margin-top:10px;">' +
+                            btnErr +
+                            '</div>'
+                    );
+                    bind_machine_panel_select_button(frm);
+                    return;
+                }
+                var m = r.message;
+
+                frm.set_value('statut_machine_prevue', m.status || '', undefined, true);
+                var fmt_machine = '';
+                if (m.format_max_laize && m.format_max_developpement) {
+                    fmt_machine = String(m.format_max_laize) + 'x' + String(m.format_max_developpement);
+                }
+                frm.set_value('format_machine', fmt_machine, undefined, true);
+
+                var finish = function (imp) {
+                    var alerts = [];
+
+                    if (imp && m) {
+                        if (
+                            imp.format_laize &&
+                            m.format_max_laize &&
+                            parseFloat(imp.format_laize) > parseFloat(m.format_max_laize)
+                        ) {
+                            alerts.push(
+                                __(
+                                    "La laize de l'imposition ({0} mm) dépasse le format max machine ({1} mm).",
+                                    [imp.format_laize, m.format_max_laize]
+                                )
+                            );
+                        }
+                        if (
+                            imp.format_developpement &&
+                            m.format_max_developpement &&
+                            parseFloat(imp.format_developpement) > parseFloat(m.format_max_developpement)
+                        ) {
+                            alerts.push(
+                                __(
+                                    "Le développement de l'imposition ({0} mm) dépasse le format max machine ({1} mm).",
+                                    [imp.format_developpement, m.format_max_developpement]
+                                )
+                            );
+                        }
+                        var min_qt = m.min_qt != null ? parseFloat(m.min_qt) : 0;
+                        var nbr_poses = imp.nbr_poses != null ? parseFloat(imp.nbr_poses) : 0;
+                        var q = frm.doc.quantite != null ? parseFloat(frm.doc.quantite) : 0;
+                        if (min_qt > 0 && nbr_poses > 0 && q > 0) {
+                            var nbr_feuilles_calc = Math.ceil(q / nbr_poses);
+                            if (nbr_feuilles_calc > 0 && nbr_feuilles_calc < min_qt) {
+                                alerts.push(
+                                    __(
+                                        'Nombre de feuilles ({0}) sous le minimum machine ({1} feuilles).',
+                                        [nbr_feuilles_calc, min_qt]
+                                    )
+                                );
+                            }
+                        }
+                    }
+
+                    var statut = m.status || '';
+                    var pill_class = _ef_machine_status_pill_class(statut);
+
+                    var specs = [];
+                    function addSpec(label, val) {
+                        if (val === null || val === undefined || val === '') {
+                            return;
+                        }
+                        specs.push({
+                            k: label,
+                            v: val,
+                        });
+                    }
+
+                    addSpec(__("Type d'équipement"), m.type_equipement);
+                    addSpec(__('Marque'), m.marque);
+                    addSpec(__('Modèle'), m.modele);
+                    addSpec(__('Site de production'), m.site_production);
+
+                    if (m.format_max_laize && m.format_max_developpement) {
+                        addSpec(
+                            __('Format max (laize × développement)'),
+                            m.format_max_laize + ' × ' + m.format_max_developpement + ' mm'
+                        );
+                    }
+                    if (m.format_min_laize && m.format_min_developpement) {
+                        addSpec(
+                            __('Format min (laize × développement)'),
+                            m.format_min_laize + ' × ' + m.format_min_developpement + ' mm'
+                        );
+                    }
+
+                    if (m.type_equipement === 'Presse Offset') {
+                        addSpec(__('Procédé'), m.procede);
+                        addSpec(__('Type de presse'), m.type_presse);
+                        addSpec(__('Couleurs recto'), m.nb_couleurs_recto);
+                        addSpec(__('Couleurs verso'), m.nb_couleurs_verso);
+                        addSpec(__('Gâche calage (feuilles)'), m.gache_calage);
+                        if (m.retiration) {
+                            addSpec(__('Rétiration'), __('Oui'));
+                        }
+                    }
+
+                    addSpec(__('Vitesse max (u/h)'), m.vitesse_max);
+                    addSpec(__('Temps de calage (min)'), m.temps_calage);
+                    if (m.min_qt) {
+                        addSpec(__('Quantité minimale (feuilles)'), m.min_qt);
+                    }
+
+                    if (frm.doc.nbr_feuilles != null && frm.doc.nbr_feuilles !== '') {
+                        addSpec(__('Nombre de feuilles (étude)'), frm.doc.nbr_feuilles);
+                    }
+                    if (imp && imp.nbr_poses != null && imp.nbr_poses !== '') {
+                        addSpec(__('Poses par feuille (imposition)'), imp.nbr_poses);
+                    }
+
+                    var specsHtml = specs
+                        .map(function (s) {
+                            return (
+                                '<div class="aures-mcard-spec">' +
+                                '<span class="aures-mcard-spec-k">' +
+                                _ef_esc(s.k) +
+                                '</span>' +
+                                '<span class="aures-mcard-spec-v">' +
+                                _ef_esc(s.v) +
+                                '</span>' +
+                                '</div>'
+                            );
+                        })
+                        .join('');
+
+                    var alert_block = '';
+                    if (alerts.length) {
+                        alert_block = '<div class="aures-mcard-al"><ul>';
+                        alerts.forEach(function (t) {
+                            alert_block += '<li>' + _ef_esc(t) + '</li>';
+                        });
+                        alert_block += '</ul></div>';
+                    }
+
+                    var route = frappe.utils.get_form_link('Machine', frm.doc.machine_prevue);
+                    var btnHdr = machine_panel_btn_select_html(frm);
+                    var title = m.nom || frm.doc.machine_prevue;
+                    var subParts = [m.type_equipement, [m.marque, m.modele].filter(Boolean).join(' ')].filter(
+                        Boolean
+                    );
+                    var sub = subParts.join(' · ');
+                    var docName = String(frm.doc.machine_prevue || '').trim();
+                    var titleTrim = String(title || '').trim();
+                    var idLine =
+                        '<div class="aures-mcard-id">' +
+                        '<a href="' +
+                        _ef_esc(route) +
+                        '">' +
+                        _ef_esc(docName === titleTrim ? __('Voir la fiche') : frm.doc.machine_prevue) +
+                        '</a></div>';
+                    var html =
+                        AURES_MACHINE_CARD_CSS +
+                        '<div class="aures-mui aures-mcard">' +
+                        '<header class="aures-mcard-h">' +
+                        '<div class="aures-mcard-h-main">' +
+                        '<div class="aures-mcard-title-row">' +
+                        '<h3 class="aures-mcard-title">' +
+                        _ef_esc(title) +
+                        '</h3>' +
+                        '<span class="indicator-pill ' +
+                        pill_class +
+                        '">' +
+                        _ef_esc(statut || '—') +
+                        '</span></div>' +
+                        (sub
+                            ? '<div class="aures-mcard-sub">' + _ef_esc(sub) + '</div>'
+                            : '') +
+                        idLine +
+                        alert_block +
+                        '</div>' +
+                        '<div class="aures-mcard-cta">' +
+                        btnHdr +
+                        '</div></header>' +
+                        '<div class="aures-mcard-b">' +
+                        '<div class="aures-mcard-media">' +
+                        _ef_machine_image_html(m.image, title, 'detail') +
+                        '</div>' +
+                        '<div class="aures-mcard-main">' +
+                        '<div class="aures-mcard-specg">' +
+                        specsHtml +
+                        '</div></div></div></div>';
+
+                    html_field.$wrapper.html(html);
+                    bind_machine_panel_select_button(frm);
+                };
+
+                if (frm.doc.imposition) {
+                    frappe.call({
+                        method: 'frappe.client.get_value',
+                        args: {
+                            doctype: 'Imposition',
+                            filters: { name: frm.doc.imposition },
+                            fieldname: ['format_laize', 'format_developpement', 'nbr_poses']
+                        },
+                        callback: function (r2) {
+                            finish(r2.message || null);
+                        }
+                    });
+                } else {
+                    finish(null);
+                }
+            }
+        });
+    };
+
+    if (immediate === false) {
+        if (frm._aures_machine_panel_timer) {
+            clearTimeout(frm._aures_machine_panel_timer);
+        }
+        frm._aures_machine_panel_timer = setTimeout(run, 450);
+        return;
+    }
+    run();
 }
 
 /**

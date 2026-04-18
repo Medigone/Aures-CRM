@@ -5,7 +5,7 @@ import math
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt
+from frappe.utils import flt, get_url
 
 
 def compute_nbr_feuilles(quantite, nbr_poses):
@@ -20,10 +20,10 @@ class EtudeFaisabilite(Document):
 		if self.article and not self.trace:
 			self.auto_link_existing_trace()
 		self.set_format_machine()
+		self.set_statut_machine_prevue()
 
 	def validate(self):
 		self.set_nbr_feuilles()
-		self.validate_imposition_machine_compatibility()
 
 	def set_nbr_feuilles(self):
 		if not self.imposition:
@@ -52,44 +52,11 @@ class EtudeFaisabilite(Document):
 		else:
 			self.format_machine = ""
 
-	def validate_imposition_machine_compatibility(self):
-		if not self.machine_prevue or not self.imposition:
-			return
-
-		machine = frappe.db.get_value(
-			"Machine",
-			self.machine_prevue,
-			["format_max_laize", "format_max_developpement"],
-			as_dict=True,
-		)
-		imposition = frappe.db.get_value(
-			"Imposition",
-			self.imposition,
-			["format_laize", "format_developpement"],
-			as_dict=True,
-		)
-		if not machine or not imposition:
-			return
-
-		if imposition.format_laize and machine.format_max_laize:
-			if flt(imposition.format_laize) > flt(machine.format_max_laize):
-				frappe.msgprint(
-					_("La laize de l'imposition ({0} mm) dépasse le format max de la machine ({1} mm)").format(
-						imposition.format_laize, machine.format_max_laize
-					),
-					indicator="orange",
-					title=_("Attention"),
-				)
-
-		if imposition.format_developpement and machine.format_max_developpement:
-			if flt(imposition.format_developpement) > flt(machine.format_max_developpement):
-				frappe.msgprint(
-					_("Le développement de l'imposition ({0} mm) dépasse le format max de la machine ({1} mm)").format(
-						imposition.format_developpement, machine.format_max_developpement
-					),
-					indicator="orange",
-					title=_("Attention"),
-				)
+	def set_statut_machine_prevue(self):
+		if self.machine_prevue:
+			self.statut_machine_prevue = frappe.db.get_value("Machine", self.machine_prevue, "status") or ""
+		else:
+			self.statut_machine_prevue = ""
 
 
 @frappe.whitelist()
@@ -126,6 +93,40 @@ def get_existing_trace_for_article(article):
 		return None
 	existing_trace = frappe.db.exists("Trace", {"article": article})
 	return existing_trace
+
+
+@frappe.whitelist()
+def get_machines_for_etude_selection(procede=None):
+	"""Machines éligibles pour l'étude (statut ≠ Désactivé, Presse Offset, procédé optionnel)."""
+	frappe.has_permission(doctype="Machine", ptype="read", throw=True)
+	filters = [
+		["status", "!=", "Désactivé"],
+		["type_equipement", "=", "Presse Offset"],
+	]
+	if procede:
+		filters.append(["procede", "=", procede])
+	fields = [
+		"name",
+		"nom",
+		"image",
+		"type_equipement",
+		"marque",
+		"modele",
+		"status",
+		"procede",
+		"type_presse",
+		"format_max_laize",
+		"format_max_developpement",
+		"min_qt",
+		"vitesse_max",
+		"site_production",
+	]
+	rows = frappe.get_all("Machine", filters=filters, fields=fields, order_by="nom asc")
+	# URL absolue pour <img> dans le dialogue (évite résolution relative / lazy edge cases).
+	for row in rows:
+		if row.get("image"):
+			row["image_href"] = get_url(row["image"])
+	return rows
 
 
 @frappe.whitelist()

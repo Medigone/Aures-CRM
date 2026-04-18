@@ -20,6 +20,7 @@
   "presse_offset_section",
   "procede",
   "type_presse",
+  "min_qt",
   "column_break_offset1",
   "nb_couleurs_recto",
   "nb_couleurs_verso",
@@ -60,7 +61,6 @@
   {
    "fieldname": "type_equipement",
    "fieldtype": "Select",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type d'\u00e9quipement",
    "options": "Presse Offset\nPlieuse\nColleuse\nMassicot\nMachine D\u00e9coupe\nAutre",
@@ -69,7 +69,6 @@
   {
    "fieldname": "marque",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Marque"
   },
   {
@@ -79,6 +78,7 @@
   {
    "fieldname": "modele",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Mod\u00e8le"
   },
   {
@@ -268,12 +268,17 @@
   {
    "fieldname": "section_break_yqyb",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "min_qt",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 Minimale (Feuilles)"
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-15 08:37:18.164087",
+ "modified": "2026-04-15 14:07:50.379527",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Machine",
@@ -326,7 +331,7 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "type_equipement,marque,modele,status,procede",
+ "search_fields": "marque,modele,status",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",

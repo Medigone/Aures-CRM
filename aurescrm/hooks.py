@@ -174,6 +174,7 @@ doc_events = {
     "Item": {
         "autoname": "aurescrm.utils.custom_item_naming",
         "before_validate": "aurescrm.utils.ensure_item_code_for_sous_article",
+        "validate": "aurescrm.item_cotations.validate_item_cotations_article",
         "before_save": [
             "aurescrm.utils.format_item_fields",
             "aurescrm.utils.update_item_description"
