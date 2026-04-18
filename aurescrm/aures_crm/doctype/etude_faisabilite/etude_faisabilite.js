@@ -929,6 +929,7 @@ function load_trace_imposition_links(frm) {
                              Ouvrir Fichier
                         </button>
                     </div>
+                    <div class="ef-trace-cotations-warning-slot" style="margin-top: 8px;"></div>
                  </div>`;
     } else {
         // Vérifier si un tracé existe déjà pour cet article
@@ -990,6 +991,28 @@ function load_trace_imposition_links(frm) {
     html += `</div>`; // End ef-container
     html += `</div>`; // End outer div
     html_field.$wrapper.html(html); // Inject HTML
+
+    if (frm.doc.trace && frm.doc.article) {
+        frappe.call({
+            method: "aurescrm.item_cotations.trace_cotations_differ_from_item",
+            args: { trace_name: frm.doc.trace, article: frm.doc.article },
+            callback: function (rw) {
+                const slot = html_field.$wrapper.find(".ef-trace-cotations-warning-slot");
+                if (!slot.length) {
+                    return;
+                }
+                if (rw.message && rw.message.show_warning) {
+                    slot.html(
+                        `<div style="color: #c0392b; font-size: 12px; line-height: 1.35;">${__(
+                            "Les cotations de l'article ont été modifiées sur la fiche Article et ne correspondent plus aux dimensions enregistrées sur ce tracé."
+                        )}</div>`
+                    );
+                } else {
+                    slot.empty();
+                }
+            },
+        });
+    }
 
     // --- Define Global Action Functions ---
 
@@ -1066,59 +1089,93 @@ function load_trace_imposition_links(frm) {
                         var trace_id = r.message.name;
                         frm.set_value("trace", trace_id); // Link the new Trace
 
-                        var d = new frappe.ui.Dialog({
-                            title: __('Compléter les informations de la Trace'),
-                            fields: [
-                                { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${trace_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${trace_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, description: __('Entrez les dimensions du tracé') },
-                                { label: __('Points colle'), fieldname: 'points_colle', fieldtype: 'Int', description: __('Nombre de points de colle') },
-                                { label: __('Fichier Tracé'), fieldname: 'fichier_trace', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier du tracé') }
-                            ],
-                            primary_action_label: __('Enregistrer et Fermer'),
-                            primary_action: function() {
-                                var values = d.get_values();
-                                if (!values.dimensions || !values.fichier_trace) {
-                                     frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
-                                     return; // Prevent closing dialog
+                        frappe.call({
+                            method: "frappe.client.get_value",
+                            args: {
+                                doctype: "Item",
+                                filters: { name: frm.doc.article },
+                                fieldname: "custom_cotations_article"
+                            },
+                            callback: function(rv) {
+                                var defaultDims = "";
+                                if (rv.message && rv.message.custom_cotations_article) {
+                                    defaultDims = rv.message.custom_cotations_article;
                                 }
-                                // Update the newly created Trace document
-                                frappe.call({
-                                    method: "frappe.client.set_value",
-                                    args: { doctype: "Trace", name: trace_id, fieldname: { dimensions: values.dimensions, points_colle: values.points_colle, fichier_trace: values.fichier_trace } },
-                                    freeze: true, freeze_message: __("Mise à jour de la Trace..."),
-                                    callback: function(r_update) {
-                                        if (r_update.message) {
-                                            // Synchroniser les points de colle vers l'Etude Faisabilite
-                                            frappe.call({
-                                                method: "aurescrm.aures_crm.doctype.trace.trace.sync_points_colle_to_etude",
-                                                args: {
-                                                    trace_name: trace_id,
-                                                    etude_faisabilite_name: frm.doc.name
-                                                },
-                                                callback: function(r_sync) {
-                                                    if (r_sync.message && r_sync.message.success) {
-                                                        // Mettre à jour le champ local points_colle
-                                                        frm.set_value('points_colle', r_sync.message.points_colle);
-                                                    }
-                                                    frappe.show_alert({message:__('Trace créée et mise à jour avec succès.'), indicator:'green'}, 5);
-                                                    d.hide();
-                                                    // Save the Etude Faisabilite to persist the link and points_colle, then refresh UI
-                                                    frm.save()
-                                                        .then(() => {
-                                                            load_trace_imposition_links(frm);
-                                                            refresh_attached_files(frm);
-                                                        })
-                                                        .catch((err) => { console.error("Save failed after linking existing Trace:", err); });
-                                                }
-                                            });
-                                        } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Trace."), indicator: 'red' }); }
-                                    },
-                                    error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de la Trace.") + "<br>" + err_update.message, indicator: 'red' });}
+
+                                var d = new frappe.ui.Dialog({
+                                    title: __('Compléter les informations de la Trace'),
+                                    fields: [
+                                        { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${trace_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${trace_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
+                                        { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, default: defaultDims, description: __('Entrez les dimensions du tracé') },
+                                        { label: __('Points colle'), fieldname: 'points_colle', fieldtype: 'Int', description: __('Nombre de points de colle') },
+                                        { label: __('Fichier Tracé'), fieldname: 'fichier_trace', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier du tracé') }
+                                    ],
+                                    primary_action_label: __('Enregistrer et Fermer'),
+                                    primary_action: function() {
+                                        var values = d.get_values();
+                                        if (!values.dimensions || !values.fichier_trace) {
+                                             frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
+                                             return; // Prevent closing dialog
+                                        }
+                                        // Update the newly created Trace document
+                                        frappe.call({
+                                            method: "frappe.client.set_value",
+                                            args: { doctype: "Trace", name: trace_id, fieldname: { dimensions: values.dimensions, points_colle: values.points_colle, fichier_trace: values.fichier_trace } },
+                                            freeze: true, freeze_message: __("Mise à jour de la Trace..."),
+                                            callback: function(r_update) {
+                                                if (r_update.message) {
+                                                    frappe.call({
+                                                        method: "aurescrm.item_cotations.sync_item_cotations_from_trace",
+                                                        args: {
+                                                            article: frm.doc.article,
+                                                            dimensions: values.dimensions
+                                                        },
+                                                        callback: function(r_item) {
+                                                            if (r_item.exc) {
+                                                                frappe.msgprint({ title: __('Cotations article'), message: __("Impossible de synchroniser les dimensions vers l'article. Vérifiez le format (ex. 156x280 ou 80x35x118)."), indicator: 'red' });
+                                                                return;
+                                                            }
+                                                            // Synchroniser les points de colle vers l'Etude Faisabilite
+                                                            frappe.call({
+                                                                method: "aurescrm.aures_crm.doctype.trace.trace.sync_points_colle_to_etude",
+                                                                args: {
+                                                                    trace_name: trace_id,
+                                                                    etude_faisabilite_name: frm.doc.name
+                                                                },
+                                                                callback: function(r_sync) {
+                                                                    if (r_sync.message && r_sync.message.success) {
+                                                                        // Mettre à jour le champ local points_colle
+                                                                        frm.set_value('points_colle', r_sync.message.points_colle);
+                                                                    }
+                                                                    frappe.show_alert({message:__('Trace créée et mise à jour avec succès.'), indicator:'green'}, 5);
+                                                                    d.hide();
+                                                                    // Save the Etude Faisabilite to persist the link and points_colle, then refresh UI
+                                                                    frm.save()
+                                                                        .then(() => {
+                                                                            load_trace_imposition_links(frm);
+                                                                            refresh_attached_files(frm);
+                                                                        })
+                                                                        .catch((err) => { console.error("Save failed after linking existing Trace:", err); });
+                                                                }
+                                                            });
+                                                        },
+                                                        error: function() {
+                                                            frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur lors de la synchronisation des cotations vers l'article."), indicator: 'red' });
+                                                        }
+                                                    });
+                                                } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Trace."), indicator: 'red' }); }
+                                            },
+                                            error: function(err_update) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la mise à jour de la Trace.") + "<br>" + err_update.message, indicator: 'red' });}
+                                        });
+                                    }
                                 });
+                                style_dialog_primary_button(d); // Apply default styling (no-op now)
+                                d.show();
+                            },
+                            error: function() {
+                                frappe.msgprint({ title: __('Erreur'), message: __("Impossible de charger les cotations de l'article."), indicator: 'red' });
                             }
                         });
-                        style_dialog_primary_button(d); // Apply default styling (no-op now)
-                        d.show();
                     } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la création de la Trace.") + (r.exc ? "<br>" + r.exc : ""), indicator: 'red' }); }
                 },
                 error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création de la Trace.") + "<br>" + err.message, indicator: 'red' }); }
@@ -1140,18 +1197,71 @@ function load_trace_imposition_links(frm) {
                 callback: function(r) {
                     if (r.message) {
                         let current_values = r.message;
-                        // 2. Show update dialog
-                        var d = new frappe.ui.Dialog({
-                            title: __('Mettre à jour le document Trace'),
-                            fields: [
-                                { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${trace_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${trace_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, default: current_values.dimensions || "", description: __('Entrez les nouvelles dimensions') },
-                                { label: __('Points colle'), fieldname: 'points_colle', fieldtype: 'Int', default: current_values.points_colle || 0, description: __('Nombre de points de colle') },
-                                { label: __('Fichier Tracé'), fieldname: 'fichier_trace', fieldtype: 'Attach', reqd: 1, default: current_values.fichier_trace || "", description: __('Joignez le nouveau fichier') },
-                                { fieldtype: 'HTML', fieldname: 'current_file_info', options: current_values.fichier_trace ? `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: var(--text-muted);">Fichier actuel: <a href="${current_values.fichier_trace}" target="_blank">${current_values.fichier_trace.split('/').pop()}</a></div>` : `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: #888;">Aucun fichier actuel.</div>`}
-                            ],
-                            primary_action_label: __('Mettre à jour'),
-                            primary_action: function() {
+                        frappe.call({
+                            method: "aurescrm.item_cotations.trace_cotations_differ_from_item",
+                            args: { trace_name: trace_id, article: frm.doc.article },
+                            callback: function (rw) {
+                                const showWarn = rw.message && rw.message.show_warning;
+                                const mismatchHtml =
+                                    '<p style="color:#c0392b;font-size:12px;line-height:1.35;margin-bottom:10px;margin-top:-4px;">' +
+                                    __(
+                                        "Les cotations de l'article ont été modifiées sur la fiche Article et ne correspondent plus aux dimensions enregistrées sur ce tracé. Vérifiez le champ Dimensions avant d'enregistrer."
+                                    ) +
+                                    "</p>";
+                                var fields = [
+                                    {
+                                        fieldtype: "HTML",
+                                        fieldname: "id_section",
+                                        options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${trace_id}</div><button class="btn btn-xs btn-default" title="${__(
+                                            "Copier ID"
+                                        )}" onclick="navigator.clipboard.writeText('${trace_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`,
+                                    },
+                                    {
+                                        label: __("Dimensions"),
+                                        fieldname: "dimensions",
+                                        fieldtype: "Data",
+                                        reqd: 1,
+                                        default: current_values.dimensions || "",
+                                        description: __("Entrez les nouvelles dimensions"),
+                                    },
+                                ];
+                                if (showWarn) {
+                                    fields.push({
+                                        fieldtype: "HTML",
+                                        fieldname: "cotations_mismatch_notice",
+                                        options: mismatchHtml,
+                                    });
+                                }
+                                fields.push(
+                                    {
+                                        label: __("Points colle"),
+                                        fieldname: "points_colle",
+                                        fieldtype: "Int",
+                                        default: current_values.points_colle || 0,
+                                        description: __("Nombre de points de colle"),
+                                    },
+                                    {
+                                        label: __("Fichier Tracé"),
+                                        fieldname: "fichier_trace",
+                                        fieldtype: "Attach",
+                                        reqd: 1,
+                                        default: current_values.fichier_trace || "",
+                                        description: __("Joignez le nouveau fichier"),
+                                    },
+                                    {
+                                        fieldtype: "HTML",
+                                        fieldname: "current_file_info",
+                                        options: current_values.fichier_trace
+                                            ? `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: var(--text-muted);">Fichier actuel: <a href="${current_values.fichier_trace}" target="_blank">${current_values.fichier_trace.split("/").pop()}</a></div>`
+                                            : `<div style="margin-top: -10px; margin-bottom: 10px; font-size: 11px; color: #888;">Aucun fichier actuel.</div>`,
+                                    }
+                                );
+                                // 2. Show update dialog
+                                var d = new frappe.ui.Dialog({
+                                    title: __("Mettre à jour le document Trace"),
+                                    fields: fields,
+                                    primary_action_label: __("Mettre à jour"),
+                                    primary_action: function() {
                                 var values = d.get_values();
                                 if (!values.dimensions || !values.fichier_trace) {
                                      frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
@@ -1164,27 +1274,43 @@ function load_trace_imposition_links(frm) {
                                     freeze: true, freeze_message: __("Mise à jour du Tracé..."),
                                     callback: function(r_update) {
                                         if (r_update.message) {
-                                            // Synchroniser les points de colle vers l'Etude Faisabilite
                                             frappe.call({
-                                                method: "aurescrm.aures_crm.doctype.trace.trace.sync_points_colle_to_etude",
+                                                method: "aurescrm.item_cotations.sync_item_cotations_from_trace",
                                                 args: {
-                                                    trace_name: trace_id,
-                                                    etude_faisabilite_name: frm.doc.name
+                                                    article: frm.doc.article,
+                                                    dimensions: values.dimensions
                                                 },
-                                                callback: function(r_sync) {
-                                                    if (r_sync.message && r_sync.message.success) {
-                                                        // Mettre à jour le champ local points_colle
-                                                        frm.set_value('points_colle', r_sync.message.points_colle);
+                                                callback: function(r_item) {
+                                                    if (r_item.exc) {
+                                                        frappe.msgprint({ title: __('Cotations article'), message: __("Impossible de synchroniser les dimensions vers l'article. Vérifiez le format (ex. 156x280 ou 80x35x118)."), indicator: 'red' });
+                                                        return;
                                                     }
-                                                    frappe.show_alert({message:__('Trace mise à jour avec succès.'), indicator:'green'}, 5);
-                                                    d.hide();
-                                                    // Sauvegarder l'Etude Faisabilite pour persister les points_colle, puis rafraîchir
-                                                    frm.save()
-                                                        .then(() => {
-                                                            load_trace_imposition_links(frm); // Refresh HTML links/buttons
-                                                            refresh_attached_files(frm);    // Refresh local file field
-                                                        })
-                                                        .catch((err) => { console.error("Save failed after Trace update:", err); });
+                                                    // Synchroniser les points de colle vers l'Etude Faisabilite
+                                                    frappe.call({
+                                                        method: "aurescrm.aures_crm.doctype.trace.trace.sync_points_colle_to_etude",
+                                                        args: {
+                                                            trace_name: trace_id,
+                                                            etude_faisabilite_name: frm.doc.name
+                                                        },
+                                                        callback: function(r_sync) {
+                                                            if (r_sync.message && r_sync.message.success) {
+                                                                // Mettre à jour le champ local points_colle
+                                                                frm.set_value('points_colle', r_sync.message.points_colle);
+                                                            }
+                                                            frappe.show_alert({message:__('Trace mise à jour avec succès.'), indicator:'green'}, 5);
+                                                            d.hide();
+                                                            // Sauvegarder l'Etude Faisabilite pour persister les points_colle, puis rafraîchir
+                                                            frm.save()
+                                                                .then(() => {
+                                                                    load_trace_imposition_links(frm); // Refresh HTML links/buttons
+                                                                    refresh_attached_files(frm);    // Refresh local file field
+                                                                })
+                                                                .catch((err) => { console.error("Save failed after Trace update:", err); });
+                                                        }
+                                                    });
+                                                },
+                                                error: function() {
+                                                    frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur lors de la synchronisation des cotations vers l'article."), indicator: 'red' });
                                                 }
                                             });
                                         } else { frappe.msgprint({ title: __('Erreur'), message: __("Erreur lors de la mise à jour de la Trace."), indicator: 'red' }); }
@@ -1193,8 +1319,17 @@ function load_trace_imposition_links(frm) {
                                 });
                             }
                         });
-                        style_dialog_primary_button(d);
-                        d.show();
+                                style_dialog_primary_button(d);
+                                d.show();
+                            },
+                            error: function () {
+                                frappe.msgprint({
+                                    title: __("Erreur Serveur"),
+                                    message: __("Impossible de vérifier l'écart cotations article / tracé."),
+                                    indicator: "red",
+                                });
+                            },
+                        });
                     } else { frappe.msgprint({ title: __('Erreur'), message: __("Impossible de récupérer les infos de la Trace:") + trace_id, indicator: 'red' }); }
                 },
                 error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la récupération des infos Trace.") + "<br>" + err.message, indicator: 'red' }); }
