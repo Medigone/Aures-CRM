@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 """
-Normalise Item.custom_cotations_article (formats 156x280 ou 80x35x118).
+Normalise Item.custom_cotations_article (2 ou 3 cotes, x/×, décimales . ou ,).
 
 - « Sans » (toute casse) → vide
 - Vide → construit depuis custom_largeur / custom_hauteur / custom_longueur si possible

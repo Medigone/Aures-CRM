@@ -1614,7 +1614,7 @@
    "creation": "2025-05-17 21:39:22.488676",
    "default": null,
    "depends_on": null,
-   "description": null,
+   "description": "Deux cotes (ex. 56×280, 56,3×280) ou trois (ex. 80×35×118). Séparateur entre cotes : x ou ×. Décimales avec virgule ou point. Sans unité mm.",
    "docstatus": 0,
    "dt": "Item",
    "fetch_from": null,

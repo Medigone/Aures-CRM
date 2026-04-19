@@ -1,7 +1,7 @@
 # Copyright (c) 2025, Medigo and contributors
 # For license information, please see license.txt
 
-"""Cotations article (Item.custom_cotations_article) : formats 156x280 ou 80x35x118, x minuscule, sans mm."""
+"""Cotations article (Item.custom_cotations_article) : 2 ou 3 cotes, séparateur x ou ×, décimales . ou ,, sans mm."""
 
 import re
 
@@ -9,7 +9,14 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-_COTATIONS_FULL = re.compile(r"^(\d+x\d+x\d+|\d+x\d+)$")
+# Segments : entiers ou décimales (56, 56.3, 56,3). Séparateur entre cotes : x (après normalisation du ×).
+_NUM = r"\d+(?:[.,]\d+)?"
+_COTATIONS_FULL = re.compile(rf"^({_NUM})x({_NUM})x({_NUM})$|^({_NUM})x({_NUM})$")
+
+
+def _canonicalize_cotations_segments(s):
+	"""Après validation : virgule décimale → point pour stockage homogène."""
+	return "x".join(part.replace(",", ".") for part in s.split("x"))
 
 
 def normalize_cotations_article(value):
@@ -23,9 +30,9 @@ def normalize_cotations_article(value):
 		return None
 	s = re.sub(r"\s*mm\s*$", "", s, flags=re.I).strip()
 	s = re.sub(r"\s+", "", s)
-	s = s.replace("X", "x")
+	s = s.replace("×", "x").replace("X", "x")
 	if _COTATIONS_FULL.match(s):
-		return s
+		return _canonicalize_cotations_segments(s)
 	return None
 
 
@@ -50,7 +57,10 @@ def validate_cotations_article_format(value):
 		return
 	if not _COTATIONS_FULL.match(s):
 		frappe.throw(
-			_("Les cotations article doivent être au format « 156x280 » ou « 80x35x118 » (x minuscule, sans mm).")
+			_(
+				"Les cotations article doivent comporter 2 ou 3 cotes (ex. « 56x280 », « 56,3×280 », « 80x35x118 »). "
+				"Séparateur : x ou ×. Décimales avec . ou ,. Sans mm."
+			)
 		)
 
 
@@ -59,7 +69,10 @@ def _apply_non_empty_user_cotations(doc, raw):
 	norm = normalize_cotations_article(raw)
 	if norm is None:
 		frappe.throw(
-			_("Les cotations article doivent être au format « 156x280 » ou « 80x35x118 » (x minuscule, sans mm).")
+			_(
+				"Les cotations article doivent comporter 2 ou 3 cotes (ex. « 56x280 », « 56,3×280 », « 80x35x118 »). "
+				"Séparateur : x ou ×. Décimales avec . ou ,. Sans mm."
+			)
 		)
 	doc.custom_cotations_article = norm
 	validate_cotations_article_format(doc.custom_cotations_article)
@@ -111,7 +124,11 @@ def _normalized_for_trace_item_compare(value):
 		return n
 	s = re.sub(r"\s*mm\s*$", "", s, flags=re.I).strip()
 	s = re.sub(r"\s+", "", s)
-	return s.replace("X", "x").lower()
+	s = s.replace("×", "x").replace("X", "x")
+	n = normalize_cotations_article(s)
+	if n:
+		return n
+	return s.lower()
 
 
 @frappe.whitelist()

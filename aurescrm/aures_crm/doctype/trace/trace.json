@@ -42,6 +42,7 @@
    "search_index": 1
   },
   {
+   "description": "Même convention que les cotations article : 2 cotes (56×280, 56,3×280) ou 3 (80×35×118) ; x ou × ; décimales . ou , ; sans mm.",
    "fieldname": "dimensions",
    "fieldtype": "Data",
    "in_list_view": 1,

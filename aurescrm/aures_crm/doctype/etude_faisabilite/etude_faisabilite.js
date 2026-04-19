@@ -1106,7 +1106,7 @@ function load_trace_imposition_links(frm) {
                                     title: __('Compléter les informations de la Trace'),
                                     fields: [
                                         { fieldtype: 'HTML', fieldname: 'id_section', options: `<div style="display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;"><div style="margin-right: 10px; font-weight: bold;">ID:</div><div style="flex-grow: 1; font-family: monospace; padding: 5px; background-color: #fff; border: 1px solid #d1d8dd; border-radius: 3px;">${trace_id}</div><button class="btn btn-xs btn-default" title="${__('Copier ID')}" onclick="navigator.clipboard.writeText('${trace_id}'); frappe.show_alert({message: __('ID copié'), indicator: 'green'}, 2); return false;" style="margin-left: 10px;"><i class="fa fa-copy"></i></button></div>`},
-                                        { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, default: defaultDims, description: __('Entrez les dimensions du tracé') },
+                                        { label: __('Dimensions'), fieldname: 'dimensions', fieldtype: 'Data', reqd: 1, default: defaultDims, description: __('Même format que les cotations article : 56×280 ou 56,3×280 ; 80×35×118 ; séparateur x ou × ; décimales . ou , ; sans mm.') },
                                         { label: __('Points colle'), fieldname: 'points_colle', fieldtype: 'Int', description: __('Nombre de points de colle') },
                                         { label: __('Fichier Tracé'), fieldname: 'fichier_trace', fieldtype: 'Attach', reqd: 1, description: __('Joignez le fichier du tracé') }
                                     ],
@@ -1132,7 +1132,7 @@ function load_trace_imposition_links(frm) {
                                                         },
                                                         callback: function(r_item) {
                                                             if (r_item.exc) {
-                                                                frappe.msgprint({ title: __('Cotations article'), message: __("Impossible de synchroniser les dimensions vers l'article. Vérifiez le format (ex. 156x280 ou 80x35x118)."), indicator: 'red' });
+                                                                frappe.msgprint({ title: __('Cotations article'), message: __("Impossible de synchroniser les dimensions vers l'article. Vérifiez le format (ex. 56×280, 56,3×280, 80×35×118 ; x ou × ; . ou ,)."), indicator: 'red' });
                                                                 return;
                                                             }
                                                             // Synchroniser les points de colle vers l'Etude Faisabilite
@@ -1222,7 +1222,7 @@ function load_trace_imposition_links(frm) {
                                         fieldtype: "Data",
                                         reqd: 1,
                                         default: current_values.dimensions || "",
-                                        description: __("Entrez les nouvelles dimensions"),
+                                        description: __("Même format que les cotations article : 56×280 ou 56,3×280 ; 80×35×118 ; x ou × ; . ou , ; sans mm."),
                                     },
                                 ];
                                 if (showWarn) {
@@ -1282,7 +1282,7 @@ function load_trace_imposition_links(frm) {
                                                 },
                                                 callback: function(r_item) {
                                                     if (r_item.exc) {
-                                                        frappe.msgprint({ title: __('Cotations article'), message: __("Impossible de synchroniser les dimensions vers l'article. Vérifiez le format (ex. 156x280 ou 80x35x118)."), indicator: 'red' });
+                                                        frappe.msgprint({ title: __('Cotations article'), message: __("Impossible de synchroniser les dimensions vers l'article. Vérifiez le format (ex. 56×280, 56,3×280, 80×35×118 ; x ou × ; . ou ,)."), indicator: 'red' });
                                                         return;
                                                     }
                                                     // Synchroniser les points de colle vers l'Etude Faisabilite
