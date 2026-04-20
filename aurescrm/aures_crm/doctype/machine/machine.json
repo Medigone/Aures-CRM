@@ -27,6 +27,8 @@
   "gache_calage",
   "section_break_yqyb",
   "retiration",
+  "column_break_atmb",
+  "vernis",
   "parametres_section",
   "vitesse_max",
   "temps_calage",
@@ -273,12 +275,22 @@
    "fieldname": "min_qt",
    "fieldtype": "Int",
    "label": "Quantit\u00e9 Minimale (Feuilles)"
+  },
+  {
+   "fieldname": "column_break_atmb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "vernis",
+   "fieldtype": "Check",
+   "label": "Vernis"
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-15 14:07:50.379527",
+ "modified": "2026-04-20 07:59:32.821612",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Machine",
