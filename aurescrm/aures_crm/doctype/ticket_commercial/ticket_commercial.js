@@ -12,6 +12,7 @@ frappe.ui.form.on("Ticket Commercial", {
 
         add_assign_buttons(frm);
         add_create_buttons(frm);
+        add_demande_urgence_button(frm);
     },
 
     customer: function(frm) {
@@ -167,6 +168,119 @@ function add_create_buttons(frm) {
             });
         }, __("Créer"));
     }
+}
+
+function add_demande_urgence_button(frm) {
+    if (["Terminé", "Annulé"].includes(frm.doc.status)) {
+        return;
+    }
+    // Après soumission, la fiche est en général non modifiable sans amendement
+    if (frm.doc.docstatus === 1) {
+        return;
+    }
+
+    frm.add_custom_button(
+        __("Demande d'urgence"),
+        function() {
+            open_demande_urgence_prompt(frm);
+        },
+        __("Urgence")
+    );
+}
+
+function plain_text_to_text_editor_html(text) {
+    const t = (text || "").trim();
+    if (!t) {
+        return "";
+    }
+    return t
+        .split("\n")
+        .map((line) => `<p>${frappe.utils.escape_html(line) || "<br>"}</p>`)
+        .join("");
+}
+
+function open_demande_urgence_prompt(frm) {
+    frappe.prompt(
+        [
+            {
+                fieldname: "niveau_urgence_demande",
+                fieldtype: "Select",
+                label: __("Niveau d'urgence demandé"),
+                options: "U0\nU1\nU2\nU3",
+                default: frm.doc.niveau_urgence || "U0",
+                reqd: 1
+            },
+            {
+                fieldname: "descr_urgence_saisie",
+                fieldtype: "Small Text",
+                label: __("Description pour validation"),
+                reqd: 1,
+                description: __(
+                    "Motif de la demande. Le niveau choisi pourra être confirmé ou ajusté après validation par le back-office."
+                )
+            }
+        ],
+        function(values) {
+            const html = plain_text_to_text_editor_html(values.descr_urgence_saisie);
+            if (!html) {
+                frappe.msgprint(__("La description ne peut pas être vide."));
+                return;
+            }
+
+            const niveau = values.niveau_urgence_demande;
+
+            const done_new = function() {
+                frappe.show_alert({
+                    message: __(
+                        "Urgence mise à jour — enregistrez le ticket pour conserver le niveau et la description en base."
+                    ),
+                    indicator: "orange"
+                });
+            };
+
+            const done_saved = function() {
+                frappe.show_alert({
+                    message: __("Demande d'urgence enregistrée (niveau et description)."),
+                    indicator: "green"
+                });
+            };
+
+            const after_both_set = function() {
+                frm.refresh_field("niveau_urgence");
+                frm.refresh_field("descr_urgence");
+                if (frm.is_new()) {
+                    done_new();
+                    return;
+                }
+                frm.save().then(done_saved).catch(function() {
+                    frappe.show_alert({
+                        message: __(
+                            "Les valeurs ont été appliquées au formulaire mais la sauvegarde a échoué."
+                        ),
+                        indicator: "red"
+                    });
+                });
+            };
+
+            const set_descr = function() {
+                const ret = frm.set_value("descr_urgence", html);
+                if (ret && typeof ret.then === "function") {
+                    ret.then(after_both_set);
+                } else {
+                    after_both_set();
+                }
+            };
+
+            const ret_niveau = frm.set_value("niveau_urgence", niveau);
+            if (ret_niveau && typeof ret_niveau.then === "function") {
+                ret_niveau.then(set_descr);
+            } else {
+                set_descr();
+            }
+        },
+        __("Demande d'urgence"),
+        __("Enregistrer")
+    );
 }
 
 function update_assigne_a(frm, assigne_user) {

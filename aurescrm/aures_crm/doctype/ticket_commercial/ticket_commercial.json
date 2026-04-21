@@ -28,7 +28,10 @@
   "column_break_demande",
   "section_description",
   "description",
-  "amended_from"
+  "amended_from",
+  "urgence_tab",
+  "niveau_urgence",
+  "descr_urgence"
  ],
  "fields": [
   {
@@ -187,12 +190,33 @@
    "fieldname": "echeance",
    "fieldtype": "Date",
    "label": "\u00c9ch\u00e9ance"
+  },
+  {
+   "fieldname": "urgence_tab",
+   "fieldtype": "Tab Break",
+   "label": "Urgence"
+  },
+  {
+   "default": "U0",
+   "fieldname": "niveau_urgence",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Niveau d'urgence",
+   "options": "U0\nU1\nU2\nU3",
+   "read_only": 1
+  },
+  {
+   "fieldname": "descr_urgence",
+   "fieldtype": "Text Editor",
+   "label": "Description Urgence",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-27 10:39:57.928905",
+ "modified": "2026-04-21 11:17:18.392905",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",

@@ -46,6 +46,9 @@ class TicketCommercial(Document):
         if not self.commercial:
             self.commercial = frappe.session.user
 
+        if not self.niveau_urgence:
+            self.niveau_urgence = "U0"
+
 
 @frappe.whitelist()
 def update_assigne_a(docname, assigne_user):
