@@ -193,7 +193,7 @@ function add_demande_urgence_button(frm) {
         return;
     }
     const statut_demande = frm.doc.statut_demande_urgence || "Aucune";
-    if (statut_demande === "En attente" || statut_demande === "Validée") {
+    if (statut_demande === "En attente") {
         return;
     }
 
@@ -216,7 +216,8 @@ function add_annuler_demande_urgence_button(frm) {
     if (frm.doc.docstatus === 1) {
         return;
     }
-    if ((frm.doc.statut_demande_urgence || "") !== "En attente") {
+    const statutUrgence = frm.doc.statut_demande_urgence || "";
+    if (statutUrgence !== "En attente" && statutUrgence !== "Validée") {
         return;
     }
     const is_commercial = (frm.doc.commercial || "") === frappe.session.user;
@@ -228,10 +229,17 @@ function add_annuler_demande_urgence_button(frm) {
     frm.add_custom_button(
         __("Annuler la demande"),
         function() {
+            const estValidee = (frm.doc.statut_demande_urgence || "") === "Validée";
+            const msgAnnulation = estValidee
+                ? __(
+                      "L'urgence validée sera annulée et le ticket repassera au niveau U0 (aucune urgence). " +
+                          "L'historique restera visible dans la chronologie du ticket. Continuer ?"
+                  )
+                : __(
+                      "La demande d'urgence sera supprimée et le ticket repassera au niveau U0 (aucune urgence). Continuer ?"
+                  );
             frappe.confirm(
-                __(
-                    "La demande d'urgence sera supprimée et le ticket repassera au niveau U0 (aucune urgence). Continuer ?"
-                ),
+                msgAnnulation,
                 function() {
                     frappe.call({
                         method: "aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial.cancel_urgence_request",
@@ -241,7 +249,9 @@ function add_annuler_demande_urgence_button(frm) {
                         callback: function(r) {
                             if (!r.exc) {
                                 frappe.show_alert({
-                                    message: __("Demande d'urgence annulée — ticket en U0."),
+                                    message: estValidee
+                                        ? __("Urgence annulée — ticket repassé en U0.")
+                                        : __("Demande d'urgence annulée — ticket en U0."),
                                     indicator: "green"
                                 });
                                 frm.reload_doc();
@@ -289,6 +299,14 @@ function add_admin_urgence_validation_buttons(frm) {
     );
 }
 
+function default_niveau_demande_urgence_sans_u0(frm) {
+    const candidat = frm.doc.niveau_urgence_demande || frm.doc.niveau_urgence;
+    if (["U1", "U2", "U3"].includes(candidat)) {
+        return candidat;
+    }
+    return "U1";
+}
+
 function plain_text_to_text_editor_html(text) {
     const t = (text || "").trim();
     if (!t) {
@@ -307,8 +325,8 @@ function open_demande_urgence_prompt(frm) {
                 fieldname: "niveau_demande_saisi",
                 fieldtype: "Select",
                 label: __("Niveau d'urgence demandé"),
-                options: "U0\nU1\nU2\nU3",
-                default: frm.doc.niveau_urgence_demande || frm.doc.niveau_urgence || "U0",
+                options: "U1\nU2\nU3",
+                default: default_niveau_demande_urgence_sans_u0(frm),
                 reqd: 1
             },
             {
@@ -449,126 +467,130 @@ function render_urgence_html(frm) {
     const niveau_demande = frm.doc.niveau_urgence_demande || "";
     const statut = frm.doc.statut_demande_urgence || "Aucune";
 
-    /* Pas d'urgence active : niveau U0 et aucune demande en cours / historisée */
-    if ((statut || "Aucune") === "Aucune" && (niveau || "U0") === "U0") {
+    if (statut === "Aucune" && niveau === "U0") {
         field.$wrapper.empty();
         frm.toggle_display("html_urgence", false);
         return;
     }
 
     frm.toggle_display("html_urgence", true);
+
     const descr = frm.doc.descr_urgence || "";
     const validee_par = frm.doc.urgence_validee_par || "";
     const validee_le = frm.doc.urgence_validee_le || "";
     const commentaire = frm.doc.commentaire_validation_urgence || "";
 
-    // Palette par niveau (U0 vert → U1 jaune → U2 orange → U3 rouge)
-    const niveau_colors = {
-        U0: { bg: "#d1fae5", fg: "#065f46", label: __("Aucune urgence") },
-        U1: { bg: "#fef08a", fg: "#854d0e", label: __("Faible") },
-        U2: { bg: "#fed7aa", fg: "#c2410c", label: __("Modérée") },
-        U3: { bg: "#fecaca", fg: "#b91c1c", label: __("Critique") }
+    const NIVEAUX = {
+        U0: { label: __("Aucune urgence"), bg: "#dcfce7", fg: "#166534" },
+        U1: { label: __("Faible"), bg: "#fef9c3", fg: "#854d0e" },
+        U2: { label: __("Modérée"), bg: "#ffedd5", fg: "#9a3412" },
+        U3: { label: __("Critique"), bg: "#fee2e2", fg: "#991b1b" }
     };
-    // Statuts : tons alignés sur la même logique visuelle
-    const statut_colors = {
-        "Aucune":     { bg: "#f1f5f9", fg: "#475569", icon: "○" },
-        "En attente": { bg: "#fef9c3", fg: "#854d0e", icon: "⏳" },
-        "Validée":    { bg: "#d1fae5", fg: "#065f46", icon: "✓" },
-        "Refusée":    { bg: "#fecaca", fg: "#b91c1c", icon: "✕" }
+    const STATUTS = {
+        "En attente": { bg: "#fefce8", fg: "#854d0e", border: "#fde047", accent: "#f59e0b" },
+        "Validée": { bg: "#f0fdf4", fg: "#166534", border: "#86efac", icon: "✓", accent: "#10b981" },
+        "Refusée": { bg: "#fef2f2", fg: "#991b1b", border: "#fca5a5", icon: "✕", accent: "#ef4444" }
     };
 
-    const nC = niveau_colors[niveau] || niveau_colors.U0;
-    const sC = statut_colors[statut] || statut_colors["Aucune"];
-
-    const badge = (text, bg, fg) => `
-        <span style="
-            display:inline-flex;align-items:center;gap:4px;
-            padding:4px 11px;border-radius:9999px;
-            background:${bg};color:${fg};
-            font-size:12px;font-weight:600;line-height:1;
-            letter-spacing:0.01em;
-            white-space:nowrap;">${frappe.utils.escape_html(text)}</span>`;
-
-    const row = (label, value) => `
-        <div style="display:flex;gap:8px;padding:4px 0;font-size:12px;">
-            <span style="color:#6c757d;min-width:130px;">${frappe.utils.escape_html(label)}</span>
-            <span style="color:#212529;">${value}</span>
-        </div>`;
-
-    /** Libellé + valeur sur une même ligne ; largeur fixe du libellé pour aligner les badges. */
-    const niveau_ligne = (label_text, value_html, opts = {}) => {
-        const mt = opts.first ? "14px" : "10px";
-        return `
-        <div style="display:flex;align-items:center;gap:8px;margin-top:${mt};min-height:28px;">
-            <span style="flex:0 0 11.75rem;min-width:11.75rem;max-width:11.75rem;font-size:12px;font-weight:600;color:#64748b;white-space:nowrap;">
-                ${frappe.utils.escape_html(label_text)} :
-            </span>
-            <div style="display:flex;align-items:center;min-width:0;">${value_html}</div>
-        </div>`;
+    const nC = NIVEAUX[niveau] || NIVEAUX.U0;
+    const sC = STATUTS[statut] || {
+        bg: "#f1f5f9",
+        fg: "#475569",
+        border: "#cbd5e1",
+        icon: "",
+        accent: "#94a3b8"
     };
 
-    const actuel_html = badge(niveau + " — " + nC.label, nC.bg, nC.fg);
-
-    let demande_html = "";
-    if (niveau_demande) {
-        const ndC = niveau_colors[niveau_demande] || niveau_colors.U0;
-        demande_html = badge(niveau_demande + " — " + ndC.label, ndC.bg, ndC.fg);
-    } else {
-        demande_html = `<span style="font-size:12px;color:#94a3b8;">${frappe.utils.escape_html(__("Aucune"))}</span>`;
+    const stroke = sC.fg;
+    let statutIconHtml = "";
+    if (statut === "En attente") {
+        statutIconHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;line-height:1;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block"><path d="M12 6L12 12L18 12" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>`;
+    } else if (sC.icon) {
+        statutIconHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;line-height:1;flex-shrink:0;font-size:10px">${frappe.utils.escape_html(sC.icon)}</span>`;
     }
 
-    let descr_block = "";
+    const level_chip = (code, nObj) => `
+        <span style="display:inline-flex;align-items:center;gap:4px;
+            padding:2px 8px;border-radius:4px;
+            background:${nObj.bg};color:${nObj.fg};
+            font-size:11.5px;font-weight:700;letter-spacing:0.02em;">
+            ${frappe.utils.escape_html(code)}
+            <span style="font-weight:400;opacity:0.75;">&nbsp;${frappe.utils.escape_html(nObj.label)}</span>
+        </span>`;
+
+    const date_str = validee_le ? frappe.datetime.str_to_user(validee_le) : "";
+
+    let motif_block = "";
     if (descr && (statut === "En attente" || statut === "Refusée")) {
-        descr_block = `
-            <div style="margin-top:8px;padding:8px 10px;background:#f8fafc;
-                        border-left:3px solid #cbd5e1;border-radius:8px;
-                        font-size:12px;color:#475569;">
-                <div style="color:#6c757d;font-weight:600;margin-bottom:3px;">
-                    ${__("Motif")}
-                </div>
-                <div>${descr}</div>
+        motif_block = `
+            <div style="margin-top:9px;padding:7px 9px;background:#f8fafc;
+                border-radius:5px;font-size:12px;color:#475569;">
+                <span style="font-weight:600;color:#94a3b8;font-size:10.5px;
+                    text-transform:uppercase;letter-spacing:0.05em;margin-right:5px;">
+                    ${__("Motif")} :
+                </span>
+                ${descr}
             </div>`;
     }
 
     let decision_block = "";
     if ((statut === "Validée" || statut === "Refusée") && validee_par) {
-        const date_str = validee_le ? frappe.datetime.str_to_user(validee_le) : "";
-        decision_block += row(
-            statut === "Validée" ? __("Validée par") : __("Refusée par"),
-            `<span>${frappe.utils.escape_html(validee_par)}</span>` +
-            (date_str ? ` <span style="color:#6c757d;">— ${frappe.utils.escape_html(date_str)}</span>` : "")
-        );
+        decision_block = `
+            <div style="margin-top:9px;font-size:11.5px;color:#64748b;">
+                <span style="font-weight:600;">${frappe.utils.escape_html(statut === "Validée" ? __("Validée") : __("Refusée"))} ${__("par")}</span>
+                ${frappe.utils.escape_html(validee_par)}
+                ${date_str ? `<span style="color:#94a3b8;margin-left:5px;">· ${frappe.utils.escape_html(date_str)}</span>` : ""}
+            </div>`;
         if (commentaire) {
             decision_block += `
-                <div style="margin-top:6px;padding:8px 10px;background:#f8fafc;
-                            border-left:3px solid ${statut === "Validée" ? "#059669" : "#dc2626"};
-                            border-radius:8px;font-size:12px;color:#475569;">
-                    <div style="color:#6c757d;font-weight:600;margin-bottom:3px;">
-                        ${__("Commentaire")}
-                    </div>
-                    <div>${frappe.utils.escape_html(commentaire)}</div>
+                <div style="margin-top:6px;padding:7px 9px;
+                    background:${statut === "Validée" ? "#f0fdf4" : "#fff5f5"};
+                    border-radius:5px;font-size:12px;color:#475569;
+                    border-left:2px solid ${sC.accent};">
+                    ${frappe.utils.escape_html(commentaire)}
                 </div>`;
         }
     }
 
-    const show_statut_demande = (statut || "Aucune") !== "Aucune";
-    const statut_badge_html = show_statut_demande
-        ? badge(sC.icon + " " + statut, sC.bg, sC.fg)
-        : "";
-
     const html = `
-        <div style="border:1px solid #e2e8f0;border-radius:10px;
-                    padding:12px 14px;background:#ffffff;box-shadow:0 1px 2px rgba(15,23,42,0.04);">
-            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
-                <span style="font-size:14px;font-weight:600;color:#0f172a;letter-spacing:-0.01em;">
-                    ${frappe.utils.escape_html(__("Urgence Dossier"))}
-                </span>
-                ${statut_badge_html}
+        <div style="display:flex;border:1px solid #e2e8f0;border-radius:8px;
+            overflow:hidden;background:#fff;
+            box-shadow:0 1px 4px rgba(15,23,42,0.06);">
+            <div style="width:4px;flex-shrink:0;background:${sC.accent};"></div>
+            <div style="flex:1;padding:11px 13px 12px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <span style="font-size:12px;font-weight:700;color:#334155;
+                        text-transform:uppercase;letter-spacing:0.06em;">
+                        ${__("Urgence Dossier")}
+                    </span>
+                    <span style="font-size:10px;font-weight:600;color:${sC.fg};
+                        background:${sC.bg};border:1px solid ${sC.border};
+                        padding:1px 6px;border-radius:3px;line-height:1.4;
+                        display:inline-flex;align-items:center;gap:4px;">
+                        ${statutIconHtml}${frappe.utils.escape_html(statut)}
+                    </span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <div style="display:flex;flex-direction:column;gap:3px;">
+                        <span style="font-size:10px;color:#94a3b8;font-weight:600;
+                            text-transform:uppercase;letter-spacing:0.05em;">${__("Actuel")}</span>
+                        ${level_chip(niveau, nC)}
+                    </div>
+                    ${niveau_demande && NIVEAUX[niveau_demande] && niveau_demande !== niveau ? `
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#cbd5e1"
+                            stroke-width="1.5" stroke-linecap="round" style="margin-top:14px;">
+                            <path d="M3 7h8M7 3l4 4-4 4"/>
+                        </svg>
+                        <div style="display:flex;flex-direction:column;gap:3px;">
+                            <span style="font-size:10px;color:#94a3b8;font-weight:600;
+                                text-transform:uppercase;letter-spacing:0.05em;">${__("Demandé")}</span>
+                            ${level_chip(niveau_demande, NIVEAUX[niveau_demande])}
+                        </div>
+                    ` : ""}
+                </div>
+                ${motif_block}
+                ${decision_block}
             </div>
-            ${niveau_ligne(__("Niveau actuel"), actuel_html, { first: true })}
-            ${niveau_ligne(__("Niveau demandé"), demande_html)}
-            ${descr_block}
-            ${decision_block ? `<div style="margin-top:12px;">${decision_block}</div>` : ""}
         </div>`;
 
     field.$wrapper.html(html);

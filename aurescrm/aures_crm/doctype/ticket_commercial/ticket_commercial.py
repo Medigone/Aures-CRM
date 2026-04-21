@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
-from frappe.utils import cstr, now, today
+from frappe.utils import cstr, now, strip_html, today
 from frappe.utils.html_utils import sanitize_html
 
 
@@ -147,6 +147,21 @@ def _assert_niveau(niveau, label=_("Niveau d'urgence")):
         frappe.throw(_("{0} invalide.").format(label))
 
 
+def _urgence_motif_plain(descr_html, max_len=800):
+    """Extrait un texte lisible du motif d'urgence (Text Editor HTML) pour la timeline."""
+    if not descr_html:
+        return ""
+    plain = (strip_html(cstr(descr_html)) or "").strip()
+    if len(plain) > max_len:
+        return plain[: max_len - 1] + "…"
+    return plain
+
+
+def _add_urgence_timeline(doc, text):
+    """Ajoute une entrée Info dans la timeline du ticket (rendu natif Frappe)."""
+    doc.add_comment("Info", text)
+
+
 def _assert_admin_ventes():
     if frappe.session.user == "Administrator":
         return
@@ -160,6 +175,10 @@ def _assert_admin_ventes():
 def submit_urgence_request(docname, niveau_demande, descr_urgence_html):
     """Enregistre une demande d'urgence (niveau demandé + description), statut En attente."""
     _assert_niveau(niveau_demande, _("Niveau demandé"))
+    if niveau_demande == "U0":
+        frappe.throw(
+            _("Le niveau U0 correspond à l'absence d'urgence ; choisissez U1, U2 ou U3 pour une demande.")
+        )
 
     doc = frappe.get_doc("Ticket Commercial", docname)
     doc.check_permission("write")
@@ -173,12 +192,14 @@ def submit_urgence_request(docname, niveau_demande, descr_urgence_html):
     statut = doc.statut_demande_urgence or "Aucune"
     if statut == "En attente":
         frappe.throw(_("Une demande d'urgence est déjà en attente de validation."))
-    if statut == "Validée":
-        frappe.throw(_("Une urgence est déjà validée sur ce ticket ; impossible de faire une nouvelle demande."))
 
     descr_safe = sanitize_html(descr_urgence_html or "", always_sanitize=True)
     if not (descr_safe or "").strip():
         frappe.throw(_("La description d'urgence est obligatoire."))
+
+    prev_niveau = cstr(doc.niveau_urgence) or "U0"
+    prev_statut = statut
+    prev_niveau_demande = cstr(doc.niveau_urgence_demande) or ""
 
     frappe.flags.ticket_urgence_whitelist = True
     try:
@@ -186,9 +207,20 @@ def submit_urgence_request(docname, niveau_demande, descr_urgence_html):
         doc.niveau_urgence_demande = niveau_demande
         doc.descr_urgence = descr_safe
         doc.statut_demande_urgence = "En attente"
+        # Nouveau cycle de demande : ne pas conserver les métadonnées de la décision précédente
+        doc.urgence_validee_par = None
+        doc.urgence_validee_le = None
+        doc.commentaire_validation_urgence = None
         doc.save()
     finally:
         frappe.flags.ticket_urgence_whitelist = False
+
+    doc = frappe.get_doc("Ticket Commercial", docname)
+    motif_plain = _urgence_motif_plain(descr_safe)
+    parts = [_("Demande d'urgence enregistrée : {0} → {1}").format(prev_niveau, niveau_demande)]
+    if motif_plain:
+        parts.append(_("Motif : {0}").format(motif_plain))
+    _add_urgence_timeline(doc, " — ".join(parts))
 
     return {"status": "success"}
 
@@ -206,7 +238,7 @@ def _assert_can_cancel_urgence_request(doc):
 
 @frappe.whitelist()
 def cancel_urgence_request(docname):
-    """Retire une demande d'urgence en attente et remet le ticket à U0 (commercial ou Administrator)."""
+    """Retire une demande d'urgence (en attente ou déjà validée) et remet le ticket à U0 (commercial ou Administrator)."""
     doc = frappe.get_doc("Ticket Commercial", docname)
     doc.check_permission("write")
     _assert_can_cancel_urgence_request(doc)
@@ -218,10 +250,11 @@ def cancel_urgence_request(docname):
         frappe.throw(_("Impossible d'annuler la demande sur un ticket terminé ou annulé."))
 
     statut = doc.statut_demande_urgence or "Aucune"
-    if statut == "Validée":
-        frappe.throw(_("Impossible d'annuler : l'urgence est déjà validée."))
-    if statut != "En attente":
-        frappe.throw(_("Aucune demande d'urgence en attente à annuler."))
+    if statut not in ("En attente", "Validée"):
+        frappe.throw(_("Aucune demande d'urgence en attente ou validée à annuler."))
+
+    prev_niveau = cstr(doc.niveau_urgence) or "U0"
+    prev_statut = statut
 
     frappe.flags.ticket_urgence_whitelist = True
     try:
@@ -236,6 +269,12 @@ def cancel_urgence_request(docname):
         doc.save()
     finally:
         frappe.flags.ticket_urgence_whitelist = False
+
+    doc = frappe.get_doc("Ticket Commercial", docname)
+    msg = _("Demande d'urgence annulée ({0} {1} → U0)").format(
+        prev_statut, prev_niveau
+    )
+    _add_urgence_timeline(doc, msg)
 
     return {"status": "success"}
 
@@ -261,6 +300,10 @@ def process_urgence_decision(docname, action, niveau_valide=None, commentaire=No
     if (doc.statut_demande_urgence or "") != "En attente":
         frappe.throw(_("Aucune demande d'urgence en attente."))
 
+    prev_niveau = cstr(doc.niveau_urgence) or "U0"
+    niveau_demande = cstr(doc.niveau_urgence_demande) or ""
+    motif_plain = _urgence_motif_plain(doc.descr_urgence)
+
     frappe.flags.ticket_urgence_whitelist = True
     try:
         doc = frappe.get_doc("Ticket Commercial", docname)
@@ -283,6 +326,22 @@ def process_urgence_decision(docname, action, niveau_valide=None, commentaire=No
         doc.save()
     finally:
         frappe.flags.ticket_urgence_whitelist = False
+
+    doc = frappe.get_doc("Ticket Commercial", docname)
+    if action == "validate":
+        comm_val = (commentaire or "").strip()
+        msg = _("Urgence validée : {0} → {1}").format(prev_niveau, cstr(doc.niveau_urgence))
+        if niveau_demande:
+            msg += _(" (demandé : {0})").format(niveau_demande)
+        if comm_val:
+            msg += " — " + comm_val
+        _add_urgence_timeline(doc, msg)
+    else:
+        comm_refus = (commentaire or "").strip()
+        msg = _("Urgence refusée (demandé : {0})").format(niveau_demande or "?")
+        if comm_refus:
+            msg += " — " + comm_refus
+        _add_urgence_timeline(doc, msg)
 
     return {"status": "success"}
 

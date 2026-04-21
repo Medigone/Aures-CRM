@@ -1,368 +1,257 @@
-# Guide d'Utilisation - Ticket Commercial
+# Guide d'utilisation - Ticket Commercial
 
-## 📋 Table des matières
+## Objectif
+Le `Ticket Commercial` permet aux commerciaux de transmettre une demande claire au back office, d'en suivre l'avancement et, si besoin, de demander une urgence.
 
-1. [Introduction](#introduction)
-2. [Accès au module](#accès-au-module)
-3. [Créer un nouveau ticket](#créer-un-nouveau-ticket)
-4. [Les champs du formulaire](#les-champs-du-formulaire)
-5. [Les statuts et le workflow](#les-statuts-et-le-workflow)
-6. [Suivre vos tickets](#suivre-vos-tickets)
-7. [Bonnes pratiques](#bonnes-pratiques)
-8. [FAQ](#faq)
+Ce guide est volontairement simple et non technique.
 
----
+## Quand créer un ticket commercial
+Créez un ticket lorsqu'une action du back office est nécessaire, par exemple :
 
-## 🎯 Introduction
+- création ou conception d'un besoin client
+- demande de devis
+- bon de commande
+- information production
+- mise à jour de données
+- réclamation
+- essai blanc
+- autre demande spécifique
 
-Le **Ticket Commercial** est un outil centralisé qui permet aux commerciaux de transmettre toutes les demandes et informations clients au back office d'Aures Emballages. 
+Règle simple : `1 ticket = 1 demande`.
 
-### Objectifs du système
+## Accéder au module
+Vous pouvez ouvrir `Ticket Commercial` :
 
-- ✅ **Centraliser** toutes les demandes commerciales en un seul endroit
-- ✅ **Traçabiliser** les échanges avec les clients
-- ✅ **Faciliter le suivi** des actions par le back office
-- ✅ **Traduire** les demandes en actions concrètes dans l'ERP et les procédures
+- depuis le module `Aures CRM`
+- depuis la recherche globale
+- depuis la liste des tickets déjà existants
 
-### Quand utiliser un ticket commercial ?
+## Créer un ticket
+1. Ouvrez la liste `Ticket Commercial`.
+2. Cliquez sur `Nouveau`.
+3. Renseignez les informations principales.
+4. Décrivez précisément la demande.
+5. Ajoutez les pièces jointes si nécessaire.
+6. Sauvegardez.
 
-Utilisez un ticket commercial pour toute demande nécessitant une action du back office :
+Le numéro du ticket est créé automatiquement.
 
-- 📝 Création d'un nouveau client
-- 📦 Demande de bon de commande
-- 💰 Demande de devis
-- 🔄 Mise à jour de données client
-- ⚠️ Réclamation commerciale
-- 📎 Toute autre demande nécessitant une intervention
+## Les champs importants
 
----
+### Client
+Sélectionnez le client concerné.
 
-## 🚪 Accès au module
+Le nom du client se remplit automatiquement.
 
-### Méthode 1 : Via le menu principal
+### Type
+Choisissez le type de demande le plus proche de votre besoin.
 
-1. Connectez-vous à votre espace ERPNext
-2. Dans le menu latéral, recherchez le module **"Aures CRM"**
-3. Cliquez sur **"Ticket Commercial"**
+Valeurs disponibles :
 
-### Méthode 2 : Via le workspace Visites
+- `Conception`
+- `Bon de commande`
+- `Demande de devis`
+- `Information Production`
+- `Mise à jour données`
+- `Réclamation`
+- `Essai Blanc`
+- `Autre`
 
-1. Accédez au workspace **"Visites"**
-2. Cliquez sur le raccourci **"Tickets Commerciaux"** (icône orange)
+### Priorité
+La priorité sert à indiquer l'importance générale de la demande :
 
-### Méthode 3 : Via la recherche globale
+- `Basse` : demande non urgente
+- `Moyenne` : demande normale
+- `Haute` : demande importante à traiter rapidement
 
-1. Utilisez la barre de recherche en haut de l'écran
-2. Tapez **"Ticket Commercial"**
-3. Sélectionnez l'option dans les résultats
+La priorité ne remplace pas la demande d'urgence.
 
----
+### Canal
+Indiquez comment la demande est arrivée :
 
-## ➕ Créer un nouveau ticket
+- `Email`
+- `WhatsApp`
+- `Raven`
+- `Autre`
 
-### Étapes de création
+### Description détaillée
+Expliquez clairement la demande :
 
-1. **Cliquez sur le bouton "Nouveau"** en haut à droite de la liste des tickets
-2. **Remplissez les champs obligatoires** (marqués d'un astérisque *)
-3. **Ajoutez une description détaillée** de la demande
-4. **Joignez les fichiers** si nécessaire
-5. **Sauvegardez** le ticket
+- ce que le client attend
+- pour quand
+- les contraintes éventuelles
+- les références utiles
+- le contexte si nécessaire
 
-### Numérotation automatique
+### Pièces jointes
+Ajoutez tout document utile :
 
-Chaque ticket reçoit automatiquement un numéro unique au format :
-```
-TC-YY-MM-#####
-```
-Exemple : `TC-25-12-00001` (Ticket Commercial créé en décembre 2025, numéro 00001)
+- email client
+- photo
+- capture d'écran
+- bon de commande
+- document technique
 
----
+## Suivre un ticket
+Depuis la liste, vous pouvez retrouver rapidement vos tickets grâce aux colonnes :
 
-## 📝 Les champs du formulaire
+- client
+- commercial
+- type
+- statut
+- urgence
 
-### Section : Informations générales
+Les tickets les plus récents remontent en premier.
 
-#### Client * (Obligatoire)
-- **Type** : Liste déroulante
-- **Description** : Sélectionnez le client concerné par la demande
-- **Comportement** : Le nom du client se remplit automatiquement après sélection
+## Signification des statuts du ticket
 
-#### Priorité * (Obligatoire)
-- **Type** : Liste déroulante
-- **Options disponibles** :
-  - 🔵 **Basse** : Demande non urgente, peut attendre
-  - 🟡 **Moyenne** : Demande normale (valeur par défaut)
-  - 🔴 **Haute** : Demande urgente nécessitant un traitement rapide
-- **Conseil** : Utilisez "Haute" uniquement pour les demandes vraiment urgentes
+- `Nouveau` : le ticket vient d'être créé
+- `En Cours` : le back office a commencé le traitement
+- `Pending` : le traitement est momentanément en attente
+- `Terminé` : la demande est finalisée
+- `Annulé` : le ticket ne sera pas traité
 
-### Section : Détails de la demande
+Un ticket `Terminé` ou `Annulé` devient en lecture seule.
 
-#### Type * (Obligatoire)
-- **Type** : Liste déroulante
-- **Options disponibles** :
-  - **Création** : Création d'un nouveau client, nouveau produit, etc.
-  - **Bon de commande** : Demande de création ou modification d'un bon de commande
-  - **Demande de devis** : Demande de création d'un devis
-  - **Mise à jour données** : Modification d'informations client (adresse, contact, etc.)
-  - **Réclamation commerciale** : Réclamation ou problème à résoudre
-  - **Autre** : Toute autre demande non catégorisée
+## Fonctionnement de l'urgence
 
-#### Canal
-- **Type** : Liste déroulante
-- **Options disponibles** :
-  - 📞 **Téléphone**
-  - 📧 **Email**
-  - 💬 **WhatsApp**
-  - 📱 **Raven**
-  - 📎 **Autre**
-- **Conseil** : Indiquez comment le client vous a contacté pour cette demande
+### À quoi sert l'urgence
+L'urgence permet de demander un traitement prioritaire par rapport au flux normal.
 
-#### Commercial
-- **Type** : Liste déroulante
-- **Description** : Votre nom est automatiquement rempli, mais vous pouvez le modifier si nécessaire
-- **Comportement** : Le nom complet du commercial s'affiche automatiquement
+Elle est distincte de la priorité classique.
 
-#### Assigné à (Back Office)
-- **Type** : Liste déroulante (utilisateurs)
-- **Description** : Permet d'assigner le ticket à un membre du back office
-- **Comportement** : Les boutons **Attribuer → À moi / Attribuer à...** sont visibles pour le rôle **Administrateur Ventes** tant que le ticket n'est pas **Terminé** ou **Annulé**
+### Niveaux d'urgence
 
-#### Nom complet (assigné)
-- **Type** : Champ texte (lecture seule)
-- **Description** : Affiche automatiquement le nom complet de l'utilisateur assigné
+- `U0` : aucune urgence
+- `U1` : urgence faible
+- `U2` : urgence modérée
+- `U3` : urgence forte
 
-#### Fichier
-- **Type** : Pièce jointe
-- **Description** : Joignez tous les documents utiles (photos, PDF, emails, etc.)
-- **Formats acceptés** : Tous les formats de fichiers
-- **Conseil** : Pour les réclamations, joignez toujours les photos ou documents justificatifs
+### Demander une urgence
+Une fois le ticket sauvegardé, un bouton `Urgence > Demande d'urgence` peut apparaître.
 
-### Section : Description
+Vous devez alors renseigner :
 
-#### Description détaillée
-- **Type** : Éditeur de texte enrichi
-- **Description** : Décrivez en détail la demande du client
-- **Conseil** : Soyez le plus précis possible :
-  - Qui ? (nom du contact client)
-  - Quoi ? (nature exacte de la demande)
-  - Quand ? (délai souhaité, date limite)
-  - Comment ? (instructions particulières)
-  - Pourquoi ? (contexte si nécessaire)
+- le niveau demandé (`U1` à `U3` ; `U0` signifie « aucune urgence » et n’est pas proposé dans la demande)
+- le motif de la demande
 
-### Champs automatiques (non modifiables)
+La demande part ensuite en validation.
 
-- **Date de création** : Remplie automatiquement avec la date du jour
-- **Créé par** : Votre nom est automatiquement enregistré
-- **Statut** : Initialisé à "Nouveau" automatiquement
+### Demander une urgence plus forte après une validation
+Si une urgence a déjà été **validée** (par exemple en `U1`) et que la situation nécessite un niveau supérieur (`U2`, `U3`, etc.), vous pouvez refaire une **nouvelle demande** : le bouton `Urgence > Demande d'urgence` reste disponible tant qu'il n'y a pas déjà une demande **en attente** de validation.
 
----
+### Annuler une demande d'urgence
+Si vous vous êtes trompé, vous pouvez utiliser :
 
-## 🔄 Les statuts et le workflow
+- `Urgence > Annuler la demande`
 
-### Les différents statuts
+Cela est possible lorsque la demande est encore **en attente** de validation, ou lorsque l'urgence a déjà été **validée** (dans ce dernier cas, le ticket repasse aussi à `U0`).
 
-| Statut | Couleur | Signification | Qui peut modifier |
-|--------|---------|---------------|-------------------|
-| **Nouveau** | 🔵 Bleu | Ticket créé, en attente de traitement | Back office |
-| **En Cours** | 🟠 Orange | Ticket pris en charge par le back office | Back office |
-| **Pending** | 🟡 Jaune | Ticket mis en pause temporairement | Back office |
-| **Terminé** | 🟢 Vert | Ticket traité et finalisé | Back office |
-| **Annulé** | 🔴 Rouge | Ticket annulé | Back office |
+Cela remet le ticket à :
 
-### Le cycle de vie d'un ticket
+- `Niveau actuel : U0`
+- `Statut demande urgence : Aucune`
 
-```
-┌─────────┐
-│ Nouveau │ ← Vous créez le ticket ici
-└────┬────┘
-     │
-     │ [Démarrer] (Back office)
-     ▼
-┌──────────┐
-│ En Cours │ ← Le back office traite votre demande
-└────┬─────┘
-     │
-     ├─── [Pause] ───► ┌─────────┐
-     │                 │ Pending │ ← Mise en pause temporaire
-     │                 └────┬────┘
-     │                     │
-     │                     │ [Reprendre]
-     │                     ▼
-     │                 ┌──────────┐
-     │                 │ En Cours │
-     │                 └────┬─────┘
-     │                     │
-     └─────────────────────┘
-                         │
-                         │ [Terminer]
-                         ▼
-                    ┌─────────┐
-                    │ Terminé │ ← Demande traitée
-                    └─────────┘
-```
+Les actions sur l'urgence (demande, validation, refus, annulation) sont en outre **consignées dans la chronologie** du ticket (commentaires), pour garder une trace lisible.
 
-### Rôles et permissions
+### Validation par le back office
+Le back office peut :
 
-- **Vous (Commercial)** : 
-  - ✅ Créer de nouveaux tickets
-  - ✅ Modifier vos propres tickets (tant qu'ils ne sont pas terminés/annulés)
-  - ✅ Consulter vos tickets
-  - ✅ Supprimer vos tickets (si non soumis)
-  
-- **Back Office (Administrateur Ventes)** :
-  - ✅ Modifier tous les tickets
-  - ✅ Changer les statuts
-  - ✅ Traiter les demandes
+- valider la demande
+- refuser la demande
 
----
+Quand une urgence a été traitée, le bloc `Urgence Dossier` affiche de façon claire :
 
-## 👀 Suivre vos tickets
+- le niveau actuel
+- le niveau demandé
+- le statut de la demande
+- le motif
+- la décision prise
 
-### Vue liste
+### Couleurs des niveaux
 
-La liste des tickets affiche les colonnes suivantes :
-- **Nom Client** : Nom du client concerné
-- **Commercial** : Votre nom
-- **Type** : Type de demande
-- **Priorité** : Niveau de priorité
-- **Statut** : État actuel du ticket
+- `U0` : vert
+- `U1` : jaune
+- `U2` : orange
+- `U3` : rouge
 
-### Filtres disponibles
+## Boutons utiles dans le ticket
 
-Vous pouvez filtrer vos tickets par :
-- **Client** : Rechercher tous les tickets d'un client spécifique
-- **Statut** : Voir uniquement les tickets "Nouveau", "En Cours", etc.
-- **Type** : Filtrer par type de demande
-- **Priorité** : Voir uniquement les tickets urgents
-- **Commercial** : Voir vos propres tickets uniquement
+### Créer
+Selon vos droits, vous pouvez créer directement depuis le ticket :
 
-### Tri par défaut
+- une `Demande de faisabilité`
+- un `Article`
 
-Les tickets sont triés par **date de modification** (plus récents en premier).
+Ces boutons évitent de ressaisir certaines informations.
 
-### Indicateurs visuels
+### Urgence
+Le groupe `Urgence` peut proposer :
 
-- **Couleurs des statuts** : Chaque statut a une couleur pour un repérage rapide
-- **Icône de notification** : Les tickets non lus sont marqués
+- `Demande d'urgence`
+- `Annuler la demande`
 
----
+Selon votre rôle, le back office peut aussi voir les actions de validation.
 
-## ✅ Bonnes pratiques
+## Bonnes pratiques
 
-### 1. Rédaction de la description
+### Bien rédiger la description
+Préférez une description précise, par exemple :
 
-**❌ À éviter :**
-```
-"Besoin d'un devis"
+```text
+Client : ABC
+Besoin : demande de devis pour 1000 unités
+Délai souhaité : avant vendredi
+Contrainte : maquette jointe
+Contact client : Mme Dupont
 ```
 
-**✅ À privilégier :**
-```
-"Demande de devis pour le client ABC SARL
-- Contact : M. Dupont (06 12 34 56 78)
-- Produit : Emballage carton 30x40x50 cm
-- Quantité : 1000 unités
-- Délai souhaité : Livraison avant le 15 janvier 2026
-- Référence commande client : CMD-2025-1234
-- Fichier joint : Plan technique du produit"
+Évitez les descriptions trop courtes comme :
+
+```text
+Besoin urgent
 ```
 
-### 2. Priorisation
+### Bien utiliser l'urgence
 
-- **Haute** : Utilisez uniquement pour les urgences réelles (problème client, perte de commande imminente)
-- **Moyenne** : Pour la majorité des demandes normales
-- **Basse** : Pour les demandes non urgentes ou informatives
+- n'utilisez l'urgence que si nécessaire
+- choisissez un niveau cohérent
+- expliquez toujours le motif
+- annulez la demande si elle a été faite par erreur (en attente ou après validation, selon les cas)
 
-### 3. Joindre des fichiers
+### Éviter les doublons
+Avant de créer un nouveau ticket, vérifiez qu'un ticket n'existe pas déjà pour la même demande.
 
-Toujours joindre :
-- 📸 Photos pour les réclamations
-- 📄 Documents clients (devis, commandes)
-- 📧 Copies d'emails importants
-- 📋 Plans techniques ou spécifications
+## Questions fréquentes
 
-### 4. Mise à jour des tickets
+### Puis-je modifier un ticket après création ?
+Oui, tant qu'il n'est pas `Terminé` ou `Annulé`.
 
-- ✅ Vérifiez régulièrement l'état de vos tickets
-- ✅ Répondez aux commentaires du back office si nécessaire
-- ✅ Ne créez pas de doublons : vérifiez d'abord si un ticket existe déjà
+### Puis-je demander une urgence sur un ticket non sauvegardé ?
+Non. Il faut d'abord créer et sauvegarder le ticket.
 
-### 5. Communication avec le back office
+### Puis-je annuler une urgence déjà validée ?
+Oui. Le commercial du ticket peut utiliser `Urgence > Annuler la demande` : le ticket repasse en `U0` et l'historique reste visible dans la **chronologie** du ticket.
 
-- ✅ Un ticket = une demande précise
-- ✅ Créez un ticket séparé pour chaque demande différente
-- ✅ Utilisez la description pour donner tous les détails nécessaires
-- ✅ Indiquez les délais souhaités clairement
+### Comment savoir si l'urgence a été prise en compte ?
+Consultez le bloc `Urgence Dossier` dans le ticket. Il résume l'état de l'urgence.
 
----
-
-## ❓ FAQ
-
-### Puis-je modifier un ticket après l'avoir créé ?
-
-**Oui**, vous pouvez modifier vos tickets tant qu'ils ne sont pas au statut "Terminé" ou "Annulé". Une fois terminés, ils deviennent en lecture seule.
-
-### Comment savoir si mon ticket a été traité ?
-
-Le statut du ticket change automatiquement :
-- **"En Cours"** = Le back office a commencé à traiter votre demande
-- **"Terminé"** = Votre demande a été traitée et finalisée
-
-### Puis-je annuler un ticket ?
-
-Si vous êtes le créateur du ticket et qu'il n'est pas encore soumis, vous pouvez le supprimer. Sinon, contactez le back office pour annuler un ticket.
-
-### Que faire si j'ai fait une erreur dans un ticket ?
-
-Vous pouvez modifier le ticket tant qu'il n'est pas terminé. Si le ticket est déjà terminé, créez un nouveau ticket avec les corrections.
-
-### Combien de temps prend le traitement d'un ticket ?
-
-Le délai dépend de :
-- La **priorité** du ticket
-- La **complexité** de la demande
-- La **charge de travail** du back office
-
-Les tickets **Haute priorité** sont traités en priorité.
-
-### Puis-je créer plusieurs tickets pour le même client ?
-
-**Oui**, chaque demande doit avoir son propre ticket pour un meilleur suivi.
-
-### Que signifie le statut "Pending" ?
-
-Le statut "Pending" signifie que le traitement du ticket est temporairement mis en pause, généralement en attente d'informations complémentaires ou d'une action externe.
-
-### Comment joindre plusieurs fichiers ?
-
-Vous pouvez joindre plusieurs fichiers en utilisant le champ "Fichier". Cliquez sur "Attacher" et sélectionnez tous les fichiers nécessaires.
+### Où voir l'historique des demandes d'urgence ?
+Dans la **chronologie** du ticket (commentaires), sous forme d'entrées « Journal urgence » décrivant les demandes, validations, refus et annulations.
 
 ### Puis-je voir les tickets des autres commerciaux ?
+En principe, non, sauf droits particuliers.
 
-Non, vous ne pouvez voir que vos propres tickets (sauf si vous avez le rôle Administrateur Ventes).
+## En résumé
 
-### Le ticket est-il automatiquement envoyé au back office ?
-
-Oui, dès que vous sauvegardez un ticket, il est visible par le back office qui peut le prendre en charge.
-
----
-
-## 📞 Support
-
-Pour toute question ou problème technique :
-
-1. **Consultez ce guide** en premier
-2. **Contactez le back office** via un ticket ou par email
-3. **Contactez l'administrateur système** pour les problèmes techniques
+- créez un ticket clair et complet
+- joignez les documents utiles
+- utilisez la priorité pour l'importance générale
+- utilisez l'urgence seulement si une validation spécifique est nécessaire
+- suivez l'avancement depuis la liste et dans le ticket
 
 ---
 
-## 📅 Historique des modifications
-
-- **Version 1.0** - Décembre 2025 : Création du guide d'utilisation
-
----
-
-**Dernière mise à jour :** Décembre 2025  
-**Auteur :** Équipe Aures CRM
-
+**Dernière mise à jour :** Avril 2026  
+**Public visé :** Commerciaux  
+**Document :** Guide utilisateur Ticket Commercial
