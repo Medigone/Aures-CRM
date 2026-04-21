@@ -5,7 +5,12 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
-from frappe.utils import today
+from frappe.utils import cstr, now, today
+from frappe.utils.html_utils import sanitize_html
+
+
+ROLE_ADMIN_VENTES = "Administrateur Ventes"
+NIVEAU_URGENCE_OPTIONS = ("U0", "U1", "U2", "U3")
 
 
 class TicketCommercial(Document):
@@ -22,15 +27,17 @@ class TicketCommercial(Document):
         """Validations avant sauvegarde"""
         self.validate_required_fields()
         self.set_defaults()
+        self.apply_insert_urgence_guard()
+        self.validate_restricted_urgence_fields()
 
     def validate_required_fields(self):
         """Vérifie les champs requis"""
         if not self.customer:
             frappe.throw(_("Le champ Client est obligatoire"))
-        
+
         if not self.request_type:
             frappe.throw(_("Le champ Type de demande est obligatoire"))
-        
+
         if not self.priority:
             frappe.throw(_("Le champ Priorité est obligatoire"))
 
@@ -38,16 +45,246 @@ class TicketCommercial(Document):
         """Définit les valeurs par défaut"""
         if not self.owner_user:
             self.owner_user = frappe.session.user
-        
+
         if not self.creation_date:
             self.creation_date = today()
-        
+
         # Définir le commercial avec l'utilisateur créateur si non renseigné
         if not self.commercial:
             self.commercial = frappe.session.user
 
         if not self.niveau_urgence:
             self.niveau_urgence = "U0"
+
+        if not self.statut_demande_urgence:
+            self.statut_demande_urgence = "Aucune"
+
+    def apply_insert_urgence_guard(self):
+        """À la création, les champs urgence ne sont pas modifiables hors rôles privilégiés."""
+        if not self.is_new() or _can_bypass_urgence_field_guard():
+            return
+        self.niveau_urgence = "U0"
+        self.niveau_urgence_demande = None
+        self.statut_demande_urgence = "Aucune"
+        self.descr_urgence = None
+        self.urgence_validee_par = None
+        self.urgence_validee_le = None
+        self.commentaire_validation_urgence = None
+
+    def validate_restricted_urgence_fields(self):
+        """Empêche la modification directe des champs urgence hors flux whitelist."""
+        if getattr(frappe.flags, "ticket_urgence_whitelist", False):
+            return
+        if frappe.flags.in_import:
+            return
+        if self.is_new():
+            return
+
+        prev = frappe.db.get_value(
+            "Ticket Commercial",
+            self.name,
+            [
+                "niveau_urgence",
+                "descr_urgence",
+                "niveau_urgence_demande",
+                "statut_demande_urgence",
+                "urgence_validee_par",
+                "urgence_validee_le",
+                "commentaire_validation_urgence",
+            ],
+            as_dict=True,
+        )
+        if not prev:
+            return
+
+        protected = (
+            "niveau_urgence",
+            "descr_urgence",
+            "niveau_urgence_demande",
+            "statut_demande_urgence",
+            "urgence_validee_par",
+            "urgence_validee_le",
+            "commentaire_validation_urgence",
+        )
+
+        prev_statut = cstr(prev.get("statut_demande_urgence")) or "Aucune"
+        if prev_statut == "Validée":
+            for field in protected:
+                if cstr(self.get(field)) != cstr(prev.get(field)):
+                    frappe.throw(
+                        _(
+                            "Une urgence déjà validée ne peut pas être modifiée ni effacée depuis le formulaire."
+                        )
+                    )
+            return
+
+        if _can_bypass_urgence_field_guard():
+            return
+
+        for field in protected:
+            if cstr(self.get(field)) != cstr(prev.get(field)):
+                frappe.throw(
+                    _(
+                        "Les champs d'urgence ne peuvent pas être modifiés directement. "
+                        "Utilisez les actions « Demande d'urgence » ou « Valider / Refuser l'urgence »."
+                    )
+                )
+
+
+def _can_bypass_urgence_field_guard():
+    if frappe.session.user == "Administrator":
+        return True
+    roles = frappe.get_roles()
+    if ROLE_ADMIN_VENTES in roles:
+        return True
+    if "System Manager" in roles:
+        return True
+    return False
+
+
+def _assert_niveau(niveau, label=_("Niveau d'urgence")):
+    if niveau not in NIVEAU_URGENCE_OPTIONS:
+        frappe.throw(_("{0} invalide.").format(label))
+
+
+def _assert_admin_ventes():
+    if frappe.session.user == "Administrator":
+        return
+    roles = frappe.get_roles()
+    if ROLE_ADMIN_VENTES in roles or "System Manager" in roles:
+        return
+    frappe.throw(_("Action réservée au rôle Administrateur Ventes."), frappe.PermissionError)
+
+
+@frappe.whitelist()
+def submit_urgence_request(docname, niveau_demande, descr_urgence_html):
+    """Enregistre une demande d'urgence (niveau demandé + description), statut En attente."""
+    _assert_niveau(niveau_demande, _("Niveau demandé"))
+
+    doc = frappe.get_doc("Ticket Commercial", docname)
+    doc.check_permission("write")
+
+    if doc.docstatus == 1:
+        frappe.throw(_("Impossible de modifier l'urgence sur un document soumis."))
+
+    if doc.status in ("Terminé", "Annulé"):
+        frappe.throw(_("Impossible de demander une urgence sur un ticket terminé ou annulé."))
+
+    statut = doc.statut_demande_urgence or "Aucune"
+    if statut == "En attente":
+        frappe.throw(_("Une demande d'urgence est déjà en attente de validation."))
+    if statut == "Validée":
+        frappe.throw(_("Une urgence est déjà validée sur ce ticket ; impossible de faire une nouvelle demande."))
+
+    descr_safe = sanitize_html(descr_urgence_html or "", always_sanitize=True)
+    if not (descr_safe or "").strip():
+        frappe.throw(_("La description d'urgence est obligatoire."))
+
+    frappe.flags.ticket_urgence_whitelist = True
+    try:
+        doc = frappe.get_doc("Ticket Commercial", docname)
+        doc.niveau_urgence_demande = niveau_demande
+        doc.descr_urgence = descr_safe
+        doc.statut_demande_urgence = "En attente"
+        doc.save()
+    finally:
+        frappe.flags.ticket_urgence_whitelist = False
+
+    return {"status": "success"}
+
+
+def _assert_can_cancel_urgence_request(doc):
+    if frappe.session.user == "Administrator":
+        return
+    if (doc.commercial or "") == frappe.session.user:
+        return
+    frappe.throw(
+        _("Seul le commercial du ticket peut annuler sa demande d'urgence."),
+        frappe.PermissionError,
+    )
+
+
+@frappe.whitelist()
+def cancel_urgence_request(docname):
+    """Retire une demande d'urgence en attente et remet le ticket à U0 (commercial ou Administrator)."""
+    doc = frappe.get_doc("Ticket Commercial", docname)
+    doc.check_permission("write")
+    _assert_can_cancel_urgence_request(doc)
+
+    if doc.docstatus == 1:
+        frappe.throw(_("Impossible de modifier l'urgence sur un document soumis."))
+
+    if doc.status in ("Terminé", "Annulé"):
+        frappe.throw(_("Impossible d'annuler la demande sur un ticket terminé ou annulé."))
+
+    statut = doc.statut_demande_urgence or "Aucune"
+    if statut == "Validée":
+        frappe.throw(_("Impossible d'annuler : l'urgence est déjà validée."))
+    if statut != "En attente":
+        frappe.throw(_("Aucune demande d'urgence en attente à annuler."))
+
+    frappe.flags.ticket_urgence_whitelist = True
+    try:
+        doc = frappe.get_doc("Ticket Commercial", docname)
+        doc.niveau_urgence = "U0"
+        doc.niveau_urgence_demande = None
+        doc.statut_demande_urgence = "Aucune"
+        doc.descr_urgence = None
+        doc.urgence_validee_par = None
+        doc.urgence_validee_le = None
+        doc.commentaire_validation_urgence = None
+        doc.save()
+    finally:
+        frappe.flags.ticket_urgence_whitelist = False
+
+    return {"status": "success"}
+
+
+@frappe.whitelist()
+def process_urgence_decision(docname, action, niveau_valide=None, commentaire=None):
+    """
+    Valide ou refuse la demande d'urgence (Administrateur Ventes uniquement).
+    action: 'validate' | 'refuse'
+    """
+    _assert_admin_ventes()
+
+    action = (action or "").strip().lower()
+    if action not in ("validate", "refuse"):
+        frappe.throw(_("Action invalide."))
+
+    doc = frappe.get_doc("Ticket Commercial", docname)
+    doc.check_permission("write")
+
+    if doc.docstatus == 1:
+        frappe.throw(_("Impossible de traiter l'urgence sur un document soumis."))
+
+    if (doc.statut_demande_urgence or "") != "En attente":
+        frappe.throw(_("Aucune demande d'urgence en attente."))
+
+    frappe.flags.ticket_urgence_whitelist = True
+    try:
+        doc = frappe.get_doc("Ticket Commercial", docname)
+        if action == "validate":
+            _assert_niveau(niveau_valide, _("Niveau validé"))
+            doc.niveau_urgence = niveau_valide
+            doc.statut_demande_urgence = "Validée"
+            doc.urgence_validee_par = frappe.session.user
+            doc.urgence_validee_le = now()
+            doc.commentaire_validation_urgence = (commentaire or "").strip() or None
+        else:
+            comm = (commentaire or "").strip()
+            if not comm:
+                frappe.throw(_("Un commentaire est obligatoire pour refuser la demande d'urgence."))
+            doc.statut_demande_urgence = "Refusée"
+            doc.urgence_validee_par = frappe.session.user
+            doc.urgence_validee_le = now()
+            doc.commentaire_validation_urgence = comm
+
+        doc.save()
+    finally:
+        frappe.flags.ticket_urgence_whitelist = False
+
+    return {"status": "success"}
 
 
 @frappe.whitelist()
@@ -58,10 +295,15 @@ def update_assigne_a(docname, assigne_user):
         if not full_name:
             full_name = assigne_user
 
-        frappe.db.set_value("Ticket Commercial", docname, {
-            "assigne_a": assigne_user,
-            "assigne_a_nom": full_name
-        }, update_modified=False)
+        frappe.db.set_value(
+            "Ticket Commercial",
+            docname,
+            {
+                "assigne_a": assigne_user,
+                "assigne_a_nom": full_name,
+            },
+            update_modified=False,
+        )
 
         frappe.db.commit()
         return {"status": "success", "message": "Assignation mise à jour", "full_name": full_name}
@@ -77,7 +319,7 @@ def get_admin_ventes_users(doctype, txt, searchfield, start, page_len, filters):
     users_with_role = frappe.get_all(
         "Has Role",
         filters={"role": "Administrateur Ventes", "parenttype": "User"},
-        fields=["parent"]
+        fields=["parent"],
     )
     user_list = [d.parent for d in users_with_role]
 
@@ -101,7 +343,7 @@ def get_admin_ventes_users(doctype, txt, searchfield, start, page_len, filters):
             "user_list": tuple(user_list),
             "txt": f"%{txt}%",
             "start": start,
-            "page_len": page_len
+            "page_len": page_len,
         },
-        as_list=True
+        as_list=True,
     )

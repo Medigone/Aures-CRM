@@ -6,6 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_wtib",
   "status",
   "section_break_besd",
   "creation_date",
@@ -16,13 +17,15 @@
   "assigne_a",
   "assigne_a_nom",
   "commercial",
+  "section_break_strx",
+  "html_urgence",
   "section_info",
   "request_type",
+  "nom_commercial",
   "priority",
   "column_break_info",
   "customer",
   "customer_name",
-  "nom_commercial",
   "section_demande",
   "channel",
   "column_break_demande",
@@ -31,7 +34,13 @@
   "amended_from",
   "urgence_tab",
   "niveau_urgence",
-  "descr_urgence"
+  "niveau_urgence_demande",
+  "statut_demande_urgence",
+  "descr_urgence",
+  "section_validation_urgence",
+  "urgence_validee_par",
+  "urgence_validee_le",
+  "commentaire_validation_urgence"
  ],
  "fields": [
   {
@@ -74,11 +83,9 @@
    "default": "Moyenne",
    "fieldname": "priority",
    "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
+   "hidden": 1,
    "label": "Priorit\u00e9",
-   "options": "\nBasse\nMoyenne\nHaute",
-   "reqd": 1
+   "options": "\nBasse\nMoyenne\nHaute"
   },
   {
    "fieldname": "section_demande",
@@ -90,8 +97,9 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "\nCr\u00e9ation\nBon de commande\nDemande de devis\nInformation Production\nMise \u00e0 jour donn\u00e9es\nR\u00e9clamation\nEssai Blanc\nAutre",
-   "reqd": 1
+   "options": "\nConception\nBon de commande\nDemande de devis\nInformation Production\nMise \u00e0 jour donn\u00e9es\nR\u00e9clamation\nEssai Blanc\nAutre",
+   "reqd": 1,
+   "sort_options": 1
   },
   {
    "fieldname": "column_break_demande",
@@ -189,11 +197,13 @@
   {
    "fieldname": "echeance",
    "fieldtype": "Date",
+   "hidden": 1,
    "label": "\u00c9ch\u00e9ance"
   },
   {
    "fieldname": "urgence_tab",
    "fieldtype": "Tab Break",
+   "hidden": 1,
    "label": "Urgence"
   },
   {
@@ -202,8 +212,26 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Niveau d'urgence",
+   "label": "Urgence",
    "options": "U0\nU1\nU2\nU3",
+   "read_only": 1
+  },
+  {
+   "fieldname": "niveau_urgence_demande",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Niveau d'urgence demand\u00e9",
+   "options": "U0\nU1\nU2\nU3",
+   "read_only": 1
+  },
+  {
+   "default": "Aucune",
+   "fieldname": "statut_demande_urgence",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut demande urgence",
+   "options": "Aucune\nEn attente\nValid\u00e9e\nRefus\u00e9e",
    "read_only": 1
   },
   {
@@ -211,12 +239,49 @@
    "fieldtype": "Text Editor",
    "label": "Description Urgence",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_validation_urgence",
+   "fieldtype": "Section Break",
+   "label": "Validation urgence"
+  },
+  {
+   "fieldname": "urgence_validee_par",
+   "fieldtype": "Link",
+   "label": "Urgence valid\u00e9e par",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "urgence_validee_le",
+   "fieldtype": "Datetime",
+   "label": "Urgence valid\u00e9e le",
+   "read_only": 1
+  },
+  {
+   "fieldname": "commentaire_validation_urgence",
+   "fieldtype": "Small Text",
+   "label": "Commentaire validation / refus",
+   "read_only": 1
+  },
+  {
+   "fieldname": "html_urgence",
+   "fieldtype": "HTML",
+   "label": "Urgence"
+  },
+  {
+   "fieldname": "section_break_wtib",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_strx",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-21 11:17:18.392905",
+ "modified": "2026-04-21 13:59:28.454309",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
