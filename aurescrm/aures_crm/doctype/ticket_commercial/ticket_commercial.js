@@ -554,7 +554,7 @@ function render_urgence_html(frm) {
 
     const html = `
         <div style="display:flex;border:1px solid #e2e8f0;border-radius:8px;
-            overflow:hidden;background:#fff;
+            overflow:hidden;background:#fff;margin:0;
             box-shadow:0 1px 4px rgba(15,23,42,0.06);">
             <div style="width:4px;flex-shrink:0;background:${sC.accent};"></div>
             <div style="flex:1;padding:11px 13px 12px;">
@@ -594,6 +594,7 @@ function render_urgence_html(frm) {
         </div>`;
 
     field.$wrapper.html(html);
+    field.$wrapper.css({ "margin-top": "10px", "margin-bottom": "10px" });
 }
 
 function update_assigne_a(frm, assigne_user) {
