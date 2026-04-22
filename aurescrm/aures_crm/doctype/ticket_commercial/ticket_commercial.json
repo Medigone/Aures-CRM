@@ -23,6 +23,7 @@
   "request_type",
   "nom_commercial",
   "priority",
+  "site",
   "column_break_info",
   "customer",
   "customer_name",
@@ -277,12 +278,22 @@
   {
    "fieldname": "section_break_strx",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "site",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_standard_filter": 1,
+   "label": "Site de production",
+   "options": "Site Production",
+   "reqd": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-21 22:04:21.478098",
+ "modified": "2026-04-22 13:15:40.882821",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
