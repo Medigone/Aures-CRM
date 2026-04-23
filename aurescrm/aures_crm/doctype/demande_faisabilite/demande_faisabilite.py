@@ -8,6 +8,13 @@ from frappe.utils import now_datetime, add_days, getdate, cint # Ajout de l'impo
 
 
 class DemandeFaisabilite(Document):
+	def before_insert(self):
+		if self.ticket_commercial and not self.get("niveau_urgence"):
+			self.niveau_urgence = (
+				frappe.db.get_value("Ticket Commercial", self.ticket_commercial, "niveau_urgence")
+				or "U0"
+			)
+
 	def validate(self):
 		"""Validation automatique pour synchroniser type, is_reprint et essai_blanc"""
 		# Interdire les sous-articles dans la liste d'articles
@@ -242,7 +249,7 @@ def generate_etude_faisabilite(docname):
         communs = [
             "demande_faisabilite", "article", "article_parent", "quantite",
             "date_livraison", "client", "commercial", "id_commercial",
-            "is_reprint", "essai_blanc"
+            "is_reprint", "essai_blanc", "niveau_urgence",
         ]
         offset_fields = communs + []
         flexo_fields = communs + []
@@ -343,6 +350,7 @@ def _create_etude(demande, article, article_parent, quantite, date_livraison,
         "id_commercial": demande.id_commercial,
         "is_reprint": demande.is_reprint,
         "essai_blanc": essai_blanc,
+        "niveau_urgence": getattr(demande, "niveau_urgence", None) or "U0",
     }
 
     fields_list = flexo_fields if procede == "Flexo" else offset_fields
@@ -352,6 +360,23 @@ def _create_etude(demande, article, article_parent, quantite, date_livraison,
         if field in valid_fieldnames and field in base_values:
             etude.set(field, base_values[field])
     etude.insert(ignore_permissions=True)
+    etude_name = etude.name
+    # Recharger et sauvegarder : l'insert lie parfois le tracé (before_save) et d'autres champs
+    # dérivés / fetch (fichier_trace, points_colle, procédé, etc.) se stabilisent au 2e pass.
+    # Sans cela, le desk ouvre l'étude comme « non enregistré ».
+    try:
+        etude = frappe.get_doc(doctype, etude_name)
+        etude.save(ignore_permissions=True)
+    except Exception as e:
+        frappe.log_error(
+            message=frappe.get_traceback(), title="Etude: sauvegarde après création"
+        )
+        frappe.throw(
+            _(
+                "L'étude {0} a été créée mais la finalisation a échoué : {1}. "
+                "Ouvrez le document et enregistrez-le manuellement."
+            ).format(etude_name, str(e))
+        )
     return 1, 0
 
 

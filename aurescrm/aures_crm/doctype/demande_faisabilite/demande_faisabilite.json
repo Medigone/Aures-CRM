@@ -22,6 +22,8 @@
   "bouton_generer",
   "section_break_jdmh",
   "client",
+  "ticket_commercial",
+  "niveau_urgence",
   "date_livraison",
   "column_break_tric",
   "commercial",
@@ -99,6 +101,25 @@
    "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "ticket_commercial",
+   "fieldtype": "Link",
+   "label": "Ticket Commercial",
+   "options": "Ticket Commercial",
+   "read_only": 1
+  },
+  {
+   "default": "U0",
+   "fetch_from": "ticket_commercial.niveau_urgence",
+   "fetch_if_empty": 1,
+   "fieldname": "niveau_urgence",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Niveau d'urgence",
+   "options": "U0\nU1\nU2\nU3",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_tric",

@@ -225,6 +225,9 @@ doc_events = {
     "Demande Faisabilite": {
         "before_validate": "aurescrm.commercial_assignment.set_commercial_on_demande_faisabilite"
     },
+    "Ticket Commercial": {
+        "on_update": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial_hooks.propagate_niveau_urgence"
+    },
     "Commande Urgente": {
         "before_validate": "aurescrm.commercial_assignment.set_commercial_on_commande_urgente"
     },

@@ -17,6 +17,7 @@
   "section_break_nivw",
   "client",
   "raison_sociale",
+  "niveau_urgence",
   "column_break_cmms",
   "groupe_client",
   "commercial",
@@ -289,6 +290,18 @@
    "read_only": 1
   },
   {
+   "default": "U0",
+   "fetch_from": "demande_faisabilite.niveau_urgence",
+   "fetch_if_empty": 1,
+   "fieldname": "niveau_urgence",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Niveau d'urgence",
+   "options": "U0\nU1\nU2\nU3",
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_lcbk",
    "fieldtype": "Section Break"
   },
@@ -392,7 +405,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-24 11:42:41.718140",
+ "modified": "2026-04-23 12:47:55.392073",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",

@@ -155,7 +155,9 @@ function add_create_buttons(frm) {
             open_new_doc_in_new_tab("Demande Faisabilite", {
                 client: frm.doc.customer,
                 date_livraison: frm.doc.echeance || frappe.datetime.add_days(frappe.datetime.now_date(), 7),
-                type: "Premier Tirage"
+                type: "Premier Tirage",
+                ticket_commercial: frm.doc.name,
+                niveau_urgence: frm.doc.niveau_urgence
             });
         }, __("Créer"));
     }

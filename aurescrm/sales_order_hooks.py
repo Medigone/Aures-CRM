@@ -1,6 +1,28 @@
 import frappe
 from frappe import _
 
+
+def _niveau_urgence_pour_etude_technique(sales_order_doc, demande_name):
+	"""
+	Niveau d'urgence pour une Etude Technique créée depuis la commande.
+	Priorité au champ de la commande (custom_niveau_urgence, ex. U2), sinon la demande, sinon U0.
+	"""
+	allowed = ("U0", "U1", "U2", "U3")
+	nu = getattr(sales_order_doc, "custom_niveau_urgence", None)
+	if nu in allowed:
+		return nu
+	so_name = getattr(sales_order_doc, "name", None) or sales_order_doc.get("name")
+	if so_name:
+		nu = frappe.db.get_value("Sales Order", so_name, "custom_niveau_urgence")
+		if nu in allowed:
+			return nu
+	if demande_name:
+		nu = frappe.db.get_value("Demande Faisabilite", demande_name, "niveau_urgence")
+		if nu in allowed:
+			return nu
+	return "U0"
+
+
 def update_quotation_status_on_so_submit(doc, method):
     """
     Hook called on Sales Order submission.
@@ -196,6 +218,9 @@ def generate_technical_studies(sales_order_name):
 
             technical_study.commande = sales_order_name
             technical_study.demande_faisabilite = sales_order.custom_demande_de_faisabilité
+            technical_study.niveau_urgence = _niveau_urgence_pour_etude_technique(
+                sales_order, sales_order.custom_demande_de_faisabilité
+            )
 
             if hasattr(sales_order, 'custom_devis') and sales_order.custom_devis:
                 technical_study.devis = sales_order.custom_devis
@@ -371,7 +396,10 @@ def auto_generate_technical_studies_on_submit(doc, method):
                 
                 technical_study.commande = doc.name
                 technical_study.demande_faisabilite = doc.custom_demande_de_faisabilité
-                
+                technical_study.niveau_urgence = _niveau_urgence_pour_etude_technique(
+                    doc, doc.custom_demande_de_faisabilité
+                )
+
                 if hasattr(doc, 'custom_devis') and doc.custom_devis:
                     technical_study.devis = doc.custom_devis
                 

@@ -9,6 +9,7 @@
   "section_break_fkfa",
   "date_creation",
   "demande_faisabilite",
+  "niveau_urgence",
   "is_reprint",
   "essai_blanc",
   "column_break_wies",
@@ -249,6 +250,18 @@
    "options": "Demande Faisabilite",
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "default": "U0",
+   "fetch_from": "demande_faisabilite.niveau_urgence",
+   "fetch_if_empty": 1,
+   "fieldname": "niveau_urgence",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Niveau d'urgence",
+   "options": "U0\nU1\nU2\nU3",
+   "read_only": 1
   },
   {
    "fetch_from": "article.item_name",
