@@ -3,7 +3,10 @@
 
 """
 Déploiement initial du niveau d'urgence : force 'U0' sur toutes les lignes des
-documents du cycle (demande, études, devis, commande, étude technique).
+doctypes Aures (Demande, études offset/flexo, étude technique).
+
+Quotation / Sales Order (custom_niveau_urgence) : patch séparé
+`backfill_niveau_urgence_u0_quotation_sales_order` (colonnes Custom Field).
 
 À utiliser lorsque la prod n'a pas encore d'urgences U1+ enregistrées (tout à U0).
 
@@ -20,8 +23,6 @@ def execute():
 		("Etude Faisabilite", "niveau_urgence"),
 		("Etude Faisabilite Flexo", "niveau_urgence"),
 		("Etude Technique", "niveau_urgence"),
-		("Quotation", "custom_niveau_urgence"),
-		("Sales Order", "custom_niveau_urgence"),
 	]
 
 	frappe.db.auto_commit_on_many_writes = True

@@ -18,3 +18,4 @@ aurescrm.patches.clear_workstation_on_etude_technique
 aurescrm.patches.migrate_item_custom_cotations_article
 aurescrm.patches.migrate_ticket_commercial_urgence_u0_request_type
 aurescrm.patches.backfill_niveau_urgence_u0
+aurescrm.patches.backfill_niveau_urgence_u0_quotation_sales_order
