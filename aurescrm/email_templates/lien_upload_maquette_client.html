@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /></head>
+<body style="font-family: Arial, sans-serif; color: #1e293b; line-height: 1.5;">
+<p style="margin-bottom: 24px;"><img src="{{ site_url }}/files/Logo_aures_fb0ba79171b576.jpg" width="200" alt="Aures Emballages" style="display:block; height:auto; border:0; max-width:200px;" /></p>
+<p>Bonjour,</p>
+<p>Nous vous remercions pour votre confiance. Afin de finaliser le dossier <strong>{{ (doc.get('customer_name', '') or doc.get('name', '')) }}</strong>, veuillez déposer l'élément suivant : <strong>{{ requested_file }}</strong>.</p>
+{% if description %}
+<p><strong>Instructions :</strong><br/>{{ description }}</p>
+{% endif %}
+<p style="margin: 24px 0;">
+  <a href="{{ upload_url }}" style="background: #0f766e; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block; font-weight: 600;">Déposer le fichier</a>
+</p>
+<div style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 16px; border-radius: 6px; margin: 20px 0; max-width: 480px;">
+  <p style="margin: 0 0 8px 0; font-size: 13px; color: #64748b;">Mot de passe du lien (sensible)</p>
+  <p style="margin: 0; font-size: 18px; font-family: monospace; letter-spacing: 0.05em; color: #0f172a;"><strong>{{ upload_password }}</strong></p>
+  <p style="margin: 12px 0 0 0; text-align: left;">
+    <a href='javascript:prompt("Copiez le mot de passe :", {{ upload_password_js | safe }});void(0)' style="background: #e2e8f0; color: #0f172a; text-decoration: none; padding: 10px 18px; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 14px; border: 1px solid #cbd5e1;">Copier le mot de passe</a>
+  </p>
+  <p style="margin: 8px 0 0 0; font-size: 11px; color: #64748b;">Si le bouton ne réagit pas (messagerie), sélectionnez le mot de passe ci-dessus pour le copier manuellement.</p>
+</div>
+<p><strong>Nom de fichier recommandé :</strong> {{ doc.get('name', '') }}_NomFichier_v1.ext</p>
+<p><strong>Expiration du lien :</strong> {{ upload_expiration }} (passé ce délai, le dépôt ne sera plus possible)</p>
+<p style="margin-top: 32px;">Cordialement,<br/><strong>Aures Emballages</strong></p>
+</body>
+</html>

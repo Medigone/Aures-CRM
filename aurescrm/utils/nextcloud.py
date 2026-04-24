@@ -18,7 +18,7 @@ from typing import Any
 import frappe
 import requests
 from frappe import _
-from frappe.utils import cint, getdate, nowdate
+from frappe.utils import cint, get_url, getdate, nowdate
 from requests.auth import HTTPBasicAuth
 
 _REQUEST_TIMEOUT = 15
@@ -130,18 +130,72 @@ def _webdav_url(path: str) -> str:
     return f"{cfg['nextcloud_url']}/remote.php/dav/files/{quoted_user}/{encoded}"
 
 
-def _folder_ui_url(base_folder: str, folder_name: str) -> str:
-    """Lien d'ouverture du dossier dans l'interface web Nextcloud."""
+def _folder_path_url(base_folder: str, folder_name: str) -> str:
+    """URL de secours (chemin) — utilisée seulement si le fileid n'est pas disponible."""
     cfg = _get_config()
-    # ex. /Clients/CUST-2026-00042-Nom-Client
     dir_path = f"/{base_folder}/{folder_name}"
     return f"{cfg['nextcloud_url']}/apps/files/?dir={urllib.parse.quote(dir_path, safe='/')}"
 
 
+def _folder_id_url(fileid: str | int) -> str:
+    """
+    URL « persistante » Nextcloud : ``/<url>/f/<fileid>`` — reste valide après renommage
+    ou déplacement du dossier côté Nextcloud.
+    """
+    cfg = _get_config()
+    return f"{cfg['nextcloud_url']}/f/{fileid}"
+
+
+_PROPFIND_FILEID_BODY = (
+    '<?xml version="1.0"?>'
+    '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">'
+    "<d:prop>"
+    "<oc:fileid/>"
+    "</d:prop>"
+    "</d:propfind>"
+)
+
+
+def _propfind_fileid(path: str) -> str | None:
+    """PROPFIND depth=0 pour récupérer le fileid (oc:fileid) d'un dossier existant."""
+    cfg = _get_config()
+    url = _webdav_url(path)
+    auth = HTTPBasicAuth(cfg["nextcloud_user"], cfg["nextcloud_password"])
+    headers = {"Depth": "0", "Content-Type": "application/xml"}
+    try:
+        resp = requests.request(
+            "PROPFIND",
+            url,
+            data=_PROPFIND_FILEID_BODY,
+            headers=headers,
+            auth=auth,
+            timeout=_REQUEST_TIMEOUT,
+        )
+    except requests.RequestException as e:
+        frappe.log_error(
+            message=f"PROPFIND exception: {e!s}",
+            title="Nextcloud WebDAV",
+        )
+        return None
+    if resp.status_code not in (200, 207):
+        frappe.log_error(
+            message=f"PROPFIND HTTP {resp.status_code}\n{resp.text[:2000]!s}",
+            title="Nextcloud WebDAV",
+        )
+        return None
+    m = re.search(
+        r"<oc:fileid[^>]*>\s*(\d+)\s*</oc:fileid>",
+        resp.text or "",
+        flags=re.IGNORECASE,
+    )
+    return m.group(1) if m else None
+
+
 def create_folder(folder_name: str) -> dict | None:
     """
-    Crée le dossier ``{base}/folder_name`` via WebDAV (MKCOL).
-    Retourne ``{\"created\": bool, \"url\": ui_url}`` ou ``None`` si échec (hors 201/405).
+    Crée le dossier ``{base}/folder_name`` via WebDAV (MKCOL) puis récupère son ``fileid`` pour
+    construire une URL persistante (qui résiste aux renommages côté Nextcloud). Retourne
+    ``{"created": bool, "url": ui_url, "fileid": str|None}`` ou ``None`` (hors 201/405).
     """
     if not folder_name or not str(folder_name).strip():
         frappe.log_error(
@@ -151,7 +205,8 @@ def create_folder(folder_name: str) -> dict | None:
         return None
     cfg = _get_config()
     base = cfg["nextcloud_base_folder"]
-    path = f"{base}/{str(folder_name).strip()}"
+    fname = str(folder_name).strip()
+    path = f"{base}/{fname}"
     url = _webdav_url(path)
     auth = HTTPBasicAuth(cfg["nextcloud_user"], cfg["nextcloud_password"])
     try:
@@ -163,30 +218,39 @@ def create_folder(folder_name: str) -> dict | None:
         )
         return None
     status = resp.status_code
-    if status in (201, 405):
-        # 201 créé, 405 souvent = collection déjà existante (idempotent)
-        created = status == 201
-        return {
-            "created": created,
-            "url": _folder_ui_url(base, folder_name),
-        }
-    frappe.log_error(
-        message=f"MKCOL HTTP {status}\n{resp.text[:2000]!s}",
-        title="Nextcloud WebDAV",
-    )
-    return None
+    if status not in (201, 405):
+        frappe.log_error(
+            message=f"MKCOL HTTP {status}\n{resp.text[:2000]!s}",
+            title="Nextcloud WebDAV",
+        )
+        return None
+    created = status == 201
+    fileid = resp.headers.get("OC-FileId") or resp.headers.get("Oc-Fileid")
+    if not fileid:
+        # Dossier déjà présent (405) ou en-tête non renvoyée : on interroge Nextcloud.
+        fileid = _propfind_fileid(path)
+    ui_url = _folder_id_url(fileid) if fileid else _folder_path_url(base, fname)
+    return {
+        "created": created,
+        "url": ui_url,
+        "fileid": fileid,
+    }
 
 
 def ensure_customer_folder(customer: str) -> str:
     """
     Assure l'existence du dossier client sur Nextcloud et enregistre ``nextcloud_folder_url``.
-    Retourne l'URL de la page Fichiers Nextcloud pour ce dossier.
+
+    L'URL enregistrée est basée sur le **fileid** Nextcloud (``/f/<id>``) quand disponible : elle
+    suit donc le dossier même si un utilisateur le renomme ou le déplace côté Nextcloud. Si l'URL
+    déjà stockée est au format persistant (``/f/``), on la retourne telle quelle.
     """
     if not customer:
         frappe.throw(frappe._("Client (Customer) manquant."))
-    if frappe.get_meta("Customer").has_field("nextcloud_folder_url"):
+    has_field = frappe.get_meta("Customer").has_field("nextcloud_folder_url")
+    if has_field:
         existing = frappe.db.get_value("Customer", customer, "nextcloud_folder_url")
-        if existing:
+        if existing and "/f/" in existing:
             return existing
 
     if not frappe.db.exists("Customer", customer):
@@ -203,8 +267,7 @@ def ensure_customer_folder(customer: str) -> str:
             )
         )
     url = result["url"]
-    # Le champ personnalisé est créé par migration / custom field
-    if frappe.get_meta("Customer").has_field("nextcloud_folder_url"):
+    if has_field:
         frappe.db.set_value("Customer", customer, "nextcloud_folder_url", url, update_modified=False)
     return url
 
@@ -407,6 +470,9 @@ def generate_customer_upload_link(
         "upload_url": sh["url"],
         "upload_password": pwd,
         "upload_expiration": exp_display,
+        "site_url": get_url().rstrip("/"),
+        # JSON JS valide pour prompt(…, mot_de_passe) dans l’e-mail (guillemets simples sur le href)
+        "upload_password_js": json.dumps(pwd),
     }
     out = et.get_formatted_email(context)
     try:
@@ -461,6 +527,27 @@ def ensure_customer_folder_safe(customer: str) -> None:
         )
 
 
+def refresh_customer_folder_url(customer: str) -> str | None:
+    """
+    Force la résolution via PROPFIND du ``fileid`` et met à jour ``nextcloud_folder_url`` au
+    format persistant ``/f/<id>``. Utilisable lors d'une migration ou d'un renommage manuel.
+    """
+    if not customer or not frappe.db.exists("Customer", customer):
+        return None
+    if not frappe.get_meta("Customer").has_field("nextcloud_folder_url"):
+        return None
+    doc = frappe.get_doc("Customer", customer)
+    fname = build_folder_name(doc)
+    cfg = _get_config()
+    path = f"{cfg['nextcloud_base_folder']}/{fname}"
+    fileid = _propfind_fileid(path)
+    if not fileid:
+        return None
+    new_url = _folder_id_url(fileid)
+    frappe.db.set_value("Customer", customer, "nextcloud_folder_url", new_url, update_modified=False)
+    return new_url
+
+
 def bulk_create_folders_for_all_customers(dry_run: bool | str | int = False) -> dict[str, Any]:
     """
     Parcourt les clients actifs, crée les dossiers manquants (hors liens de dépôt). Utilisable
@@ -479,18 +566,34 @@ def bulk_create_folders_for_all_customers(dry_run: bool | str | int = False) -> 
     total = len(customers)
     n_created = 0
     n_skipped = 0
+    n_upgraded = 0
     n_err = 0
     _log = frappe.logger("aurescrm.nextcloud", allow_site=True, file_count=1)
+    has_field = frappe.get_meta("Customer").has_field("nextcloud_folder_url")
     for i, cname in enumerate(customers, start=1):
         if not (i % 50):
             _log.info("Nextcloud bulk: %s / %s clients", i, total)
-        has_url = False
-        if frappe.get_meta("Customer").has_field("nextcloud_folder_url"):
-            has_url = bool(
-                frappe.db.get_value("Customer", cname, "nextcloud_folder_url")
-            )
-        if has_url:
+        existing_url = None
+        if has_field:
+            existing_url = frappe.db.get_value("Customer", cname, "nextcloud_folder_url") or None
+        if existing_url and "/f/" in existing_url:
             n_skipped += 1
+            continue
+        if existing_url and "/f/" not in existing_url:
+            if dry_run:
+                _log.info("dry_run: migration URL de %s", cname)
+                continue
+            try:
+                if refresh_customer_folder_url(cname):
+                    n_upgraded += 1
+                else:
+                    n_skipped += 1
+            except Exception:
+                n_err += 1
+                frappe.log_error(
+                    message=frappe.get_traceback(),
+                    title=f"Nextcloud bulk (refresh) — {cname}",
+                )
             continue
         if dry_run:
             _log.info("dry_run: simulerait %s", cname)
@@ -507,7 +610,8 @@ def bulk_create_folders_for_all_customers(dry_run: bool | str | int = False) -> 
     return {
         "total": total,
         "dossiers_crees": n_created,
-        "deja_presents_ou_ignores": n_skipped,
+        "url_mises_a_niveau_fileid": n_upgraded,
+        "deja_persistantes_ou_ignorees": n_skipped,
         "erreurs": n_err,
         "dry_run": dry_run,
     }
