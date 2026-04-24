@@ -90,12 +90,10 @@ const aurescrm_nextcloud = {
                             " " +
                             frappe.utils.escape_html(m.expiration || "") +
                             "</p>" +
-                            "<p class='text-muted' style='margin-top:0.75rem;'>" +
-                            __(
-                                "Le client reçoit le lien et le mot de passe dans l’e-mail : rien d’autre n’est affiché ici. Vous pouvez, en plus, rappeler le mot de passe par WhatsApp (l’e-mail contient déjà toutes les informations)."
-                            ) +
+                            "<p class='text-muted small'>" +
+                            __("Le client reçoit le lien et le mot de passe dans l’e-mail.") +
                             "</p>";
-                        frappe.msgprint({ title: __("Lien généré"), message: html, wide: true });
+                        frappe.msgprint({ title: __("Lien généré"), message: html });
                         if (m.nextcloud_folder_url) {
                             frappe.model.set_value(
                                 frm.doctype,
