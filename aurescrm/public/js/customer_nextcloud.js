@@ -104,24 +104,18 @@ const aurescrm_nextcloud = {
                             "-btn'>" +
                             __("Copier") +
                             "</button></p>" +
-                            "<p class='text-warning small'>" +
+                            "<p class='text-danger small' style='margin-top:1rem;font-weight:500;'>" +
                             "⚠️ " +
                             __(
                                 "Transmettez ce mot de passe au client de préférence par WhatsApp (canal distinct de l’e-mail)."
                             ) +
                             "</p>" +
-                            "<p><a href='" +
-                            frappe.utils.escape_html(m.upload_url) +
-                            "' target='_blank' rel='noopener noreferrer'>" +
-                            __("Ouvrir le dépôt (lien public)") +
-                            "</a></p>" +
-                            (m.nextcloud_folder_url
-                                ? "<p><a href='" +
-                                  frappe.utils.escape_html(m.nextcloud_folder_url) +
-                                  "' target='_blank' rel='noopener noreferrer'>" +
-                                  __("Dossier Nextcloud (interface)") +
-                                  "</a></p>"
-                                : "");
+                            "<p class='text-danger small' style='margin-top:0.5rem;font-weight:500;'>" +
+                            "⚠️ " +
+                            __(
+                                "Une fois cette fenêtre fermée, le mot de passe ne sera plus affiché : notez-le ou copiez-le avant de fermer."
+                            ) +
+                            "</p>";
                         frappe.msgprint({ title: __("Lien généré"), message: html, wide: true });
                         setTimeout(function () {
                             const b = document.getElementById(btnId + "-btn");
