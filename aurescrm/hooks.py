@@ -29,7 +29,10 @@ app_license = "mit"
 
 # include js in doctype views
 doctype_js = {
-    "Customer": "public/js/customer.js",
+    "Customer": [
+        "public/js/customer.js",
+        "public/js/customer_nextcloud.js",
+    ],
     "Item": "public/js/item.js",
     "Quotation": "public/js/quotation_calcul_devis.js",
     "Pilotage Commercial": "aures_crm/doctype/pilotage_commercial/pilotage_commercial.js",
@@ -165,7 +168,8 @@ doc_events = {
             "aurescrm.customer_hooks.set_default_commercial",
             "aurescrm.customer_hooks.ensure_single_principal_per_company",
             "aurescrm.customer_hooks.sync_principal_commercial_to_legacy_field",
-        ]
+        ],
+        "after_insert": "aurescrm.utils.nextcloud.on_customer_after_insert",
     },
     "User": {
         "after_insert": "aurescrm.annuaire_interne.user_hooks.create_annuaire_for_user",
@@ -390,8 +394,7 @@ fixtures = [
     # "Workflow Document State",
     # "Workspace",
     # "Number Card"
-    
-    # Fixtures pour le module Meeting Interne
+    "lien_upload_maquette_client_email_template",
     # "Type Meeting"
     # "Raisons Accueil Client"
 ]
