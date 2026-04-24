@@ -20,7 +20,7 @@ frappe.ui.form.on("Customer", {
         }
         if (frm.doc.nextcloud_folder_url) {
             frm.add_custom_button(
-                __("Ouvrir dans Nextcloud"),
+                __("Ouvrir dans Cloud"),
                 function () {
                     window.open(frm.doc.nextcloud_folder_url, "_blank", "noopener,noreferrer");
                 },
