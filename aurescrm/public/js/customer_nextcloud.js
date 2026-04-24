@@ -79,7 +79,6 @@ const aurescrm_nextcloud = {
                             return;
                         }
                         const m = r.message;
-                        const btnId = "nc-pwd-" + frappe.utils.get_random(10);
                         const html =
                             "<p><strong>" +
                             __("E-mail envoyé à :") +
@@ -87,59 +86,16 @@ const aurescrm_nextcloud = {
                             frappe.utils.escape_html(m.email_sent_to) +
                             "</strong></p>" +
                             "<p class='text-muted small'>" +
-                            __("Expiration :") +
+                            __("Expiration du lien :") +
                             " " +
                             frappe.utils.escape_html(m.expiration || "") +
                             "</p>" +
-                            "<p><strong>" +
-                            __("Mot de passe du lien (à transmettre sur un autre canal) :") +
-                            " </strong></p>" +
-                            "<p><code class='h4' id='" +
-                            btnId +
-                            "-code'>" +
-                            frappe.utils.escape_html(m.password) +
-                            "</code> " +
-                            "<button class='btn btn-default btn-sm' type='button' id='" +
-                            btnId +
-                            "-btn'>" +
-                            __("Copier") +
-                            "</button></p>" +
-                            "<p class='text-danger small' style='margin-top:1rem;font-weight:500;'>" +
-                            "⚠️ " +
+                            "<p class='text-muted' style='margin-top:0.75rem;'>" +
                             __(
-                                "Transmettez ce mot de passe au client de préférence par WhatsApp (canal distinct de l’e-mail)."
-                            ) +
-                            "</p>" +
-                            "<p class='text-danger small' style='margin-top:0.5rem;font-weight:500;'>" +
-                            "⚠️ " +
-                            __(
-                                "Une fois cette fenêtre fermée, le mot de passe ne sera plus affiché : notez-le ou copiez-le avant de fermer."
+                                "Le client reçoit le lien et le mot de passe dans l’e-mail : rien d’autre n’est affiché ici. Vous pouvez, en plus, rappeler le mot de passe par WhatsApp (l’e-mail contient déjà toutes les informations)."
                             ) +
                             "</p>";
                         frappe.msgprint({ title: __("Lien généré"), message: html, wide: true });
-                        setTimeout(function () {
-                            const b = document.getElementById(btnId + "-btn");
-                            if (b) {
-                                b.addEventListener("click", function () {
-                                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                                        navigator.clipboard.writeText(m.password).then(
-                                            function () {
-                                                frappe.show_alert({
-                                                    message: __("Mot de passe copié."),
-                                                    indicator: "green",
-                                                });
-                                            },
-                                            function () {
-                                                frappe.show_alert({
-                                                    message: __("La copie a échoué. Sélectionnez le mot de passe manuellement."),
-                                                    indicator: "red",
-                                                });
-                                            }
-                                        );
-                                    }
-                                });
-                            }
-                        }, 200);
                         if (m.nextcloud_folder_url) {
                             frappe.model.set_value(
                                 frm.doctype,

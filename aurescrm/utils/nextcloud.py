@@ -372,8 +372,8 @@ def generate_customer_upload_link(
     recipient_email: str | None = None,
 ) -> dict[str, Any]:
     """
-    Assure le dossier client, crée le lien de dépôt, envoie l'e-mail et retourne les infos (dont le mot de
-    passe pour affichage unique — jamais stocké côté serveur après l'appel).
+    Assure le dossier client, crée le lien de dépôt, envoie l'e-mail (le mot de passe n'y figure que dans le
+    message) et retourne des métadonnées à l'UI (sans le mot de passe, pour limiter l'exposition réseau).
     """
     if not customer:
         frappe.throw(_("Aucun client spécifié."))
@@ -425,9 +425,9 @@ def generate_customer_upload_link(
                 " l'instance."
             )
         )
+    # Le mot de passe n’est pas renvoyé à l’UI (déjà dans l’e-mail) pour éviter exposition réseau.
     return {
         "upload_url": sh["url"],
-        "password": pwd,
         "expiration": exp_display,
         "email_sent_to": recipient_email,
         "folder_name": folder,
