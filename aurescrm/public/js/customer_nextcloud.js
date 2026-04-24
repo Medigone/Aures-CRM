@@ -15,7 +15,7 @@ frappe.ui.form.on("Customer", {
                 function () {
                     aurescrm_nextcloud.open_upload_request_dialog(frm);
                 },
-                __("Nextcloud")
+                __("Cloud")
             );
         }
         if (frm.doc.nextcloud_folder_url) {
@@ -24,7 +24,7 @@ frappe.ui.form.on("Customer", {
                 function () {
                     window.open(frm.doc.nextcloud_folder_url, "_blank", "noopener,noreferrer");
                 },
-                __("Nextcloud")
+                __("Cloud")
             );
         }
     },
