@@ -1,0 +1,30 @@
+{
+ "creation": "2026-04-24 10:00:00",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-th",
+ "idx": 0,
+ "modified": "2026-04-24 10:00:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "planning-charge-machines",
+ "owner": "Administrator",
+ "page_name": "planning-charge-machines",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Responsable Prepresse"
+  },
+  {
+   "role": "Responsable Étude Faisabilité"
+  },
+  {
+   "role": "Coordination"
+  }
+ ],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "Planning Charge Machines"
+}

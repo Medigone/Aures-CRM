@@ -1,0 +1,710 @@
+/* Planning charge machines — pivot table */
+
+.planning-charge-root {
+	padding-bottom: 1rem;
+}
+
+.planning-axis-hint {
+	margin-bottom: 0.5rem;
+}
+
+.planning-charge-scroll {
+	--planning-card-width: 300px;
+	--planning-machine-col-width: calc(var(--planning-card-width) + 16px);
+	--planning-date-col-width: 176px;
+	overflow: auto;
+	overflow-x: auto;
+	max-height: calc(100vh - 220px);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	background: var(--fg-color);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.planning-pivot {
+	margin-bottom: 0;
+	font-size: 12px;
+	border-collapse: separate;
+	border-spacing: 0;
+	width: max-content;
+	max-width: none;
+}
+
+.planning-pivot thead th {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	background: var(--fg-color);
+	box-shadow: 0 1px 0 var(--border-color);
+	vertical-align: top;
+	min-width: 140px;
+}
+
+.planning-pivot thead th.machine-col {
+	width: var(--planning-machine-col-width);
+	min-width: var(--planning-machine-col-width);
+	max-width: var(--planning-machine-col-width);
+	box-sizing: border-box;
+}
+
+.planning-pivot .planning-date-icon {
+	flex-shrink: 0;
+	display: block;
+	color: var(--text-color);
+}
+
+.planning-pivot .planning-machine-icon-wrap {
+	display: inline-flex;
+	align-items: center;
+	flex-shrink: 0;
+	line-height: 0;
+	color: var(--text-color);
+}
+
+.planning-pivot .planning-machine-icon-wrap .planning-machine-icon {
+	flex-shrink: 0;
+	display: block;
+	color: inherit;
+}
+
+.planning-pivot .planning-th-date-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.planning-pivot .sticky-corner {
+	left: 0;
+	z-index: 4;
+	width: var(--planning-date-col-width);
+	min-width: var(--planning-date-col-width);
+	max-width: var(--planning-date-col-width);
+	box-sizing: border-box;
+}
+
+.planning-pivot .sticky-date {
+	position: sticky;
+	left: 0;
+	z-index: 2;
+	background: var(--fg-color);
+	box-shadow: 1px 0 0 var(--border-color);
+	vertical-align: top;
+	width: var(--planning-date-col-width);
+	min-width: var(--planning-date-col-width);
+	max-width: var(--planning-date-col-width);
+	box-sizing: border-box;
+}
+
+.planning-pivot .date-cell-inner {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-start;
+}
+
+.planning-pivot .date-cell-title-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.planning-pivot .date-cell-title {
+	font-weight: 600;
+	font-size: 12px;
+	line-height: 1.3;
+	color: var(--text-color);
+	min-width: 0;
+}
+
+.planning-pivot .date-cell-badges {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+}
+
+/* Colonne date : jobs au-dessus, feuilles en dessous */
+.planning-pivot .date-cell-badges--stack {
+	flex-direction: column;
+	align-items: flex-start;
+	flex-wrap: nowrap;
+}
+
+.planning-pivot .planning-pill-row-jobs {
+	background: var(--orange-100, #ffecd9);
+	color: var(--orange-800, #a34c00);
+	border-color: var(--orange-300, #f0b27a);
+}
+
+.planning-pivot .planning-pill-row-feuilles {
+	background: #dcfce7;
+	color: #166534;
+	border-color: #86efac;
+}
+
+/* En-tête colonne machine : icône + nom + point statut (couleur) | badges totaux */
+.planning-pivot .machine-head-row {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	min-width: 0;
+}
+
+.planning-pivot .machine-head-line1 {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	flex-wrap: nowrap;
+	min-width: 0;
+}
+
+.planning-pivot .machine-head-line1-left {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	flex: 1;
+}
+
+.planning-pivot .machine-head-name-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 5px;
+	min-width: 0;
+	flex: 1;
+}
+
+/* Pas de flex-grow sur le nom : le point reste collé au texte, l’espace libre reste entre le bloc nom+point et les badges */
+.planning-pivot .machine-head-text {
+	font-weight: 600;
+	font-size: inherit;
+	line-height: 1.25;
+	color: var(--text-color);
+	min-width: 0;
+	flex: 0 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Cercle statut : fond clair (lisible) + bord teinté comme les pastilles du planning */
+.planning-pivot .machine-head-status-dot {
+	flex-shrink: 0;
+	width: 11px;
+	height: 11px;
+	border-radius: 50%;
+	box-sizing: border-box;
+	border: 1px solid transparent;
+}
+
+.planning-pivot .machine-head-status-dot--ind-green {
+	background: #bbf7d0;
+	border-color: #166534;
+}
+
+.planning-pivot .machine-head-status-dot--ind-blue {
+	background: #bfdbfe;
+	border-color: #1d4ed8;
+}
+
+.planning-pivot .machine-head-status-dot--ind-yellow {
+	background: #fef08a;
+	border-color: #854d0e;
+}
+
+.planning-pivot .machine-head-status-dot--ind-orange {
+	background: #fed7aa;
+	border-color: #9a3412;
+}
+
+.planning-pivot .machine-head-status-dot--ind-red {
+	background: #fecaca;
+	border-color: #991b1b;
+}
+
+.planning-pivot .machine-head-status-dot--ind-gray {
+	background: #e2e8f0;
+	border-color: #475569;
+}
+
+.planning-pivot .machine-head-status-dot--ind-purple {
+	background: #e9d5ff;
+	border-color: #6b21a8;
+}
+
+.planning-pivot .machine-head-status-dot--ind-pink {
+	background: #fbcfe8;
+	border-color: #9d174d;
+}
+
+.planning-pivot .machine-head-badges {
+	flex-shrink: 0;
+	align-self: flex-start;
+	justify-content: flex-end;
+}
+
+.planning-pivot .pivot-cell {
+	vertical-align: top;
+	padding: 8px !important;
+	width: var(--planning-machine-col-width);
+	min-width: var(--planning-machine-col-width);
+	max-width: var(--planning-machine-col-width);
+	box-sizing: border-box;
+}
+
+.planning-pivot .cell-jobs {
+	max-height: 240px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.planning-pivot .job-row {
+	position: relative;
+	width: var(--planning-card-width);
+	min-width: var(--planning-card-width);
+	max-width: var(--planning-card-width);
+	box-sizing: border-box;
+	padding: 8px 9px 8px 8px;
+	margin-bottom: 6px;
+	margin-left: auto;
+	margin-right: auto;
+	cursor: pointer;
+	border-radius: var(--border-radius);
+	background: var(--control-bg);
+	border: 1px solid var(--border-color);
+	transition: box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+/* Doctype : trait vertical (mêmes teintes que .planning-legend .legend-dot) */
+.planning-pivot .job-row.job-row--src-faisabilite {
+	border-left: 4px solid #3498db;
+}
+
+.planning-pivot .job-row.job-row--src-technique {
+	border-left: 4px solid #f39c12;
+}
+
+/* Fond très clair selon urgence (U0–U3) */
+.planning-pivot .job-row--urg-u0 {
+	background: #f0fdf4;
+}
+
+.planning-pivot .job-row--urg-u1 {
+	background: #fefce8;
+}
+
+.planning-pivot .job-row--urg-u2 {
+	background: #fff7ed;
+}
+
+.planning-pivot .job-row--urg-u3 {
+	background: #fef2f2;
+}
+
+.planning-pivot .job-row:hover {
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+	border-color: var(--primary);
+}
+
+.planning-pivot .job-row.job-row--src-faisabilite:hover {
+	border-left-color: #3498db;
+}
+
+.planning-pivot .job-row.job-row--src-technique:hover {
+	border-left-color: #f39c12;
+}
+
+/* Grille : badges (gauche) + dates (droite) */
+.planning-pivot .job-row-header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	column-gap: 10px;
+	align-items: start;
+	margin-bottom: 8px;
+}
+
+/* Replanif. : coin sup. droit, visible au survol (ou focus clavier dans la carte) */
+.planning-pivot .job-planning-edit-btn {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	z-index: 2;
+	padding: 4px 6px;
+	line-height: 1;
+	margin: 0;
+	border: none;
+	border-radius: var(--border-radius-sm, 4px);
+	background: #000;
+	color: #fff;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.12s ease, background 0.12s ease;
+}
+
+.planning-pivot .job-row:hover .job-planning-edit-btn,
+.planning-pivot .job-row:focus-within .job-planning-edit-btn {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.planning-pivot .job-planning-edit-btn:hover,
+.planning-pivot .job-planning-edit-btn:focus {
+	background: #1a1a1a;
+	color: #fff;
+	outline: none;
+	box-shadow: 0 0 0 2px var(--fg-color), 0 0 0 4px var(--primary);
+}
+
+.planning-pivot .job-planning-edit-icon {
+	display: block;
+	color: inherit;
+}
+
+.planning-pivot .job-row-header .job-meta-badges {
+	margin-bottom: 0;
+	min-width: 0;
+	max-width: 100%;
+}
+
+.planning-pivot .job-meta-spacer {
+	display: block;
+	min-width: 0;
+	width: 100%;
+}
+
+.planning-pivot .job-dates-corner {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	justify-content: flex-start;
+	gap: 6px;
+	flex-shrink: 0;
+	font-size: 10px;
+	line-height: 1.25;
+	color: var(--text-muted);
+}
+
+.planning-pivot .job-date-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
+}
+
+.planning-pivot .job-date-item .job-date-text {
+	font-variant-numeric: tabular-nums;
+}
+
+.planning-pivot .planning-job-icon {
+	flex-shrink: 0;
+	display: block;
+	color: var(--text-muted);
+}
+
+/* 2×2 : ligne 1 urgence + statut, ligne 2 Q.ART + Q.F — aligné avec les 2 lignes de dates */
+.planning-pivot .job-meta-badges {
+	display: grid;
+	grid-template-columns: repeat(2, max-content);
+	column-gap: 6px;
+	row-gap: 6px;
+	align-content: start;
+	justify-content: start;
+	justify-items: start;
+}
+
+.planning-pivot .planning-pill {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 4px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.2;
+	padding: 3px 8px;
+	border-radius: 999px;
+	border: 1px solid var(--border-color);
+	white-space: nowrap;
+}
+
+/* Statut dossier / machine : même gabarit, texte tronqué si long */
+.planning-pivot .planning-pill--compact {
+	max-width: 122px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	justify-content: center;
+	font-weight: 600;
+}
+
+.planning-pivot .planning-pill-label {
+	font-size: 10px;
+	font-weight: 500;
+	opacity: 0.85;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.planning-pivot .planning-pill-value {
+	font-variant-numeric: tabular-nums;
+}
+
+/* Palette unique par indicateur Frappe (état dossier, Q.ART, Q.F) */
+.planning-pivot .planning-pill--ind-green {
+	background: #dcfce7;
+	color: #166534;
+	border-color: #86efac;
+}
+
+.planning-pivot .planning-pill--ind-blue {
+	background: #dbeafe;
+	color: #1d4ed8;
+	border-color: #93c5fd;
+}
+
+.planning-pivot .planning-pill--ind-yellow {
+	background: #fef9c3;
+	color: #854d0e;
+	border-color: #fde047;
+}
+
+.planning-pivot .planning-pill--ind-orange {
+	background: #ffedd5;
+	color: #9a3412;
+	border-color: #fdba74;
+}
+
+.planning-pivot .planning-pill--ind-red {
+	background: #fee2e2;
+	color: #991b1b;
+	border-color: #fecaca;
+}
+
+.planning-pivot .planning-pill--ind-gray {
+	background: #f1f5f9;
+	color: #475569;
+	border-color: #cbd5e1;
+}
+
+.planning-pivot .planning-pill--ind-purple {
+	background: #f3e8ff;
+	color: #6b21a8;
+	border-color: #d8b4fe;
+}
+
+.planning-pivot .planning-pill--ind-pink {
+	background: #fce7f3;
+	color: #9d174d;
+	border-color: #f9a8d4;
+}
+
+.planning-pivot .job-client-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0 6px;
+	margin-bottom: 6px;
+	min-width: 0;
+	line-height: 1.35;
+}
+
+.planning-pivot .job-inline-sep {
+	color: var(--text-muted);
+	opacity: 0.65;
+	user-select: none;
+}
+
+.planning-pivot .job-client-code {
+	font-size: 11px;
+	font-weight: 600;
+	font-family: var(--font-stack, inherit);
+	color: var(--text-muted);
+	letter-spacing: 0.01em;
+}
+
+.planning-pivot .job-client-name {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--text-color);
+}
+
+.planning-pivot .job-article-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0 6px;
+	margin-bottom: 0;
+	padding-top: 6px;
+	border-top: 1px dashed var(--border-color);
+	min-width: 0;
+	line-height: 1.35;
+}
+
+.planning-pivot .job-item-code {
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--text-muted);
+	font-family: var(--font-stack, inherit);
+}
+
+.planning-pivot .job-item-name {
+	font-size: 11px;
+	color: var(--text-muted);
+}
+
+.planning-pivot .cell-foot {
+	margin-top: 8px;
+	padding-top: 6px;
+	border-top: 1px dashed var(--border-color);
+	font-size: 11px;
+}
+
+.planning-pivot .cell-empty {
+	color: var(--text-muted);
+	text-align: center;
+	padding: 12px 0;
+}
+
+.planning-legend .legend-item {
+	margin-right: 1rem;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.planning-legend .legend-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	display: inline-block;
+}
+
+/* Bandeau titre / filtres : masqué à l’écran, visible à l’impression */
+.planning-print-header {
+	display: none;
+}
+
+@media print {
+	@page {
+		size: A4 landscape;
+		margin: 8mm;
+	}
+
+	html,
+	body {
+		height: auto !important;
+		overflow: visible !important;
+		background: #fff !important;
+	}
+
+	/* N’imprimer que la zone planning (évite barres Desk) */
+	body * {
+		visibility: hidden !important;
+	}
+
+	.planning-charge-print-region,
+	.planning-charge-print-region * {
+		visibility: visible !important;
+	}
+
+	.planning-charge-print-region {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		padding: 0;
+		margin: 0;
+		background: #fff;
+	}
+
+	.planning-print-header {
+		display: block !important;
+		margin: 0 0 10px;
+		padding-bottom: 8px;
+		border-bottom: 1px solid #ccc;
+		break-inside: avoid;
+	}
+
+	.planning-print-title {
+		font-size: 16pt;
+		font-weight: 700;
+		margin: 0 0 4px;
+		color: #111;
+	}
+
+	.planning-print-datetime {
+		font-size: 9pt;
+		margin: 0 0 8px;
+		color: #333;
+	}
+
+	.planning-print-filters-table {
+		width: 100%;
+		max-width: 100%;
+		font-size: 8pt;
+		border-collapse: collapse;
+		color: #222;
+	}
+
+	.planning-print-filters-table th,
+	.planning-print-filters-table td {
+		border: 1px solid #ccc;
+		padding: 3px 6px;
+		vertical-align: top;
+		text-align: left;
+	}
+
+	.planning-print-filters-k {
+		width: 28%;
+		font-weight: 600;
+		background: #f5f5f5;
+	}
+
+	.planning-axis-hint {
+		display: none !important;
+	}
+
+	.planning-charge-scroll {
+		max-height: none !important;
+		overflow: visible !important;
+		box-shadow: none !important;
+		border: none !important;
+	}
+
+	.planning-pivot {
+		font-size: 8pt;
+		width: 100% !important;
+		max-width: none !important;
+	}
+
+	.planning-pivot thead th {
+		position: static !important;
+		box-shadow: none !important;
+		background: #f0f0f0 !important;
+		print-color-adjust: exact;
+		-webkit-print-color-adjust: exact;
+	}
+
+	.planning-pivot .job-row {
+		break-inside: avoid;
+		print-color-adjust: exact;
+		-webkit-print-color-adjust: exact;
+	}
+
+	.planning-pivot .job-planning-edit-btn {
+		display: none !important;
+	}
+
+	.planning-legend {
+		margin-top: 8px;
+		font-size: 8pt;
+		break-inside: avoid;
+	}
+}

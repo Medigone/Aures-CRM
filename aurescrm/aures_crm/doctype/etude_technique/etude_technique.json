@@ -10,6 +10,8 @@
   "date",
   "date_echeance",
   "is_reprint",
+  "date_livraison",
+  "date_planification_production",
   "column_break_crbc",
   "technicien",
   "nom_utilisateur",
@@ -336,6 +338,7 @@
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "description": "Machine",
    "fieldname": "machine",
    "fieldtype": "Link",
@@ -398,6 +401,22 @@
    "fieldtype": "Link",
    "label": "Ordre de Production",
    "options": "Ordre de Production"
+  },
+  {
+   "fetch_from": "commande.delivery_date",
+   "fetch_if_empty": 1,
+   "fieldname": "date_livraison",
+   "fieldtype": "Date",
+   "label": "Date de livraison",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Date cible de lancement en production (charge machine). \u00c0 renseigner par la planification ; distincte de la date de livraison client.",
+   "fieldname": "date_planification_production",
+   "fieldtype": "Date",
+   "in_standard_filter": 1,
+   "label": "Date planification production"
   }
  ],
  "grid_page_length": 50,
@@ -405,7 +424,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-23 12:47:55.392073",
+ "modified": "2026-04-24 12:45:54.283783",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",

@@ -81,6 +81,7 @@
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "default": "Today",
    "fieldname": "date_echeance",
    "fieldtype": "Date",
@@ -353,6 +354,7 @@
    "label": "Machine pr\u00e9vue"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "machine_prevue",
    "fieldtype": "Link",
    "hidden": 1,
@@ -362,6 +364,7 @@
    "options": "Machine"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "statut_machine_prevue",
    "fieldtype": "Data",
    "hidden": 1,
@@ -374,6 +377,7 @@
    "hidden": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "format_machine",
    "fieldtype": "Data",
    "hidden": 1,
@@ -394,7 +398,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-15 14:37:06.356930",
+ "modified": "2026-04-24 12:35:42.126970",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -490,6 +494,27 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Orange",
+   "title": "En \u00e9tude"
+  },
+  {
+   "color": "Green",
+   "title": "R\u00e9alisable"
+  },
+  {
+   "color": "Red",
+   "title": "Non R\u00e9alisable"
+  },
+  {
+   "color": "Gray",
+   "title": "Annul\u00e9e"
+  }
+ ],
  "track_changes": 1
 }

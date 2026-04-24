@@ -307,7 +307,8 @@ def create_ordre_production(etude_name):
 			"quantite_a_produire": etude.quantite,
 			"route_production": route,
 			"statut": "Nouveau",
-			"priorite": "Normale"
+			"priorite": "Normale",
+			"date_debut_prevue": getattr(etude, "date_planification_production", None) or None,
 		})
 		
 		ordre.insert()
