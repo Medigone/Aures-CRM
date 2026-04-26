@@ -4,7 +4,7 @@
 
 
 import frappe
-from aurescrm.utils.nextcloud import bulk_create_folders_for_all_customers
+from aurescrm.integrations.nextcloud import bulk_create_folders_for_all_customers
 
 
 def execute() -> None:

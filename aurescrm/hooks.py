@@ -169,7 +169,7 @@ doc_events = {
             "aurescrm.customer_hooks.ensure_single_principal_per_company",
             "aurescrm.customer_hooks.sync_principal_commercial_to_legacy_field",
         ],
-        "after_insert": "aurescrm.utils.nextcloud.on_customer_after_insert",
+        "after_insert": "aurescrm.integrations.nextcloud.on_customer_after_insert",
     },
     "User": {
         "after_insert": "aurescrm.annuaire_interne.user_hooks.create_annuaire_for_user",

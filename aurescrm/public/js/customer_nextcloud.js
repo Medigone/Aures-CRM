@@ -64,7 +64,7 @@ const aurescrm_nextcloud = {
                     return;
                 }
                 frappe.call({
-                    method: "aurescrm.utils.nextcloud.generate_customer_upload_link",
+                    method: "aurescrm.integrations.nextcloud.generate_customer_upload_link",
                     args: {
                         customer: frm.doc.name,
                         requested_file: v.requested_file,
@@ -109,7 +109,7 @@ const aurescrm_nextcloud = {
         });
         d.show();
         frappe.call({
-            method: "aurescrm.utils.nextcloud.get_contact_email_for_customer",
+            method: "aurescrm.integrations.nextcloud.get_contact_email_for_customer",
             args: { customer: frm.doc.name },
             callback: function (r) {
                 if (r && r.message) {

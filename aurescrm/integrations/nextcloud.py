@@ -506,7 +506,7 @@ def on_customer_after_insert(doc, method=None) -> None:
     if getattr(doc, "doctype", None) != "Customer" or not doc.get("name"):
         return
     frappe.enqueue(
-        "aurescrm.utils.nextcloud.ensure_customer_folder_safe",
+        "aurescrm.integrations.nextcloud.ensure_customer_folder_safe",
         queue="short",
         job_id=f"nextcloud-ensure:{doc.name}"[:100],
         customer=doc.name,
