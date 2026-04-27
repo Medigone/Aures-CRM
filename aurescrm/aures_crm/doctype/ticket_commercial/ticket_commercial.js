@@ -841,7 +841,10 @@ function render_suivi_cycle_html(frm) {
                                 }
                             }
                         }
-                        html += cycle_status_badge(st);
+                        html +=
+                            "<span style=\"display:inline-block;margin-left:8px;vertical-align:middle;\">" +
+                            cycle_status_badge(st) +
+                            "</span>";
                         html += "</div>";
                     });
                 }

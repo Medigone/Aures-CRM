@@ -384,7 +384,7 @@ fixtures = [
     #     "doctype": "Custom DocPerm",
     #     "filters": []  # Export uniquement les permissions personnalisées
     # },
-    "Custom HTML Block",
+    # "Custom HTML Block",
     # "Client Script",
     # "Workflow",
     # "Workflow State",
@@ -392,7 +392,7 @@ fixtures = [
     # "Workflow Transition",
     # "Workflow Action",
     # "Workflow Document State",
-    # "Workspace",
+    "Workspace",
     # "Number Card"
     # "lien_upload_maquette_client_email_template",
     # "Type Meeting"
