@@ -23,6 +23,20 @@ class TicketCommercial(Document):
         if not self.commercial:
             self.commercial = frappe.session.user
 
+    def before_save(self):
+        """À la transition workflow Nouveau → En Cours (Démarrer), assigne le ticket à l'utilisateur courant."""
+        if self.is_new() or frappe.flags.in_import:
+            return
+        old = self.get_doc_before_save()
+        if not old:
+            return
+        old_status = cstr(old.get("status")) or ""
+        new_status = cstr(self.status) or ""
+        if old_status == "Nouveau" and new_status == "En Cours":
+            user = frappe.session.user
+            self.assigne_a = user
+            self.assigne_a_nom = frappe.db.get_value("User", user, "full_name") or user
+
     def validate(self):
         """Validations avant sauvegarde"""
         self.validate_required_fields()
@@ -406,3 +420,111 @@ def get_admin_ventes_users(doctype, txt, searchfield, start, page_len, filters):
         },
         as_list=True,
     )
+
+
+# Statuts de Demande Faisabilite considérés comme « terminés » pour éviter un doublon de création
+CLOSED_DEMANDE_STATUSES = ("Annulée", "Fermée")
+
+
+@frappe.whitelist()
+def get_primary_open_demande_for_ticket(ticket_name):
+    """
+    Retourne le nom d'une Demande Faisabilite encore « ouverte » pour ce ticket
+    (non Annulée / Fermée), la plus récemment modifiée.
+    """
+    if not ticket_name:
+        return {}
+
+    ticket = frappe.get_doc("Ticket Commercial", ticket_name)
+    ticket.check_permission("read")
+
+    rows = frappe.get_all(
+        "Demande Faisabilite",
+        filters={
+            "ticket_commercial": ticket_name,
+            "status": ["not in", list(CLOSED_DEMANDE_STATUSES)],
+        },
+        fields=["name"],
+        order_by="modified desc",
+        limit_page_length=1,
+    )
+    if not rows:
+        return {}
+    return {"name": rows[0].name}
+
+
+@frappe.whitelist()
+def get_cycle_documents(ticket_name):
+    """
+    Agrège les demandes, études, devis et commandes liés au ticket pour affichage HTML.
+    """
+    if not ticket_name:
+        frappe.throw(_("Ticket manquant."))
+
+    ticket = frappe.get_doc("Ticket Commercial", ticket_name)
+    ticket.check_permission("read")
+
+    from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import (
+        get_linked_documents_for_demande,
+    )
+
+    demandes = frappe.get_all(
+        "Demande Faisabilite",
+        filters={"ticket_commercial": ticket_name},
+        fields=["name", "status", "type", "modified"],
+        order_by="modified desc",
+    )
+
+    out_demandes = []
+    for dem in demandes:
+        linked = get_linked_documents_for_demande(dem.name)
+        etudes = linked.get("etudes") or []
+        sales_raw = linked.get("sales_documents") or []
+        sales_enriched = []
+        for sd in sales_raw:
+            row = dict(sd)
+            if sd.get("doctype") == "Quotation":
+                extra = frappe.db.get_value(
+                    "Quotation",
+                    sd["name"],
+                    ["docstatus", "status"],
+                    as_dict=True,
+                )
+                if extra:
+                    row["docstatus"] = extra.get("docstatus")
+                    if extra.get("status") is not None:
+                        row["status"] = extra.get("status")
+            elif sd.get("doctype") == "Sales Order":
+                extra = frappe.db.get_value(
+                    "Sales Order",
+                    sd["name"],
+                    [
+                        "docstatus",
+                        "status",
+                        "custom_bon_de_commande_client",
+                        "custom_date_bon_de_commande",
+                        "custom_devis",
+                    ],
+                    as_dict=True,
+                )
+                if extra:
+                    row["docstatus"] = extra.get("docstatus")
+                    if extra.get("status") is not None:
+                        row["status"] = extra.get("status")
+                    row["bon_de_commande_client"] = extra.get("custom_bon_de_commande_client")
+                    dbc = extra.get("custom_date_bon_de_commande")
+                    row["date_bon_de_commande"] = str(dbc) if dbc else None
+                    row["devis_lie"] = extra.get("custom_devis")
+            sales_enriched.append(row)
+        out_demandes.append(
+            {
+                "name": dem.name,
+                "status": dem.status,
+                "type": dem.get("type"),
+                "modified": str(dem.modified) if dem.get("modified") else None,
+                "etudes": etudes,
+                "sales_documents": sales_enriched,
+            }
+        )
+
+    return {"demandes": out_demandes}

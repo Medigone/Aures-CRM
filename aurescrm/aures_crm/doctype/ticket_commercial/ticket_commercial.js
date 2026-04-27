@@ -17,6 +17,7 @@ frappe.ui.form.on("Ticket Commercial", {
         add_admin_urgence_validation_buttons(frm);
         style_urgence_group_secondary(frm);
         render_urgence_html(frm);
+        render_suivi_cycle_html(frm);
     },
 
     customer: function(frm) {
@@ -54,6 +55,7 @@ frappe.ui.form.on("Ticket Commercial", {
                 title: __("Réclamation")
             });
         }
+        render_suivi_cycle_html(frm);
     },
 
     assigne_a: function(frm) {
@@ -84,10 +86,6 @@ function add_assign_buttons(frm) {
     if (!frappe.user.has_role("Administrateur Ventes")) {
         return;
     }
-
-    frm.add_custom_button(__("À moi"), function() {
-        update_assigne_a(frm, frappe.session.user);
-    }, __("Attribuer"));
 
     frm.add_custom_button(__("Attribuer à..."), function() {
         let dialog = new frappe.ui.Dialog({
@@ -145,34 +143,56 @@ function add_create_buttons(frm) {
         return;
     }
 
-    if (frappe.model.can_create("Demande Faisabilite")) {
-        frm.add_custom_button(__("Demande de faisabilité"), function() {
-            if (!frm.doc.customer) {
-                frappe.msgprint(__("Veuillez sélectionner un client avant de créer une demande de faisabilité."));
-                return;
+    // Demande de faisabilité : visible seulement si le back-office a démarré le ticket
+    const can_create_linked_docs = frm.doc.status === "En Cours";
+
+    // Demande de faisabilité : n'apparaît que s'il n'existe déjà aucune demande « ouverte »
+    // (hors Annulée / Fermée), cf. get_primary_open_demande_for_ticket
+    if (can_create_linked_docs && frappe.model.can_create("Demande Faisabilite") && !frm.is_new() && frm.doc.name) {
+        const ticket_name = frm.doc.name;
+        frappe.call({
+            method: "aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial.get_primary_open_demande_for_ticket",
+            args: { ticket_name: ticket_name },
+            callback: function(r) {
+                if (!frm || !frm.doc || frm.doc.name !== ticket_name) {
+                    return;
+                }
+                if (r.message && r.message.name) {
+                    return;
+                }
+                frm.add_custom_button(
+                    __("Demande de faisabilité"),
+                    function() {
+                        if (!frm.doc.customer) {
+                            frappe.msgprint(
+                                __(
+                                    "Veuillez sélectionner un client avant de créer une demande de faisabilité."
+                                )
+                            );
+                            return;
+                        }
+                        if (frm.is_new() || !frm.doc.name) {
+                            frappe.msgprint(
+                                __(
+                                    "Enregistrez le ticket avant de créer une demande de faisabilité."
+                                )
+                            );
+                            return;
+                        }
+                        open_new_doc_in_new_tab("Demande Faisabilite", {
+                            client: frm.doc.customer,
+                            date_livraison:
+                                frm.doc.echeance ||
+                                frappe.datetime.add_days(frappe.datetime.now_date(), 7),
+                            type: "Premier Tirage",
+                            ticket_commercial: frm.doc.name,
+                            niveau_urgence: frm.doc.niveau_urgence
+                        });
+                    },
+                    __("Créer")
+                );
             }
-
-            open_new_doc_in_new_tab("Demande Faisabilite", {
-                client: frm.doc.customer,
-                date_livraison: frm.doc.echeance || frappe.datetime.add_days(frappe.datetime.now_date(), 7),
-                type: "Premier Tirage",
-                ticket_commercial: frm.doc.name,
-                niveau_urgence: frm.doc.niveau_urgence
-            });
-        }, __("Créer"));
-    }
-
-    if (frappe.model.can_create("Item")) {
-        frm.add_custom_button(__("Article"), function() {
-            if (!frm.doc.customer) {
-                frappe.msgprint(__("Veuillez sélectionner un client avant de créer un article."));
-                return;
-            }
-
-            open_new_doc_in_new_tab("Item", {
-                custom_client: frm.doc.customer
-            });
-        }, __("Créer"));
+        });
     }
 }
 
@@ -597,6 +617,247 @@ function render_urgence_html(frm) {
 
     field.$wrapper.html(html);
     field.$wrapper.css({ "margin-top": "10px", "margin-bottom": "10px" });
+}
+
+/**
+ * Correspondance statuts ERPNext (Quotation / Sales Order) -> clés de libellé FR
+ * (aligné sur la logique de demande_faisabilite.js — get_status_badge)
+ */
+const ERPNext_VENTE_STATUS_TO_FR = {
+    Draft: "Brouillon",
+    Submitted: "Soumis",
+    Cancelled: "Annulé",
+    Open: "Ouvert",
+    Lost: "Perdu",
+    Ordered: "Commandé",
+    "To Deliver and Bill": "À livrer et facturer",
+    "To Bill": "À facturer",
+    "To Deliver": "À livrer",
+    Completed: "Terminé",
+    Closed: "Fermé",
+    "On Hold": "En attente"
+};
+
+/** Libellé français pour le suivi (devis / commande) ; laisse inchangé si déjà en français ou inconnu. */
+function label_vente_status_pour_affichage(status) {
+    if (status == null || status === "") {
+        return "";
+    }
+    const frKey = ERPNext_VENTE_STATUS_TO_FR[status];
+    if (frKey) {
+        return __(frKey);
+    }
+    return status;
+}
+
+function cycle_status_badge(status) {
+    const s = status || "";
+    const styleByFrKey = {
+        Nouveau: { bg: "rgba(17, 138, 178, 0.1)", fg: "#118ab2" },
+        "En étude": { bg: "rgba(244, 162, 97, 0.1)", fg: "#f4a261" },
+        Programmée: { bg: "rgba(17, 138, 178, 0.1)", fg: "#118ab2" },
+        Réalisable: { bg: "rgba(42, 157, 143, 0.1)", fg: "#2a9d8f" },
+        "Non Réalisable": { bg: "rgba(230, 57, 70, 0.1)", fg: "#e63946" },
+        Brouillon: { bg: "rgba(108, 117, 125, 0.1)", fg: "#6c757d" },
+        Soumis: { bg: "rgba(0, 123, 255, 0.1)", fg: "#007bff" },
+        Annulé: { bg: "rgba(230, 57, 70, 0.1)", fg: "#e63946" },
+        Ouvert: { bg: "rgba(0, 123, 255, 0.1)", fg: "#007bff" },
+        Perdu: { bg: "rgba(231, 111, 81, 0.1)", fg: "#e76f51" },
+        Commandé: { bg: "rgba(40, 167, 69, 0.1)", fg: "#28a745" },
+        Terminé: { bg: "rgba(40, 167, 69, 0.1)", fg: "#28a745" },
+        Fermé: { bg: "rgba(40, 167, 69, 0.1)", fg: "#28a745" },
+        "À livrer et facturer": { bg: "rgba(255, 193, 7, 0.15)", fg: "#856404" },
+        "À facturer": { bg: "rgba(255, 193, 7, 0.15)", fg: "#856404" },
+        "À livrer": { bg: "rgba(255, 193, 7, 0.15)", fg: "#856404" },
+        "En attente": { bg: "rgba(108, 117, 125, 0.1)", fg: "#6c757d" },
+        // Secours : libellé anglais si jamais affiché sans traduction
+        Open: { bg: "rgba(0, 123, 255, 0.1)", fg: "#007bff" },
+        Ordered: { bg: "rgba(40, 167, 69, 0.1)", fg: "#28a745" },
+        Draft: { bg: "rgba(108, 117, 125, 0.1)", fg: "#6c757d" },
+        "To Deliver and Bill": { bg: "rgba(255, 193, 7, 0.15)", fg: "#856404" }
+    };
+    const frKeyForStyle = ERPNext_VENTE_STATUS_TO_FR[s] || s;
+    const c = styleByFrKey[frKeyForStyle] || styleByFrKey[s] || {
+        bg: "rgba(71, 85, 105, 0.1)",
+        fg: "#475569"
+    };
+    const displayText =
+        ERPNext_VENTE_STATUS_TO_FR[s] != null ? label_vente_status_pour_affichage(s) : s;
+    return (
+        "<span style=\"display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600;" +
+        "background:" +
+        c.bg +
+        ";color:" +
+        c.fg +
+        ";\">" +
+        frappe.utils.escape_html(displayText) +
+        "</span>"
+    );
+}
+
+/** Types de ticket pour lesquels le bloc « Suivi du cycle » est affiché (aligné sur le DocType + depends_on) */
+const SUIVI_CYCLE_REQUEST_TYPES = [
+    "Demande de devis",
+    "Bon de commande",
+    "Essai Blanc"
+];
+
+function is_suivi_cycle_request_type(frm) {
+    return SUIVI_CYCLE_REQUEST_TYPES.includes(frm.doc.request_type);
+}
+
+function render_suivi_cycle_html(frm) {
+    const field = frm.get_field("suivi_cycle_html");
+    if (!field || !field.$wrapper) {
+        return;
+    }
+    if (!is_suivi_cycle_request_type(frm)) {
+        field.$wrapper.empty();
+        return;
+    }
+    if (frm.is_new()) {
+        field.$wrapper.html(
+            "<p class=\"text-muted small\" style=\"padding:8px 0;\">" +
+                frappe.utils.escape_html(
+                    __("Enregistrez le ticket pour afficher le suivi des demandes, devis et commandes.")
+                ) +
+                "</p>"
+        );
+        return;
+    }
+
+    field.$wrapper.html(
+        "<p class=\"text-muted small\" style=\"padding:8px 0;\">" + __("Chargement…") + "</p>"
+    );
+
+    frappe.call({
+        method: "aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial.get_cycle_documents",
+        args: { ticket_name: frm.doc.name },
+        callback: function(res) {
+            const demandes = (res.message && res.message.demandes) || [];
+            if (!demandes.length) {
+                field.$wrapper.html(
+                    "<p class=\"text-muted small\" style=\"padding:8px 0;\">" +
+                        frappe.utils.escape_html(
+                            __(
+                                "Aucune demande de faisabilité liée. Utilisez Créer → Demande de faisabilité pour démarrer le cycle."
+                            )
+                        ) +
+                        "</p>"
+                );
+                return;
+            }
+
+            let html = "<div style=\"display:flex;flex-direction:column;gap:14px;\">";
+            demandes.forEach(function(d) {
+                const demName = frappe.utils.escape_html(d.name);
+                const demType = d.type ? " · " + frappe.utils.escape_html(d.type) : "";
+                const demStat = d.status || "";
+                html += "<div style=\"border:0.5px solid #d1d8dd;border-radius:8px;overflow:hidden;background:#fff;\">";
+                html +=
+                    "<div style=\"padding:8px 12px;border-bottom:0.5px solid #d1d8dd;background:#f8f9fa;font-size:12px;font-weight:600;\">";
+                html +=
+                    "<a href=\"#\" onclick=\"frappe.set_route('Form','Demande Faisabilite','" +
+                    d.name +
+                    "');return false;\">" +
+                    demName +
+                    "</a>" +
+                    demType +
+                    " &nbsp; ";
+                html += cycle_status_badge(demStat);
+                html += "</div>";
+
+                html += "<div style=\"padding:10px 12px;display:flex;flex-direction:column;gap:10px;\">";
+                // Études
+                html += "<div><div style=\"font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:4px;\">" + __("Études de faisabilité") + "</div>";
+                const etudes = d.etudes || [];
+                if (!etudes.length) {
+                    html += "<p style=\"font-size:11px;color:#94a3b8;margin:0;\">" + __("Aucune étude.") + "</p>";
+                } else {
+                    etudes.forEach(function(e) {
+                        const dt = e.doctype || "Etude Faisabilite";
+                        const st = e.status || "";
+                        html += "<div style=\"font-size:12px;margin-bottom:4px;\">";
+                        html +=
+                            "<a href=\"#\" onclick=\"frappe.set_route('Form','" +
+                            dt +
+                            "','" +
+                            e.name +
+                            "');return false;\">" +
+                            frappe.utils.escape_html(e.name) +
+                            "</a> ";
+                        html += cycle_status_badge(st);
+                        html += "</div>";
+                    });
+                }
+                html += "</div>";
+
+                // Documents de vente
+                html += "<div><div style=\"font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:4px;\">" + __("Devis & commandes") + "</div>";
+                const sales = d.sales_documents || [];
+                if (!sales.length) {
+                    html += "<p style=\"font-size:11px;color:#94a3b8;margin:0;\">" + __("Aucun devis ni commande liés.") + "</p>";
+                } else {
+                    sales.forEach(function(doc) {
+                        const st = doc.status || "";
+                        html += "<div style=\"font-size:12px;margin-bottom:6px;\">";
+                        if (doc.doctype === "Quotation") {
+                            html += "<strong>" + __("Devis") + ":</strong> ";
+                            html +=
+                                "<a href=\"#\" onclick=\"frappe.set_route('Form','Quotation','" +
+                                doc.name +
+                                "');return false;\">" +
+                                frappe.utils.escape_html(doc.name) +
+                                "</a> ";
+                        } else if (doc.doctype === "Sales Order") {
+                            html += "<strong>" + __("Commande") + ":</strong> ";
+                            html +=
+                                "<a href=\"#\" onclick=\"frappe.set_route('Form','Sales Order','" +
+                                doc.name +
+                                "');return false;\">" +
+                                frappe.utils.escape_html(doc.name) +
+                                "</a> ";
+                            {
+                                const bcNum = doc.bon_de_commande_client;
+                                const bcDate = doc.date_bon_de_commande;
+                                if (bcNum || bcDate) {
+                                    const parts = [];
+                                    if (bcNum) {
+                                        parts.push(
+                                            "N\u00ba BC: " + frappe.utils.escape_html(bcNum)
+                                        );
+                                    }
+                                    if (bcDate) {
+                                        parts.push(
+                                            __("Livraison") +
+                                                " : " +
+                                                frappe.datetime.str_to_user(bcDate)
+                                        );
+                                    }
+                                    html +=
+                                        "<span style=\"font-size:11px;color:#64748b;margin-left:4px;\">" +
+                                        parts.join(" \u00b7 ") +
+                                        "</span>";
+                                }
+                            }
+                        }
+                        html += cycle_status_badge(st);
+                        html += "</div>";
+                    });
+                }
+                html += "</div>";
+
+                html += "</div></div>";
+            });
+            html += "</div>";
+            field.$wrapper.html(html);
+        },
+        error: function() {
+            field.$wrapper.html(
+                "<p class=\"text-danger small\">" + __("Impossible de charger le suivi du cycle.") + "</p>"
+            );
+        }
+    });
 }
 
 function update_assigne_a(frm, assigne_user) {

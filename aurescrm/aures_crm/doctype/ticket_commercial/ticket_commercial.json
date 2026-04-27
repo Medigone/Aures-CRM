@@ -19,6 +19,8 @@
   "commercial",
   "section_break_strx",
   "html_urgence",
+  "section_suivi_cycle",
+  "suivi_cycle_html",
   "section_info",
   "request_type",
   "nom_commercial",
@@ -272,6 +274,15 @@
    "label": "Urgence"
   },
   {
+   "fieldname": "section_suivi_cycle",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "suivi_cycle_html",
+   "fieldtype": "HTML",
+   "label": "Documents li\u00e9s"
+  },
+  {
    "fieldname": "section_break_wtib",
    "fieldtype": "Section Break"
   },
@@ -293,7 +304,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-23 15:38:44.147692",
+ "modified": "2026-04-27 11:54:58.133103",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
