@@ -502,7 +502,7 @@ def get_cycle_documents(ticket_name):
                         "docstatus",
                         "status",
                         "custom_bon_de_commande_client",
-                        "custom_date_bon_de_commande",
+                        "delivery_date",
                         "custom_devis",
                     ],
                     as_dict=True,
@@ -512,8 +512,8 @@ def get_cycle_documents(ticket_name):
                     if extra.get("status") is not None:
                         row["status"] = extra.get("status")
                     row["bon_de_commande_client"] = extra.get("custom_bon_de_commande_client")
-                    dbc = extra.get("custom_date_bon_de_commande")
-                    row["date_bon_de_commande"] = str(dbc) if dbc else None
+                    dd = extra.get("delivery_date")
+                    row["delivery_date"] = str(dd) if dd else None
                     row["devis_lie"] = extra.get("custom_devis")
             sales_enriched.append(row)
         out_demandes.append(

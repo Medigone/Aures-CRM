@@ -819,7 +819,7 @@ function render_suivi_cycle_html(frm) {
                                 "</a> ";
                             {
                                 const bcNum = doc.bon_de_commande_client;
-                                const bcDate = doc.date_bon_de_commande;
+                                const bcDate = doc.delivery_date;
                                 if (bcNum || bcDate) {
                                     const parts = [];
                                     if (bcNum) {
