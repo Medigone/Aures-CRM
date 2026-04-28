@@ -35,7 +35,9 @@ doctype_js = {
     ],
     "Item": "public/js/item.js",
     "Quotation": "public/js/quotation_calcul_devis.js",
+    "Sales Order": "public/js/sales_order_dossier_fabrication.js",
     "Pilotage Commercial": "aures_crm/doctype/pilotage_commercial/pilotage_commercial.js",
+    "Dossier Fabrication": "aures_crm/doctype/dossier_fabrication/dossier_fabrication.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -219,8 +221,8 @@ doc_events = {
             "aurescrm.sales_order_hooks.update_quotation_status_on_so_submit",
             # Mise à jour du chemin
             "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_sales_order",
-            # Nouvelle fonction pour créer automatiquement les études techniques
-            "aurescrm.sales_order_hooks.auto_generate_technical_studies_on_submit"
+            # Création du dossier fabrication (études techniques créées depuis le dossier)
+            "aurescrm.aures_crm.doctype.dossier_fabrication.dossier_fabrication.create_dossier_fabrication_on_submit"
         ],
         "on_cancel": "aurescrm.sales_order_hooks.update_quotation_status_on_so_cancel",
         "before_submit": "aurescrm.sales_order_hooks.validate_bon_de_commande"

@@ -1,6 +1,10 @@
 import frappe
 from frappe import _
 
+from aurescrm.aures_crm.doctype.dossier_fabrication.dossier_fabrication import (
+	create_dossier_from_sales_order,
+)
+
 
 def _niveau_urgence_pour_etude_technique(sales_order_doc, demande_name):
 	"""
@@ -113,168 +117,71 @@ def update_quotation_status_on_so_cancel(doc, method):
                 
         except Exception as e:
             frappe.log_error(f"Failed to update Quotation {quotation_name} status from SO {doc.name}: {e}", "update_quotation_status_on_so_cancel")
-            frappe.msgprint(_("Échec de la mise à jour du statut du Devis lié : {0}").format(e), indicator=red, title=_(Erreur))
+            frappe.msgprint(_("Échec de la mise à jour du statut du Devis lié : {0}").format(e), indicator='red', title=_('Erreur'))
 
 
 @frappe.whitelist()
 def generate_technical_studies(sales_order_name):
-    """
-    Generate technical studies for each item in the Sales Order.
-    For each item:
-    1. Get the feasibility request ID from custom_demande_de_faisabilité
-    2. Find feasibility studies with status "Réalisable" linked to that request
-    3. Extract the "Trace" and "Imposition" IDs
-    4. Create technical studies with these IDs and copy the 'custom_retirage' flag.
-    """
-    try:
-        # Get the Sales Order document
-        sales_order = frappe.get_doc("Sales Order", sales_order_name)
-        
-        # Check if the Sales Order has a feasibility request
-        if not sales_order.custom_demande_de_faisabilité:
-            frappe.msgprint(_("Aucune demande de faisabilité n'est associée à cette commande."), 
-                           indicator='yellow', 
-                           title=_('Attention'))
-            return
-        
-        # Get the feasibility request ID
-        feasibility_request_id = sales_order.custom_demande_de_faisabilité
-        
-        # Find feasibility studies with status "Réalisable" linked to this request
-        feasibility_studies = frappe.get_all(
-            "Etude Faisabilite",
-            filters={
-                "demande_faisabilite": feasibility_request_id,
-                "status": "Réalisable"
-            },
-            fields=["name", "trace", "imposition", "machine_prevue"]
-        )
-        
-        if not feasibility_studies:
-            frappe.msgprint(_("Aucune étude de faisabilité avec statut 'Réalisable' n'a été trouvée pour cette demande."), 
-                           indicator='yellow', 
-                           title=_('Attention'))
-            return
-        
-        created_studies = 0
-        
-        import datetime
-        due_date = datetime.datetime.now() + datetime.timedelta(days=1)
-        
-        maquettes_data = {}
-        try:
-            maquettes_list = frappe.get_all(
-                "Maquettes Articles Commande",
-                filters={"parent": sales_order_name},
-                fields=["article", "maquette"]
-            )
-            
-            for m in maquettes_list:
-                if m.article and m.maquette:
-                    maquettes_data[m.article] = m.maquette
-        except Exception as e:
-            frappe.log_error(f"Error retrieving maquettes for SO {sales_order_name}: {e}", "generate_technical_studies")
-        
-        for item in sales_order.items:
-            technical_study = frappe.new_doc("Etude Technique")
-            technical_study.sales_order = sales_order_name
-            technical_study.item_code = item.item_code
-            technical_study.item_name = item.item_name
-            technical_study.qty = item.qty
-
-            technical_study.client = sales_order.customer
-            technical_study.date_echeance = due_date.strftime('%Y-%m-%d')
-
-            technical_study.article = item.item_code
-            technical_study.quantite = item.qty
-
-            existing_bat = frappe.get_all(
-                "BAT",
-                filters={
-                    "article": item.item_code,
-                    "status": "BAT-P Validé"
-                },
-                fields=["name"],
-                order_by="date desc",
-                limit=1
-            )
-            
-            if existing_bat:
-                technical_study.bat = existing_bat[0].name
-            else:
-                existing_bat_e = frappe.get_all(
-                    "BAT",
-                    filters={
-                        "article": item.item_code,
-                        "status": "BAT-E Validé"
-                    },
-                    fields=["name"],
-                    order_by="date desc",
-                    limit=1
-                )
-                
-                if existing_bat_e:
-                    technical_study.bat = existing_bat_e[0].name
-
-            technical_study.commande = sales_order_name
-            technical_study.demande_faisabilite = sales_order.custom_demande_de_faisabilité
-            technical_study.niveau_urgence = _niveau_urgence_pour_etude_technique(
-                sales_order, sales_order.custom_demande_de_faisabilité
-            )
-
-            if hasattr(sales_order, 'custom_devis') and sales_order.custom_devis:
-                technical_study.devis = sales_order.custom_devis
-
-            if hasattr(sales_order, 'custom_retirage') and sales_order.custom_retirage is not None:
-                 technical_study.is_reprint = sales_order.custom_retirage
-            else:
-                 technical_study.is_reprint = 0
-
-            if item.item_code in maquettes_data:
-                technical_study.maquette = maquettes_data[item.item_code]
-
-            for study in feasibility_studies:
-                if study.trace and study.imposition:
-                    technical_study.trace = study.trace
-                    technical_study.imposition = study.imposition
-                    technical_study.etude_faisabilite = study.name
-                    if study.machine_prevue:
-                        technical_study.machine = study.machine_prevue
-                    break
-
-            technical_study.insert(ignore_permissions=True)
-            created_studies += 1
-        
-        if created_studies > 0:
-            frappe.msgprint(_("{0} étude(s) technique(s) créée(s) avec succès.").format(created_studies), 
-                           indicator='green', 
-                           title=_('Succès'))
-        else:
-            frappe.msgprint(_("Aucune étude technique n'a été créée. Vérifiez que les études de faisabilité contiennent des informations de trace et d'imposition."), 
-                           indicator='yellow', 
-                           title=_('Attention'))
-            
-    except Exception as e:
-        frappe.log_error(f"Failed to generate technical studies for Sales Order {sales_order_name}: {e}", 
-                        "generate_technical_studies")
-        frappe.msgprint(_("Échec de la génération des études techniques: {0}").format(str(e)), 
-                       indicator='red', 
-                       title=_('Erreur'))
+	"""
+	Legacy / bouton commande : crée le Dossier Fabrication si absent.
+	Les études techniques se créent depuis une ligne du programme livraison du dossier.
+	"""
+	try:
+		sales_order = frappe.get_doc("Sales Order", sales_order_name)
+		had_before = frappe.db.exists("Dossier Fabrication", {"sales_order": sales_order_name})
+		name = create_dossier_from_sales_order(sales_order)
+		if name:
+			link = frappe.utils.get_link_to_form("Dossier Fabrication", name)
+			if not had_before:
+				frappe.msgprint(
+					_("Dossier fabrication créé : {0}. Programmez les livraisons puis créez les études depuis le dossier.").format(
+						link
+					),
+					indicator="green",
+					title=_("Dossier fabrication"),
+				)
+			else:
+				frappe.msgprint(
+					_("Dossier fabrication : {0}. Programmez les livraisons puis créez les études depuis la grille « Programme livraison ».").format(
+						link
+					),
+					indicator="blue",
+					title=_("Dossier fabrication"),
+				)
+		else:
+			frappe.msgprint(
+				_(
+					"Impossible de créer le dossier fabrication (demande de faisabilité liée "
+					"et étude de faisabilité « Réalisable » avec tracé et imposition requis)."
+				),
+				indicator="yellow",
+				title=_("Attention"),
+			)
+	except Exception as e:
+		frappe.log_error(
+			f"generate_technical_studies dossier for Sales Order {sales_order_name}: {e}",
+			"generate_technical_studies",
+		)
+		frappe.msgprint(
+			_("Échec : {0}").format(str(e)),
+			indicator="red",
+			title=_("Erreur"),
+		)
 
 
 @frappe.whitelist()
 def check_existing_technical_studies(sales_order_name):
-    """
-    Check if technical studies already exist for any items in this Sales Order.
-    Returns:
-    - True if any technical studies exist
-    - False if no technical studies exist
-    """
-    # Count technical studies linked to this Sales Order
-    count = frappe.db.count("Etude Technique", {"commande": sales_order_name})
-    
-    # Return True if any exist, False otherwise
-    return count > 0
+	"""Retourne True si un Dossier Fabrication existe déjà pour cette commande."""
+	return bool(frappe.db.exists("Dossier Fabrication", {"sales_order": sales_order_name}))
+
+
+@frappe.whitelist()
+def get_sales_order_fabrication_dashboard(sales_order_name):
+	"""Données pour le bloc HTML commande : lien vers le dossier fabrication (études créées depuis le dossier)."""
+	dossier_name = frappe.db.get_value(
+		"Dossier Fabrication", {"sales_order": sales_order_name}, "name"
+	)
+	return {"dossier": dossier_name}
 
 @frappe.whitelist()
 def get_technical_studies_for_sales_order(sales_order_name):
@@ -297,149 +204,6 @@ def validate_bon_de_commande(doc, method):
     """
     if not doc.custom_bon_de_commande_client or not doc.custom_date_bon_de_commande:
         frappe.throw(_("Veuillez renseigner les champs 'Bon de Commande Client' et 'Date Bon de Commande' avant de soumettre la commande."))
-
-def auto_generate_technical_studies_on_submit(doc, method):
-    """
-    Fonction appelée automatiquement lors de la validation d'une commande client (on_submit).
-    Vérifie si des études techniques existent pour chaque article de la commande.
-    Si aucune étude technique n'existe, elle les crée automatiquement.
-    """
-    try:
-        # Vérifier si des études techniques existent déjà pour cette commande
-        existing_studies_count = frappe.db.count("Etude Technique", {"commande": doc.name})
-        
-        if existing_studies_count == 0:
-            # Aucune étude technique n'existe, les créer automatiquement
-            frappe.log_error(f"Auto-generating technical studies for Sales Order {doc.name}", "auto_generate_technical_studies")
-            
-            # Vérifier si la commande a une demande de faisabilité associée
-            if not doc.custom_demande_de_faisabilité:
-                frappe.log_error(f"Sales Order {doc.name} has no feasibility request linked", "auto_generate_technical_studies")
-                return
-            
-            # Obtenir l'ID de la demande de faisabilité
-            feasibility_request_id = doc.custom_demande_de_faisabilité
-            
-            # Trouver les études de faisabilité avec statut "Réalisable" liées à cette demande
-            feasibility_studies = frappe.get_all(
-                "Etude Faisabilite",
-                filters={
-                    "demande_faisabilite": feasibility_request_id,
-                    "status": "Réalisable"
-                },
-                fields=["name", "trace", "imposition", "machine_prevue"]
-            )
-            
-            if not feasibility_studies:
-                frappe.log_error(f"No feasible studies found for feasibility request {feasibility_request_id}", "auto_generate_technical_studies")
-                return
-            
-            created_studies = 0
-            
-            import datetime
-            due_date = datetime.datetime.now() + datetime.timedelta(days=1)
-            
-            maquettes_data = {}
-            try:
-                maquettes_list = frappe.get_all(
-                    "Maquettes Articles Commande",
-                    filters={"parent": doc.name},
-                    fields=["article", "maquette"]
-                )
-                
-                for m in maquettes_list:
-                    if m.article and m.maquette:
-                        maquettes_data[m.article] = m.maquette
-            except Exception as e:
-                frappe.log_error(f"Error retrieving maquettes for SO {doc.name}: {e}", "auto_generate_technical_studies")
-            
-            for item in doc.items:
-                technical_study = frappe.new_doc("Etude Technique")
-                technical_study.sales_order = doc.name
-                technical_study.item_code = item.item_code
-                technical_study.item_name = item.item_name
-                technical_study.qty = item.qty
-                
-                technical_study.client = doc.customer
-                technical_study.date_echeance = due_date.strftime('%Y-%m-%d')
-                
-                technical_study.article = item.item_code
-                technical_study.quantite = item.qty
-                
-                existing_bat = frappe.get_all(
-                    "BAT",
-                    filters={
-                        "article": item.item_code,
-                        "status": "BAT-P Validé"
-                    },
-                    fields=["name"],
-                    order_by="date desc",
-                    limit=1
-                )
-                
-                if existing_bat:
-                    technical_study.bat = existing_bat[0].name
-                else:
-                    existing_bat_e = frappe.get_all(
-                        "BAT",
-                        filters={
-                            "article": item.item_code,
-                            "status": "BAT-E Validé"
-                        },
-                        fields=["name"],
-                        order_by="date desc",
-                        limit=1
-                    )
-                    
-                    if existing_bat_e:
-                        technical_study.bat = existing_bat_e[0].name
-                
-                technical_study.commande = doc.name
-                technical_study.demande_faisabilite = doc.custom_demande_de_faisabilité
-                technical_study.niveau_urgence = _niveau_urgence_pour_etude_technique(
-                    doc, doc.custom_demande_de_faisabilité
-                )
-
-                if hasattr(doc, 'custom_devis') and doc.custom_devis:
-                    technical_study.devis = doc.custom_devis
-                
-                if hasattr(doc, 'custom_retirage') and doc.custom_retirage is not None:
-                    technical_study.is_reprint = doc.custom_retirage
-                else:
-                    technical_study.is_reprint = 0
-                
-                if item.item_code in maquettes_data:
-                    technical_study.maquette = maquettes_data[item.item_code]
-                
-                for study in feasibility_studies:
-                    if study.trace and study.imposition:
-                        technical_study.trace = study.trace
-                        technical_study.imposition = study.imposition
-                        technical_study.etude_faisabilite = study.name
-                        if study.machine_prevue:
-                            technical_study.machine = study.machine_prevue
-                        break
-                
-                technical_study.insert(ignore_permissions=True)
-                created_studies += 1
-            
-            if created_studies > 0:
-                frappe.msgprint(_("{0} étude(s) technique(s) créée(s) automatiquement lors de la validation de la commande.").format(created_studies), 
-                               indicator='green', 
-                               title=_('Études Techniques Créées'))
-                frappe.log_error(f"Successfully auto-generated {created_studies} technical studies for Sales Order {doc.name}", "auto_generate_technical_studies")
-        else:
-            # Des études techniques existent déjà
-            frappe.log_error(f"Technical studies already exist for Sales Order {doc.name} ({existing_studies_count} found)", "auto_generate_technical_studies")
-            
-    except Exception as e:
-        frappe.log_error(f"Failed to auto-generate technical studies for Sales Order {doc.name}: {e}", 
-                        "auto_generate_technical_studies")
-        # Ne pas faire échouer la validation de la commande si la création des études techniques échoue
-        frappe.msgprint(_("Attention : Échec de la création automatique des études techniques. Vous pouvez les créer manuellement via le bouton 'Créer Études Techniques'."), 
-                       indicator='orange', 
-                       title=_('Avertissement'))
-
 
 def analyze_quotation_command_status(quotation_name):
     """

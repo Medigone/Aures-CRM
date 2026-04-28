@@ -50,6 +50,9 @@
   "devis",
   "column_break_kzfy",
   "commande",
+  "column_break_df",
+  "dossier_fabrication",
+  "ligne_dossier_fabrication",
   "ordre_production",
   "section_break_lcbk",
   "trace",
@@ -319,6 +322,24 @@
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "column_break_df",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dossier_fabrication",
+   "fieldtype": "Link",
+   "label": "Dossier fabrication",
+   "options": "Dossier Fabrication"
+  },
+  {
+   "description": "Nom de la ligne enfant du dossier (tab Programme livraison)",
+   "fieldname": "ligne_dossier_fabrication",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Ligne dossier fabrication",
+   "read_only": 1
+  },
+  {
    "fieldname": "donn\u00e9es_techniques_tab",
    "fieldtype": "Tab Break",
    "label": "Donn\u00e9es Techniques"
@@ -424,7 +445,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-24 12:45:54.283783",
+ "modified": "2026-04-28 09:44:23.867812",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",

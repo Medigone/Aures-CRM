@@ -1,7 +1,7 @@
 {
  "charts": [],
  "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"1OwS_622p8\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial accueil\",\"col\":12}},{\"id\":\"POpo0msWRB\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Technique accueil\",\"col\":12}},{\"id\":\"CorGvB7mkL\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Suivi cr\u00e9ances\",\"col\":12}}]",
- "creation": "2026-04-24 18:17:26.823010",
+ "creation": "2026-04-28 10:28:59.432635",
  "custom_blocks": [
   {
    "custom_block_name": "Actions Rapides - Commercial accueil",
@@ -30,7 +30,7 @@
  "is_hidden": 0,
  "label": "Home",
  "links": [],
- "modified": "2026-04-24 18:59:42.644897",
+ "modified": "2026-04-28 14:42:00.108522",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Home",

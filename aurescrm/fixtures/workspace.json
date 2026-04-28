@@ -12665,7 +12665,7 @@
  },
  {
   "charts": [],
-  "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"pcmPlanning2026\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Planning Charge Machines\",\"col\":3}},{\"id\":\"1OwS_622p8\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial accueil\",\"col\":12}},{\"id\":\"POpo0msWRB\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Technique accueil\",\"col\":12}},{\"id\":\"CorGvB7mkL\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Suivi créances\",\"col\":12}}]",
+  "content": "[{\"id\":\"dCogGira5S\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Accueil\",\"col\":12}},{\"id\":\"1OwS_622p8\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Commercial accueil\",\"col\":12}},{\"id\":\"POpo0msWRB\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Actions Rapides - Technique accueil\",\"col\":12}},{\"id\":\"CorGvB7mkL\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"Suivi créances\",\"col\":12}}]",
   "custom_blocks": [
    {
     "custom_block_name": "Actions Rapides - Commercial accueil",
@@ -12705,7 +12705,7 @@
   "is_hidden": 0,
   "label": "Home",
   "links": [],
-  "modified": "2026-04-24 12:00:00",
+  "modified": "2026-04-28 14:42:00.108522",
   "module": "Aures CRM",
   "name": "Home",
   "number_cards": [],
@@ -12715,25 +12715,7 @@
   "restrict_to_domain": null,
   "roles": [],
   "sequence_id": 1.0,
-  "shortcuts": [
-   {
-    "color": "Green",
-    "doc_view": null,
-    "format": null,
-    "icon": null,
-    "kanban_board": null,
-    "label": "Planning Charge Machines",
-    "link_to": "planning-charge-machines",
-    "parent": "Home",
-    "parentfield": "shortcuts",
-    "parenttype": "Workspace",
-    "report_ref_doctype": null,
-    "restrict_to_domain": null,
-    "stats_filter": null,
-    "type": "Page",
-    "url": null
-   }
-  ],
+  "shortcuts": [],
   "title": "Home"
  },
  {

@@ -1,0 +1,183 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-04-28 10:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "article",
+  "designation_article",
+  "quantite_commandee",
+  "date_livraison_commande",
+  "column_break_r1",
+  "quantite_programmee",
+  "quantite_produite",
+  "quantite_restante_a_programmer",
+  "quantite_restante_a_produire",
+  "statut_article",
+  "bat",
+  "column_break_d1",
+  "maquette",
+  "column_break_d2",
+  "trace",
+  "imposition",
+  "machine",
+  "column_break_d3",
+  "etude_faisabilite"
+ ],
+ "fields": [
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Article",
+   "options": "Item",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "article.item_name",
+   "fieldname": "designation_article",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "D\u00e9signation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quantite_commandee",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantit\u00e9 command\u00e9e",
+   "non_negative": 1,
+   "precision": "3",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_livraison_commande",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date livraison commande",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_r1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "quantite_programmee",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantit\u00e9 programm\u00e9e",
+   "non_negative": 1,
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "quantite_produite",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantit\u00e9 produite (agr\u00e9g\u00e9e)",
+   "non_negative": 1,
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "quantite_restante_a_programmer",
+   "fieldtype": "Float",
+   "label": "Reste \u00e0 programmer",
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "quantite_restante_a_produire",
+   "fieldtype": "Float",
+   "label": "Reste \u00e0 produire",
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "default": "\u00c0 programmer",
+   "fieldname": "statut_article",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Statut article",
+   "options": "\u00c0 programmer\nProgrammation partielle\nProgrammation compl\u00e8te",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bat",
+   "fieldtype": "Link",
+   "label": "BAT",
+   "options": "BAT",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_d1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "maquette",
+   "fieldtype": "Link",
+   "label": "Maquette",
+   "options": "Maquette",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_d2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "label": "Trac\u00e9",
+   "options": "Trace",
+   "read_only": 1
+  },
+  {
+   "fieldname": "imposition",
+   "fieldtype": "Link",
+   "label": "Imposition",
+   "options": "Imposition",
+   "read_only": 1
+  },
+  {
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "label": "Machine",
+   "options": "Machine",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_d3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "etude_faisabilite",
+   "fieldtype": "Link",
+   "label": "\u00c9tude de faisabilit\u00e9",
+   "options": "Etude Faisabilite",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-28 12:00:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Dossier Fabrication Ligne",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

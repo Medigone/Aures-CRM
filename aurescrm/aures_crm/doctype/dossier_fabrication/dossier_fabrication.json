@@ -1,0 +1,229 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-04-28 10:00:00",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "section_statut",
+  "status",
+  "section_refs",
+  "sales_order",
+  "quotation",
+  "demande_faisabilite",
+  "column_break_rf",
+  "client",
+  "niveau_urgence",
+  "column_break_rf2",
+  "date_creation",
+  "section_lignes",
+  "lignes",
+  "section_programme",
+  "programme_livraison",
+  "section_apercu",
+  "html_apercu"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "S\u00e9rie",
+   "options": "DOF-.YYYY.-",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "section_statut",
+   "fieldtype": "Section Break",
+   "label": "Statut"
+  },
+  {
+   "default": "Brouillon",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Brouillon\nOuvert\nEn cours\nCl\u00f4tur\u00e9",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_refs",
+   "fieldtype": "Section Break",
+   "label": "R\u00e9f\u00e9rences"
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Commande client",
+   "options": "Sales Order",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "quotation",
+   "fieldtype": "Link",
+   "label": "Devis",
+   "options": "Quotation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "demande_faisabilite",
+   "fieldtype": "Link",
+   "label": "Demande de faisabilit\u00e9",
+   "options": "Demande Faisabilite",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "U0",
+   "fieldname": "niveau_urgence",
+   "fieldtype": "Select",
+   "label": "Niveau d'urgence",
+   "options": "U0\nU1\nU2\nU3",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rf2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "label": "Date cr\u00e9ation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_lignes",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Articles command\u00e9s"
+  },
+  {
+   "fieldname": "lignes",
+   "fieldtype": "Table",
+   "label": "Articles command\u00e9s",
+   "options": "Dossier Fabrication Ligne",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_programme",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Programme livraison"
+  },
+  {
+   "fieldname": "programme_livraison",
+   "fieldtype": "Table",
+   "label": "Programme livraison",
+   "options": "Dossier Fabrication Programme Livraison"
+  },
+  {
+   "fieldname": "section_apercu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "html_apercu",
+   "fieldtype": "HTML",
+   "label": "Synth\u00e8se articles et production",
+   "options": "<div class=\"text-muted\"></div>"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-04-28 12:35:14.426953",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Dossier Fabrication",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "select": 1
+  },
+  {
+   "read": 1,
+   "role": "Coordination"
+  },
+  {
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant"
+  },
+  {
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire"
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 Devis"
+  },
+  {
+   "read": 1,
+   "role": "Responsable Devis"
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "read": 1,
+   "role": "Responsable \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Technicien Prepresse",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "read": 1,
+   "role": "Responsable Prepresse",
+   "select": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "sales_order",
+ "track_changes": 1
+}
