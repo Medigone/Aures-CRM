@@ -378,6 +378,7 @@ scheduler_events = {
 # }
 
 fixtures = [
+
     #     {
     #     "doctype": "Role",
     #     "filters": [["is_custom", "=", 1]]  # Export uniquement les rôles custom
@@ -394,10 +395,11 @@ fixtures = [
     # "Workflow Transition",
     # "Workflow Action",
     # "Workflow Document State",
-    "Workspace",
+    # "Workspace",
     # "Number Card"
     # "lien_upload_maquette_client_email_template",
     # "Type Meeting"
-    # "Raisons Accueil Client"
+    # "Raisons Accueil Client",
+    # "Print Format",
 ]
 

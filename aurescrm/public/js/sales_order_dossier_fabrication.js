@@ -70,7 +70,7 @@ function add_dossier_fabrication_button_once(frm) {
 			}
 			strip_dossier_fabrication_buttons(frm);
 			frm.add_custom_button(
-				__('Créer Dossier Fabrication'),
+				__('Dossier Fabrication'),
 				() => {
 					frappe.confirm(
 						__('Confirmer la création d\'un dossier fabrication pour cette commande ?'),
