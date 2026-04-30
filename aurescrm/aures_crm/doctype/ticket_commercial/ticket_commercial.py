@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
-from frappe.utils import cstr, now, strip_html, today
+from frappe.utils import add_months, cint, cstr, getdate, now, strip_html, today
 from frappe.utils.html_utils import sanitize_html
 
 
@@ -528,3 +528,297 @@ def get_cycle_documents(ticket_name):
         )
 
     return {"demandes": out_demandes}
+
+
+ALLOWED_DECISION_RAPPROCHEMENT = (
+    "",
+    "À définir",
+    "Devis retenu pour commande",
+    "Nouvelle demande de faisabilité",
+    "Aucun candidat pertinent",
+)
+
+
+def _quotation_payload_for_bc_assistant(qname, ticket_customer):
+    """Construit le dict « devis » pour l’assistant BC. Retourne None si le devis doit être exclu."""
+    from aurescrm.sales_order_hooks import analyze_quotation_command_status
+
+    qrow = frappe.db.get_value(
+        "Quotation",
+        qname,
+        [
+            "name",
+            "transaction_date",
+            "status",
+            "docstatus",
+            "grand_total",
+            "currency",
+            "company",
+            "party_name",
+            "custom_demande_faisabilité",
+            "custom_commercial",
+        ],
+        as_dict=True,
+    )
+    if not qrow or qrow.get("party_name") != ticket_customer:
+        return None
+    if cint(qrow.get("docstatus")) == 2:
+        return None
+
+    analysis = analyze_quotation_command_status(qname)
+    if analysis.get("custom_status") == "Entièrement commandé":
+        return None
+
+    user_com = qrow.get("custom_commercial")
+    commercial_name = None
+    if user_com:
+        commercial_name = frappe.db.get_value("User", user_com, "full_name") or user_com
+
+    items = frappe.get_all(
+        "Quotation Item",
+        filters={"parent": qname},
+        fields=["item_code", "item_name", "qty", "uom", "rate"],
+        order_by="idx asc",
+        limit_page_length=100,
+    )
+
+    sales_orders = frappe.get_all(
+        "Sales Order",
+        filters={"custom_devis": qname, "docstatus": ["!=", 2]},
+        fields=["name", "status", "docstatus"],
+        order_by="modified desc",
+        limit_page_length=20,
+    )
+
+    return {
+        "name": qrow.name,
+        "transaction_date": str(qrow.transaction_date) if qrow.get("transaction_date") else None,
+        "status": qrow.status,
+        "docstatus": qrow.docstatus,
+        "grand_total": qrow.grand_total,
+        "currency": qrow.currency,
+        "company": qrow.company,
+        "demande_faisabilite": qrow.get("custom_demande_faisabilité"),
+        "commercial": user_com,
+        "commercial_name": commercial_name,
+        "command_analysis": {
+            "custom_status": analysis.get("custom_status"),
+            "percentage": analysis.get("percentage"),
+            "has_draft_orders": analysis.get("has_draft_orders"),
+            "draft_orders_count": analysis.get("draft_orders_count"),
+        },
+        "items": [
+            {
+                "item_code": it.item_code,
+                "item_name": it.item_name,
+                "qty": it.qty,
+                "uom": it.uom,
+                "rate": it.rate,
+            }
+            for it in items
+        ],
+        "sales_orders": [
+            {
+                "name": so.name,
+                "status": so.status,
+                "docstatus": so.docstatus,
+            }
+            for so in sales_orders
+        ],
+    }
+
+
+def _demande_items_payload_for_bc_assistant(demande_name):
+    """Retourne les articles de la demande FA pour l'assistant BC."""
+    items = frappe.get_all(
+        "Articles Demande Faisabilite",
+        filters={
+            "parent": demande_name,
+            "parenttype": "Demande Faisabilite",
+            "parentfield": "liste_articles",
+        },
+        fields=[
+            "article",
+            "designation_article",
+            "quantite",
+            "date_livraison",
+            "procede_article",
+            "est_creation",
+            "essai_blanc",
+        ],
+        order_by="idx asc",
+        limit_page_length=100,
+    )
+
+    return [
+        {
+            "article": it.article,
+            "designation_article": it.designation_article,
+            "quantite": it.quantite,
+            "date_livraison": str(it.date_livraison) if it.get("date_livraison") else None,
+            "procede_article": it.procede_article,
+            "est_creation": cint(it.est_creation),
+            "essai_blanc": cint(it.essai_blanc),
+        }
+        for it in items
+    ]
+
+
+@frappe.whitelist()
+def get_quotation_candidates_for_ticket_bc(ticket_name, months_limit=18, extended_search=0):
+    """
+    Liste des Demandes de faisabilité du client du ticket (type Bon de commande), avec pour chacune
+    les devis encore commandables et les commandes liées.
+
+    La fenêtre temporelle s’applique sur Demande Faisabilite.date_creation (comme l’ancien filtre sur les devis).
+
+    Args:
+        ticket_name: nom du Ticket Commercial
+        months_limit: filtre date_creation >= aujourd'hui - months_limit (si extended_search falsy)
+        extended_search: si 1/true, élargit la fenêtre (sans filtre de date sur la demande)
+    """
+    if not ticket_name:
+        frappe.throw(_("Ticket manquant."))
+
+    ticket = frappe.get_doc("Ticket Commercial", ticket_name)
+    ticket.check_permission("read")
+    _assert_ticket_bon_de_commande_for_rapprochement(ticket)
+
+    if not ticket.customer:
+        frappe.throw(_("Le client doit être renseigné pour rechercher les demandes de faisabilité."))
+
+    ml = int(cint(months_limit) or 18)
+    if ml < 1:
+        ml = 1
+    if ml > 120:
+        ml = 120
+    extended = bool(cint(extended_search))
+
+    cutoff = None
+    if not extended:
+        cutoff = add_months(getdate(today()), -ml)
+
+    filt_df = {"client": ticket.customer}
+    if cutoff is not None:
+        filt_df["date_creation"] = [">=", cutoff]
+
+    demandes = frappe.get_all(
+        "Demande Faisabilite",
+        filters=filt_df,
+        fields=["name", "status", "type", "date_creation", "modified", "ticket_commercial"],
+        order_by="date_creation desc, modified desc",
+        limit_page_length=200,
+    )
+
+    out = []
+    for dem in demandes:
+        quotes_meta = frappe.get_all(
+            "Quotation",
+            filters={
+                "party_name": ticket.customer,
+                "docstatus": ["!=", 2],
+                "custom_demande_faisabilité": dem.name,
+            },
+            fields=["name"],
+            order_by="transaction_date desc, modified desc",
+            limit_page_length=50,
+        )
+
+        quotation_payloads = []
+        for qm in quotes_meta:
+            payload = _quotation_payload_for_bc_assistant(qm.name, ticket.customer)
+            if payload:
+                quotation_payloads.append(payload)
+
+        # Demande avec devis liés mais tous à 100 % commandés : rien à rapprocher, ne pas afficher la carte.
+        if quotes_meta and not quotation_payloads:
+            continue
+
+        out.append(
+            {
+                "name": dem.name,
+                "demande_faisabilite": dem.name,
+                "demande_status": dem.status,
+                "demande_type": dem.type,
+                "date_creation": str(dem.date_creation) if dem.get("date_creation") else None,
+                "ticket_commercial_link": dem.ticket_commercial,
+                "items": _demande_items_payload_for_bc_assistant(dem.name),
+                "quotations": quotation_payloads,
+            }
+        )
+
+    return {
+        "candidates": out,
+        "customer": ticket.customer,
+        "months_window": 60 if extended else ml,
+        "extended_search": extended,
+        "no_date_filter": extended,
+    }
+
+
+def _assert_ticket_bon_de_commande_for_rapprochement(ticket):
+    if cstr(ticket.get("request_type")) != "Bon de commande":
+        frappe.throw(
+            _("L'assistant de rapprochement n'est disponible que pour le type « Bon de commande ».")
+        )
+
+
+@frappe.whitelist()
+def save_ticket_rapprochement_decision(
+    ticket_name,
+    decision_rapprochement=None,
+    devis_rapproche=None,
+    demande_faisabilite_rapprochee=None,
+    commentaire_rapprochement=None,
+):
+    """Enregistre la décision de rapprochement sur le ticket (champs allow_on_submit)."""
+    if not ticket_name:
+        frappe.throw(_("Ticket manquant."))
+
+    doc = frappe.get_doc("Ticket Commercial", ticket_name)
+    doc.check_permission("write")
+    _assert_ticket_bon_de_commande_for_rapprochement(doc)
+
+    dec = cstr(decision_rapprochement).strip() if decision_rapprochement is not None else ""
+    if dec not in ALLOWED_DECISION_RAPPROCHEMENT:
+        frappe.throw(_("Décision de rapprochement invalide."))
+
+    devis = (devis_rapproche or "").strip() or None
+    dem_in = (demande_faisabilite_rapprochee or "").strip() or None
+    comm = (commentaire_rapprochement or "").strip() or None
+
+    if dec in ("Nouvelle demande de faisabilité", "Aucun candidat pertinent"):
+        devis = None
+        dem_in = None
+
+    if dec == "Devis retenu pour commande" and not devis:
+        frappe.throw(_("Sélectionnez un devis pour la décision « Devis retenu pour commande »."))
+
+    if devis:
+        q_party = frappe.db.get_value("Quotation", devis, "party_name")
+        if q_party != doc.customer:
+            frappe.throw(_("Le devis choisi n'appartient pas au client du ticket."))
+        dem_from_q = frappe.db.get_value("Quotation", devis, "custom_demande_faisabilité")
+        doc.demande_faisabilite_rapprochee = dem_in or dem_from_q
+    else:
+        doc.demande_faisabilite_rapprochee = None
+
+    doc.devis_rapproche = devis
+    doc.decision_rapprochement = dec or None
+    doc.commentaire_rapprochement = comm
+
+    doc.save(ignore_permissions=False)
+
+    parts = []
+    if dec:
+        parts.append(_("Décision rapprochement : {0}").format(dec))
+    if devis:
+        parts.append(_("Devis : {0}").format(devis))
+    if doc.demande_faisabilite_rapprochee:
+        parts.append(_("Demande FA : {0}").format(doc.demande_faisabilite_rapprochee))
+    if comm:
+        parts.append(comm)
+    if parts:
+        doc.add_comment("Info", " — ".join(parts))
+
+    return {"status": "success", "name": doc.name}

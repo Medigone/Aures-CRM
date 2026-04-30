@@ -3,7 +3,10 @@
 
 from frappe.tests.utils import FrappeTestCase
 
-from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import _urgence_motif_plain
+from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
+    ALLOWED_DECISION_RAPPROCHEMENT,
+    _urgence_motif_plain,
+)
 
 
 class TestTicketCommercialUrgenceHelpers(FrappeTestCase):
@@ -19,3 +22,17 @@ class TestTicketCommercialUrgenceHelpers(FrappeTestCase):
         out = _urgence_motif_plain(html, max_len=100)
         self.assertEqual(len(out), 100)
         self.assertTrue(out.endswith("…"))
+
+
+class TestTicketCommercialRapprochementBc(FrappeTestCase):
+    """Décisions de rapprochement BC : ensemble des valeurs attendues par l'API."""
+
+    def test_allowed_decision_rapprochement_options(self):
+        for label in (
+            "",
+            "À définir",
+            "Devis retenu pour commande",
+            "Nouvelle demande de faisabilité",
+            "Aucun candidat pertinent",
+        ):
+            self.assertIn(label, ALLOWED_DECISION_RAPPROCHEMENT)

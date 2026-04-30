@@ -35,6 +35,17 @@
   "section_description",
   "description",
   "amended_from",
+  "rapprochement_bc_tab",
+  "section_rapprochement_bc",
+  "rapprochement_bc_html",
+  "section_decision_rapprochement",
+  "decision_rapprochement",
+  "column_break_rappr_a",
+  "devis_rapproche",
+  "column_break_rappr_b",
+  "demande_faisabilite_rapprochee",
+  "section_break_uyll",
+  "commentaire_rapprochement",
   "urgence_tab",
   "niveau_urgence",
   "niveau_urgence_demande",
@@ -283,6 +294,70 @@
    "label": "Documents li\u00e9s"
   },
   {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "section_rapprochement_bc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "rapprochement_bc_html",
+   "fieldtype": "HTML",
+   "label": "Assistant rapprochement"
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "section_decision_rapprochement",
+   "fieldtype": "Section Break",
+   "label": "D\u00e9cision rapprochement"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "decision_rapprochement",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "D\u00e9cision",
+   "options": "\n\u00c0 d\u00e9finir\nDevis retenu pour commande\nNouvelle demande de faisabilit\u00e9\nAucun candidat pertinent"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "commentaire_rapprochement",
+   "fieldtype": "Small Text",
+   "label": "Commentaire rapprochement"
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "column_break_rappr_a",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "devis_rapproche",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Devis retenu",
+   "options": "Quotation"
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "column_break_rappr_b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fetch_from": "devis_rapproche.custom_demande_faisabilit\u00e9",
+   "fetch_if_empty": 1,
+   "fieldname": "demande_faisabilite_rapprochee",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Demande de faisabilit\u00e9 (rapprochement)",
+   "options": "Demande Faisabilite",
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_wtib",
    "fieldtype": "Section Break"
   },
@@ -299,12 +374,22 @@
    "options": "Site Production",
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "depends_on": "eval: doc.request_type ==\"Bon de commande\"",
+   "fieldname": "rapprochement_bc_tab",
+   "fieldtype": "Tab Break",
+   "label": "Rapprochement bon de commande"
+  },
+  {
+   "fieldname": "section_break_uyll",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-27 11:54:58.133103",
+ "modified": "2026-04-30 10:43:03.477800",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
