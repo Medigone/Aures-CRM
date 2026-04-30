@@ -15,6 +15,9 @@ class DemandeFaisabilite(Document):
 				or "U0"
 			)
 
+	def after_insert(self):
+		self.set_ticket_bc_rapprochement_decision()
+
 	def validate(self):
 		"""Validation automatique pour synchroniser type, is_reprint et essai_blanc"""
 		# Interdire les sous-articles dans la liste d'articles
@@ -76,6 +79,29 @@ class DemandeFaisabilite(Document):
 						existing_demandes[0].name
 					)
 				)
+
+	def set_ticket_bc_rapprochement_decision(self):
+		if not self.ticket_commercial:
+			return
+
+		ticket = frappe.db.get_value(
+			"Ticket Commercial",
+			self.ticket_commercial,
+			["name", "request_type"],
+			as_dict=True,
+		)
+		if not ticket or ticket.request_type != "Bon de commande":
+			return
+
+		frappe.db.set_value(
+			"Ticket Commercial",
+			ticket.name,
+			{
+				"decision_rapprochement": "Nouvelle demande de faisabilité",
+				"demande_faisabilite_rapprochee": self.name,
+				"devis_rapproche": None,
+			},
+		)
 
 	def can_generate_etudes(self):
 		"""

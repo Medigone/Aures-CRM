@@ -665,17 +665,17 @@ def _demande_items_payload_for_bc_assistant(demande_name):
 
 
 @frappe.whitelist()
-def get_quotation_candidates_for_ticket_bc(ticket_name, months_limit=18, extended_search=0):
+def get_quotation_candidates_for_ticket_bc(ticket_name, from_date=None, to_date=None):
     """
     Liste des Demandes de faisabilité du client du ticket (type Bon de commande), avec pour chacune
     les devis encore commandables et les commandes liées.
 
-    La fenêtre temporelle s’applique sur Demande Faisabilite.date_creation (comme l’ancien filtre sur les devis).
+    Le filtre temporel s’applique sur Demande Faisabilite.date_creation.
 
     Args:
         ticket_name: nom du Ticket Commercial
-        months_limit: filtre date_creation >= aujourd'hui - months_limit (si extended_search falsy)
-        extended_search: si 1/true, élargit la fenêtre (sans filtre de date sur la demande)
+        from_date: date minimum de création des demandes
+        to_date: date maximum de création des demandes
     """
     if not ticket_name:
         frappe.throw(_("Ticket manquant."))
@@ -687,20 +687,23 @@ def get_quotation_candidates_for_ticket_bc(ticket_name, months_limit=18, extende
     if not ticket.customer:
         frappe.throw(_("Le client doit être renseigné pour rechercher les demandes de faisabilité."))
 
-    ml = int(cint(months_limit) or 18)
-    if ml < 1:
-        ml = 1
-    if ml > 120:
-        ml = 120
-    extended = bool(cint(extended_search))
+    if from_date or to_date:
+        from_dt = getdate(from_date) if from_date else None
+        to_dt = getdate(to_date) if to_date else None
+    else:
+        from_dt = add_months(getdate(today()), -6)
+        to_dt = getdate(today())
 
-    cutoff = None
-    if not extended:
-        cutoff = add_months(getdate(today()), -ml)
+    if from_dt and to_dt and from_dt > to_dt:
+        frappe.throw(_("La date de début doit être antérieure ou égale à la date de fin."))
 
     filt_df = {"client": ticket.customer}
-    if cutoff is not None:
-        filt_df["date_creation"] = [">=", cutoff]
+    if from_dt and to_dt:
+        filt_df["date_creation"] = ["between", [from_dt, to_dt]]
+    elif from_dt:
+        filt_df["date_creation"] = [">=", from_dt]
+    elif to_dt:
+        filt_df["date_creation"] = ["<=", to_dt]
 
     demandes = frappe.get_all(
         "Demande Faisabilite",
@@ -750,9 +753,8 @@ def get_quotation_candidates_for_ticket_bc(ticket_name, months_limit=18, extende
     return {
         "candidates": out,
         "customer": ticket.customer,
-        "months_window": 60 if extended else ml,
-        "extended_search": extended,
-        "no_date_filter": extended,
+        "from_date": str(from_dt) if from_dt else None,
+        "to_date": str(to_dt) if to_dt else None,
     }
 
 

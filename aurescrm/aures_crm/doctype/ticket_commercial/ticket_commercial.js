@@ -24,7 +24,7 @@ frappe.ui.form.on("Ticket Commercial", {
 
     customer: function(frm) {
         // Auto-remplir le nom du client si disponible
-        frm._bc_extended_search = 0;
+        frm._bc_date_filters = null;
         if (frm.doc.customer) {
             frappe.db.get_value("Customer", frm.doc.customer, "customer_name")
                 .then(r => {
@@ -886,6 +886,50 @@ const BC_COMMAND_STATUS_LABELS = {
     "Non commandé": __("Non commandé"),
 };
 
+const BC_DEFAULT_RAPPROCHEMENT_FROM_MONTHS = 6;
+
+function get_rapprochement_bc_date_filters(frm) {
+    if (!frm._bc_date_filters) {
+        const toDate = frappe.datetime.now_date();
+        frm._bc_date_filters = {
+            from_date: frappe.datetime.add_months(toDate, -BC_DEFAULT_RAPPROCHEMENT_FROM_MONTHS),
+            to_date: toDate,
+        };
+    }
+    return frm._bc_date_filters;
+}
+
+function rapprochement_bc_date_filter_html(filters) {
+    const fromDate = frappe.utils.escape_html(filters.from_date || "");
+    const toDate = frappe.utils.escape_html(filters.to_date || "");
+    return (
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">' +
+        '<div style="display:flex;align-items:center;gap:5px;">' +
+        '<label class="text-muted" style="font-size:12px;margin:0;white-space:nowrap;">' +
+        frappe.utils.escape_html(__("Du")) +
+        "</label>" +
+        '<input type="date" class="form-control input-xs bc-rapp-from-date" value="' +
+        fromDate +
+        '" style="height:26px;font-size:12px;padding:2px 6px;min-width:135px;">' +
+        "</div>" +
+        '<div style="display:flex;align-items:center;gap:5px;">' +
+        '<label class="text-muted" style="font-size:12px;margin:0;white-space:nowrap;">' +
+        frappe.utils.escape_html(__("Au")) +
+        "</label>" +
+        '<input type="date" class="form-control input-xs bc-rapp-to-date" value="' +
+        toDate +
+        '" style="height:26px;font-size:12px;padding:2px 6px;min-width:135px;">' +
+        "</div>" +
+        '<button type="button" class="btn btn-xs bc-rapp-apply-date" style="height:26px;background:#111827;color:#fff;border-color:#111827;">' +
+        frappe.utils.escape_html(__("Filtrer")) +
+        "</button>" +
+        '<button type="button" class="btn btn-default btn-xs bc-rapp-clear-date" title="' +
+        frappe.utils.escape_html(__("Effacer les filtres de date")) +
+        '" style="height:26px;width:26px;padding:0;font-size:14px;line-height:1;">x</button>' +
+        "</div>"
+    );
+}
+
 function format_bc_candidate_total(tot) {
     if (!tot || tot.grand_total == null || tot.grand_total === undefined || tot.grand_total === "") {
         return "—";
@@ -1103,78 +1147,6 @@ function bc_df_candidate_card_html(c, allowActions) {
     return html;
 }
 
-function bc_assistant_demande_fa_button_disabled(frm, readOnlyForm) {
-    if (readOnlyForm) {
-        return true;
-    }
-    if (!frappe.model.can_create("Demande Faisabilite")) {
-        return true;
-    }
-    if (["Terminé", "Annulé"].includes(frm.doc.status || "")) {
-        return true;
-    }
-    if ((frm.doc.status || "") !== "En Cours") {
-        return true;
-    }
-    return false;
-}
-
-function bc_assistant_open_new_demande_faisabilite(frm) {
-    if (frm.is_new() || !frm.doc.name) {
-        frappe.msgprint(__("Enregistrez le ticket avant de créer une demande de faisabilité."));
-        return;
-    }
-    if (!frm.doc.customer) {
-        frappe.msgprint(__("Veuillez sélectionner un client avant de créer une demande de faisabilité."));
-        return;
-    }
-    if (["Terminé", "Annulé"].includes(frm.doc.status)) {
-        frappe.msgprint(__("Impossible de créer une demande sur un ticket terminé ou annulé."));
-        return;
-    }
-    if (frm.doc.status !== "En Cours") {
-        frappe.msgprint(
-            __(
-                "Le ticket doit être « En cours » pour créer une demande de faisabilité depuis l'assistant (démarrage par le back-office)."
-            )
-        );
-        return;
-    }
-    if (!frappe.model.can_create("Demande Faisabilite")) {
-        frappe.msgprint(__("Vous n'avez pas la permission de créer une demande de faisabilité."));
-        return;
-    }
-    const ticketName = frm.doc.name;
-    frappe.call({
-        method: "aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial.get_primary_open_demande_for_ticket",
-        args: { ticket_name: ticketName },
-        callback: function(r) {
-            if (!frm.doc || frm.doc.name !== ticketName) {
-                return;
-            }
-            if (r.message && r.message.name) {
-                frappe.msgprint({
-                    title: __("Demande déjà ouverte"),
-                    indicator: "orange",
-                    message: __(
-                        "Une demande de faisabilité encore ouverte est déjà liée à ce ticket : {0}.",
-                        [r.message.name]
-                    ),
-                });
-                return;
-            }
-            open_new_doc_in_new_tab("Demande Faisabilite", {
-                client: frm.doc.customer,
-                date_livraison:
-                    frm.doc.echeance || frappe.datetime.add_days(frappe.datetime.now_date(), 7),
-                type: "Premier Tirage",
-                ticket_commercial: frm.doc.name,
-                niveau_urgence: frm.doc.niveau_urgence,
-            });
-        },
-    });
-}
-
 function is_rapprochement_bc_ticket(frm) {
     return frm.doc.request_type === RAPPROCHEMENT_BC_REQUEST_TYPE;
 }
@@ -1232,7 +1204,7 @@ function render_rapprochement_bc_html(frm) {
     }
 
     const ticketName = frm.doc.name;
-    const extended = frm._bc_extended_search ? 1 : 0;
+    const dateFilters = get_rapprochement_bc_date_filters(frm);
     field.$wrapper.html(
         "<p class=\"text-muted small\" style=\"padding:8px 0;\">" + __("Chargement…") + "</p>"
     );
@@ -1241,8 +1213,8 @@ function render_rapprochement_bc_html(frm) {
         method: "aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial.get_quotation_candidates_for_ticket_bc",
         args: {
             ticket_name: ticketName,
-            months_limit: 18,
-            extended_search: extended,
+            from_date: dateFilters.from_date || null,
+            to_date: dateFilters.to_date || null,
         },
         callback: function(res) {
             if (!frm.doc || frm.doc.name !== ticketName) {
@@ -1278,54 +1250,27 @@ function render_rapprochement_bc_html(frm) {
             const canWrite = frappe.model.can_write("Ticket Commercial");
             const readOnlyForm = frm.is_read_only && frm.is_read_only();
             frm._bc_allow_row_mutations = canWrite && !readOnlyForm;
-            const dfBtnDis = bc_assistant_demande_fa_button_disabled(frm, readOnlyForm);
 
             if (!candidates.length) {
                 frm._bc_last_candidates_map = {};
-                let emptyMsg = extended
-                    ? __("Aucune demande de faisabilité trouvée pour ce client sur la période élargie.")
-                    : __("Aucune demande de faisabilité sur la période récente pour ce client.");
+                const emptyMsg = __("Aucune demande de faisabilité trouvée pour ce client sur la période sélectionnée.");
                 let html =
-                    "<div style=\"border:0.5px solid #d1d8dd;border-radius:8px;padding:12px;background:#fff;\">";
-                html += "<p class=\"text-muted small\" style=\"margin:0;\">" + frappe.utils.escape_html(emptyMsg) + "</p>";
-                if (!extended) {
-                    html +=
-                        "<button type=\"button\" class=\"btn btn-default btn-xs bc-rapp-expand\" style=\"margin-top:10px;\">" +
-                        frappe.utils.escape_html(__("Étendre la recherche (sans limite de date)")) +
-                        "</button>";
-                }
+                    "<div style=\"border:0.5px solid #d1d8dd;border-radius:8px;overflow:hidden;background:#fff;\">";
                 html +=
-                    "<div style=\"margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;\">" +
-                    "<button type=\"button\" class=\"btn btn-default btn-xs bc-rapp-create-df\" title=\"" +
-                    frappe.utils.escape_html(__("Mêmes règles que « Créer → Demande de faisabilité »")) +
-                    "\" " +
-                    disabled_attr(dfBtnDis) +
-                    ">" +
-                    frappe.utils.escape_html(__("Créer demande FA")) +
-                    "</button>" +
-                    "<button type=\"button\" class=\"btn btn-primary btn-xs bc-rapp-quick\" data-decision=\"" +
-                    frappe.utils.escape_html("Nouvelle demande de faisabilité") +
-                    "\" " +
-                    disabled_attr(!canWrite || readOnlyForm) +
-                    ">" +
-                    frappe.utils.escape_html(__("Décision : nouvelle demande FA")) +
-                    "</button>" +
-                    "<button type=\"button\" class=\"btn btn-default btn-xs bc-rapp-quick\" data-decision=\"" +
-                    frappe.utils.escape_html("Aucun candidat pertinent") +
-                    "\" " +
-                    disabled_attr(!canWrite || readOnlyForm) +
-                    ">" +
-                    frappe.utils.escape_html(__("Décision : aucun candidat")) +
-                    "</button>" +
-                    "</div></div>";
+                    "<div style=\"padding:8px 12px;border-bottom:0.5px solid #d1d8dd;background:#f8f9fa;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center;\">" +
+                    '<span style="font-size:13px;font-weight:600;color:#1a1a1a;">' +
+                    frappe.utils.escape_html(__("Assistant rapprochement BC")) +
+                    "</span>" +
+                    rapprochement_bc_date_filter_html(dateFilters) +
+                    "</div>" +
+                    "<div style=\"padding:12px;\">" +
+                    "<p class=\"text-muted small\" style=\"margin:0;\">" +
+                    frappe.utils.escape_html(emptyMsg) +
+                    "</p></div></div>";
                 field.$wrapper.html(html);
                 bind_rapprochement_bc_wrapper(frm, field, canWrite && !readOnlyForm);
                 return;
             }
-
-            const extNote = payload.no_date_filter
-                ? __("Recherche élargie sur tout l'historique (limite 200 demandes).")
-                : __("Fenêtre récente : {0} mois.").replace("{0}", String(payload.months_window || ""));
 
             let html =
                 "<div style=\"border:0.5px solid #d1d8dd;border-radius:8px;overflow:visible;background:#fff;\">";
@@ -1335,7 +1280,7 @@ function render_rapprochement_bc_html(frm) {
                 "<span style=\"font-size:13px;font-weight:600;color:#1a1a1a;\">" +
                 __("Assistant rapprochement BC") +
                 "</span>";
-            html += "<span class=\"text-muted small\">" + frappe.utils.escape_html(extNote.trim()) + "</span>";
+            html += rapprochement_bc_date_filter_html(dateFilters);
             html += "</div>";
 
             html += "<div style=\"padding:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;background:#fff;overflow:visible;\">";
@@ -1343,39 +1288,7 @@ function render_rapprochement_bc_html(frm) {
                 html += bc_df_candidate_card_html(c, canWrite && !readOnlyForm);
             });
             html += "</div>";
-
-            html += "<div style=\"padding:8px 12px;border-top:0.5px solid #d1d8dd;background:#fcfcfc;display:flex;flex-wrap:wrap;gap:8px;\">";
-            if (!payload.no_date_filter) {
-                html +=
-                    "<button type=\"button\" class=\"btn btn-default btn-xs bc-rapp-expand\">" +
-                    __("Étendre la recherche (sans limite de date)") +
-                    "</button>";
-            }
-            html +=
-                "<button type=\"button\" class=\"btn btn-default btn-xs bc-rapp-create-df\" title=\"" +
-                frappe.utils.escape_html(__("Mêmes règles que « Créer → Demande de faisabilité »")) +
-                "\" " +
-                disabled_attr(dfBtnDis) +
-                ">" +
-                frappe.utils.escape_html(__("Créer demande FA")) +
-                "</button>";
-            html +=
-                "<button type=\"button\" class=\"btn btn-default btn-xs bc-rapp-quick\" data-decision=\"" +
-                frappe.utils.escape_html("Nouvelle demande de faisabilité") +
-                "\" " +
-                disabled_attr(!canWrite || readOnlyForm) +
-                ">" +
-                __("Décision : nouvelle demande FA") +
-                "</button>";
-            html +=
-                "<button type=\"button\" class=\"btn btn-default btn-xs bc-rapp-quick\" data-decision=\"" +
-                frappe.utils.escape_html("Aucun candidat pertinent") +
-                "\" " +
-                disabled_attr(!canWrite || readOnlyForm) +
-                ">" +
-                __("Décision : aucun candidat") +
-                "</button>";
-            html += "</div></div>";
+            html += "</div>";
 
             field.$wrapper.html(html);
             bind_rapprochement_bc_wrapper(frm, field, canWrite && !readOnlyForm);
@@ -1388,16 +1301,25 @@ function render_rapprochement_bc_html(frm) {
     });
 }
 
-function disabled_attr(disabled) {
-    return disabled ? "disabled" : "";
-}
-
 function bind_rapprochement_bc_wrapper(frm, field, allowMutations) {
     const $w = field.$wrapper;
-    $w.off("click", ".bc-rapp-expand");
-    $w.on("click", ".bc-rapp-expand", function(e) {
+    $w.off("click", ".bc-rapp-apply-date");
+    $w.on("click", ".bc-rapp-apply-date", function(e) {
         e.preventDefault();
-        frm._bc_extended_search = 1;
+        frm._bc_date_filters = {
+            from_date: ($w.find(".bc-rapp-from-date").val() || "").trim(),
+            to_date: ($w.find(".bc-rapp-to-date").val() || "").trim(),
+        };
+        render_rapprochement_bc_html(frm);
+    });
+
+    $w.off("click", ".bc-rapp-clear-date");
+    $w.on("click", ".bc-rapp-clear-date", function(e) {
+        e.preventDefault();
+        frm._bc_date_filters = {
+            from_date: "",
+            to_date: "",
+        };
         render_rapprochement_bc_html(frm);
     });
 
@@ -1458,12 +1380,6 @@ function bind_rapprochement_bc_wrapper(frm, field, allowMutations) {
         }
     });
 
-    $w.off("click", ".bc-rapp-create-df");
-    $w.on("click", ".bc-rapp-create-df", function(e) {
-        e.preventDefault();
-        bc_assistant_open_new_demande_faisabilite(frm);
-    });
-
     $w.off("click", ".bc-rapp-items");
     $w.on("click", ".bc-rapp-items", function(e) {
         e.preventDefault();
@@ -1507,28 +1423,6 @@ function bind_rapprochement_bc_wrapper(frm, field, allowMutations) {
         });
     });
 
-    $w.off("click", ".bc-rapp-quick");
-    $w.on("click", ".bc-rapp-quick", function(e) {
-        e.preventDefault();
-        const dec = $(this).data("decision");
-        frappe.prompt(
-            {
-                fieldname: "memo",
-                fieldtype: "Small Text",
-                label: __("Commentaire (optionnel)"),
-            },
-            function(values) {
-                save_rapprochement_decision(frm, {
-                    decision_rapprochement: dec,
-                    devis_rapproche: null,
-                    demande_faisabilite_rapprochee: null,
-                    commentaire_rapprochement: values.memo || null,
-                });
-            },
-            __("Confirmation"),
-            __("Enregistrer")
-        );
-    });
 }
 
 function open_rapprochement_items_dialog(frm, quotationName) {
