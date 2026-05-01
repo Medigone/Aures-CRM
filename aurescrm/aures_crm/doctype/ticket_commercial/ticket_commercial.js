@@ -52,7 +52,7 @@ frappe.ui.form.on("Ticket Commercial", {
 
     request_type: function(frm) {
         // Personnaliser selon le type de demande
-        if (frm.doc.request_type === "Réclamation commerciale") {
+        if (frm.doc.request_type === "Réclamation") {
             frappe.msgprint({
                 message: __("Assurez-vous de documenter la réclamation en détail dans la description."),
                 indicator: "orange",

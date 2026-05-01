@@ -35,6 +35,18 @@
   "section_description",
   "description",
   "amended_from",
+  "liste_de_contr\u00f4le_tab",
+  "section_cl_bc",
+  "checklist_bc_demande_faisabilite",
+  "checklist_bc_devis",
+  "section_cl_dd",
+  "checklist_dd_articles",
+  "section_cl_eb",
+  "checklist_eb_articles",
+  "checklist_eb_fiche_technique",
+  "section_cl_rec",
+  "checklist_rec_photo",
+  "checklist_rec_quantites",
   "rapprochement_bc_tab",
   "section_rapprochement_bc",
   "rapprochement_bc_html",
@@ -386,12 +398,90 @@
   {
    "fieldname": "section_break_uyll",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "liste_de_contr\u00f4le_tab",
+   "fieldtype": "Tab Break",
+   "label": "Liste de contr\u00f4le"
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "section_cl_bc",
+   "fieldtype": "Section Break",
+   "label": "Bon de commande"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "checklist_bc_demande_faisabilite",
+   "fieldtype": "Check",
+   "label": "Demande de faisabilit\u00e9"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "checklist_bc_devis",
+   "fieldtype": "Check",
+   "label": "Devis"
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Demande de devis\"",
+   "fieldname": "section_cl_dd",
+   "fieldtype": "Section Break",
+   "label": "Demande de devis"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.request_type==\"Demande de devis\"",
+   "fieldname": "checklist_dd_articles",
+   "fieldtype": "Check",
+   "label": "Article(s)"
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Essai Blanc\"",
+   "fieldname": "section_cl_eb",
+   "fieldtype": "Section Break",
+   "label": "Essai Blanc"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.request_type==\"Essai Blanc\"",
+   "fieldname": "checklist_eb_articles",
+   "fieldtype": "Check",
+   "label": "Article(s)"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.request_type==\"Essai Blanc\"",
+   "fieldname": "checklist_eb_fiche_technique",
+   "fieldtype": "Check",
+   "label": "Fiche technique (pi\u00e8ce jointe)"
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
+   "fieldname": "section_cl_rec",
+   "fieldtype": "Section Break",
+   "label": "R\u00e9clamation"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
+   "fieldname": "checklist_rec_photo",
+   "fieldtype": "Check",
+   "label": "Photo"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
+   "fieldname": "checklist_rec_quantites",
+   "fieldtype": "Check",
+   "label": "Quantit\u00e9s impact\u00e9es"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-30 11:29:46.735590",
+ "modified": "2026-05-01 09:46:16.190451",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",

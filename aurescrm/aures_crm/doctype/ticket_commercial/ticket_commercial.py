@@ -12,6 +12,14 @@ from frappe.utils.html_utils import sanitize_html
 ROLE_ADMIN_VENTES = "Administrateur Ventes"
 NIVEAU_URGENCE_OPTIONS = ("U0", "U1", "U2", "U3")
 
+# Liste de contrôle obligatoire pour passer au statut « Terminé » (par type de demande)
+CHECKLIST_TERMINE_FIELDS = {
+    "Bon de commande": ("checklist_bc_demande_faisabilite", "checklist_bc_devis"),
+    "Demande de devis": ("checklist_dd_articles",),
+    "Essai Blanc": ("checklist_eb_articles", "checklist_eb_fiche_technique"),
+    "Réclamation": ("checklist_rec_photo", "checklist_rec_quantites"),
+}
+
 
 class TicketCommercial(Document):
     def autoname(self):
@@ -40,6 +48,7 @@ class TicketCommercial(Document):
     def validate(self):
         """Validations avant sauvegarde"""
         self.validate_required_fields()
+        self.validate_liste_controle_si_termine()
         self.set_defaults()
         self.apply_insert_urgence_guard()
         self.validate_restricted_urgence_fields()
@@ -54,6 +63,29 @@ class TicketCommercial(Document):
 
         if not self.priority:
             frappe.throw(_("Le champ Priorité est obligatoire"))
+
+    def validate_liste_controle_si_termine(self):
+        """Types couverts par la liste de contrôle : impossible de passer en Terminé si cases manquantes."""
+        if frappe.flags.in_import:
+            return
+        if cstr(self.status or "") != "Terminé":
+            return
+
+        checklist_fields = CHECKLIST_TERMINE_FIELDS.get(cstr(self.request_type or ""))
+        if not checklist_fields:
+            return
+
+        missing = []
+        for fieldname in checklist_fields:
+            if not cint(self.get(fieldname)):
+                missing.append(_(self.meta.get_label(fieldname)))
+
+        if missing:
+            frappe.throw(
+                _("Pour marquer ce ticket comme Terminé, cochez tous les éléments de la liste de contrôle (onglet « Liste de contrôle ») : {0}").format(
+                    ", ".join(missing)
+                )
+            )
 
     def set_defaults(self):
         """Définit les valeurs par défaut"""
