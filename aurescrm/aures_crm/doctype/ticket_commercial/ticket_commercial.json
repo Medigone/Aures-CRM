@@ -314,7 +314,8 @@
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "rapprochement_bc_html",
    "fieldtype": "HTML",
-   "label": "Assistant rapprochement"
+   "label": "Assistant rapprochement",
+   "permlevel": 1
   },
   {
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
@@ -330,6 +331,7 @@
    "in_standard_filter": 1,
    "label": "D\u00e9cision",
    "options": "\n\u00c0 d\u00e9finir\nDevis retenu pour commande\nNouvelle demande de faisabilit\u00e9\nAucun candidat pertinent",
+   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -337,7 +339,8 @@
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "commentaire_rapprochement",
    "fieldtype": "Small Text",
-   "label": "Commentaire rapprochement"
+   "label": "Commentaire rapprochement",
+   "permlevel": 1
   },
   {
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
@@ -352,6 +355,7 @@
    "in_standard_filter": 1,
    "label": "Devis retenu",
    "options": "Quotation",
+   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -369,6 +373,7 @@
    "in_standard_filter": 1,
    "label": "Demande de faisabilit\u00e9 (rapprochement)",
    "options": "Demande Faisabilite",
+   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -415,14 +420,16 @@
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "checklist_bc_demande_faisabilite",
    "fieldtype": "Check",
-   "label": "Demande de faisabilit\u00e9"
+   "label": "Demande de faisabilit\u00e9",
+   "permlevel": 1
   },
   {
    "default": "0",
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "checklist_bc_devis",
    "fieldtype": "Check",
-   "label": "Devis"
+   "label": "Devis",
+   "permlevel": 1
   },
   {
    "depends_on": "eval:doc.request_type==\"Demande de devis\"",
@@ -435,7 +442,8 @@
    "depends_on": "eval:doc.request_type==\"Demande de devis\"",
    "fieldname": "checklist_dd_articles",
    "fieldtype": "Check",
-   "label": "Article(s)"
+   "label": "Article(s)",
+   "permlevel": 1
   },
   {
    "depends_on": "eval:doc.request_type==\"Essai Blanc\"",
@@ -448,14 +456,16 @@
    "depends_on": "eval:doc.request_type==\"Essai Blanc\"",
    "fieldname": "checklist_eb_articles",
    "fieldtype": "Check",
-   "label": "Article(s)"
+   "label": "Article(s)",
+   "permlevel": 1
   },
   {
    "default": "0",
    "depends_on": "eval:doc.request_type==\"Essai Blanc\"",
    "fieldname": "checklist_eb_fiche_technique",
    "fieldtype": "Check",
-   "label": "Fiche technique (pi\u00e8ce jointe)"
+   "label": "Fiche technique (pi\u00e8ce jointe)",
+   "permlevel": 1
   },
   {
    "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
@@ -468,20 +478,22 @@
    "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
    "fieldname": "checklist_rec_photo",
    "fieldtype": "Check",
-   "label": "Photo"
+   "label": "Photo",
+   "permlevel": 1
   },
   {
    "default": "0",
    "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
    "fieldname": "checklist_rec_quantites",
    "fieldtype": "Check",
-   "label": "Quantit\u00e9s impact\u00e9es"
+   "label": "Quantit\u00e9s impact\u00e9es",
+   "permlevel": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-01 09:46:16.190451",
+ "modified": "2026-05-01 10:08:28.900422",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
@@ -596,6 +608,17 @@
    "select": 1,
    "share": 1,
    "submit": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "permlevel": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "select": 1,
+   "share": 1,
    "write": 1
   }
  ],
