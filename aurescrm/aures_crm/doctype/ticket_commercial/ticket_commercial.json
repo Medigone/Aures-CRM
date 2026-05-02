@@ -86,7 +86,6 @@
    "fetch_from": "customer.customer_name",
    "fieldname": "customer_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Nom Client",
    "read_only": 1
   },
@@ -487,7 +486,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-02 09:29:51.525652",
+ "modified": "2026-05-02 09:31:33.908541",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
