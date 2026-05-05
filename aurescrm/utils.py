@@ -85,26 +85,38 @@ def custom_delivery_address_naming(doc, method):
 
 
 def ensure_item_code_for_sous_article(doc, method):
-    """Avant validate : le code article doit exister pour les sous-articles (name vient de autoname)."""
+    """Avant validate : pour les sous-articles, valeur par défaut de item_code = name (ID technique)."""
     if cint(doc.get("custom_sous_article")) and doc.get("custom_article_parent") and doc.get("name"):
-        doc.item_code = doc.name
+        if not (doc.item_code or "").strip():
+            doc.item_code = doc.name
 
 
 def format_item_fields(doc, method):
     """
     - Convertit `item_code` en majuscules.
     - Génère automatiquement `item_name` à partir de `item_code`.
-    - Sous-articles : `item_code` = `name` (ID technique) ; `item_name` = désignation (champ description).
+    - Sous-articles : par défaut `item_code` = `name` ; la désignation métier peut être saisie dans
+      `item_code` (libellé « Désignation ») et est alors conservée. Si `item_code` reste l'ID technique,
+      `item_name` est dérivé de `description`.
     """
     if cint(doc.get("custom_sous_article")) and doc.get("name"):
-        doc.item_code = doc.name
+        technical_id = (doc.name or "").strip()
+        if not (doc.item_code or "").strip():
+            doc.item_code = technical_id
         if doc.item_code:
             doc.item_code = doc.item_code.upper()
-        # La désignation saisie au prompt est dans description (avant update_item_description)
-        if (doc.description or "").strip():
-            doc.item_name = (doc.description or "").strip().upper()
+
+        ic = (doc.item_code or "").strip()
+        # Même valeur (à la casse près) que l'ID document : désignation portée par description
+        if ic.upper() == technical_id.upper():
+            if (doc.description or "").strip():
+                doc.item_name = (doc.description or "").strip().upper()
+            else:
+                doc.item_name = ic
         else:
-            doc.item_name = doc.item_code
+            # Désignation / code fonctionnel distinct de l'ID (saisie utilisateur dans « Désignation »)
+            doc.item_name = ic
+            doc.description = ic
         return
 
     if doc.item_code:
