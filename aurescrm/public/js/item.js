@@ -47,12 +47,18 @@ frappe.ui.form.on("Item", {
 			frm.add_custom_button(
 				__("Créer Sous-Article"),
 				function () {
+					const parentDesignation = get_parent_designation(frm);
 					frappe.prompt(
 						[
 							{
 								fieldname: "designation",
 								fieldtype: "Data",
 								label: __("Désignation du sous-article"),
+								description: parentDesignation
+									? __("Désignation finale : {0} - [valeur saisie]", [
+											frappe.utils.escape_html(parentDesignation),
+										])
+									: "",
 								reqd: 1,
 							},
 							{
@@ -95,6 +101,14 @@ frappe.ui.form.on("Item", {
 		render_sous_articles_html(frm);
 	},
 });
+
+function get_parent_designation(frm) {
+	return (
+		(frm.doc.description || frm.doc.item_name || frm.doc.item_code || frm.doc.name || "")
+			.toString()
+			.trim()
+	);
+}
 
 function render_sous_articles_html(frm) {
 	const field = frm.fields_dict.custom_html_liste_sous_articles;

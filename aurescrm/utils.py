@@ -173,7 +173,9 @@ def update_item_description(doc, method):
         vernis_fields.append("Mat gras")
     if doc.custom_blister == 1:
         vernis_fields.append("Blister")
-    
+    if doc.custom_vernis_serigraphique == 1:
+        vernis_fields.append("Vernis Sérigraphique")
+
     if vernis_fields:
         description_parts.append("OPTIONS VERNIS: " + " | ".join(vernis_fields))
     
@@ -183,6 +185,8 @@ def update_item_description(doc, method):
         finition_fields.append("Recto-verso")
     if doc.custom_fenêtre == 1:
         finition_fields.append("Fenêtre")
+    if doc.custom_pvc_fenêtre == 1:
+        finition_fields.append("Fenêtre PVC")
     if doc.custom_braille == 1:
         finition_fields.append("Braille")
     if doc.custom_gaufrage__estampage == 1:
@@ -258,6 +262,22 @@ def get_sub_articles(parent_item: str):
     )
 
 
+def _compose_sous_article_designation(parent, designation: str) -> str:
+    parent_designation = " ".join(
+        (parent.get("description") or parent.get("item_name") or parent.name or "").split()
+    )
+    designation = " ".join((designation or "").split())
+
+    if not parent_designation:
+        return designation
+
+    prefix = f"{parent_designation} - "
+    if designation.lower().startswith(prefix.lower()):
+        return designation
+
+    return f"{prefix}{designation}"
+
+
 @frappe.whitelist(methods=["POST"])
 def create_sous_article(parent_item: str, designation: str, quantite: float):
     """
@@ -284,6 +304,8 @@ def create_sous_article(parent_item: str, designation: str, quantite: float):
 
     if not cint(parent.get("custom_article_compose")):
         parent.db_set("custom_article_compose", 1, update_modified=False)
+
+    designation = _compose_sous_article_designation(parent, designation)
 
     child = frappe.copy_doc(parent)
     child.name = None

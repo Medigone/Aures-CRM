@@ -23,8 +23,13 @@ class DemandeFaisabilite(Document):
 		# Interdire les sous-articles dans la liste d'articles
 		for row in self.get("liste_articles"):
 			if row.article:
-				is_sub = frappe.db.get_value("Item", row.article, "custom_sous_article")
-				if cint(is_sub):
+				flags = frappe.db.get_value(
+					"Item",
+					row.article,
+					["custom_sous_article", "custom_article_parent"],
+					as_dict=True,
+				)
+				if cint(flags.get("custom_sous_article")) or flags.get("custom_article_parent"):
 					frappe.throw(
 						_("L'article {0} est un sous-article et ne peut pas être sélectionné "
 						  "dans la demande. Veuillez sélectionner l'article parent à la place."

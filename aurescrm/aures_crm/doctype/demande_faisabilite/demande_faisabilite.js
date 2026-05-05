@@ -63,6 +63,18 @@ function find_duplicate_article_qty(rows) {
     return null;
 }
 
+/** Item éligibles dans liste_articles : article parent seulement (pas les sous-articles d'un article composé). */
+function get_liste_articles_item_query(frm) {
+    const filters = {
+        custom_sous_article: 0,
+        custom_article_parent: ["is", "not set"],
+    };
+    if (frm.doc.client) {
+        filters.custom_client = frm.doc.client;
+    }
+    return { filters };
+}
+
 frappe.ui.form.on("Articles Demande Faisabilite", {
     article(frm, cdt, cdn) {
         const row = locals[cdt][cdn];
@@ -82,12 +94,7 @@ frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
         // Filtrer les sous-articles dans la table enfant liste_articles
         frm.set_query("article", "liste_articles", function() {
-            return {
-                filters: {
-                    custom_sous_article: 0,
-                    custom_client: frm.doc.client
-                }
-            };
+            return get_liste_articles_item_query(frm);
         });
 
         // Nettoyer automatiquement les lignes vides du tableau
@@ -116,12 +123,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                         options: 'Item',
                         reqd: 1,
                         get_query: function() {
-                            return {
-                                filters: {
-                                    custom_client: frm.doc.client,
-                                    custom_sous_article: 0
-                                }
-                            };
+                            return get_liste_articles_item_query(frm);
                         }
                     },
                     {
@@ -160,17 +162,31 @@ frappe.ui.form.on('Demande Faisabilite', {
                     if (already_exists) {
                         frappe.msgprint("Cet article existe déjà avec la même quantité.");
                     } else {
-                        frappe.db.get_value("Item", values.article, "item_name", function(message) {
-                            var row = frm.add_child('liste_articles');
-                            row.article = values.article;
-                            row.designation_article = (message && message.item_name) ? message.item_name : "";
-                            row.quantite = values.quantite;
-                            row.date_livraison = values.date_livraison;
-                            row.est_creation = values.est_creation;
-                            row.essai_blanc = values.essai_blanc;
-                            frm.refresh_field('liste_articles');
-                            frm.save();
-                        });
+                        frappe.db.get_value(
+                            "Item",
+                            values.article,
+                            ["item_name", "custom_sous_article", "custom_article_parent"],
+                            function(message) {
+                                if (
+                                    frappe.utils.cint(message && message.custom_sous_article) ||
+                                    (message && message.custom_article_parent)
+                                ) {
+                                    frappe.msgprint(
+                                        __("Sélectionnez l'article parent (article composé), pas un sous-article.")
+                                    );
+                                    return;
+                                }
+                                var row = frm.add_child('liste_articles');
+                                row.article = values.article;
+                                row.designation_article = (message && message.item_name) ? message.item_name : "";
+                                row.quantite = values.quantite;
+                                row.date_livraison = values.date_livraison;
+                                row.est_creation = values.est_creation;
+                                row.essai_blanc = values.essai_blanc;
+                                frm.refresh_field('liste_articles');
+                                frm.save();
+                            }
+                        );
                     }
                 },
                 'Ajouter un article',
