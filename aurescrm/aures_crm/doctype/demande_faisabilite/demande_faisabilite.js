@@ -168,7 +168,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                             ["item_name", "custom_sous_article", "custom_article_parent"],
                             function(message) {
                                 if (
-                                    frappe.utils.cint(message && message.custom_sous_article) ||
+                                    cint(message && message.custom_sous_article) ||
                                     (message && message.custom_article_parent)
                                 ) {
                                     frappe.msgprint(
