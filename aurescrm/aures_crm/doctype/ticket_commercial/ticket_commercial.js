@@ -63,6 +63,10 @@ frappe.ui.form.on("Ticket Commercial", {
         render_rapprochement_bc_html(frm);
     },
 
+    statut_creance: function(frm) {
+        render_rapprochement_bc_html(frm);
+    },
+
     assigne_a: function(frm) {
         if (frm.doc.assigne_a) {
             frappe.db.get_value("User", frm.doc.assigne_a, "full_name")
@@ -879,6 +883,7 @@ function render_suivi_cycle_html(frm) {
 }
 
 const RAPPROCHEMENT_BC_REQUEST_TYPE = "Bon de commande";
+const BC_STATUTS_CREANCE_AUTORISES_COMMANDE = ["OK", "Déblocage autorisé"];
 
 const BC_COMMAND_STATUS_LABELS = {
     "Entièrement commandé": __("Entièrement commandé"),
@@ -887,6 +892,61 @@ const BC_COMMAND_STATUS_LABELS = {
 };
 
 const BC_DEFAULT_RAPPROCHEMENT_FROM_MONTHS = 6;
+
+function is_creance_bc_autorisee(frm) {
+    if (!is_rapprochement_bc_ticket(frm)) {
+        return true;
+    }
+    return (
+        frm.doc.status !== "Blocage Créance" &&
+        BC_STATUTS_CREANCE_AUTORISES_COMMANDE.includes(frm.doc.statut_creance || "")
+    );
+}
+
+function creance_bc_status_banner_html(frm) {
+    const statut = frm.doc.statut_creance || "Non vérifiée";
+    const isAllowed = is_creance_bc_autorisee(frm);
+    const motif = frm.doc.motif_blocage_creance || "";
+    const palette = isAllowed
+        ? { bg: "#f0fdf4", border: "#bbf7d0", fg: "#166534", title: __("Créance validée") }
+        : statut === "Bloquée"
+            ? { bg: "#fef2f2", border: "#fecaca", fg: "#991b1b", title: __("Créance bloquée") }
+            : { bg: "#fff7ed", border: "#fed7aa", fg: "#9a3412", title: __("Créance à vérifier") };
+
+    let html =
+        '<div style="margin:0 0 10px;padding:8px 10px;border:1px solid ' +
+        palette.border +
+        ";border-radius:8px;background:" +
+        palette.bg +
+        ";color:" +
+        palette.fg +
+        ';font-size:12px;">' +
+        '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">' +
+        '<span style="font-weight:700;">' +
+        frappe.utils.escape_html(palette.title) +
+        "</span>" +
+        '<span style="font-weight:600;">' +
+        frappe.utils.escape_html(statut) +
+        "</span>" +
+        "</div>";
+
+    if (!isAllowed) {
+        html +=
+            '<div style="margin-top:4px;">' +
+            frappe.utils.escape_html(
+                __("La création de commande client est bloquée tant que la créance n'est pas OK ou débloquée par la direction.")
+            ) +
+            "</div>";
+    }
+    if (motif) {
+        html +=
+            '<div style="margin-top:4px;color:#64748b;">' +
+            frappe.utils.escape_html(motif) +
+            "</div>";
+    }
+    html += "</div>";
+    return html;
+}
 
 function get_rapprochement_bc_date_filters(frm) {
     if (!frm._bc_date_filters) {
@@ -978,7 +1038,7 @@ function bc_linked_document_line(label, doctypeClass, doctype, name, status) {
     );
 }
 
-function bc_card_actions_panel_html(q, dfName, allowActions) {
+function bc_card_actions_panel_html(q, dfName, allowActions, allowOrder) {
     const qEsc = frappe.utils.escape_html(q.name);
     const dfEsc = frappe.utils.escape_html(dfName || "");
     let html =
@@ -991,14 +1051,22 @@ function bc_card_actions_panel_html(q, dfName, allowActions) {
         frappe.utils.escape_html(__("Voir les articles")) +
         "</button>";
     if (allowActions) {
+        if (allowOrder) {
+            html +=
+                '<button type="button" class="btn btn-default btn-xs bc-rapp-order" data-q="' +
+                qEsc +
+                '" data-docstatus="' +
+                String(q.docstatus) +
+                '" style="display:block;width:100%;text-align:left;margin-bottom:5px;">' +
+                frappe.utils.escape_html(__("Créer commande")) +
+                "</button>";
+        } else {
+            html +=
+                '<span class="text-muted small" style="display:block;padding:4px 6px;margin-bottom:5px;">' +
+                frappe.utils.escape_html(__("Commande bloquée par la créance.")) +
+                "</span>";
+        }
         html +=
-            '<button type="button" class="btn btn-default btn-xs bc-rapp-order" data-q="' +
-            qEsc +
-            '" data-docstatus="' +
-            String(q.docstatus) +
-            '" style="display:block;width:100%;text-align:left;margin-bottom:5px;">' +
-            frappe.utils.escape_html(__("Créer commande")) +
-            "</button>" +
             '<button type="button" class="btn btn-primary btn-xs bc-rapp-pick" data-q="' +
             qEsc +
             '" data-df="' +
@@ -1016,7 +1084,7 @@ function bc_card_actions_panel_html(q, dfName, allowActions) {
     return html;
 }
 
-function bc_quotation_block_html(q, dfName, allowActions) {
+function bc_quotation_block_html(q, dfName, allowActions, allowOrder) {
     const qEsc = frappe.utils.escape_html(q.name);
     let html =
         '<div style="margin-bottom:10px;padding:8px 9px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">';
@@ -1040,7 +1108,7 @@ function bc_quotation_block_html(q, dfName, allowActions) {
         '" style="background:#334155;color:#fff;border-color:#334155;font-weight:500;font-size:11px;line-height:1.2;padding:3px 8px;min-height:0;box-shadow:0 1px 2px rgba(15,23,42,0.12);">' +
         frappe.utils.escape_html(__("Actions")) +
         "</button>" +
-        bc_card_actions_panel_html(q, dfName, allowActions) +
+        bc_card_actions_panel_html(q, dfName, allowActions, allowOrder) +
         "</div></div>";
 
     const sos = q.sales_orders || [];
@@ -1062,7 +1130,7 @@ function bc_quotation_block_html(q, dfName, allowActions) {
     return html;
 }
 
-function bc_df_quotations_section_html(c, allowActions) {
+function bc_df_quotations_section_html(c, allowActions, allowOrder) {
     const quotes = c.quotations || [];
     if (!quotes.length) {
         return (
@@ -1073,13 +1141,13 @@ function bc_df_quotations_section_html(c, allowActions) {
     }
     let html = '<div style="display:flex;flex-direction:column;gap:4px;">';
     quotes.forEach(function(q) {
-        html += bc_quotation_block_html(q, c.name, allowActions);
+        html += bc_quotation_block_html(q, c.name, allowActions, allowOrder);
     });
     html += "</div>";
     return html;
 }
 
-function bc_df_candidate_card_html(c, allowActions) {
+function bc_df_candidate_card_html(c, allowActions, allowOrder) {
     const dfEsc = frappe.utils.escape_html(c.name);
     const quotes = c.quotations || [];
     const dateStr = c.date_creation ? frappe.datetime.str_to_user(c.date_creation) : "—";
@@ -1142,7 +1210,7 @@ function bc_df_candidate_card_html(c, allowActions) {
         "</div></div></div>";
     html +=
         '<div style="padding:10px 12px;background:#f8fafc;border-radius:0 0 10px 10px;flex:1;">' +
-        bc_df_quotations_section_html(c, allowActions) +
+        bc_df_quotations_section_html(c, allowActions, allowOrder) +
         "</div></div>";
     return html;
 }
@@ -1249,7 +1317,9 @@ function render_rapprochement_bc_html(frm) {
 
             const canWrite = frappe.model.can_write("Ticket Commercial");
             const readOnlyForm = frm.is_read_only && frm.is_read_only();
-            frm._bc_allow_row_mutations = canWrite && !readOnlyForm;
+            const allowRowMutations = canWrite && !readOnlyForm;
+            const allowOrderCreation = allowRowMutations && is_creance_bc_autorisee(frm);
+            frm._bc_allow_row_mutations = allowRowMutations;
 
             if (!candidates.length) {
                 frm._bc_last_candidates_map = {};
@@ -1267,8 +1337,9 @@ function render_rapprochement_bc_html(frm) {
                     "<p class=\"text-muted small\" style=\"margin:0;\">" +
                     frappe.utils.escape_html(emptyMsg) +
                     "</p></div></div>";
+                html = creance_bc_status_banner_html(frm) + html;
                 field.$wrapper.html(html);
-                bind_rapprochement_bc_wrapper(frm, field, canWrite && !readOnlyForm);
+                bind_rapprochement_bc_wrapper(frm, field, allowRowMutations);
                 return;
             }
 
@@ -1285,13 +1356,14 @@ function render_rapprochement_bc_html(frm) {
 
             html += "<div style=\"padding:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;background:#fff;overflow:visible;\">";
             candidates.forEach(function(c) {
-                html += bc_df_candidate_card_html(c, canWrite && !readOnlyForm);
+                html += bc_df_candidate_card_html(c, allowRowMutations, allowOrderCreation);
             });
             html += "</div>";
             html += "</div>";
 
+            html = creance_bc_status_banner_html(frm) + html;
             field.$wrapper.html(html);
-            bind_rapprochement_bc_wrapper(frm, field, canWrite && !readOnlyForm);
+            bind_rapprochement_bc_wrapper(frm, field, allowRowMutations);
         },
         error: function() {
             field.$wrapper.html(
@@ -1556,6 +1628,16 @@ function create_sales_order_from_rapprochement_quote(frm, quotationName, docstat
     if (!quotationName) {
         return;
     }
+    if (!is_creance_bc_autorisee(frm)) {
+        frappe.msgprint({
+            indicator: "red",
+            title: __("Créance client"),
+            message: __(
+                "La création de commande est bloquée tant que la créance n'est pas OK ou en déblocage autorisé."
+            ),
+        });
+        return;
+    }
     if (docstatus !== 1) {
         frappe.msgprint({
             indicator: "orange",
@@ -1569,7 +1651,10 @@ function create_sales_order_from_rapprochement_quote(frm, quotationName, docstat
         function() {
             frappe.call({
                 method: "aurescrm.quotation.make_sales_order_draft",
-                args: { source_name: quotationName },
+                args: {
+                    source_name: quotationName,
+                    ticket_name: frm.doc.name,
+                },
                 freeze: true,
                 freeze_message: __("Création de la commande…"),
                 callback: function(r) {

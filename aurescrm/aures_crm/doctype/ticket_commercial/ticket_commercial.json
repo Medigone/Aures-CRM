@@ -47,6 +47,13 @@
   "section_cl_rec",
   "checklist_rec_photo",
   "checklist_rec_quantites",
+  "suivi_cr\u00e9ance_tab",
+  "section_creance_bc",
+  "statut_creance",
+  "motif_blocage_creance",
+  "column_break_creance_bc",
+  "creance_verifiee_par",
+  "creance_verifiee_le",
   "rapprochement_bc_tab",
   "section_rapprochement_bc",
   "rapprochement_bc_html",
@@ -101,7 +108,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn Cours\nPending\nTermin\u00e9\nAnnul\u00e9",
+   "options": "Nouveau\nEn Cours\nPending\nBlocage Cr\u00e9ance\nTermin\u00e9\nAnnul\u00e9",
    "reqd": 1
   },
   {
@@ -303,6 +310,52 @@
   },
   {
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "section_creance_bc",
+   "fieldtype": "Section Break",
+   "label": "Cr\u00e9ance client"
+  },
+  {
+   "default": "Non v\u00e9rifi\u00e9e",
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "statut_creance",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut cr\u00e9ance",
+   "options": "Non v\u00e9rifi\u00e9e\nOK\nBloqu\u00e9e\nD\u00e9blocage autoris\u00e9",
+   "permlevel": 1
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "motif_blocage_creance",
+   "fieldtype": "Small Text",
+   "label": "Motif / commentaire cr\u00e9ance",
+   "permlevel": 1
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "column_break_creance_bc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "creance_verifiee_par",
+   "fieldtype": "Link",
+   "label": "Cr\u00e9ance v\u00e9rifi\u00e9e par",
+   "options": "User",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "creance_verifiee_le",
+   "fieldtype": "Datetime",
+   "label": "Cr\u00e9ance v\u00e9rifi\u00e9e le",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "section_rapprochement_bc",
    "fieldtype": "Section Break"
   },
@@ -481,12 +534,18 @@
    "fieldtype": "Check",
    "label": "Quantit\u00e9s impact\u00e9es",
    "permlevel": 1
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Bon de commande\"",
+   "fieldname": "suivi_cr\u00e9ance_tab",
+   "fieldtype": "Tab Break",
+   "label": "Suivi cr\u00e9ance"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-02 09:31:33.908541",
+ "modified": "2026-05-05 12:10:59.085528",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
@@ -630,6 +689,10 @@
   {
    "color": "Yellow",
    "title": "Pending"
+  },
+  {
+   "color": "Red",
+   "title": "Blocage Cr\u00e9ance"
   },
   {
    "color": "Green",

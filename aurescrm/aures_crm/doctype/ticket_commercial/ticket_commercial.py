@@ -11,6 +11,10 @@ from frappe.utils.html_utils import sanitize_html
 
 ROLE_ADMIN_VENTES = "Administrateur Ventes"
 NIVEAU_URGENCE_OPTIONS = ("U0", "U1", "U2", "U3")
+STATUT_CREANCE_DEFAULT = "Non vérifiée"
+STATUT_CREANCE_BLOQUEE = "Bloquée"
+STATUT_CREANCE_AUTORISES_COMMANDE = ("OK", "Déblocage autorisé")
+STATUT_TICKET_BLOCAGE_CREANCE = "Blocage Créance"
 
 # Liste de contrôle obligatoire pour passer au statut « Terminé » (par type de demande)
 CHECKLIST_TERMINE_FIELDS = {
@@ -47,11 +51,14 @@ class TicketCommercial(Document):
 
     def validate(self):
         """Validations avant sauvegarde"""
+        self.set_defaults()
+        self.apply_creance_status_rules()
         self.validate_required_fields()
         self.validate_liste_controle_si_termine()
-        self.set_defaults()
+        self.validate_creance_fields()
         self.apply_insert_urgence_guard()
         self.validate_restricted_urgence_fields()
+        self.validate_restricted_creance_fields()
 
     def validate_required_fields(self):
         """Vérifie les champs requis"""
@@ -104,6 +111,95 @@ class TicketCommercial(Document):
 
         if not self.statut_demande_urgence:
             self.statut_demande_urgence = "Aucune"
+
+        if self.request_type == "Bon de commande" and not self.statut_creance:
+            self.statut_creance = STATUT_CREANCE_DEFAULT
+
+    def apply_creance_status_rules(self):
+        """Synchronise le statut de ticket avec le blocage créance pour les BC uniquement."""
+        if cstr(self.request_type or "") != "Bon de commande":
+            if cstr(self.status or "") == STATUT_TICKET_BLOCAGE_CREANCE:
+                frappe.throw(
+                    _("Le statut « Blocage Créance » est réservé aux tickets de type Bon de commande.")
+                )
+            return
+
+        statut_creance = cstr(self.statut_creance or STATUT_CREANCE_DEFAULT)
+        old = self.get_doc_before_save() if not self.is_new() else None
+        old_status = cstr(old.get("status")) if old else ""
+
+        if (
+            old_status == STATUT_TICKET_BLOCAGE_CREANCE
+            and cstr(self.status or "") == "En Cours"
+            and statut_creance == STATUT_CREANCE_BLOQUEE
+        ):
+            frappe.throw(
+                _(
+                    "Pour débloquer le ticket, passez le statut créance à « OK » "
+                    "ou « Déblocage autorisé »."
+                )
+            )
+
+        if statut_creance == STATUT_CREANCE_BLOQUEE:
+            self.status = STATUT_TICKET_BLOCAGE_CREANCE
+        elif (
+            cstr(self.status or "") == STATUT_TICKET_BLOCAGE_CREANCE
+            and statut_creance not in STATUT_CREANCE_AUTORISES_COMMANDE
+        ):
+            self.statut_creance = STATUT_CREANCE_BLOQUEE
+
+    def validate_creance_fields(self):
+        """Valide le suivi créance des tickets Bon de commande."""
+        if cstr(self.request_type or "") != "Bon de commande":
+            return
+
+        statut_creance = cstr(self.statut_creance or STATUT_CREANCE_DEFAULT)
+        allowed = (STATUT_CREANCE_DEFAULT, STATUT_CREANCE_BLOQUEE) + STATUT_CREANCE_AUTORISES_COMMANDE
+        if statut_creance not in allowed:
+            frappe.throw(_("Statut créance invalide."))
+
+        if statut_creance == STATUT_CREANCE_BLOQUEE and not (cstr(self.motif_blocage_creance).strip()):
+            frappe.throw(_("Le motif/commentaire créance est obligatoire si la créance est bloquée."))
+
+        if self.is_new():
+            return
+
+        old = self.get_doc_before_save()
+        if not old:
+            return
+
+        old_statut = cstr(old.get("statut_creance") or STATUT_CREANCE_DEFAULT)
+        if old_statut != statut_creance:
+            self.creance_verifiee_par = frappe.session.user
+            self.creance_verifiee_le = now()
+
+    def validate_restricted_creance_fields(self):
+        """Réserve la décision créance aux rôles back-office autorisés."""
+        if frappe.flags.in_import:
+            return
+        if self.is_new():
+            return
+        if cstr(self.request_type or "") != "Bon de commande":
+            return
+
+        prev = frappe.db.get_value(
+            "Ticket Commercial",
+            self.name,
+            ["statut_creance", "motif_blocage_creance"],
+            as_dict=True,
+        )
+        if not prev:
+            return
+
+        changed = any(
+            cstr(self.get(field)) != cstr(prev.get(field))
+            for field in ("statut_creance", "motif_blocage_creance")
+        )
+        if changed and not _can_manage_creance_fields():
+            frappe.throw(
+                _("Les champs de créance sont réservés au rôle Administrateur Ventes."),
+                frappe.PermissionError,
+            )
 
     def apply_insert_urgence_guard(self):
         """À la création, les champs urgence ne sont pas modifiables hors rôles privilégiés."""
@@ -186,6 +282,50 @@ def _can_bypass_urgence_field_guard():
     if "System Manager" in roles:
         return True
     return False
+
+
+def _can_manage_creance_fields():
+    if frappe.session.user == "Administrator":
+        return True
+    roles = frappe.get_roles()
+    if ROLE_ADMIN_VENTES in roles or "System Manager" in roles:
+        return True
+    return False
+
+
+def is_creance_validated_for_sales_order(statut_creance):
+    return cstr(statut_creance or STATUT_CREANCE_DEFAULT) in STATUT_CREANCE_AUTORISES_COMMANDE
+
+
+def assert_can_create_sales_order_from_ticket(ticket_name, quotation_name=None):
+    """Bloque la création de commande si la créance du ticket BC n'est pas autorisée."""
+    if not ticket_name:
+        return None
+
+    ticket = frappe.get_doc("Ticket Commercial", ticket_name)
+    ticket.check_permission("read")
+
+    if cstr(ticket.request_type or "") != "Bon de commande":
+        return ticket
+
+    statut_creance = cstr(ticket.statut_creance or STATUT_CREANCE_DEFAULT)
+    if not is_creance_validated_for_sales_order(statut_creance):
+        frappe.throw(
+            _(
+                "Création de commande impossible : la créance du client doit être « OK » "
+                "ou en « Déblocage autorisé »."
+            )
+        )
+
+    if cstr(ticket.status or "") == STATUT_TICKET_BLOCAGE_CREANCE:
+        frappe.throw(_("Création de commande impossible : le ticket est en Blocage Créance."))
+
+    if quotation_name:
+        q_party = frappe.db.get_value("Quotation", quotation_name, "party_name")
+        if q_party != ticket.customer:
+            frappe.throw(_("Le devis choisi n'appartient pas au client du ticket."))
+
+    return ticket
 
 
 def _assert_niveau(niveau, label=_("Niveau d'urgence")):

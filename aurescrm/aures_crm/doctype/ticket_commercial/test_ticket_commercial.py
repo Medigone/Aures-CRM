@@ -5,7 +5,10 @@ from frappe.tests.utils import FrappeTestCase
 
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
     ALLOWED_DECISION_RAPPROCHEMENT,
+    STATUT_CREANCE_AUTORISES_COMMANDE,
+    STATUT_CREANCE_DEFAULT,
     _urgence_motif_plain,
+    is_creance_validated_for_sales_order,
 )
 
 
@@ -36,3 +39,15 @@ class TestTicketCommercialRapprochementBc(FrappeTestCase):
             "Aucun candidat pertinent",
         ):
             self.assertIn(label, ALLOWED_DECISION_RAPPROCHEMENT)
+
+
+class TestTicketCommercialCreanceHelpers(FrappeTestCase):
+    """Règle minimale : seule une créance validée permet de commander."""
+
+    def test_creance_sales_order_allowed_statuses(self):
+        for statut in STATUT_CREANCE_AUTORISES_COMMANDE:
+            self.assertTrue(is_creance_validated_for_sales_order(statut))
+
+    def test_creance_sales_order_blocked_by_default(self):
+        self.assertFalse(is_creance_validated_for_sales_order(STATUT_CREANCE_DEFAULT))
+        self.assertFalse(is_creance_validated_for_sales_order("Bloquée"))

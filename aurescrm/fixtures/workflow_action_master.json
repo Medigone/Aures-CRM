@@ -23,6 +23,20 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
+  "modified": "2026-05-05 11:53:00.000000",
+  "name": "Bloquer Créance",
+  "workflow_action_name": "Bloquer Créance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-05 11:53:00.000000",
+  "name": "Débloquer Créance",
+  "workflow_action_name": "Débloquer Créance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
   "modified": "2024-03-30 16:29:56.623162",
   "name": "Envoyer",
   "workflow_action_name": "Envoyer"

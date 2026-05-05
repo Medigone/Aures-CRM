@@ -192,6 +192,15 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2026-05-05 11:53:00.000000",
+  "name": "Blocage Créance",
+  "style": "Danger",
+  "workflow_state_name": "Blocage Créance"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2025-02-26 11:44:45.577838",
   "name": "Réalisable",
   "style": "Success",

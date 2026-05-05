@@ -6,7 +6,7 @@ from frappe.model.mapper import get_mapped_doc # Import needed for get_mapped_do
 from frappe.utils import getdate, nowdate
 
 @frappe.whitelist()
-def make_sales_order_draft(source_name):
+def make_sales_order_draft(source_name, ticket_name=None):
     """
     Génère une Sales Order en brouillon à partir d'un Devis.
     Si le devis a déjà des commandes partielles, crée une commande avec les articles restants.
@@ -15,6 +15,14 @@ def make_sales_order_draft(source_name):
     try:
         # Importer la fonction d'analyse depuis sales_order_hooks
         from aurescrm.sales_order_hooks import analyze_quotation_command_status
+        from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
+            assert_can_create_sales_order_from_ticket,
+        )
+
+        assert_can_create_sales_order_from_ticket(
+            ticket_name or _get_ticket_commercial_from_quotation(source_name),
+            source_name,
+        )
         
         # Analyser l'état de commande du devis
         command_analysis = analyze_quotation_command_status(source_name)
@@ -37,6 +45,8 @@ def make_sales_order_draft(source_name):
         # Sinon, créer une commande complète avec tous les articles (logique originale)
         return create_complete_sales_order(source_name)
         
+    except (frappe.PermissionError, frappe.ValidationError):
+        raise
     except Exception as e:
         # IMPORTANT: utiliser des kwargs pour éviter l'inversion title/message
         # et garder un titre <= 140 caractères.
@@ -45,6 +55,17 @@ def make_sales_order_draft(source_name):
             message=f"{e}\n\n{frappe.get_traceback()}",
         )
         frappe.throw(_("Erreur lors de la création de la commande."))
+
+
+def _get_ticket_commercial_from_quotation(source_name):
+    demande_faisabilite = frappe.db.get_value(
+        "Quotation", source_name, "custom_demande_faisabilité"
+    )
+    if not demande_faisabilite:
+        return None
+    return frappe.db.get_value(
+        "Demande Faisabilite", demande_faisabilite, "ticket_commercial"
+    )
 
 def _ensure_sales_order_delivery_dates(so):
     """
