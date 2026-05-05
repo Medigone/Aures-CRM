@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe import _ # Ajout de l'import
-from frappe.utils import now_datetime, add_days, getdate, cint # Ajout de l'import
+from frappe.utils import now_datetime, add_days, getdate, cint, flt
 
 
 class DemandeFaisabilite(Document):
@@ -571,9 +571,10 @@ def cancel_etudes_faisabilite(docname):
 @frappe.whitelist()
 def get_articles_for_quotation(docname):
     """
-    Retourne les articles éligibles au devis pour une Demande Faisabilite.
-    Pour les articles composés, retourne l'article parent uniquement si TOUS
-    ses sous-articles sont réalisables. La quantité est celle de la demande.
+    Retourne les lignes éligibles au devis pour une Demande Faisabilite (ordre du tableau).
+    Plusieurs lignes avec le même article sont possibles si chaque ligne a ses
+    études en statut Réalisable. Les composés : une ligne parent si chaque sous-article
+    est réalisable pour la quantité attendue.
     """
     try:
         quotation_items = _resolve_quotation_articles(docname)
@@ -605,65 +606,78 @@ def get_articles_for_quotation(docname):
         frappe.throw(_("Impossible de récupérer les articles pour le devis."))
 
 
+def _etude_ligne_simple_realisable(docname, article, quantite):
+    """True si une étude Offset ou Flexo « simple » (sans article_parent) est Réalisable pour cette quantité."""
+    q = cint(quantite)
+    filt = {
+        "demande_faisabilite": docname,
+        "status": "Réalisable",
+        "article": article,
+        "article_parent": "",
+        "quantite": q,
+    }
+    if frappe.db.exists("Etude Faisabilite", filt):
+        return True
+    return bool(frappe.db.exists("Etude Faisabilite Flexo", filt))
+
+
+def _etude_ligne_composite_realisable(docname, parent_article, parent_qty):
+    """
+    True si chaque sous-article du parent a une étude Réalisable avec la quantité
+    attendue (comme à la génération des études : int(qte_parent × facteur)).
+    """
+    sous = frappe.get_all(
+        "Item",
+        filters={"custom_article_parent": parent_article},
+        fields=["name", "custom_quantite_sous_article"],
+    )
+    if not sous:
+        return False
+    base_q = cint(parent_qty)
+    for sa in sous:
+        factor = flt(sa.custom_quantite_sous_article or 1)
+        target_qty = int(base_q * factor)
+        filt = {
+            "demande_faisabilite": docname,
+            "status": "Réalisable",
+            "article": sa.name,
+            "article_parent": parent_article,
+            "quantite": target_qty,
+        }
+        if not frappe.db.exists("Etude Faisabilite", filt) and not frappe.db.exists(
+            "Etude Faisabilite Flexo", filt
+        ):
+            return False
+    return True
+
+
 def _resolve_quotation_articles(docname):
     """
-    Résout la liste d'articles à mettre dans le devis en tenant compte
-    des articles composés (article_parent).
-    Cherche dans les deux types d'études (Offset + Flexo).
+    Une entrée par ligne de liste_articles dont les études associées sont entièrement
+    Réalisable (Offset ou Flexo). Permet le même article plusieurs fois avec des quantités
+    différentes. L’ordre suit celui du tableau sur la demande.
     Retourne une liste de dicts : [{article, quantite, date_livraison}, ...]
     """
     demande = frappe.get_doc("Demande Faisabilite", docname)
-    demande_articles = {row.article: row for row in demande.get("liste_articles")}
-
-    common_filters = {"demande_faisabilite": docname, "status": "Réalisable"}
-    common_fields = ["article", "article_parent", "quantite", "date_livraison"]
-
-    etudes_realisables = (
-        frappe.get_all("Etude Faisabilite", filters=common_filters, fields=common_fields)
-        + frappe.get_all("Etude Faisabilite Flexo", filters=common_filters, fields=common_fields)
-    )
-
     results = []
-    parents_seen = set()
-    articles_seen = set()
-
-    for e in etudes_realisables:
-        if e.article_parent:
-            if e.article_parent in parents_seen:
-                continue
-            parents_seen.add(e.article_parent)
-
-            all_etudes_for_parent = (
-                frappe.get_all(
-                    "Etude Faisabilite",
-                    filters={"demande_faisabilite": docname, "article_parent": e.article_parent},
-                    fields=["status"],
-                )
-                + frappe.get_all(
-                    "Etude Faisabilite Flexo",
-                    filters={"demande_faisabilite": docname, "article_parent": e.article_parent},
-                    fields=["status"],
-                )
-            )
-            all_statuses = [et.status for et in all_etudes_for_parent]
-
-            if all_statuses and all(s == "Réalisable" for s in all_statuses):
-                demande_row = demande_articles.get(e.article_parent)
-                if demande_row:
-                    results.append({
-                        "article": e.article_parent,
-                        "quantite": demande_row.quantite,
-                        "date_livraison": demande_row.date_livraison,
-                    })
-        else:
-            if e.article not in articles_seen:
-                articles_seen.add(e.article)
+    for row in demande.get("liste_articles") or []:
+        if not row.article:
+            continue
+        is_compose = cint(frappe.db.get_value("Item", row.article, "custom_article_compose"))
+        if is_compose:
+            if _etude_ligne_composite_realisable(docname, row.article, row.quantite):
                 results.append({
-                    "article": e.article,
-                    "quantite": e.quantite,
-                    "date_livraison": e.date_livraison,
+                    "article": row.article,
+                    "quantite": cint(row.quantite),
+                    "date_livraison": row.date_livraison,
                 })
-
+        else:
+            if _etude_ligne_simple_realisable(docname, row.article, row.quantite):
+                results.append({
+                    "article": row.article,
+                    "quantite": cint(row.quantite),
+                    "date_livraison": row.date_livraison,
+                })
     return results
 
 
@@ -886,9 +900,8 @@ def check_bon_commande_exists(n_bon_commande, client=None, current_name=None):
 def create_quotation_with_calculs(docname):
     """
     Crée un Quotation côté serveur depuis une Demande Faisabilite,
-    puis génère automatiquement les Calcul Devis pour chaque article.
-    Pour les articles composés, le devis affiche l'article parent
-    (uniquement si tous les sous-articles sont réalisables).
+    puis génère automatiquement les Calcul Devis pour chaque ligne article.
+    Articles composés : une ligne de devis par ligne parent éligible dans la demande.
     """
     try:
         demande = frappe.get_doc("Demande Faisabilite", docname)

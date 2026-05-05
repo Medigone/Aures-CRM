@@ -178,8 +178,8 @@ class CalculDevis(Document):
 @frappe.whitelist()
 def generate_calcul_devis_for_quotation(quotation_name):
     """
-    Génère un Calcul Devis pour chaque article du Devis.
-    Évite les doublons si un Calcul Devis existe déjà pour l'article.
+    Génère un Calcul Devis pour chaque ligne article du Devis (Quotation Item).
+    Évite les doublons par ligne via quotation_item_row lorsque le champ existe.
     
     Args:
         quotation_name: Nom du Devis (Quotation)
@@ -188,49 +188,57 @@ def generate_calcul_devis_for_quotation(quotation_name):
         dict: Résultat avec le nombre de documents créés
     """
     quotation = frappe.get_doc("Quotation", quotation_name)
-    
+    has_row_field = frappe.get_meta("Calcul Devis").has_field("quotation_item_row")
+
     created_count = 0
     skipped_count = 0
     created_docs = []
-    
-    for item in quotation.items:
-        # Vérifier si un Calcul Devis existe déjà pour cet article et ce devis
-        existing = frappe.db.exists("Calcul Devis", {
-            "devis": quotation_name,
-            "article": item.item_code
-        })
-        
+
+    sorted_items = sorted(quotation.items, key=lambda r: (r.idx or 0, r.name or ""))
+
+    for item in sorted_items:
+        if not item.item_code:
+            continue
+
+        if has_row_field and item.name:
+            existing = frappe.db.exists(
+                "Calcul Devis", {"devis": quotation_name, "quotation_item_row": item.name}
+            )
+        else:
+            existing = frappe.db.exists(
+                "Calcul Devis",
+                {"devis": quotation_name, "article": item.item_code, "quantite": item.qty},
+            )
+
         if existing:
             skipped_count += 1
             continue
-        
-        # Créer le Calcul Devis
+
         calcul_devis = frappe.new_doc("Calcul Devis")
         calcul_devis.devis = quotation_name
         calcul_devis.client = quotation.custom_id_client
         calcul_devis.article = item.item_code
         calcul_devis.quantite = item.qty
-        
-        # Rechercher l'imposition par défaut (idéale) pour cet article
-        imposition = frappe.db.get_value("Imposition", 
-            {"article": item.item_code, "defaut": 1}, 
-            "name"
+        if has_row_field and item.name:
+            calcul_devis.quotation_item_row = item.name
+
+        imposition = frappe.db.get_value(
+            "Imposition", {"article": item.item_code, "defaut": 1}, "name"
         )
         if imposition:
             calcul_devis.imposition = imposition
-        
-        # Valeur par défaut pour le taux de gâche
-        calcul_devis.taux_gache_tirage = 3  # 3% par défaut
-        
+
+        calcul_devis.taux_gache_tirage = 3
+
         calcul_devis.insert(ignore_permissions=True)
         created_docs.append(calcul_devis.name)
         created_count += 1
-    
+
     return {
         "created": created_count,
         "skipped": skipped_count,
         "documents": created_docs,
         "message": _("{0} Calcul(s) Devis créé(s), {1} ignoré(s) (déjà existants)").format(
             created_count, skipped_count
-        )
+        ),
     }
