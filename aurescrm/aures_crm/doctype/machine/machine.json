@@ -17,13 +17,15 @@
   "observations_section",
   "observations",
   "production_tab",
-  "presse_offset_section",
   "procede",
+  "column_break_bqbj",
   "type_presse",
-  "min_qt",
-  "column_break_offset1",
+  "presse_offset_section",
+  "total_couleurs",
   "nb_couleurs_recto",
   "nb_couleurs_verso",
+  "column_break_offset1",
+  "min_qt",
   "gache_calage",
   "section_break_yqyb",
   "retiration",
@@ -117,7 +119,7 @@
   {
    "fieldname": "temps_calage",
    "fieldtype": "Float",
-   "label": "Temps de calage (minutes)",
+   "label": "Temps total calage (minutes)",
    "non_negative": 1,
    "precision": "1"
   },
@@ -140,8 +142,7 @@
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
    "fieldname": "presse_offset_section",
-   "fieldtype": "Section Break",
-   "label": "Presse Offset"
+   "fieldtype": "Section Break"
   },
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
@@ -263,9 +264,10 @@
    "label": "Configuration"
   },
   {
+   "depends_on": "eval: doc.type_equipement==\"Presse Offset\"",
    "fieldname": "production_tab",
    "fieldtype": "Tab Break",
-   "label": "Param\u00e8tres"
+   "label": "Param\u00e8tres Presse"
   },
   {
    "fieldname": "section_break_yqyb",
@@ -285,12 +287,23 @@
    "fieldname": "vernis",
    "fieldtype": "Check",
    "label": "Vernis"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "total_couleurs",
+   "fieldtype": "Int",
+   "label": "Total couleurs",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_bqbj",
+   "fieldtype": "Column Break"
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-20 07:59:32.821612",
+ "modified": "2026-05-06 16:55:49.924641",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Machine",
