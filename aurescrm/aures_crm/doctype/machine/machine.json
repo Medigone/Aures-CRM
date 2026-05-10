@@ -14,8 +14,7 @@
   "column_break_ident",
   "modele",
   "site_production",
-  "observations_section",
-  "observations",
+  "atelier",
   "production_tab",
   "procede",
   "column_break_bqbj",
@@ -46,7 +45,10 @@
   "configuration",
   "section_break_pmrq",
   "is_active",
-  "image"
+  "image",
+  "observations_tab",
+  "observations_section",
+  "observations"
  ],
  "fields": [
   {
@@ -235,8 +237,7 @@
   },
   {
    "fieldname": "observations_section",
-   "fieldtype": "Section Break",
-   "label": "Observations"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "observations",
@@ -298,12 +299,22 @@
   {
    "fieldname": "column_break_bqbj",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "observations_tab",
+   "fieldtype": "Tab Break",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "atelier",
+   "fieldtype": "Data",
+   "label": "Atelier"
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-06 16:55:49.924641",
+ "modified": "2026-05-07 10:16:15.060354",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Machine",
