@@ -594,37 +594,6 @@ def get_admin_ventes_users(doctype, txt, searchfield, start, page_len, filters):
     )
 
 
-# Statuts de Demande Faisabilite considérés comme « terminés » pour éviter un doublon de création
-CLOSED_DEMANDE_STATUSES = ("Annulée", "Fermée")
-
-
-@frappe.whitelist()
-def get_primary_open_demande_for_ticket(ticket_name):
-    """
-    Retourne le nom d'une Demande Faisabilite encore « ouverte » pour ce ticket
-    (non Annulée / Fermée), la plus récemment modifiée.
-    """
-    if not ticket_name:
-        return {}
-
-    ticket = frappe.get_doc("Ticket Commercial", ticket_name)
-    ticket.check_permission("read")
-
-    rows = frappe.get_all(
-        "Demande Faisabilite",
-        filters={
-            "ticket_commercial": ticket_name,
-            "status": ["not in", list(CLOSED_DEMANDE_STATUSES)],
-        },
-        fields=["name"],
-        order_by="modified desc",
-        limit_page_length=1,
-    )
-    if not rows:
-        return {}
-    return {"name": rows[0].name}
-
-
 @frappe.whitelist()
 def get_cycle_documents(ticket_name):
     """

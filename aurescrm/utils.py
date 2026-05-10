@@ -1,3 +1,6 @@
+import re
+import unicodedata
+
 import frappe
 from frappe import _
 from frappe.model.naming import make_autoname
@@ -85,38 +88,23 @@ def custom_delivery_address_naming(doc, method):
 
 
 def ensure_item_code_for_sous_article(doc, method):
-    """Avant validate : pour les sous-articles, valeur par défaut de item_code = name (ID technique)."""
-    if cint(doc.get("custom_sous_article")) and doc.get("custom_article_parent") and doc.get("name"):
-        if not (doc.item_code or "").strip():
-            doc.item_code = doc.name
+    """Sous-articles : item_code = code métier (création / saisie), jamais l'ID document ``name``."""
+    return
 
 
 def format_item_fields(doc, method):
     """
     - Convertit `item_code` en majuscules.
     - Génère automatiquement `item_name` à partir de `item_code`.
-    - Sous-articles : par défaut `item_code` = `name` ; la désignation métier peut être saisie dans
-      `item_code` (libellé « Désignation ») et est alors conservée. Si `item_code` reste l'ID technique,
-      `item_name` est dérivé de `description`.
+    - Sous-articles : `item_code` est le code métier (désignation parent + saisie à la création) ;
+      `description` est générée par ``update_item_description`` (comme l'article parent).
     """
     if cint(doc.get("custom_sous_article")) and doc.get("name"):
-        technical_id = (doc.name or "").strip()
-        if not (doc.item_code or "").strip():
-            doc.item_code = technical_id
-        if doc.item_code:
-            doc.item_code = doc.item_code.upper()
-
         ic = (doc.item_code or "").strip()
-        # Même valeur (à la casse près) que l'ID document : désignation portée par description
-        if ic.upper() == technical_id.upper():
-            if (doc.description or "").strip():
-                doc.item_name = (doc.description or "").strip().upper()
-            else:
-                doc.item_name = ic
-        else:
-            # Désignation / code fonctionnel distinct de l'ID (saisie utilisateur dans « Désignation »)
-            doc.item_name = ic
-            doc.description = ic
+        if not ic:
+            frappe.throw(_("Le code article est obligatoire pour les sous-articles."))
+        doc.item_code = ic.upper()
+        doc.item_name = doc.item_code
         return
 
     if doc.item_code:
@@ -128,10 +116,6 @@ def format_item_fields(doc, method):
 
 def update_item_description(doc, method):
     """Met à jour la description de l'article en combinant plusieurs champs organisés par sections."""
-    # Sous-articles : la description est la désignation métier saisie à la création — ne pas reconstruire
-    if cint(doc.get("custom_sous_article")):
-        return
-
     # Debug: vérifier si la fonction est appelée
     frappe.logger().info(f"update_item_description appelée pour l'article: {doc.item_code}")
     
@@ -269,32 +253,70 @@ def get_sub_articles(parent_item: str):
     return frappe.get_all(
         "Item",
         filters={"custom_article_parent": parent_item},
-        fields=["name", "description", "custom_quantite_sous_article"],
+        fields=["name", "item_code", "description", "custom_quantite_sous_article"],
         order_by="name asc",
     )
 
 
-def _compose_sous_article_designation(parent, designation: str) -> str:
-    parent_designation = " ".join(
+def _parent_designation_text(parent) -> str:
+    """Texte de désignation parent (même logique que l’ancien préfixe de sous-article)."""
+    return " ".join(
         (parent.get("description") or parent.get("item_name") or parent.name or "").split()
     )
-    designation = " ".join((designation or "").split())
 
-    if not parent_designation:
-        return designation
 
-    prefix = f"{parent_designation} - "
-    if designation.lower().startswith(prefix.lower()):
-        return designation
+def _slug_item_code_part(text: str, max_len: int = 50) -> str:
+    """Normalise un fragment pour `item_code` : majuscules, tirets, sans accents."""
+    t = " ".join((text or "").split())
+    t = "".join(
+        c for c in unicodedata.normalize("NFD", t) if unicodedata.category(c) != "Mn"
+    )
+    t = t.upper()
+    t = re.sub(r"[^A-Z0-9]+", "-", t)
+    t = re.sub(r"-+", "-", t).strip("-")
+    if len(t) > max_len:
+        t = t[:max_len].rstrip("-")
+    return t
 
-    return f"{prefix}{designation}"
+
+def _compose_sous_article_item_code(parent, user_designation: str) -> str:
+    """
+    Code article métier : désignation parent (slug) + '-' + désignation saisie au prompt (slug).
+    Garantit l’unicité du champ ``item_code`` (jusqu’à 100 caractères).
+    """
+    user_designation = (user_designation or "").strip()
+    if not user_designation:
+        frappe.throw(_("La désignation du sous-article est obligatoire."))
+
+    p = _slug_item_code_part(_parent_designation_text(parent), max_len=50)
+    s = _slug_item_code_part(user_designation, max_len=50)
+    base = f"{p}-{s}" if p else s
+    if not base:
+        frappe.throw(_("Impossible de déduire un code article à partir des désignations."))
+
+    max_total = 100
+    ic_field = frappe.get_meta("Item").get_field("item_code")
+    if ic_field and cint(getattr(ic_field, "length", 0)):
+        max_total = cint(ic_field.length)
+    if len(base) > max_total:
+        base = base[:max_total].rstrip("-")
+
+    candidate = base
+    n = 1
+    while frappe.db.exists("Item", {"item_code": candidate}):
+        suffix = f"-{n}"
+        candidate = (base[: max_total - len(suffix)] + suffix).rstrip("-")
+        n += 1
+    return candidate
 
 
 @frappe.whitelist(methods=["POST"])
 def create_sous_article(parent_item: str, designation: str, quantite: float):
     """
     Crée un Item sous-article à partir d'un article parent (article composé).
-    Copie les caractéristiques principales du parent ; nom = <parent>-<n>.
+    - ``name`` (ID document) : ``<parent>-<incrément>``
+    - ``item_code`` : désignation parent + saisie utilisateur (normalisée, unique)
+    - ``description`` : générée automatiquement comme pour l'article parent (hooks)
     """
     if not parent_item or not frappe.db.exists("Item", parent_item):
         frappe.throw(_("Article parent invalide ou introuvable."))
@@ -317,17 +339,16 @@ def create_sous_article(parent_item: str, designation: str, quantite: float):
     if not cint(parent.get("custom_article_compose")):
         parent.db_set("custom_article_compose", 1, update_modified=False)
 
-    designation = _compose_sous_article_designation(parent, designation)
+    composed_item_code = _compose_sous_article_item_code(parent, designation)
 
     child = frappe.copy_doc(parent)
     child.name = None
-    child.item_code = None
+    child.item_code = composed_item_code
     child.item_name = None
     child.custom_article_compose = 0
     child.custom_sous_article = 1
     child.custom_article_parent = parent.name
     child.custom_quantite_sous_article = quantite
-    child.description = designation
 
     # Éviter les conflits de codes-barres uniques hérités du parent
     if child.meta.get_field("barcodes"):

@@ -152,56 +152,42 @@ function add_create_buttons(frm) {
         return;
     }
 
-    // Demande de faisabilité : visible seulement si le back-office a démarré le ticket
+    // Demande de faisabilité : visible seulement si le back-office a démarré le ticket (En Cours).
+    // Plusieurs demandes peuvent être liées au même ticket ; le bouton est masqué si statut Terminé / Annulé (ci-dessus).
     const can_create_linked_docs = frm.doc.status === "En Cours";
 
-    // Demande de faisabilité : n'apparaît que s'il n'existe déjà aucune demande « ouverte »
-    // (hors Annulée / Fermée), cf. get_primary_open_demande_for_ticket
     if (can_create_linked_docs && frappe.model.can_create("Demande Faisabilite") && !frm.is_new() && frm.doc.name) {
-        const ticket_name = frm.doc.name;
-        frappe.call({
-            method: "aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial.get_primary_open_demande_for_ticket",
-            args: { ticket_name: ticket_name },
-            callback: function(r) {
-                if (!frm || !frm.doc || frm.doc.name !== ticket_name) {
+        frm.add_custom_button(
+            __("Demande de faisabilité"),
+            function() {
+                if (!frm.doc.customer) {
+                    frappe.msgprint(
+                        __(
+                            "Veuillez sélectionner un client avant de créer une demande de faisabilité."
+                        )
+                    );
                     return;
                 }
-                if (r.message && r.message.name) {
+                if (frm.is_new() || !frm.doc.name) {
+                    frappe.msgprint(
+                        __(
+                            "Enregistrez le ticket avant de créer une demande de faisabilité."
+                        )
+                    );
                     return;
                 }
-                frm.add_custom_button(
-                    __("Demande de faisabilité"),
-                    function() {
-                        if (!frm.doc.customer) {
-                            frappe.msgprint(
-                                __(
-                                    "Veuillez sélectionner un client avant de créer une demande de faisabilité."
-                                )
-                            );
-                            return;
-                        }
-                        if (frm.is_new() || !frm.doc.name) {
-                            frappe.msgprint(
-                                __(
-                                    "Enregistrez le ticket avant de créer une demande de faisabilité."
-                                )
-                            );
-                            return;
-                        }
-                        open_new_doc_in_new_tab("Demande Faisabilite", {
-                            client: frm.doc.customer,
-                            date_livraison:
-                                frm.doc.echeance ||
-                                frappe.datetime.add_days(frappe.datetime.now_date(), 7),
-                            type: "Premier Tirage",
-                            ticket_commercial: frm.doc.name,
-                            niveau_urgence: frm.doc.niveau_urgence
-                        });
-                    },
-                    __("Créer")
-                );
-            }
-        });
+                open_new_doc_in_new_tab("Demande Faisabilite", {
+                    client: frm.doc.customer,
+                    date_livraison:
+                        frm.doc.echeance ||
+                        frappe.datetime.add_days(frappe.datetime.now_date(), 7),
+                    type: "Premier Tirage",
+                    ticket_commercial: frm.doc.name,
+                    niveau_urgence: frm.doc.niveau_urgence
+                });
+            },
+            __("Créer")
+        );
     }
 }
 
