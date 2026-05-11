@@ -1,0 +1,258 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:CC-{####}",
+ "creation": "2026-05-11 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "html_suivi_recouvrement",
+  "section_principal",
+  "client",
+  "nom_client",
+  "column_break_commercial",
+  "commercial",
+  "section_situation",
+  "date_situation_initiale",
+  "montant_initial",
+  "column_break_totaux",
+  "total_factures_externes",
+  "total_recouvre",
+  "section_solde",
+  "total_ajustements",
+  "solde_restant",
+  "section_suivi",
+  "statut",
+  "date_prochaine_relance",
+  "dernier_resultat_recouvrement",
+  "derniere_visite_recouvrement",
+  "section_obs",
+  "observations",
+  "tab_2_tab"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_principal",
+   "fieldtype": "Section Break",
+   "label": "Client"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fetch_from": "client.customer_name",
+   "fieldname": "nom_client",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_commercial",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fieldname": "commercial",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Commercial",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_situation",
+   "fieldtype": "Section Break",
+   "label": "Situation initiale"
+  },
+  {
+   "fieldname": "date_situation_initiale",
+   "fieldtype": "Date",
+   "label": "Date situation initiale"
+  },
+  {
+   "fieldname": "montant_initial",
+   "fieldtype": "Currency",
+   "label": "Montant initial (solde d\u2019ouverture)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_totaux",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_factures_externes",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total factures ancien ERP",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_recouvre",
+   "fieldtype": "Currency",
+   "label": "Total encaiss\u00e9 (recouvrement)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_solde",
+   "fieldtype": "Section Break",
+   "label": "Soldes"
+  },
+  {
+   "description": "Net des avoirs et ajustements manuels (impact sur le solde).",
+   "fieldname": "total_ajustements",
+   "fieldtype": "Currency",
+   "label": "Net ajustements",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "solde_restant",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Solde restant",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_suivi",
+   "fieldtype": "Section Break",
+   "label": "Suivi recouvrement"
+  },
+  {
+   "fieldname": "html_suivi_recouvrement",
+   "fieldtype": "HTML",
+   "label": "Synth\u00e8se suivi recouvrement"
+  },
+  {
+   "default": "Ouverte",
+   "fieldname": "statut",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Ouverte\nPartiellement recouvr\u00e9e\nSold\u00e9e\nLitige\nSuspendue",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_prochaine_relance",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Date prochaine relance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dernier_resultat_recouvrement",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Dernier r\u00e9sultat recouvrement",
+   "options": "\nPaiement obtenu\nPromesse de paiement\nRefus de paiement\nClient absent\nLitige\n\u00c0 relancer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "derniere_visite_recouvrement",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Derni\u00e8re visite recouvrement",
+   "options": "Visite Commerciale",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_obs",
+   "fieldtype": "Section Break",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "observations",
+   "fieldtype": "Small Text",
+   "label": "Observations"
+  },
+  {
+   "fieldname": "tab_2_tab",
+   "fieldtype": "Tab Break",
+   "label": "Liens",
+   "show_dashboard": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "group": "Mouvements",
+   "link_doctype": "Mouvement Creance Client",
+   "link_fieldname": "creance_client"
+  }
+ ],
+ "modified": "2026-05-11 13:29:24.364243",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Creance Client",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

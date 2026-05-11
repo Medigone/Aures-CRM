@@ -24,6 +24,26 @@
   "groupe_client",
   "notes_tab",
   "notes",
+  "recouvrement_tab",
+  "section_break_vtcc",
+  "resultat_recouvrement",
+  "column_break_bdou",
+  "creance_client",
+  "section_recouvrement",
+  "solde_creance_avant_visite",
+  "montant_reclame",
+  "column_break_rec1",
+  "montant_restant",
+  "section_break_tbic",
+  "montant_encaisse",
+  "type_paiement",
+  "column_break_kbfd",
+  "numero_document_paiement",
+  "photo_document_paiement",
+  "section_break_ypjh",
+  "date_paiement_negociee",
+  "date_prochaine_relance",
+  "motif_non_paiement",
   "localisation_tab",
   "commune",
   "wilaya",
@@ -145,6 +165,118 @@
    "label": "Notes"
   },
   {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\"",
+   "fieldname": "recouvrement_tab",
+   "fieldtype": "Tab Break",
+   "label": "Recouvrement"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\"",
+   "fieldname": "section_recouvrement",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\"",
+   "fieldname": "creance_client",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Cr\u00e9ance client",
+   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\"",
+   "options": "Creance Client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rec1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\"",
+   "fieldname": "resultat_recouvrement",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "R\u00e9sultat recouvrement",
+   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\"",
+   "options": "\nPaiement obtenu\nPromesse de paiement\nRefus de paiement\nClient absent\nLitige\n\u00c0 relancer"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\"",
+   "fieldname": "solde_creance_avant_visite",
+   "fieldtype": "Currency",
+   "label": "Solde cr\u00e9ance avant visite",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\"",
+   "fieldname": "montant_reclame",
+   "fieldtype": "Currency",
+   "label": "Montant r\u00e9clam\u00e9",
+   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\"",
+   "precision": "2"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\"",
+   "fieldname": "montant_encaisse",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Montant encaiss\u00e9",
+   "precision": "2"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\"",
+   "fieldname": "montant_restant",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Montant restant (visite)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.montant_encaisse>0",
+   "fieldname": "type_paiement",
+   "fieldtype": "Select",
+   "label": "Type paiement",
+   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\" && doc.montant_encaisse>0",
+   "options": "\nEsp\u00e8ce\nCh\u00e8que\nVirement"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\" && (doc.resultat_recouvrement==\"Promesse de paiement\" || doc.resultat_recouvrement==\"\u00c0 relancer\")",
+   "fieldname": "date_paiement_negociee",
+   "fieldtype": "Date",
+   "label": "Date paiement n\u00e9goci\u00e9e",
+   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\" && (doc.resultat_recouvrement==\"Promesse de paiement\" || doc.resultat_recouvrement==\"\u00c0 relancer\")"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\"",
+   "fieldname": "date_prochaine_relance",
+   "fieldtype": "Date",
+   "in_standard_filter": 1,
+   "label": "Date prochaine relance"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.montant_encaisse>0 && (doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\")",
+   "fieldname": "numero_document_paiement",
+   "fieldtype": "Data",
+   "label": "N\u00b0 ch\u00e8que / virement",
+   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\" && doc.montant_encaisse>0 && (doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\")"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.montant_encaisse>0 && (doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\")",
+   "fieldname": "photo_document_paiement",
+   "fieldtype": "Attach Image",
+   "label": "Photo document",
+   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\" && doc.montant_encaisse>0 && (doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\")"
+  },
+  {
+   "depends_on": "eval:doc.type_visite==\"Recouvrement\" && (doc.resultat_recouvrement==\"Refus de paiement\" || doc.resultat_recouvrement==\"Litige\" || doc.resultat_recouvrement==\"Client absent\" || doc.resultat_recouvrement==\"\u00c0 relancer\")",
+   "fieldname": "motif_non_paiement",
+   "fieldtype": "Small Text",
+   "label": "Motif / d\u00e9tail"
+  },
+  {
    "fieldname": "localisation_tab",
    "fieldtype": "Tab Break",
    "label": "Localisation"
@@ -250,6 +382,26 @@
    "fieldtype": "Tab Break",
    "label": "Liens",
    "show_dashboard": 1
+  },
+  {
+   "fieldname": "section_break_vtcc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_bdou",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ypjh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_tbic",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_kbfd",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -261,7 +413,7 @@
    "link_fieldname": "visite"
   }
  ],
- "modified": "2026-04-06 13:39:43.109372",
+ "modified": "2026-05-11 13:13:52.595858",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Visite Commerciale",
