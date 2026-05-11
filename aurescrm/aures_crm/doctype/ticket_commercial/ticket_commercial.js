@@ -4,6 +4,7 @@
 frappe.ui.form.on("Ticket Commercial", {
     refresh: function(frm) {
         frm.clear_custom_buttons();
+        apply_default_urgence_nouveau_ticket(frm);
 
         // Actions personnalisées au rafraîchissement du formulaire
         if (frm.doc.status === "Terminé" || frm.doc.status === "Annulé") {
@@ -51,6 +52,7 @@ frappe.ui.form.on("Ticket Commercial", {
     },
 
     request_type: function(frm) {
+        apply_default_urgence_nouveau_ticket(frm);
         // Personnaliser selon le type de demande
         if (frm.doc.request_type === "Réclamation") {
             frappe.msgprint({
@@ -82,6 +84,19 @@ frappe.ui.form.on("Ticket Commercial", {
         }
     }
 });
+
+/** Nouveau ticket : Bon de commande → U2 par défaut (aligné sur le serveur). */
+function apply_default_urgence_nouveau_ticket(frm) {
+    if (!frm.doc.__islocal) {
+        return;
+    }
+    const wanted =
+        frm.doc.request_type === "Bon de commande" ? "U2" : "U0";
+    const cur = frm.doc.niveau_urgence || "U0";
+    if (cur !== wanted) {
+        frm.set_value("niveau_urgence", wanted);
+    }
+}
 
 function add_assign_buttons(frm) {
     if (frm.doc.__islocal) {
@@ -247,13 +262,17 @@ function add_annuler_demande_urgence_button(frm) {
         __("Annuler la demande"),
         function() {
             const estValidee = (frm.doc.statut_demande_urgence || "") === "Validée";
+            const niveau_defaut =
+                frm.doc.request_type === "Bon de commande" ? "U2" : "U0";
             const msgAnnulation = estValidee
                 ? __(
-                      "L'urgence validée sera annulée et le ticket repassera au niveau U0 (aucune urgence). " +
-                          "L'historique restera visible dans la chronologie du ticket. Continuer ?"
+                      "L'urgence validée sera annulée et le ticket repassera au niveau {0} (défaut à la création pour ce type). " +
+                          "L'historique restera visible dans la chronologie du ticket. Continuer ?",
+                      [niveau_defaut]
                   )
                 : __(
-                      "La demande d'urgence sera supprimée et le ticket repassera au niveau U0 (aucune urgence). Continuer ?"
+                      "La demande d'urgence sera supprimée et le ticket repassera au niveau {0} (défaut à la création pour ce type). Continuer ?",
+                      [niveau_defaut]
                   );
             frappe.confirm(
                 msgAnnulation,
@@ -267,8 +286,8 @@ function add_annuler_demande_urgence_button(frm) {
                             if (!r.exc) {
                                 frappe.show_alert({
                                     message: estValidee
-                                        ? __("Urgence annulée — ticket repassé en U0.")
-                                        : __("Demande d'urgence annulée — ticket en U0."),
+                                        ? __("Urgence annulée — ticket repassé en {0}.", [niveau_defaut])
+                                        : __("Demande d'urgence annulée — ticket en {0}.", [niveau_defaut]),
                                     indicator: "green"
                                 });
                                 frm.reload_doc();
@@ -484,6 +503,12 @@ function render_urgence_html(frm) {
     const niveau_demande = frm.doc.niveau_urgence_demande || "";
     const statut = frm.doc.statut_demande_urgence || "Aucune";
 
+    /** BC : U2 est le niveau à la création ; pas de « demande » tant que le flux n'a pas démarré. */
+    const is_bc_urgence_defaut =
+        frm.doc.request_type === "Bon de commande" &&
+        statut === "Aucune" &&
+        niveau === "U2";
+
     if (statut === "Aucune" && niveau === "U0") {
         field.$wrapper.empty();
         frm.toggle_display("html_urgence", false);
@@ -510,21 +535,43 @@ function render_urgence_html(frm) {
     };
 
     const nC = NIVEAUX[niveau] || NIVEAUX.U0;
-    const sC = STATUTS[statut] || {
-        bg: "#f1f5f9",
-        fg: "#475569",
-        border: "#cbd5e1",
-        icon: "",
-        accent: "#94a3b8"
-    };
+
+    let statut_libelle = statut;
+    let sC;
+    if (is_bc_urgence_defaut) {
+        statut_libelle = __("Défaut");
+        sC = {
+            bg: "#f0fdf4",
+            fg: "#166534",
+            border: "#86efac",
+            icon: "",
+            accent: "#10b981"
+        };
+    } else {
+        sC = STATUTS[statut] || {
+            bg: "#f1f5f9",
+            fg: "#475569",
+            border: "#cbd5e1",
+            icon: "",
+            accent: "#94a3b8"
+        };
+    }
 
     const stroke = sC.fg;
     let statutIconHtml = "";
-    if (statut === "En attente") {
-        statutIconHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;line-height:1;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block"><path d="M12 6L12 12L18 12" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>`;
-    } else if (sC.icon) {
-        statutIconHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;line-height:1;flex-shrink:0;font-size:10px">${frappe.utils.escape_html(sC.icon)}</span>`;
+    if (!is_bc_urgence_defaut) {
+        if (statut === "En attente") {
+            statutIconHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;line-height:1;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block"><path d="M12 6L12 12L18 12" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>`;
+        } else if (sC.icon) {
+            statutIconHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;line-height:1;flex-shrink:0;font-size:10px">${frappe.utils.escape_html(sC.icon)}</span>`;
+        }
     }
+
+    const afficher_colonne_demande =
+        !is_bc_urgence_defaut &&
+        niveau_demande &&
+        NIVEAUX[niveau_demande] &&
+        niveau_demande !== niveau;
 
     const level_chip = (code, nObj) => `
         <span style="display:inline-flex;align-items:center;gap:4px;
@@ -584,7 +631,7 @@ function render_urgence_html(frm) {
                         background:${sC.bg};border:1px solid ${sC.border};
                         padding:1px 6px;border-radius:3px;line-height:1.4;
                         display:inline-flex;align-items:center;gap:4px;">
-                        ${statutIconHtml}${frappe.utils.escape_html(statut)}
+                        ${statutIconHtml}${frappe.utils.escape_html(statut_libelle)}
                     </span>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -593,7 +640,7 @@ function render_urgence_html(frm) {
                             text-transform:uppercase;letter-spacing:0.05em;">${__("Actuel")}</span>
                         ${level_chip(niveau, nC)}
                     </div>
-                    ${niveau_demande && NIVEAUX[niveau_demande] && niveau_demande !== niveau ? `
+                    ${afficher_colonne_demande ? `
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#cbd5e1"
                             stroke-width="1.5" stroke-linecap="round" style="margin-top:14px;">
                             <path d="M3 7h8M7 3l4 4-4 4"/>

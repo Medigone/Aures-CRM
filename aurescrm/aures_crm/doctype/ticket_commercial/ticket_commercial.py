@@ -11,6 +11,15 @@ from frappe.utils.html_utils import sanitize_html
 
 ROLE_ADMIN_VENTES = "Administrateur Ventes"
 NIVEAU_URGENCE_OPTIONS = ("U0", "U1", "U2", "U3")
+
+
+def default_niveau_urgence_pour_creation(request_type):
+    """Niveau imposé à la création du ticket (avant demande / validation d'urgence)."""
+    if cstr(request_type or "") == "Bon de commande":
+        return "U2"
+    return "U0"
+
+
 STATUT_CREANCE_DEFAULT = "Non vérifiée"
 STATUT_CREANCE_BLOQUEE = "Bloquée"
 STATUT_CREANCE_AUTORISES_COMMANDE = ("OK", "Déblocage autorisé")
@@ -107,7 +116,7 @@ class TicketCommercial(Document):
             self.commercial = frappe.session.user
 
         if not self.niveau_urgence:
-            self.niveau_urgence = "U0"
+            self.niveau_urgence = default_niveau_urgence_pour_creation(self.request_type)
 
         if not self.statut_demande_urgence:
             self.statut_demande_urgence = "Aucune"
@@ -205,7 +214,7 @@ class TicketCommercial(Document):
         """À la création, les champs urgence ne sont pas modifiables hors rôles privilégiés."""
         if not self.is_new() or _can_bypass_urgence_field_guard():
             return
-        self.niveau_urgence = "U0"
+        self.niveau_urgence = default_niveau_urgence_pour_creation(self.request_type)
         self.niveau_urgence_demande = None
         self.statut_demande_urgence = "Aucune"
         self.descr_urgence = None
@@ -424,7 +433,7 @@ def _assert_can_cancel_urgence_request(doc):
 
 @frappe.whitelist()
 def cancel_urgence_request(docname):
-    """Retire une demande d'urgence (en attente ou déjà validée) et remet le ticket à U0 (commercial ou Administrator)."""
+    """Retire une demande d'urgence (en attente ou déjà validée) et remet le niveau au défaut à la création (ex. U2 pour Bon de commande)."""
     doc = frappe.get_doc("Ticket Commercial", docname)
     doc.check_permission("write")
     _assert_can_cancel_urgence_request(doc)
@@ -445,7 +454,7 @@ def cancel_urgence_request(docname):
     frappe.flags.ticket_urgence_whitelist = True
     try:
         doc = frappe.get_doc("Ticket Commercial", docname)
-        doc.niveau_urgence = "U0"
+        doc.niveau_urgence = default_niveau_urgence_pour_creation(doc.request_type)
         doc.niveau_urgence_demande = None
         doc.statut_demande_urgence = "Aucune"
         doc.descr_urgence = None
@@ -457,8 +466,9 @@ def cancel_urgence_request(docname):
         frappe.flags.ticket_urgence_whitelist = False
 
     doc = frappe.get_doc("Ticket Commercial", docname)
-    msg = _("Demande d'urgence annulée ({0} {1} → U0)").format(
-        prev_statut, prev_niveau
+    cible = cstr(doc.niveau_urgence) or "U0"
+    msg = _("Demande d'urgence annulée ({0} {1} → {2})").format(
+        prev_statut, prev_niveau, cible
     )
     _add_urgence_timeline(doc, msg)
 
