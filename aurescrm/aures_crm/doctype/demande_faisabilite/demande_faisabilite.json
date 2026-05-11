@@ -244,7 +244,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-25 15:57:18.525975",
+ "modified": "2026-05-11 11:11:29.391436",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
@@ -275,11 +275,8 @@
    "write": 1
   },
   {
-   "create": 1,
    "read": 1,
-   "role": "Coordination",
-   "share": 1,
-   "write": 1
+   "role": "Coordination"
   },
   {
    "export": 1,
@@ -287,11 +284,9 @@
    "role": "Superviseur CRM"
   },
   {
-   "create": 1,
    "read": 1,
    "role": "Charg\u00e9 Devis",
-   "select": 1,
-   "write": 1
+   "select": 1
   },
   {
    "create": 1,
@@ -309,16 +304,12 @@
    "role": "Responsable \u00c9tude Faisabilit\u00e9"
   },
   {
-   "create": 1,
    "read": 1,
-   "role": "Commercial Itin\u00e9rant",
-   "write": 1
+   "role": "Commercial Itin\u00e9rant"
   },
   {
-   "create": 1,
    "read": 1,
-   "role": "Commercial S\u00e9dentaire",
-   "write": 1
+   "role": "Commercial S\u00e9dentaire"
   },
   {
    "read": 1,
