@@ -377,6 +377,8 @@ scheduler_events = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+extend_bootinfo = ["aurescrm.aures_crm.boot.boot_session"]
+
 fixtures = [
 
     #     {

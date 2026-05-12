@@ -51,8 +51,8 @@ frappe.ui.form.on('Visite Commerciale', {
 			});
 		}
 
-		// Vérifier si l'état du workflow est "En Cours" et que le champ gps_visite est vide
-		if (frm.doc.status === "En Cours" && !frm.doc.gps_visite) {
+		// Brouillon uniquement : éviter set_value / save après soumission workflow
+		if (frm.doc.docstatus === 0 && frm.doc.status === "En Cours" && !frm.doc.gps_visite) {
 			if (navigator.geolocation) {
 				navigator.geolocation.getCurrentPosition(
 					({ coords: { latitude, longitude } }) => {
@@ -88,7 +88,11 @@ frappe.ui.form.on('Visite Commerciale', {
 			frm.doc.docstatus === 0 &&
 			(frm.is_new() || !frm.doc.creance_client)
 		) {
-			try_auto_select_creance(frm, { fill_montant: !frm.doc.montant_reclame });
+			try_auto_select_creance(frm, {
+				fill_montant: !frm.doc.montant_reclame,
+				// Ne pas vider montant_reclame au refresh : seulement au changement client / type
+				clear_when_no_creance: false,
+			});
 		}
 	},
 
@@ -97,7 +101,7 @@ frappe.ui.form.on('Visite Commerciale', {
 			return;
 		}
 		if (frm.doc.type_visite === 'Recouvrement') {
-			try_auto_select_creance(frm, { fill_montant: true });
+			try_auto_select_creance(frm, { fill_montant: true, clear_when_no_creance: true });
 		}
 	},
 
@@ -108,17 +112,20 @@ frappe.ui.form.on('Visite Commerciale', {
 		if (frm.doc.type_visite !== 'Recouvrement') {
 			return;
 		}
-		try_auto_select_creance(frm, { fill_montant: true });
+		try_auto_select_creance(frm, { fill_montant: true, clear_when_no_creance: true });
 	},
 
 	creance_client: function (frm) {
-		if (frm.doc.type_visite !== 'Recouvrement') {
+		if (frm.doc.docstatus !== 0 || frm.doc.type_visite !== 'Recouvrement') {
 			return;
 		}
 		load_creance_solde(frm, true);
 	},
 
 	montant_reclame: function (frm) {
+		if (frm.doc.docstatus !== 0) {
+			return;
+		}
 		recalculate_montant_restant_visite(frm);
 	},
 
@@ -148,15 +155,24 @@ frappe.ui.form.on('Visite Commerciale', {
 
 function try_auto_select_creance(frm, opts) {
 	opts = opts || {};
+	const clear_when_no_creance = opts.clear_when_no_creance === true;
 	if (frm.doc.docstatus !== 0 || !frm.doc.client || frm.doc.type_visite !== 'Recouvrement') {
 		return;
 	}
 	const fill_montant = opts.fill_montant !== false;
+	const clientAtStart = frm.doc.client;
 	frappe.db.get_list('Creance Client', {
 		filters: { client: frm.doc.client },
 		fields: ['name'],
 		limit: 1
 	}).then(rows => {
+		if (
+			frm.doc.docstatus !== 0 ||
+			frm.doc.type_visite !== 'Recouvrement' ||
+			frm.doc.client !== clientAtStart
+		) {
+			return;
+		}
 		if (rows && rows.length > 0) {
 			const next = rows[0].name;
 			if (frm.doc.creance_client === next) {
@@ -164,9 +180,24 @@ function try_auto_select_creance(frm, opts) {
 				return;
 			}
 			frm.set_value('creance_client', next).then(() => {
+				if (frm.doc.docstatus !== 0) {
+					return;
+				}
 				load_creance_solde(frm, fill_montant);
 			});
 		} else {
+			// Sans fiche créance : ne remettre à zéro que si l’utilisateur change de client / type,
+			// pas à chaque refresh après sauvegarde (sinon montant_reclame saisi était effacé).
+			if (!clear_when_no_creance) {
+				return;
+			}
+			if (
+				frm.doc.docstatus !== 0 ||
+				frm.doc.type_visite !== 'Recouvrement' ||
+				frm.doc.client !== clientAtStart
+			) {
+				return;
+			}
 			frappe.run_serially([
 				() => frm.set_value('creance_client', ''),
 				() => frm.set_value('solde_creance_avant_visite', ''),
@@ -180,8 +211,16 @@ function load_creance_solde(frm, set_default_reclame) {
 	if (frm.doc.docstatus !== 0 || !frm.doc.creance_client) {
 		return;
 	}
+	const ccAtStart = frm.doc.creance_client;
 	frappe.db.get_value('Creance Client', frm.doc.creance_client, 'solde_restant')
 		.then(r => {
+			if (
+				frm.doc.docstatus !== 0 ||
+				frm.doc.creance_client !== ccAtStart ||
+				frm.doc.type_visite !== 'Recouvrement'
+			) {
+				return;
+			}
 			const solde = r.message.solde_restant || 0;
 			frm.set_value('solde_creance_avant_visite', solde);
 			if (set_default_reclame && !frm.doc.montant_reclame) {

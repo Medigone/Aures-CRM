@@ -6,9 +6,15 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, get_link_to_form
 
+from aurescrm.aures_crm.doctype.parametres_suivi_creances.parametres_suivi_creances import (
+	assert_suivi_creances_actif,
+)
+
 
 class CreanceClient(Document):
 	def validate(self):
+		if not getattr(self.flags, "ignore_suivi_creances_check", False):
+			assert_suivi_creances_actif()
 		if not self.client:
 			return
 		existing = frappe.db.get_value("Creance Client", {"client": self.client}, "name")

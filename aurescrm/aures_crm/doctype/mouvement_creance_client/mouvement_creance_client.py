@@ -7,10 +7,15 @@ from frappe.model.document import Document
 from frappe.utils import flt
 
 from aurescrm.aures_crm.doctype.creance_client.creance_client import sync_creance_client_from_movements
+from aurescrm.aures_crm.doctype.parametres_suivi_creances.parametres_suivi_creances import (
+	assert_suivi_creances_actif,
+)
 
 
 class MouvementCreanceClient(Document):
 	def validate(self):
+		if not getattr(self.flags, "ignore_suivi_creances_check", False):
+			assert_suivi_creances_actif()
 		if flt(self.montant) <= 0:
 			frappe.throw(_("Le montant doit être supérieur à 0."))
 

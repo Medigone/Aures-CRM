@@ -1070,12 +1070,12 @@ function load_trace_imposition_links(frm) {
 
 
     /**
-     * Creates a new Trace document, links it, and prompts for required info.
+     * Crée un nouveau tracé vide puis ouvre le dialogue de saisie (fichier, dimensions, etc.).
      * @param {string} docname - Name of the current Etude Faisabilite document.
      */
-    if (!window.createTrace) {
-        window.createTrace = function(docname) {
-            var frm = cur_frm; // Get current form instance
+    if (!window.createTraceFromScratch) {
+        window.createTraceFromScratch = function(docname) {
+            var frm = cur_frm;
             if (!frm.doc.client || !frm.doc.article) {
                 frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir les champs Client et Article avant de créer une Trace.'), indicator: 'orange' });
                 return;
@@ -1087,7 +1087,7 @@ function load_trace_imposition_links(frm) {
                 callback: function(r) {
                     if (r.message && r.message.name) {
                         var trace_id = r.message.name;
-                        frm.set_value("trace", trace_id); // Link the new Trace
+                        frm.set_value("trace", trace_id);
 
                         frappe.call({
                             method: "frappe.client.get_value",
@@ -1115,9 +1115,8 @@ function load_trace_imposition_links(frm) {
                                         var values = d.get_values();
                                         if (!values.dimensions || !values.fichier_trace) {
                                              frappe.msgprint({ title: __('Validation'), message: __("Veuillez remplir tous les champs obligatoires."), indicator: 'orange' });
-                                             return; // Prevent closing dialog
+                                             return;
                                         }
-                                        // Update the newly created Trace document
                                         frappe.call({
                                             method: "frappe.client.set_value",
                                             args: { doctype: "Trace", name: trace_id, fieldname: { dimensions: values.dimensions, points_colle: values.points_colle, fichier_trace: values.fichier_trace } },
@@ -1135,7 +1134,6 @@ function load_trace_imposition_links(frm) {
                                                                 frappe.msgprint({ title: __('Cotations article'), message: __("Impossible de synchroniser les dimensions vers l'article. Vérifiez le format (ex. 56×280, 56,3×280, 80×35×118 ; x ou × ; . ou ,)."), indicator: 'red' });
                                                                 return;
                                                             }
-                                                            // Synchroniser les points de colle vers l'Etude Faisabilite
                                                             frappe.call({
                                                                 method: "aurescrm.aures_crm.doctype.trace.trace.sync_points_colle_to_etude",
                                                                 args: {
@@ -1144,12 +1142,10 @@ function load_trace_imposition_links(frm) {
                                                                 },
                                                                 callback: function(r_sync) {
                                                                     if (r_sync.message && r_sync.message.success) {
-                                                                        // Mettre à jour le champ local points_colle
                                                                         frm.set_value('points_colle', r_sync.message.points_colle);
                                                                     }
                                                                     frappe.show_alert({message:__('Trace créée et mise à jour avec succès.'), indicator:'green'}, 5);
                                                                     d.hide();
-                                                                    // Save the Etude Faisabilite to persist the link and points_colle, then refresh UI
                                                                     frm.save()
                                                                         .then(() => {
                                                                             load_trace_imposition_links(frm);
@@ -1169,7 +1165,7 @@ function load_trace_imposition_links(frm) {
                                         });
                                     }
                                 });
-                                style_dialog_primary_button(d); // Apply default styling (no-op now)
+                                style_dialog_primary_button(d);
                                 d.show();
                             },
                             error: function() {
@@ -1180,6 +1176,292 @@ function load_trace_imposition_links(frm) {
                 },
                 error: function(err) { frappe.msgprint({ title: __('Erreur Serveur'), message: __("Erreur serveur lors de la création de la Trace.") + "<br>" + err.message, indicator: 'red' }); }
             });
+        };
+    }
+
+    /**
+     * Duplique un tracé depuis un autre article (même client).
+     * @param {string} docname - Name of the current Etude Faisabilite document.
+     */
+    if (!window.duplicateTraceFromExisting) {
+        window.duplicateTraceFromExisting = function(docname) {
+            var frm = cur_frm;
+            if (!frm.doc.client || !frm.doc.article) {
+                frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir les champs Client et Article avant de dupliquer une Trace.'), indicator: 'orange' });
+                return;
+            }
+            var dupState = { sourceTrace: null, sourceHadFile: false };
+
+            var d = new frappe.ui.Dialog({
+                title: __('Dupliquer un tracé existant'),
+                fields: [
+                    {
+                        fieldtype: 'HTML',
+                        fieldname: 'help',
+                        options:
+                            '<p class="text-muted small" style="margin-bottom:0;">' +
+                            _ef_esc(__('Sélectionnez un article du même client qui possède déjà un tracé (ex. autre parfum).')) +
+                            '</p>',
+                    },
+                    {
+                        fieldname: 'article_reference',
+                        fieldtype: 'Link',
+                        options: 'Item',
+                        label: __('Article de référence'),
+                        reqd: 1,
+                        get_query: function () {
+                            return {
+                                filters: {
+                                    custom_client: frm.doc.client,
+                                    name: ['!=', frm.doc.article],
+                                },
+                            };
+                        },
+                        onchange: function () {
+                            var ref = d.get_value('article_reference');
+                            dupState.sourceTrace = null;
+                            dupState.sourceHadFile = false;
+                            var wrap = d.fields_dict.source_summary && d.fields_dict.source_summary.$wrapper;
+                            if (!wrap) {
+                                return;
+                            }
+                            if (!ref) {
+                                wrap.html('');
+                                d.set_value('dimensions', '');
+                                d.set_value('points_colle', '');
+                                return;
+                            }
+                            frappe.call({
+                                method: 'aurescrm.aures_crm.doctype.trace.trace.get_trace_for_article',
+                                args: { article: ref },
+                                callback: function (r0) {
+                                    if (!r0.message || !r0.message.name) {
+                                        wrap.html(
+                                            '<div class="alert alert-warning" style="margin-top:8px;margin-bottom:0;font-size:12px;">' +
+                                                _ef_esc(__('Aucun tracé trouvé pour cet article.')) +
+                                                '</div>'
+                                        );
+                                        d.set_value('dimensions', '');
+                                        d.set_value('points_colle', '');
+                                        return;
+                                    }
+                                    var t = r0.message;
+                                    dupState.sourceTrace = t.name;
+                                    dupState.sourceHadFile = !!(t.fichier_trace);
+                                    d.set_value('dimensions', t.dimensions || '');
+                                    d.set_value('points_colle', t.points_colle != null && t.points_colle !== '' ? t.points_colle : 0);
+                                    var fn = t.fichier_trace_name || '';
+                                    var fhtml = fn
+                                        ? '<br><strong>' + _ef_esc(__('Fichier')) + ':</strong> ' + _ef_esc(fn)
+                                        : '<br><span class="text-muted">' + _ef_esc(__('Aucun fichier sur le tracé source')) + '</span>';
+                                    wrap.html(
+                                        '<div class="alert alert-info" style="margin-top:8px;margin-bottom:0;font-size:12px;line-height:1.45;">' +
+                                            '<strong>' +
+                                            _ef_esc(__('Tracé source')) +
+                                            ':</strong> ' +
+                                            _ef_esc(t.name) +
+                                            fhtml +
+                                            '</div>'
+                                    );
+                                },
+                            });
+                        },
+                    },
+                    { fieldtype: 'HTML', fieldname: 'source_summary', options: '' },
+                    {
+                        label: __('Dimensions'),
+                        fieldname: 'dimensions',
+                        fieldtype: 'Data',
+                        reqd: 1,
+                        description: __(
+                            'Vous pouvez ajuster avant duplication. Même format que les cotations article : 56×280, 56,3×280 ; 80×35×118 ; x ou × ; . ou , ; sans mm.'
+                        ),
+                    },
+                    {
+                        label: __('Points colle'),
+                        fieldname: 'points_colle',
+                        fieldtype: 'Int',
+                        description: __('Nombre de points de colle'),
+                    },
+                ],
+                primary_action_label: __('Dupliquer'),
+                primary_action: function () {
+                    var v = d.get_values();
+                    if (!v.article_reference || !v.dimensions) {
+                        frappe.msgprint({
+                            title: __('Validation'),
+                            message: __('Veuillez sélectionner un article de référence et renseigner les dimensions.'),
+                            indicator: 'orange',
+                        });
+                        return;
+                    }
+                    if (!dupState.sourceTrace) {
+                        frappe.msgprint({
+                            title: __('Validation'),
+                            message: __("Aucun tracé valide pour l'article sélectionné."),
+                            indicator: 'orange',
+                        });
+                        return;
+                    }
+                    frappe.call({
+                        method: 'aurescrm.aures_crm.doctype.trace.trace.duplicate_trace_from_reference',
+                        args: {
+                            source_trace: dupState.sourceTrace,
+                            client: frm.doc.client,
+                            article: frm.doc.article,
+                            article_reference: v.article_reference,
+                            dimensions: v.dimensions,
+                            points_colle: v.points_colle,
+                        },
+                        freeze: true,
+                        freeze_message: __('Duplication du tracé…'),
+                        callback: function (r) {
+                            if (r.exc) {
+                                var errMsg = __('La duplication a échoué.');
+                                if (typeof r.exc === 'string') {
+                                    var parts = r.exc.split('\n').filter(function (l) {
+                                        return l && l.trim();
+                                    });
+                                    if (parts.length) {
+                                        errMsg = parts[parts.length - 1];
+                                    }
+                                }
+                                frappe.msgprint({ title: __('Erreur'), message: errMsg, indicator: 'red' });
+                                return;
+                            }
+                            if (!r.message || !r.message.name) {
+                                frappe.msgprint({ title: __('Erreur'), message: __('La duplication a échoué.'), indicator: 'red' });
+                                return;
+                            }
+                            var newId = r.message.name;
+                            var dims = r.message.dimensions;
+                            frm.set_value('trace', newId);
+                            frappe.call({
+                                method: 'aurescrm.item_cotations.sync_item_cotations_from_trace',
+                                args: { article: frm.doc.article, dimensions: dims },
+                                callback: function (r_item) {
+                                    if (r_item.exc) {
+                                        frappe.msgprint({
+                                            title: __('Cotations article'),
+                                            message: __(
+                                                "Impossible de synchroniser les dimensions vers l'article. Vérifiez le format (ex. 56×280, 56,3×280, 80×35×118 ; x ou × ; . ou ,)."
+                                            ),
+                                            indicator: 'red',
+                                        });
+                                        return;
+                                    }
+                                    frappe.call({
+                                        method: 'aurescrm.aures_crm.doctype.trace.trace.sync_points_colle_to_etude',
+                                        args: {
+                                            trace_name: newId,
+                                            etude_faisabilite_name: frm.doc.name,
+                                        },
+                                        callback: function (r_sync) {
+                                            if (r_sync.message && r_sync.message.success) {
+                                                frm.set_value('points_colle', r_sync.message.points_colle);
+                                            }
+                                            if (!dupState.sourceHadFile) {
+                                                frappe.show_alert(
+                                                    {
+                                                        message: __(
+                                                            'Tracé dupliqué. Aucun fichier sur le tracé source — ajoutez un fichier si nécessaire.'
+                                                        ),
+                                                        indicator: 'orange',
+                                                    },
+                                                    6
+                                                );
+                                            } else if (!r.message.file_copied) {
+                                                frappe.show_alert(
+                                                    {
+                                                        message: __(
+                                                            "Le tracé a été créé mais le fichier n'a pas pu être copié — joignez-le manuellement."
+                                                        ),
+                                                        indicator: 'orange',
+                                                    },
+                                                    6
+                                                );
+                                            } else {
+                                                frappe.show_alert({ message: __('Tracé dupliqué avec succès.'), indicator: 'green' }, 5);
+                                            }
+                                            d.hide();
+                                            frm.save()
+                                                .then(function () {
+                                                    load_trace_imposition_links(frm);
+                                                    refresh_attached_files(frm);
+                                                })
+                                                .catch(function (err) {
+                                                    console.error('Save failed after duplicate Trace:', err);
+                                                });
+                                        },
+                                        error: function () {
+                                            frappe.msgprint({
+                                                title: __('Erreur Serveur'),
+                                                message: __('Erreur lors de la synchronisation des points de colle.'),
+                                                indicator: 'red',
+                                            });
+                                        },
+                                    });
+                                },
+                                error: function () {
+                                    frappe.msgprint({
+                                        title: __('Erreur Serveur'),
+                                        message: __("Erreur lors de la synchronisation des cotations vers l'article."),
+                                        indicator: 'red',
+                                    });
+                                },
+                            });
+                        },
+                        error: function (err) {
+                            frappe.msgprint({
+                                title: __('Erreur Serveur'),
+                                message: __('Erreur serveur lors de la duplication.') + (err && err.message ? '<br>' + err.message : ''),
+                                indicator: 'red',
+                            });
+                        },
+                    });
+                },
+            });
+            style_dialog_primary_button(d);
+            d.show();
+        };
+    }
+
+    /**
+     * Choix : création à blanc ou duplication depuis un autre article.
+     * @param {string} docname - Name of the current Etude Faisabilite document.
+     */
+    if (!window.createTrace) {
+        window.createTrace = function(docname) {
+            var frm = cur_frm;
+            if (!frm.doc.client || !frm.doc.article) {
+                frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir les champs Client et Article avant de créer une Trace.'), indicator: 'orange' });
+                return;
+            }
+            var choice = new frappe.ui.Dialog({
+                title: __('Créer un tracé'),
+                fields: [
+                    {
+                        fieldtype: 'HTML',
+                        fieldname: 'intro',
+                        options:
+                            '<p class="text-muted" style="margin-bottom:0;">' +
+                            _ef_esc(__('Choisissez comment créer le tracé pour cet article.')) +
+                            '</p>',
+                    },
+                ],
+                primary_action_label: __('Créer un nouveau tracé'),
+                primary_action: function () {
+                    choice.hide();
+                    window.createTraceFromScratch(docname);
+                },
+                secondary_action_label: __('Dupliquer depuis un tracé existant'),
+                secondary_action: function () {
+                    choice.hide();
+                    window.duplicateTraceFromExisting(docname);
+                },
+            });
+            style_dialog_primary_button(choice);
+            choice.show();
         };
     }
 

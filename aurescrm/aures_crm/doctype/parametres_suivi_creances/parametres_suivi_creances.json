@@ -1,0 +1,93 @@
+{
+ "actions": [],
+ "creation": "2026-05-12 00:00:00",
+ "doctype": "DocType",
+ "document_type": "Other",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_activation",
+  "suivi_creances_actif",
+  "section_generation",
+  "html_bouton_generer",
+  "section_stats",
+  "nb_clients_actifs",
+  "nb_creances_existantes"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_activation",
+   "fieldtype": "Section Break",
+   "label": "Activation"
+  },
+  {
+   "default": "0",
+   "description": "Quand d\u00e9sactiv\u00e9 : bloque la cr\u00e9ation/modification des fiches Cr\u00e9ance Client et des Mouvement Cr\u00e9ance Client, et d\u00e9sactive la synchronisation automatique au moment de soumettre une visite de type Recouvrement. Le type Recouvrement de la Visite Commerciale reste utilisable comme historique.",
+   "fieldname": "suivi_creances_actif",
+   "fieldtype": "Check",
+   "label": "Suivi des cr\u00e9ances actif"
+  },
+  {
+   "fieldname": "section_generation",
+   "fieldtype": "Section Break",
+   "label": "G\u00e9n\u00e9ration initiale"
+  },
+  {
+   "fieldname": "html_bouton_generer",
+   "fieldtype": "HTML",
+   "label": "G\u00e9n\u00e9rer les fiches"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_stats",
+   "fieldtype": "Section Break",
+   "label": "Statistiques"
+  },
+  {
+   "fieldname": "nb_clients_actifs",
+   "fieldtype": "Int",
+   "label": "Clients actifs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nb_creances_existantes",
+   "fieldtype": "Int",
+   "label": "Fiches cr\u00e9ance existantes",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-05-12 21:16:42.629384",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Parametres Suivi Creances",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Administrateur Ventes",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

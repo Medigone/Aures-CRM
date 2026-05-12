@@ -7,6 +7,9 @@ from aurescrm.aures_crm.doctype.creance_client.creance_client import (
 	sync_creance_client_from_movements,
 	update_creance_after_visite,
 )
+from aurescrm.aures_crm.doctype.parametres_suivi_creances.parametres_suivi_creances import (
+	is_suivi_creances_actif,
+)
 
 RECOUVREMENT_FIELDS = [
 	"creance_client",
@@ -76,6 +79,17 @@ class VisiteCommerciale(Document):
 		if self.type_visite != "Recouvrement" or not self.creance_client:
 			return
 
+		if not is_suivi_creances_actif():
+			if self._should_warn_recouvrement_skipped_on_submit():
+				frappe.msgprint(
+					_(
+						"Suivi des créances désactivé : aucun mouvement n'a été créé et la fiche créance n'a pas été mise à jour pour cette visite."
+					),
+					alert=True,
+					indicator="orange",
+				)
+			return
+
 		update_creance_after_visite(self.creance_client, self)
 
 		if flt(self.montant_encaisse) <= 0:
@@ -99,6 +113,13 @@ class VisiteCommerciale(Document):
 		)
 		mouv.flags.ignore_permissions = True
 		mouv.insert()
+
+	def _should_warn_recouvrement_skipped_on_submit(self) -> bool:
+		return bool(
+			self.creance_client
+			or flt(self.montant_encaisse) > 0
+			or (self.resultat_recouvrement or "").strip()
+		)
 
 	def on_cancel(self):
 		if self.type_visite != "Recouvrement":

@@ -3,6 +3,7 @@
 
 frappe.ui.form.on('Creance Client', {
 	refresh(frm) {
+		apply_suivi_creances_toggle(frm);
 		render_suivi_recouvrement_html(frm);
 	},
 	statut(frm) {
@@ -18,6 +19,26 @@ frappe.ui.form.on('Creance Client', {
 		render_suivi_recouvrement_html(frm);
 	},
 });
+
+function apply_suivi_creances_toggle(frm) {
+	const active = frappe.boot?.aurescrm_suivi_creances_actif !== false;
+	if (!active) {
+		frm.dashboard.set_headline(
+			`<div>${__(
+				'Le suivi des créances est désactivé dans Paramètres Suivi Créances. Création et modification des fiches créance sont bloquées côté serveur.'
+			)}</div>`,
+			'red'
+		);
+		if (frm.is_new()) {
+			frm.disable_save();
+		} else {
+			frm.enable_save();
+		}
+	} else {
+		frm.dashboard.clear_headline();
+		frm.enable_save();
+	}
+}
 
 function render_suivi_recouvrement_html(frm) {
 	const field = frm.get_field('html_suivi_recouvrement');
