@@ -9,6 +9,7 @@
   "section_break_fkfa",
   "date_creation",
   "demande_faisabilite",
+  "dossier_essai_blanc",
   "niveau_urgence",
   "is_reprint",
   "essai_blanc",
@@ -253,6 +254,13 @@
    "search_index": 1
   },
   {
+   "fieldname": "dossier_essai_blanc",
+   "fieldtype": "Link",
+   "label": "Dossier Essai Blanc",
+   "options": "Dossier Essai Blanc",
+   "search_index": 1
+  },
+  {
    "default": "U0",
    "fetch_from": "demande_faisabilite.niveau_urgence",
    "fetch_if_empty": 1,
@@ -398,7 +406,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-24 12:35:42.126970",
+ "modified": "2026-05-14 13:44:53.198171",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",

@@ -250,5 +250,61 @@
   "modified": "2025-07-16 09:30:56.206525",
   "name": "Devis Réalisé",
   "workflow_action_name": "Devis Réalisé"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Démarrer étude",
+  "workflow_action_name": "Démarrer étude"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Finaliser étude",
+  "workflow_action_name": "Finaliser étude"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Devis établi",
+  "workflow_action_name": "Devis établi"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Commander",
+  "workflow_action_name": "Commander"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Lancer production",
+  "workflow_action_name": "Lancer production"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Démarrer production",
+  "workflow_action_name": "Démarrer production"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Prêt pour livraison",
+  "workflow_action_name": "Prêt pour livraison"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Clôturer",
+  "workflow_action_name": "Clôturer"
  }
 ]

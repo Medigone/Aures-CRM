@@ -1,0 +1,124 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-14 13:18:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "article",
+  "designation_article",
+  "quantite",
+  "date_livraison",
+  "procede_article",
+  "essai_blanc",
+  "column_break_etude",
+  "etude_doctype",
+  "etude_name",
+  "statut_validation_client",
+  "date_validation_client",
+  "commentaire_validation"
+ ],
+ "fields": [
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Article",
+   "options": "Item",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "article.item_name",
+   "fieldname": "designation_article",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Désignation de l'article",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Quantité",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_livraison",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date de livraison",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "article.custom_procédé",
+   "fieldname": "procede_article",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Procédé",
+   "options": "\nOffset\nFlexo",
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "essai_blanc",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Essai Blanc",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_etude",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "etude_doctype",
+   "fieldtype": "Select",
+   "label": "Type étude",
+   "options": "\nEtude Faisabilite\nEtude Faisabilite Flexo",
+   "read_only": 1
+  },
+  {
+   "fieldname": "etude_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Étude",
+   "options": "etude_doctype",
+   "read_only": 1
+  },
+  {
+   "default": "En attente",
+   "fieldname": "statut_validation_client",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Validation client",
+   "options": "En attente\nValidé client\nRefusé client"
+  },
+  {
+   "fieldname": "date_validation_client",
+   "fieldtype": "Datetime",
+   "label": "Date validation client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "commentaire_validation",
+   "fieldtype": "Small Text",
+   "label": "Commentaire validation"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-14 13:18:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Articles Dossier Essai Blanc",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

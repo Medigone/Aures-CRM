@@ -43,3 +43,28 @@ def propagate_niveau_urgence(doc, method=None):
 			"Etude Technique", filters={"demande_faisabilite": dem}, pluck="name"
 		):
 			frappe.db.set_value("Etude Technique", et, "niveau_urgence", nouveau)
+
+	dossiers = frappe.get_all(
+		"Dossier Essai Blanc", filters={"ticket_commercial": doc.name}, pluck="name"
+	)
+
+	for dossier in dossiers:
+		frappe.db.set_value("Dossier Essai Blanc", dossier, "niveau_urgence", nouveau)
+
+		for dt in ("Etude Faisabilite", "Etude Faisabilite Flexo"):
+			for name in frappe.get_all(dt, filters={"dossier_essai_blanc": dossier}, pluck="name"):
+				frappe.db.set_value(dt, name, "niveau_urgence", nouveau)
+
+		for devis in frappe.get_all(
+			"Quotation",
+			filters={"custom_dossier_essai_blanc": dossier},
+			pluck="name",
+		):
+			frappe.db.set_value("Quotation", devis, "custom_niveau_urgence", nouveau)
+
+		for commande in frappe.get_all(
+			"Sales Order",
+			filters={"custom_dossier_essai_blanc": dossier},
+			pluck="name",
+		):
+			frappe.db.set_value("Sales Order", commande, "custom_niveau_urgence", nouveau)

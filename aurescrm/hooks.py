@@ -190,10 +190,16 @@ doc_events = {
         "before_save": "aurescrm.utils.custom_delivery_address_naming"
     },
     "Etude Faisabilite": {
-         "on_update": "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.update_demande_status_from_etudes"
+         "on_update": [
+             "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.update_demande_status_from_etudes",
+             "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.update_dossier_status_from_etudes",
+         ]
     },
     "Etude Faisabilite Flexo": {
-         "on_update": "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.update_demande_status_from_etudes"
+         "on_update": [
+             "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.update_demande_status_from_etudes",
+             "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.update_dossier_status_from_etudes",
+         ]
     },
     "Imposition": {
         "on_update": "aurescrm.aures_crm.doctype.imposition.imposition.on_update_recalculate_ideale"
@@ -209,6 +215,7 @@ doc_events = {
         "on_submit": [
             # Mise à jour du chemin
             "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_quotation",
+            "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.set_dossier_status_from_quotation",
             # Notification au commercial attribué quand le devis est validé
             "aurescrm.notifications.notify_commercial_devis_valide"
         ]
@@ -221,6 +228,7 @@ doc_events = {
             "aurescrm.sales_order_hooks.update_quotation_status_on_so_submit",
             # Mise à jour du chemin
             "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_sales_order",
+            "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.set_dossier_status_from_sales_order",
             # Création du dossier fabrication (études techniques créées depuis le dossier)
             "aurescrm.aures_crm.doctype.dossier_fabrication.dossier_fabrication.create_dossier_fabrication_on_submit"
         ],

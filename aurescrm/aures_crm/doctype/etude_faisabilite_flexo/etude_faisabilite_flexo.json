@@ -9,6 +9,7 @@
   "section_break_fkfa",
   "date_creation",
   "demande_faisabilite",
+  "dossier_essai_blanc",
   "niveau_urgence",
   "is_reprint",
   "essai_blanc",
@@ -259,6 +260,14 @@
    "fieldtype": "Link",
    "label": "Demande Faisabilite",
    "options": "Demande Faisabilite",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "dossier_essai_blanc",
+   "fieldtype": "Link",
+   "label": "Dossier Essai Blanc",
+   "options": "Dossier Essai Blanc",
    "read_only": 1,
    "search_index": 1
   },

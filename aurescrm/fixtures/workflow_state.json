@@ -376,5 +376,77 @@
   "name": "Réalisé",
   "style": "Success",
   "workflow_state_name": "Réalisé"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Étude finalisée",
+  "style": "Info",
+  "workflow_state_name": "Étude finalisée"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Devis établi",
+  "style": "Success",
+  "workflow_state_name": "Devis établi"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Commandé",
+  "style": "Success",
+  "workflow_state_name": "Commandé"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Production à lancer",
+  "style": "Warning",
+  "workflow_state_name": "Production à lancer"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Prêt pour livraison",
+  "style": "Info",
+  "workflow_state_name": "Prêt pour livraison"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Partiellement validé client",
+  "style": "Warning",
+  "workflow_state_name": "Partiellement validé client"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Validé client",
+  "style": "Success",
+  "workflow_state_name": "Validé client"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-05-14 13:33:00.000000",
+  "name": "Clôturé",
+  "style": "Success",
+  "workflow_state_name": "Clôturé"
  }
 ]

@@ -1,0 +1,313 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-14 13:18:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "section_dates",
+  "date_creation",
+  "date_livraison",
+  "column_break_refs",
+  "ticket_commercial",
+  "niveau_urgence",
+  "section_client",
+  "client",
+  "id_commercial",
+  "column_break_client",
+  "commercial",
+  "id_utilisateur",
+  "cree_par",
+  "section_liens",
+  "liens",
+  "section_articles_html",
+  "html_articles",
+  "section_articles_storage",
+  "articles",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "default": "Nouveau",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Nouveau\nConfirm\u00e9e\nEn \u00e9tude\n\u00c9tude partiellement finalis\u00e9e\n\u00c9tude finalis\u00e9e\nDevis \u00e9tabli\nCommand\u00e9\nProduction \u00e0 lancer\nEn production\nPr\u00eat pour livraison\nPartiellement valid\u00e9 client\nValid\u00e9 client\nCl\u00f4tur\u00e9\nAnnul\u00e9"
+  },
+  {
+   "fieldname": "section_dates",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date Cr\u00e9ation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_livraison",
+   "fieldtype": "Date",
+   "in_standard_filter": 1,
+   "label": "Date de livraison souhait\u00e9e",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_refs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ticket_commercial",
+   "fieldtype": "Link",
+   "label": "Ticket Commercial",
+   "options": "Ticket Commercial",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "U3",
+   "fetch_from": "ticket_commercial.niveau_urgence",
+   "fetch_if_empty": 1,
+   "fieldname": "niveau_urgence",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Niveau d'urgence",
+   "options": "U0\nU1\nU2\nU3",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_client",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fieldname": "id_commercial",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "ID Commercial",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_client",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "id_commercial.full_name",
+   "fieldname": "commercial",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Commercial",
+   "read_only": 1
+  },
+  {
+   "default": "User",
+   "fieldname": "id_utilisateur",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "ID Utilisateur",
+   "options": "User"
+  },
+  {
+   "fetch_from": "id_utilisateur.full_name",
+   "fieldname": "cree_par",
+   "fieldtype": "Data",
+   "label": "Cr\u00e9\u00e9 Par",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.status != 'Nouveau'",
+   "fieldname": "section_liens",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.status != 'Nouveau'",
+   "fieldname": "liens",
+   "fieldtype": "HTML",
+   "label": "Suivi"
+  },
+  {
+   "fieldname": "section_articles_html",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "html_articles",
+   "fieldtype": "HTML",
+   "label": "Articles"
+  },
+  {
+   "fieldname": "section_articles_storage",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "articles",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Articles",
+   "options": "Articles Dossier Essai Blanc",
+   "read_only_depends_on": "eval: !['Nouveau'].includes(doc.status)"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Dossier Essai Blanc",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-14 14:02:13.874084",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Dossier Essai Blanc",
+ "naming_rule": "By script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrateur Ventes",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Coordination",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Superviseur CRM"
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 Devis"
+  },
+  {
+   "read": 1,
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "read": 1,
+   "role": "Responsable \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "read": 1,
+   "role": "Commercial Itin\u00e9rant"
+  },
+  {
+   "read": 1,
+   "role": "Commercial S\u00e9dentaire"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Nouveau"
+  },
+  {
+   "color": "Blue",
+   "title": "Confirm\u00e9e"
+  },
+  {
+   "color": "Yellow",
+   "title": "En \u00e9tude"
+  },
+  {
+   "color": "Orange",
+   "title": "\u00c9tude partiellement finalis\u00e9e"
+  },
+  {
+   "color": "Purple",
+   "title": "\u00c9tude finalis\u00e9e"
+  },
+  {
+   "color": "Green",
+   "title": "Devis \u00e9tabli"
+  },
+  {
+   "color": "Green",
+   "title": "Command\u00e9"
+  },
+  {
+   "color": "Orange",
+   "title": "Production \u00e0 lancer"
+  },
+  {
+   "color": "Orange",
+   "title": "En production"
+  },
+  {
+   "color": "Blue",
+   "title": "Pr\u00eat pour livraison"
+  },
+  {
+   "color": "Orange",
+   "title": "Partiellement valid\u00e9 client"
+  },
+  {
+   "color": "Green",
+   "title": "Valid\u00e9 client"
+  },
+  {
+   "color": "Gray",
+   "title": "Cl\u00f4tur\u00e9"
+  },
+  {
+   "color": "Red",
+   "title": "Annul\u00e9"
+  }
+ ],
+ "track_changes": 1
+}

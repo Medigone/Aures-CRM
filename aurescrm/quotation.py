@@ -122,6 +122,10 @@ def create_smart_sales_order_with_remaining_items(source_name, command_analysis)
     # Copier les champs personnalisés
     if hasattr(quotation, 'custom_demande_faisabilité'):
         so.custom_demande_de_faisabilité = quotation.custom_demande_faisabilité
+    if hasattr(quotation, 'custom_dossier_essai_blanc'):
+        so.custom_dossier_essai_blanc = quotation.custom_dossier_essai_blanc
+    if hasattr(quotation, 'custom_niveau_urgence'):
+        so.custom_niveau_urgence = quotation.custom_niveau_urgence
     so.custom_devis = source_name
     
     # Ajouter seulement les articles restants
@@ -218,6 +222,16 @@ def create_complete_sales_order(source_name):
     if val_faisab:
         # Assign the value to the correct field name in Sales Order
         so.custom_demande_de_faisabilité = val_faisab # Correct field name for Sales Order
+
+    val_dossier_essai = frappe.db.get_value(
+        "Quotation", source_name, "custom_dossier_essai_blanc"
+    )
+    if val_dossier_essai:
+        so.custom_dossier_essai_blanc = val_dossier_essai
+
+    niveau_urgence = frappe.db.get_value("Quotation", source_name, "custom_niveau_urgence")
+    if niveau_urgence:
+        so.custom_niveau_urgence = niveau_urgence
 
     # Set the custom field linking back to the source Quotation using the correct field name
     so.custom_devis = source_name # Use the actual field name 'custom_devis'

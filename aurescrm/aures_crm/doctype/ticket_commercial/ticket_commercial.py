@@ -17,6 +17,8 @@ def default_niveau_urgence_pour_creation(request_type):
     """Niveau imposé à la création du ticket (avant demande / validation d'urgence)."""
     if cstr(request_type or "") == "Bon de commande":
         return "U2"
+    if cstr(request_type or "") == "Essai Blanc":
+        return "U3"
     return "U0"
 
 

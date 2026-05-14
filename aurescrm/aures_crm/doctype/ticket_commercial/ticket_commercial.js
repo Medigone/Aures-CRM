@@ -3,7 +3,6 @@
 
 frappe.ui.form.on("Ticket Commercial", {
     refresh: function(frm) {
-        frm.clear_custom_buttons();
         apply_default_urgence_nouveau_ticket(frm);
 
         // Actions personnalisées au rafraîchissement du formulaire
@@ -11,11 +10,7 @@ frappe.ui.form.on("Ticket Commercial", {
             frm.set_read_only(true);
         }
 
-        add_assign_buttons(frm);
-        add_create_buttons(frm);
-        add_demande_urgence_button(frm);
-        add_annuler_demande_urgence_button(frm);
-        add_admin_urgence_validation_buttons(frm);
+        rebuild_ticket_custom_buttons(frm);
         style_urgence_group_secondary(frm);
         render_urgence_html(frm);
         render_suivi_cycle_html(frm);
@@ -61,6 +56,8 @@ frappe.ui.form.on("Ticket Commercial", {
                 title: __("Réclamation")
             });
         }
+        rebuild_ticket_custom_buttons(frm);
+        style_urgence_group_secondary(frm);
         render_suivi_cycle_html(frm);
         render_rapprochement_bc_html(frm);
     },
@@ -85,17 +82,37 @@ frappe.ui.form.on("Ticket Commercial", {
     }
 });
 
-/** Nouveau ticket : Bon de commande → U2 par défaut (aligné sur le serveur). */
+/** Niveau d'urgence imposé à la création (aligné sur ticket_commercial.default_niveau_urgence_pour_creation). */
+function niveau_urgence_defaut_pour_type(request_type) {
+    if (request_type === "Bon de commande") {
+        return "U2";
+    }
+    if (request_type === "Essai Blanc") {
+        return "U3";
+    }
+    return "U0";
+}
+
+/** Nouveau ticket : Bon de commande → U2, Essai Blanc → U3 par défaut (aligné sur le serveur). */
 function apply_default_urgence_nouveau_ticket(frm) {
     if (!frm.doc.__islocal) {
         return;
     }
-    const wanted =
-        frm.doc.request_type === "Bon de commande" ? "U2" : "U0";
+    const wanted = niveau_urgence_defaut_pour_type(frm.doc.request_type);
     const cur = frm.doc.niveau_urgence || "U0";
     if (cur !== wanted) {
         frm.set_value("niveau_urgence", wanted);
     }
+}
+
+/** Boutons menu (Créer, Attribuer, Urgence) : recalculés quand le type de ticket change. */
+function rebuild_ticket_custom_buttons(frm) {
+    frm.clear_custom_buttons();
+    add_assign_buttons(frm);
+    add_create_buttons(frm);
+    add_demande_urgence_button(frm);
+    add_annuler_demande_urgence_button(frm);
+    add_admin_urgence_validation_buttons(frm);
 }
 
 function add_assign_buttons(frm) {
@@ -168,10 +185,17 @@ function add_create_buttons(frm) {
     }
 
     // Demande de faisabilité : visible seulement si le back-office a démarré le ticket (En Cours).
+    // Pas pour Essai Blanc : le flux utilise « Dossier essai à blanc ».
     // Plusieurs demandes peuvent être liées au même ticket ; le bouton est masqué si statut Terminé / Annulé (ci-dessus).
     const can_create_linked_docs = frm.doc.status === "En Cours";
 
-    if (can_create_linked_docs && frappe.model.can_create("Demande Faisabilite") && !frm.is_new() && frm.doc.name) {
+    if (
+        can_create_linked_docs &&
+        frm.doc.request_type !== "Essai Blanc" &&
+        frappe.model.can_create("Demande Faisabilite") &&
+        !frm.is_new() &&
+        frm.doc.name
+    ) {
         frm.add_custom_button(
             __("Demande de faisabilité"),
             function() {
@@ -199,6 +223,33 @@ function add_create_buttons(frm) {
                     type: "Premier Tirage",
                     ticket_commercial: frm.doc.name,
                     niveau_urgence: frm.doc.niveau_urgence
+                });
+            },
+            __("Créer")
+        );
+    }
+
+    if (
+        can_create_linked_docs &&
+        frm.doc.request_type === "Essai Blanc" &&
+        frappe.model.can_create("Dossier Essai Blanc") &&
+        !frm.is_new() &&
+        frm.doc.name
+    ) {
+        frm.add_custom_button(
+            __("Créer dossier essai à blanc"),
+            function() {
+                if (!frm.doc.customer) {
+                    frappe.msgprint(__("Veuillez sélectionner un client avant de créer un dossier essai blanc."));
+                    return;
+                }
+                open_new_doc_in_new_tab("Dossier Essai Blanc", {
+                    client: frm.doc.customer,
+                    date_livraison:
+                        frm.doc.echeance ||
+                        frappe.datetime.add_days(frappe.datetime.now_date(), 7),
+                    ticket_commercial: frm.doc.name,
+                    niveau_urgence: frm.doc.niveau_urgence || "U3"
                 });
             },
             __("Créer")
@@ -262,8 +313,7 @@ function add_annuler_demande_urgence_button(frm) {
         __("Annuler la demande"),
         function() {
             const estValidee = (frm.doc.statut_demande_urgence || "") === "Validée";
-            const niveau_defaut =
-                frm.doc.request_type === "Bon de commande" ? "U2" : "U0";
+            const niveau_defaut = niveau_urgence_defaut_pour_type(frm.doc.request_type);
             const msgAnnulation = estValidee
                 ? __(
                       "L'urgence validée sera annulée et le ticket repassera au niveau {0} (défaut à la création pour ce type). " +
@@ -503,11 +553,12 @@ function render_urgence_html(frm) {
     const niveau_demande = frm.doc.niveau_urgence_demande || "";
     const statut = frm.doc.statut_demande_urgence || "Aucune";
 
-    /** BC : U2 est le niveau à la création ; pas de « demande » tant que le flux n'a pas démarré. */
-    const is_bc_urgence_defaut =
-        frm.doc.request_type === "Bon de commande" &&
+    /** BC → U2, Essai Blanc → U3 à la création ; badge « Défaut » si aucune demande en cours. */
+    const niveau_defaut_type = niveau_urgence_defaut_pour_type(frm.doc.request_type);
+    const is_urgence_niveau_creation_defaut =
         statut === "Aucune" &&
-        niveau === "U2";
+        niveau_defaut_type !== "U0" &&
+        niveau === niveau_defaut_type;
 
     if (statut === "Aucune" && niveau === "U0") {
         field.$wrapper.empty();
@@ -538,7 +589,7 @@ function render_urgence_html(frm) {
 
     let statut_libelle = statut;
     let sC;
-    if (is_bc_urgence_defaut) {
+    if (is_urgence_niveau_creation_defaut) {
         statut_libelle = __("Défaut");
         sC = {
             bg: "#f0fdf4",
@@ -559,7 +610,7 @@ function render_urgence_html(frm) {
 
     const stroke = sC.fg;
     let statutIconHtml = "";
-    if (!is_bc_urgence_defaut) {
+    if (!is_urgence_niveau_creation_defaut) {
         if (statut === "En attente") {
             statutIconHtml = `<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;line-height:1;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block"><path d="M12 6L12 12L18 12" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>`;
         } else if (sC.icon) {
@@ -568,7 +619,7 @@ function render_urgence_html(frm) {
     }
 
     const afficher_colonne_demande =
-        !is_bc_urgence_defaut &&
+        !is_urgence_niveau_creation_defaut &&
         niveau_demande &&
         NIVEAUX[niveau_demande] &&
         niveau_demande !== niveau;
