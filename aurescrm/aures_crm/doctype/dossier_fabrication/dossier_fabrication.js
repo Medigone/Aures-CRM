@@ -38,6 +38,7 @@ function render_html_apercu(frm) {
 			callback(r) {
 				if (!r.exc && r.message) {
 					set_html(r.message);
+					bind_apercu_programme_fab_date(frm);
 				} else {
 					set_html(`<p class="text-muted">${__('Aucune synthèse disponible.')}</p>`);
 				}
@@ -99,6 +100,61 @@ function first_ligne_for_article(frm, article) {
 	return null;
 }
 
+function bind_apercu_programme_fab_date(frm) {
+	const fld = frm.fields_dict.html_apercu;
+	if (!fld || !fld.$wrapper || !fld.$wrapper.length) {
+		return;
+	}
+	fld.$wrapper.off('click.dfProgFab');
+	fld.$wrapper.on('click.dfProgFab', '.df-edit-date-fab', function (e) {
+		e.preventDefault();
+		e.stopPropagation();
+		const programme_row = $(this).attr('data-programme-row');
+		const defIso = $(this).attr('data-date-iso') || '';
+		if (!programme_row || frm.is_new()) {
+			return;
+		}
+		const d = new frappe.ui.Dialog({
+			title: __('Date fabrication prévue'),
+			fields: [
+				{
+					fieldname: 'date_fabrication_prevue',
+					fieldtype: 'Date',
+					label: __('Date fabrication prévue'),
+					reqd: 1,
+					default: defIso || frappe.datetime.get_today(),
+				},
+			],
+			primary_action_label: __('Enregistrer'),
+			primary_action(values) {
+				if (!values.date_fabrication_prevue) {
+					return;
+				}
+				frappe.call({
+					method:
+						'aurescrm.aures_crm.doctype.dossier_fabrication.dossier_fabrication.update_programme_date_fabrication_prevue',
+					args: {
+						dossier_name: frm.doc.name,
+						programme_row_name: programme_row,
+						date_fabrication_prevue: values.date_fabrication_prevue,
+					},
+					callback(r) {
+						if (!r.exc) {
+							d.hide();
+							frappe.show_alert({
+								message: __('Date de fabrication mise à jour.'),
+								indicator: 'green',
+							});
+							frm.reload_doc();
+						}
+					},
+				});
+			},
+		});
+		d.show();
+	});
+}
+
 frappe.ui.form.on('Dossier Fabrication', {
 	refresh(frm) {
 		try {
@@ -138,7 +194,14 @@ frappe.ui.form.on('Dossier Fabrication', {
 							{
 								fieldname: 'date_livraison',
 								fieldtype: 'Date',
-								label: __('Date livraison'),
+								label: __('Date livraison référence'),
+								reqd: 1,
+								default: frappe.datetime.get_today(),
+							},
+							{
+								fieldname: 'date_fabrication_prevue',
+								fieldtype: 'Date',
+								label: __('Date fabrication prévue'),
 								reqd: 1,
 								default: frappe.datetime.get_today(),
 							},
@@ -164,6 +227,7 @@ frappe.ui.form.on('Dossier Fabrication', {
 									dossier_name: frm.doc.name,
 									article: values.article,
 									date_livraison: values.date_livraison,
+									date_fabrication_prevue: values.date_fabrication_prevue,
 									quantite_a_produire: values.quantite_a_produire,
 									allow_overflow: values.allow_overflow ? 1 : 0,
 								},
@@ -197,6 +261,7 @@ frappe.ui.form.on('Dossier Fabrication', {
 						if (ligne && ligne.date_livraison_commande) {
 							d.set_value('date_livraison', ligne.date_livraison_commande);
 						}
+						d.set_value('date_fabrication_prevue', frappe.datetime.get_today());
 						const badge_style =
 							'display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600;line-height:1.25;';
 						const rest_color = rest > 0 ? '#28a745' : '#e63946';
@@ -373,11 +438,18 @@ frappe.ui.form.on('Dossier Fabrication', {
 							const labels_seen = new Set();
 							const opts = [];
 							for (const { row, programme_idx } of rows) {
-								const date_part = row.date_livraison
+								const fab_part = row.date_fabrication_prevue
+									? frappe.datetime.str_to_user(row.date_fabrication_prevue)
+									: row.date_livraison
+										? frappe.datetime.str_to_user(row.date_livraison)
+										: __('Sans date');
+								const liv_part = row.date_livraison
 									? frappe.datetime.str_to_user(row.date_livraison)
-									: __('Sans date');
+									: '';
 								const q = parse_qty(row.quantite_a_produire);
-								let lbl = `${date_part} — ${__('Qté')} ${q}`;
+								let lbl = liv_part
+									? `${fab_part} — ${__('Livr. ref.')} ${liv_part} — ${__('Qté')} ${q}`
+									: `${fab_part} — ${__('Qté')} ${q}`;
 								const base = lbl;
 								let n = 1;
 								while (labels_seen.has(lbl)) {
@@ -428,14 +500,18 @@ frappe.ui.form.on('Dossier Fabrication', {
 								}
 							}
 							const r = target.row;
-							const dateStr = r.date_livraison
+							const fabStr = r.date_fabrication_prevue
+								? frappe.datetime.str_to_user(r.date_fabrication_prevue)
+								: __('Sans date');
+							const livStr = r.date_livraison
 								? frappe.datetime.str_to_user(r.date_livraison)
 								: __('Sans date');
 							const qtyStr = String(parse_qty(r.quantite_a_produire));
 							wrap.$wrapper.html(
 								`<div class="small"><p class="mb-2"><strong>${__('Article')}</strong> : ${escape_html(r.article)}</p>` +
 									`<p class="mb-1"><strong>${__('Quantité à produire')}</strong> : ${escape_html(qtyStr)}</p>` +
-									`<p class="mb-0"><strong>${__('Date de livraison')}</strong> : ${escape_html(dateStr)}</p></div>`
+									`<p class="mb-1"><strong>${__('Date fabrication prévue')}</strong> : ${escape_html(fabStr)}</p>` +
+									`<p class="mb-0"><strong>${__('Date livraison référence')}</strong> : ${escape_html(livStr)}</p></div>`
 							);
 						};
 

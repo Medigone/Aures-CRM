@@ -162,21 +162,33 @@ class VisiteCommerciale(Document):
 		if not self.client:
 			frappe.throw(_("Le client est obligatoire pour une visite de recouvrement."))
 
-		if not self.creance_client:
-			frappe.throw(_("Sélectionnez une créance client."))
+		suivi_actif = is_suivi_creances_actif()
 
-		cc_client = frappe.db.get_value("Creance Client", self.creance_client, "client")
-		if cc_client != self.client:
-			frappe.throw(_("La créance sélectionnée ne correspond pas au client de la visite."))
+		if suivi_actif:
+			if not self.creance_client:
+				frappe.throw(_("Sélectionnez une créance client."))
 
-		self.solde_creance_avant_visite = flt(
-			frappe.db.get_value("Creance Client", self.creance_client, "solde_restant")
-		)
+			cc_client = frappe.db.get_value("Creance Client", self.creance_client, "client")
+			if cc_client != self.client:
+				frappe.throw(_("La créance sélectionnée ne correspond pas au client de la visite."))
+
+			self.solde_creance_avant_visite = flt(
+				frappe.db.get_value("Creance Client", self.creance_client, "solde_restant")
+			)
+		elif self.creance_client:
+			cc_client = frappe.db.get_value("Creance Client", self.creance_client, "client")
+			if cc_client and cc_client != self.client:
+				frappe.throw(_("La créance sélectionnée ne correspond pas au client de la visite."))
+			self.solde_creance_avant_visite = flt(
+				frappe.db.get_value("Creance Client", self.creance_client, "solde_restant")
+			)
 
 		if not self.resultat_recouvrement:
 			frappe.throw(_("Indiquez le résultat du recouvrement."))
 
-		if flt(self.montant_reclame) <= 0:
+		reclame = flt(self.montant_reclame)
+
+		if suivi_actif and reclame <= 0:
 			frappe.throw(_("Le montant réclamé doit être supérieur à 0."))
 
 		encaisse = flt(self.montant_encaisse)
@@ -186,8 +198,7 @@ class VisiteCommerciale(Document):
 		if self.resultat_recouvrement == "Paiement obtenu" and encaisse <= 0:
 			frappe.throw(_("Indiquez le montant encaissé pour un paiement obtenu."))
 
-		reclame = flt(self.montant_reclame)
-		if encaisse > reclame:
+		if reclame > 0 and encaisse > reclame:
 			frappe.throw(_("Le montant encaissé ne peut pas dépasser le montant réclamé."))
 
 		reste = reclame - encaisse

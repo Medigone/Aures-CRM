@@ -9,6 +9,7 @@
   "designation_article",
   "quantite_a_produire",
   "date_livraison",
+  "date_fabrication_prevue",
   "column_break_p1",
   "bat",
   "maquette",
@@ -53,7 +54,14 @@
    "fieldname": "date_livraison",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Date livraison",
+   "label": "Date livraison r\u00e9f\u00e9rence",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_fabrication_prevue",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date fabrication pr\u00e9vue",
    "reqd": 1
   },
   {

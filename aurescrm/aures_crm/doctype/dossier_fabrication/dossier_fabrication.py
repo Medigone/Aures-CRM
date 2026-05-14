@@ -9,7 +9,7 @@ from collections import defaultdict
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, flt, formatdate, get_url_to_form, getdate
+from frappe.utils import cint, flt, formatdate, get_url_to_form, getdate, today
 from frappe.utils.data import escape_html
 
 # Doit rester aligné sur `options` du champ naming_series dans dossier_fabrication.json (pas DF-, réservé ailleurs).
@@ -176,6 +176,26 @@ def _sync_ligne_delivery_dates_from_sales_order(doc: Document) -> None:
 			ln.date_livraison_commande = dates_by_item.get(ln.article)
 
 
+def _ensure_programme_date_fabrication_prevue(doc: Document) -> None:
+	"""Complète date_fabrication_prevue avant _validate_mandatory (le validate des lignes enfants ne s'exécute pas encore)."""
+	for row in doc.get("programme_livraison") or []:
+		if getattr(row, "date_fabrication_prevue", None):
+			continue
+		if getattr(row, "date_livraison", None):
+			row.date_fabrication_prevue = row.date_livraison
+			continue
+		ligne = _first_ligne_for_article(doc, row.article) if row.article else None
+		ref = getattr(ligne, "date_livraison_commande", None) if ligne else None
+		if ref:
+			row.date_livraison = ref
+			row.date_fabrication_prevue = ref
+			continue
+		fallback = getdate(today())
+		row.date_fabrication_prevue = fallback
+		if not getattr(row, "date_livraison", None):
+			row.date_livraison = fallback
+
+
 def create_dossier_from_sales_order(doc) -> str | None:
 	"""
 	Crée un Dossier Fabrication pour la commande si absent.
@@ -340,6 +360,9 @@ def build_dossier_apercu_html(doc: Document) -> str:
 .dossier-apercu .df-title-pct-red { background:#ffe8e8; color:#c53030; }
 .dossier-apercu .df-title-pct-orange { background:#fff3d6; color:#9a6700; }
 .dossier-apercu .df-title-pct-green { background:#e7f7ee; color:#16794c; }
+.dossier-apercu .df-date-fab-cell { white-space:normal; }
+.dossier-apercu .df-edit-date-fab { flex-shrink:0; }
+.dossier-apercu .df-fab-date-row { align-items:center; display:flex; flex-wrap:wrap; gap:6px; }
 </style>
 """
 
@@ -397,9 +420,16 @@ def build_dossier_apercu_html(doc: Document) -> str:
 	else:
 		pct_programme_class = "df-title-pct-orange"
 
-	# --- Détail programme livraison (tri par date)
+	# --- Détail programme livraison (tri par date de fabrication prévue, sinon livraison réf.)
 	prog = list(doc.get("programme_livraison") or [])
-	prog.sort(key=lambda r: (_date_for_sort(r.date_livraison), r.idx or 0))
+
+	def _programme_sort_date(row):
+		fab = getattr(row, "date_fabrication_prevue", None)
+		if fab:
+			return _date_for_sort(fab)
+		return _date_for_sort(getattr(row, "date_livraison", None))
+
+	prog.sort(key=lambda r: (_programme_sort_date(r), r.idx or 0))
 	etude_names = [pr.etude_technique for pr in prog if pr.etude_technique]
 	etude_status_by_name = {}
 	if etude_names:
@@ -436,10 +466,19 @@ def build_dossier_apercu_html(doc: Document) -> str:
 			designation = escape_html(frappe.db.get_value("Item", pr.article, "item_name") or "")
 		else:
 			designation = ""
+		fab_val = getattr(pr, "date_fabrication_prevue", None)
+		try:
+			fab_iso = getdate(fab_val).strftime("%Y-%m-%d") if fab_val else ""
+		except Exception:
+			fab_iso = ""
+		df = escape_html(formatdate(fab_val) if fab_val else "")
+		edit_fab_btn = f"""<button type="button" class="btn btn-default btn-xs df-edit-date-fab" data-programme-row="{escape_html(pr.name or "")}" data-date-iso="{escape_html(fab_iso)}" title="{escape_html(_("Modifier la date de fabrication"))}">{escape_html(_("Modifier"))}</button>"""
+		df_cell = f"""<td class="df-date df-date-fab-cell"><div class="df-fab-date-row"><span class="df-fab-date-text">{df}</span>{edit_fab_btn}</div></td>"""
 		dl = escape_html(formatdate(pr.date_livraison) if pr.date_livraison else "")
 		detail_rows += f"""<tr>
 <td><span class="df-article-code">{escape_html(pr.article or "")}</span></td>
 <td><span class="df-designation">{designation}</span></td>
+{df_cell}
 <td class="df-date">{dl}</td>
 <td class="df-number">{q_prog_line:g}</td>
 <td class="df-progress-cell">
@@ -462,16 +501,17 @@ def build_dossier_apercu_html(doc: Document) -> str:
 <thead><tr>
 <th>{escape_html(_("Article"))}</th>
 <th>{escape_html(_("Désignation"))}</th>
-<th>{escape_html(_("Date livraison"))}</th>
+<th>{escape_html(_("Date fabrication prévue"))}</th>
+<th>{escape_html(_("Date livraison référence"))}</th>
 <th class="df-number">{escape_html(_("Q. programmée"))}</th>
 <th>{escape_html(_("Q. produite"))}</th>
 <th>{escape_html(_("Étude liée"))}</th>
 </tr></thead>
-<tbody>{detail_rows or f'<tr><td colspan="6">{escape_html(_("Aucune ligne de programme."))}</td></tr>'}</tbody>
+<tbody>{detail_rows or f'<tr><td colspan="7">{escape_html(_("Aucune ligne de programme."))}</td></tr>'}</tbody>
 </table>
 """
 
-	return f'<div class="dossier-apercu" style="overflow-x:auto">{style}{recap_block}{detail_block}</div>'
+	return f'<div class="dossier-apercu" data-dossier-name="{escape_html(doc.name)}" style="overflow-x:auto">{style}{recap_block}{detail_block}</div>'
 
 
 class DossierFabrication(Document):
@@ -483,6 +523,7 @@ class DossierFabrication(Document):
 
 	def validate(self):
 		_sync_ligne_delivery_dates_from_sales_order(self)
+		_ensure_programme_date_fabrication_prevue(self)
 		_sync_statuts_programme(self)
 		_sync_ligne_aggregates_from_programme(self)
 		self.html_apercu = build_dossier_apercu_html(self)
@@ -504,6 +545,7 @@ def add_programme_livraison(
 	dossier_name: str,
 	article: str,
 	date_livraison: str,
+	date_fabrication_prevue: str,
 	quantite_a_produire,
 	bat: str | None = None,
 	allow_overflow: int | str = 0,
@@ -534,6 +576,7 @@ def add_programme_livraison(
 	row.article = article
 	row.quantite_a_produire = new_q
 	row.date_livraison = date_livraison
+	row.date_fabrication_prevue = date_fabrication_prevue
 	row.bat = bat or _latest_bat_for_item(article) or ligne.bat
 	row.maquette = ligne.maquette
 	row.trace = ligne.trace
@@ -545,6 +588,41 @@ def add_programme_livraison(
 
 	dossier.save(ignore_permissions=True)
 	return {"name": dossier.name, "programme_row_name": row.name}
+
+
+@frappe.whitelist()
+def update_programme_date_fabrication_prevue(
+	dossier_name: str,
+	programme_row_name: str,
+	date_fabrication_prevue: str,
+):
+	"""Met à jour la date fabrication prévue d'une ligne programme depuis l'aperçu HTML ; synchronise l'étude technique liée."""
+	dossier = frappe.get_doc("Dossier Fabrication", dossier_name)
+	dossier.check_permission("write")
+	target = None
+	for r in dossier.get("programme_livraison") or []:
+		if r.name == programme_row_name:
+			target = r
+			break
+	if not target:
+		frappe.throw(_("Ligne programme introuvable."))
+	if not date_fabrication_prevue:
+		frappe.throw(_("La date de fabrication prévue est obligatoire."))
+
+	target.date_fabrication_prevue = getdate(date_fabrication_prevue)
+
+	if target.etude_technique and frappe.db.exists("Etude Technique", target.etude_technique):
+		_et_meta = frappe.get_meta("Etude Technique")
+		if _et_meta.has_field("date_planification_production"):
+			frappe.db.set_value(
+				"Etude Technique",
+				target.etude_technique,
+				"date_planification_production",
+				target.date_fabrication_prevue,
+			)
+
+	dossier.save()
+	return {"ok": 1}
 
 
 @frappe.whitelist()
@@ -615,6 +693,11 @@ def create_etude_technique_from_programme_line(dossier_name: str, programme_idx:
 
 	if row.date_livraison:
 		technical_study.date_livraison = row.date_livraison
+
+	if getattr(row, "date_fabrication_prevue", None) and _et_meta.has_field(
+		"date_planification_production"
+	):
+		technical_study.date_planification_production = row.date_fabrication_prevue
 
 	technical_study.insert(ignore_permissions=True)
 
