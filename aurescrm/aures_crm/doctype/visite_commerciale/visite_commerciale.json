@@ -222,6 +222,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Montant encaiss\u00e9",
+   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\" && doc.resultat_recouvrement==\"Paiement obtenu\"",
    "precision": "2"
   },
   {
@@ -239,7 +240,6 @@
    "fieldname": "type_paiement",
    "fieldtype": "Select",
    "label": "Type paiement",
-   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\" && doc.montant_encaisse>0",
    "options": "\nEsp\u00e8ce\nCh\u00e8que\nVirement"
   },
   {
@@ -260,15 +260,13 @@
    "depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.montant_encaisse>0 && (doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\")",
    "fieldname": "numero_document_paiement",
    "fieldtype": "Data",
-   "label": "N\u00b0 ch\u00e8que / virement",
-   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\" && doc.montant_encaisse>0 && (doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\")"
+   "label": "N\u00b0 ch\u00e8que / virement"
   },
   {
    "depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.montant_encaisse>0 && (doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\")",
    "fieldname": "photo_document_paiement",
    "fieldtype": "Attach Image",
-   "label": "Photo document",
-   "mandatory_depends_on": "eval:doc.type_visite==\"Recouvrement\" && doc.status==\"Termin\u00e9\" && doc.montant_encaisse>0 && (doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\")"
+   "label": "Photo document"
   },
   {
    "depends_on": "eval:doc.type_visite==\"Recouvrement\" && (doc.resultat_recouvrement==\"Refus de paiement\" || doc.resultat_recouvrement==\"Litige\" || doc.resultat_recouvrement==\"Client absent\" || doc.resultat_recouvrement==\"\u00c0 relancer\")",

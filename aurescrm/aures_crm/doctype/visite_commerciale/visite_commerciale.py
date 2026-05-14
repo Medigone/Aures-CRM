@@ -204,15 +204,6 @@ class VisiteCommerciale(Document):
 		reste = reclame - encaisse
 		self.montant_restant = reste if reste > 0 else 0
 
-		if encaisse > 0:
-			if not self.type_paiement:
-				frappe.throw(_("Indiquez le type de paiement."))
-			if self.type_paiement in ("Chèque", "Virement"):
-				if not self.numero_document_paiement:
-					frappe.throw(_("Le numéro de chèque/virement est obligatoire."))
-				if not self.photo_document_paiement:
-					frappe.throw(_("Joignez une photo du chèque ou du virement."))
-
 		if self.resultat_recouvrement in ("Promesse de paiement", "À relancer"):
 			if not self.date_paiement_negociee:
 				frappe.throw(_("Indiquez la date de paiement négociée."))
