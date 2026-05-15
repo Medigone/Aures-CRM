@@ -1,6 +1,171 @@
 // Copyright (c) 2025, Medigo and contributors
 // For license information, please see license.txt
 
+// Style cartes / liens : tokens alignés sur Dossier Essai Blanc (Desk, esprit Frappe UI).
+
+const DEB = {
+    radius: "8px",
+    border: "1px solid #e2e8f0",
+    shadow: "0 1px 3px rgba(15, 23, 42, 0.06)",
+    headerBg: "#f8fafc",
+    headerBorder: "#e2e8f0",
+    divider: "#f1f5f9",
+    text: "#334155",
+    textMuted: "#64748b",
+    textTitle: "#0f172a",
+    link: "#2490ef",
+    gapSection: "16px",
+    gapBlock: "12px",
+};
+
+function escape_html(value) {
+    return frappe.utils.escape_html(value || "");
+}
+
+function deb_inject_layout_styles() {
+    return (
+        "<style>" +
+        ".deb-df-container{display:flex;flex-direction:column;gap:" +
+        DEB.gapSection +
+        ";align-items:stretch}" +
+        "@media (min-width:768px){.deb-df-container{flex-direction:row!important}}" +
+        ".deb-list-line{padding:8px 0;display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 10px}" +
+        "</style>"
+    );
+}
+
+function deb_section_root_open() {
+    return (
+        "<div style=\"display:flex;flex-direction:column;gap:" +
+        DEB.gapSection +
+        ";padding-bottom:8px;min-width:280px;\">"
+    );
+}
+
+function deb_card_shell_open() {
+    return (
+        "<div style=\"border:" +
+        DEB.border +
+        ";border-radius:" +
+        DEB.radius +
+        ";box-shadow:" +
+        DEB.shadow +
+        ";display:flex;flex-direction:column;overflow:hidden;background:#fff;\">"
+    );
+}
+
+function deb_card_header(title_translated, count_label) {
+    let right = "";
+    if (count_label != null && count_label !== "") {
+        right = deb_count_pill(count_label);
+    }
+    return (
+        "<div style=\"padding:12px 16px;border-bottom:1px solid " +
+        DEB.headerBorder +
+        ";background:" +
+        DEB.headerBg +
+        ";\">" +
+        "<div style=\"display:flex;align-items:center;flex-wrap:wrap;gap:8px;\">" +
+        "<span style=\"font-size:13px;font-weight:600;color:" +
+        DEB.textTitle +
+        ";letter-spacing:0.01em;\">" +
+        title_translated +
+        "</span>" +
+        right +
+        "</div></div>"
+    );
+}
+
+function deb_count_pill(label) {
+    return (
+        "<span style=\"display:inline-flex;align-items:center;padding:3px 10px;border-radius:9999px;" +
+        "font-size:11px;font-weight:600;line-height:1.35;background:rgba(36,144,239,0.12);color:#0369a1;\">" +
+        escape_html(label) +
+        "</span>"
+    );
+}
+
+function deb_card_body_open(grow) {
+    return "<div style=\"padding:16px;background:#fff;" + (grow ? "flex-grow:1;" : "") + "\">";
+}
+
+function deb_doc_link_anchor(doctype, name, label_html) {
+    const on =
+        "frappe.set_route('Form','" +
+        escape_html(doctype) +
+        "','" +
+        escape_html(name) +
+        "'); return false;";
+    return (
+        "<a href=\"#\" onclick=\"" +
+        on +
+        "\" style=\"font-size:12px;font-weight:500;color:" +
+        DEB.link +
+        ";text-decoration:none;word-break:break-word;\">" +
+        label_html +
+        "</a>"
+    );
+}
+
+/** Badges statuts (études, devis, commandes) — pilules, aligné Dossier Essai Blanc. */
+function get_status_badge(status) {
+    const statusTranslations = {
+        Draft: "Brouillon",
+        Submitted: "Soumis",
+        Cancelled: "Annulé",
+        Open: "Ouvert",
+        Lost: "Perdu",
+        Ordered: "Commandé",
+        "To Deliver and Bill": "À livrer et facturer",
+        "To Bill": "À facturer",
+        "To Deliver": "À livrer",
+        Completed: "Terminé",
+        Closed: "Fermé",
+        "On Hold": "En attente",
+    };
+
+    const config = {
+        Nouveau: { color: "rgba(17, 138, 178, 0.12)", textColor: "#0e7490" },
+        Confirmée: { color: "rgba(59, 130, 246, 0.12)", textColor: "#1d4ed8" },
+        "En étude": { color: "rgba(244, 162, 97, 0.15)", textColor: "#c2410c" },
+        "Étude partiellement finalisée": { color: "rgba(255, 159, 28, 0.15)", textColor: "#b45309" },
+        "Étude finalisée": { color: "rgba(131, 56, 236, 0.12)", textColor: "#6d28d9" },
+        "En Cours": { color: "rgba(244, 162, 97, 0.15)", textColor: "#c2410c" },
+        Réalisable: { color: "rgba(42, 157, 143, 0.15)", textColor: "#0f766e" },
+        "Non Réalisable": { color: "rgba(230, 57, 70, 0.12)", textColor: "#b91c1c" },
+        Programmée: { color: "rgba(17, 138, 178, 0.12)", textColor: "#0e7490" },
+        Brouillon: { color: "rgba(100, 116, 139, 0.12)", textColor: "#475569" },
+        Soumis: { color: "rgba(37, 99, 235, 0.12)", textColor: "#1d4ed8" },
+        Annulé: { color: "rgba(230, 57, 70, 0.12)", textColor: "#b91c1c" },
+        Commandé: { color: "rgba(22, 163, 74, 0.12)", textColor: "#15803d" },
+        Terminé: { color: "rgba(22, 163, 74, 0.12)", textColor: "#15803d" },
+        Fermé: { color: "rgba(22, 163, 74, 0.12)", textColor: "#15803d" },
+        Ouvert: { color: "rgba(37, 99, 235, 0.12)", textColor: "#1d4ed8" },
+        Perdu: { color: "rgba(231, 111, 81, 0.12)", textColor: "#c2410c" },
+        "À livrer et facturer": { color: "rgba(234, 179, 8, 0.2)", textColor: "#a16207" },
+        "À facturer": { color: "rgba(234, 179, 8, 0.2)", textColor: "#a16207" },
+        "À livrer": { color: "rgba(234, 179, 8, 0.2)", textColor: "#a16207" },
+        "En attente": { color: "rgba(100, 116, 139, 0.12)", textColor: "#475569" },
+        "Devis établi": { color: "rgba(42, 157, 143, 0.15)", textColor: "#0f766e" },
+        "Validé client": { color: "rgba(22, 163, 74, 0.12)", textColor: "#15803d" },
+        "Refusé client": { color: "rgba(230, 57, 70, 0.12)", textColor: "#b91c1c" },
+        "Non réalisable": { color: "rgba(230, 57, 70, 0.12)", textColor: "#b91c1c" },
+    };
+
+    const displayStatus = statusTranslations[status] || status;
+    const style = config[displayStatus] || { color: "rgba(100, 116, 139, 0.12)", textColor: "#475569" };
+
+    return (
+        "<span style=\"display:inline-flex;align-items:center;background-color:" +
+        style.color +
+        ";font-size:11px;font-weight:600;color:" +
+        style.textColor +
+        ";border-radius:9999px;padding:3px 10px;line-height:1.35;white-space:nowrap;max-width:100%;\">" +
+        escape_html(displayStatus) +
+        "</span>"
+    );
+}
+
 /**
  * Nettoie automatiquement les lignes vides du tableau liste_articles
  * Une ligne est considérée comme vide si le champ 'article' est vide
@@ -112,7 +277,9 @@ frappe.ui.form.on('Demande Faisabilite', {
         // (Keep existing logic for adding the button)
         if (!frm.get_field('html').$wrapper.find('#add-article-btn').length) {
             frm.get_field('html').$wrapper.append(
-                '<button id="add-article-btn" class="btn btn-primary" style="margin-top: 10px;">Ajouter un article</button>'
+                '<button id="add-article-btn" type="button" class="btn btn-primary btn-sm" style="margin-top:10px;">' +
+                    __("Ajouter un article") +
+                    "</button>"
             );
             frm.get_field('html').$wrapper.find('#add-article-btn').click(function() {
                 frappe.prompt([
@@ -234,7 +401,7 @@ frappe.ui.form.on('Demande Faisabilite', {
                         });
                     }
                 );
-            }).addClass("btn-primary").css({"background-color": "#52b69a", "border-color": "#52b69a"});
+            }).removeClass("btn-default").addClass("btn-primary");
         }
 
         // --- Bouton "Annuler" ---
@@ -308,9 +475,7 @@ frappe.ui.form.on('Demande Faisabilite', {
             }, "Créer");
         }
 
-        // --- NOUVEAU : Bouton "Retirage" ---
-        // Ajout du console.log pour déboguer
-        console.log("Statut actuel pour bouton Retirage:", frm.doc.status);
+        // --- Bouton "Retirage" ---
         if (frm.doc.status === "Commandé") {
             // frm.clear_custom_buttons(); // Already cleared above
             frm.add_custom_button("Retirage", function() {
@@ -474,156 +639,89 @@ frappe.ui.form.on('Demande Faisabilite', {
 });
 
 function load_etude_links(frm) {
-    // Remove the separate frappe.db.get_list call for Etudes
-
-    // Call a single backend function that returns both Etudes and Sales Documents
     frappe.call({
-        // IMPORTANT: Ensure this method name points to your *updated* backend function
-        // that returns both etudes and sales_documents.
-        // Mise à jour du chemin
-        method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.get_linked_documents_for_demande", // Example updated method name
+        method: "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.get_linked_documents_for_demande",
         args: {
-            demande_name: frm.doc.name
+            demande_name: frm.doc.name,
         },
         callback: function(res) {
-            // Expecting response like: { etudes: [...], sales_documents: [...] }
-            if (res.message) {
-                var etudes = res.message.etudes || [];
-                var sales_documents = res.message.sales_documents || [];
-
-                // --- Start generating HTML ---
-                var html = "<div style='display: flex; flex-direction: column; gap: 20px; padding-bottom: 10px; min-width: 280px;'>";
-                html += "<style>@media (min-width: 768px) { .df-container { flex-direction: row !important; } }</style>";
-                html += "<div class='df-container' style='display: flex; flex-direction: column; gap: 20px; align-items: stretch;'>";
-
-                // --- Études section ---
-                // (HTML generation logic for etudes remains the same, using the 'etudes' variable)
-                html += "<div style='flex: 1; min-width: 280px; display: flex; flex-direction: column;'>";
-                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden;'>";
-                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd; background-color: #f8f9fa;">' +
-                        '<div style="display: flex; align-items: center;">' +
-                        '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">Liste Études de Faisabilité</span>' +
-                        '<span style="margin-left: 8px; background: rgba(74, 144, 226, 0.1); padding: 2px 8px; border-radius: 12px; font-size: 11px; color: #4a90e2;">' +
-                        etudes.length + ' étude' + (etudes.length > 1 ? 's' : '') + '</span></div>' +
-                        '</div>';
-                html += "<div style='padding: 20px; background-color: #ffffff; flex-grow: 1;'>";
-                if (etudes.length > 0) {
-                    etudes.forEach(function(rec) {
-                        var badge = get_status_badge(rec.status);
-                        html += "<div style='margin-bottom: 5px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px;'>";
-                        html += "<span style='margin-right: 4px;'>•</span>";
-                        html += "<div style='display: flex; flex-direction: column;'>";
-                        html += "<div style='display: flex; align-items: baseline; gap: 8px;'>";
-                        var itemName = rec.item_name || rec.article_name || (rec.article && rec.article.item_name) || ''; // Use a default value if item_name is missing
-                        // Ouvre le bon formulaire selon le doctype
-                        var doctype = rec.doctype || 'Etude Faisabilite';
-                        html += "<a href='#' onclick=\"frappe.set_route('Form','" + doctype + "','" + rec.name + "'); return false;\" style='font-size: 12px; color: inherit; text-decoration: none; word-break: break-all;'>" + rec.name + (itemName ? " - " + itemName : "") + "</a>";
-                        html += "<span>" + badge + "</span>";
-                        html += "</div>";
-                        html += "</div>";
-                        html += "</div>";
-                    });
-                } else {
-                    html += "<p style='font-size: 11px;'>Aucune étude de faisabilité liée.</p>";
-                }
-                html += "</div></div></div>"; // Close content, card container, and flex item
-
-                // --- Sales Documents Section ---
-                // (HTML generation logic for sales_documents remains the same, using the 'sales_documents' variable)
-                html += "<div style='flex: 1; min-width: 280px; display: flex; flex-direction: column;'>";
-                html += "<div style='border: 0.5px solid #d1d8dd; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden;'>";
-                html += '<div style="padding: 10px 20px; border-bottom: 0.5px solid #d1d8dd; background-color: #f8f9fa;">' +
-                        '<div style="display: flex; align-items: center;">' +
-                        '<span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">Documents de vente</span></div></div>';
-                html += "<div style='padding: 20px; background-color: #ffffff; flex-grow: 1;'>";
-                if (sales_documents.length > 0) {
-                    sales_documents.forEach(function(doc) {
-                        var badge = get_status_badge(doc.status);
-                        var doc_type_label = "";
-                        if (doc.doctype === "Quotation") {
-                            doc_type_label = "Devis : ";
-                        } else if (doc.doctype === "Sales Order") {
-                            doc_type_label = "Commande : ";
-                        }
-                        html += "<div style='margin-bottom: 10px; display: flex; align-items: flex-start;'>";
-                        html += "<span style='margin-right: 8px; line-height: 1.5;'>•</span>";
-                        html += "<div style='display: flex; flex-direction: column; align-items: flex-start;'>";
-                        html += "<strong style='font-size: 12px; color: #333;'>" + doc_type_label + "</strong>";
-                        html += "<div style='display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin-top: 2px;'>";
-                        html += "<a href='#' onclick=\"frappe.set_route('Form','" + doc.doctype + "','" + doc.name + "'); return false;\" style='font-size: 12px; color: inherit; text-decoration: none; word-break: break-all;'>" + doc.name + "</a>";
-                        html += "<span>" + badge + "</span>";
-                        html += "</div>"; // Close inner flex div (ID and badge)
-                        html += "</div>"; // Close inner div (vertical layout)
-                        html += "</div>"; // Close outer flex div (bullet and content)
-                    });
-                } else {
-                    html += "<p style='font-size: 11px;'>Aucun document de vente lié.</p>";
-                }
-                html += "</div></div></div>"; // Close content, card container, and flex item
-
-                html += "</div>"; // Close df-container
-                html += "</div>"; // Close outer div
-
-                frm.get_field("liens").$wrapper.html(html);
-            } else {
-                // Handle potential error case where res.message is empty or undefined
-                frm.get_field("liens").$wrapper.html("<p style='font-size: 11px; padding: 20px;'>Erreur lors du chargement des liens.</p>");
+            if (!res.message) {
+                frm.get_field("liens").$wrapper.html(
+                    "<p class=\"text-muted small\" style=\"padding:16px;margin:0;\">" +
+                        __("Erreur lors du chargement des liens.") +
+                        "</p>"
+                );
+                return;
             }
-        }
+            const etudes = res.message.etudes || [];
+            const sales_documents = res.message.sales_documents || [];
+            const etudeCountLabel =
+                etudes.length + " " + (etudes.length > 1 ? __("études") : __("étude"));
+            const salesCountLabel =
+                sales_documents.length +
+                " " +
+                (sales_documents.length > 1 ? __("documents") : __("document"));
+
+            let html = deb_inject_layout_styles();
+            html += deb_section_root_open();
+            html += "<div class=\"deb-df-container\">";
+
+            html += "<div style=\"flex:1;min-width:280px;display:flex;flex-direction:column;\">";
+            html += deb_card_shell_open();
+            html += deb_card_header(__("Liste Études de Faisabilité"), etudeCountLabel);
+            html += deb_card_body_open(true);
+            if (etudes.length) {
+                etudes.forEach(function(rec) {
+                    const badge = get_status_badge(rec.status);
+                    const itemName =
+                        rec.item_name || rec.article_name || (rec.article && rec.article.item_name) || "";
+                    const doctype = rec.doctype || "Etude Faisabilite";
+                    const linkLabel =
+                        escape_html(rec.name) + (itemName ? " — " + escape_html(itemName) : "");
+                    html += "<div class=\"deb-list-line\">";
+                    html += deb_doc_link_anchor(doctype, rec.name, linkLabel);
+                    html += "<span>" + badge + "</span>";
+                    html += "</div>";
+                });
+            } else {
+                html += "<p class=\"text-muted small\" style=\"margin:0;\">" + __("Aucune étude de faisabilité liée.") + "</p>";
+            }
+            html += "</div></div></div>";
+
+            html += "<div style=\"flex:1;min-width:280px;display:flex;flex-direction:column;\">";
+            html += deb_card_shell_open();
+            html += deb_card_header(__("Documents de vente"), salesCountLabel);
+            html += deb_card_body_open(true);
+            if (sales_documents.length) {
+                sales_documents.forEach(function(doc) {
+                    const badge = get_status_badge(doc.status);
+                    let doc_type_label = "";
+                    if (doc.doctype === "Quotation") {
+                        doc_type_label = __("Devis : ");
+                    } else if (doc.doctype === "Sales Order") {
+                        doc_type_label = __("Commande : ");
+                    }
+                    html += "<div class=\"deb-list-line\" style=\"flex-direction:column;align-items:flex-start;\">";
+                    html +=
+                        "<span style=\"font-size:11px;font-weight:600;color:" +
+                        DEB.textMuted +
+                        ";text-transform:uppercase;letter-spacing:0.04em;\">" +
+                        escape_html(doc_type_label) +
+                        "</span>";
+                    html += "<div style=\"display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 10px;\">";
+                    html += deb_doc_link_anchor(doc.doctype, doc.name, escape_html(doc.name));
+                    html += "<span>" + badge + "</span>";
+                    html += "</div></div>";
+                });
+            } else {
+                html += "<p class=\"text-muted small\" style=\"margin:0;\">" + __("Aucun document de vente lié.") + "</p>";
+            }
+            html += "</div></div></div>";
+
+            html += "</div></div>";
+            frm.get_field("liens").$wrapper.html(html);
+        },
     });
-    // Removed the .then() part from the original get_list call
-}
-
-// --- get_status_badge function (remains unchanged) ---
-function get_status_badge(status) {
-    // Mapping des traductions pour les statuts (Add Sales Order specific ones if necessary)
-    const statusTranslations = {
-        "Draft": "Brouillon",
-        "Submitted": "Soumis",
-        "Cancelled": "Annulé",
-        "Open": "Ouvert", // Quotation
-        "Lost": "Perdu", // Quotation
-        "Ordered": "Commandé", // Quotation
-        // Add Sales Order specific statuses if they differ and need translation
-        "To Deliver and Bill": "À livrer et facturer",
-        "To Bill": "À facturer",
-        "To Deliver": "À livrer",
-        "Completed": "Terminé",
-        "Closed": "Fermé",
-        "On Hold": "En attente"
-    };
-
-    var config = {
-        // Études
-        "Nouveau": { color: "rgba(17, 138, 178, 0.1)", textColor: "#118ab2" },
-        "En étude": { color: "rgba(244, 162, 97, 0.1)", textColor: "#f4a261" },
-        "Réalisable": { color: "rgba(42, 157, 143, 0.1)", textColor: "#2a9d8f" },
-        "Non Réalisable": { color: "rgba(230, 57, 70, 0.1)", textColor: "#e63946" },
-        "Programmée": { color: "rgba(17, 138, 178, 0.1)", textColor: "#118ab2" },
-        // Devis & Commandes (Shared statuses)
-        "Brouillon": { color: "rgba(108, 117, 125, 0.1)", textColor: "#6c757d" }, // Grey for Draft
-        "Soumis": { color: "rgba(0, 123, 255, 0.1)", textColor: "#007bff" }, // Blue for Submitted/Open/Active states
-        "Annulé": { color: "rgba(230, 57, 70, 0.1)", textColor: "#e63946" }, // Red for Cancelled
-        "Commandé": { color: "rgba(40, 167, 69, 0.1)", textColor: "#28a745" }, // Green for Ordered/Completed
-        "Terminé": { color: "rgba(40, 167, 69, 0.1)", textColor: "#28a745" }, // Green
-        "Fermé": { color: "rgba(40, 167, 69, 0.1)", textColor: "#28a745" }, // Green
-        // Specific statuses
-        "Ouvert": { color: "rgba(0, 123, 255, 0.1)", textColor: "#007bff" }, // Blue
-        "Perdu": { color: "rgba(231, 111, 81, 0.1)", textColor: "#e76f51" }, // Orange/Red for Lost
-        // Changed textColor for better readability on yellow background
-        "À livrer et facturer": { color: "rgba(255, 193, 7, 0.1)", textColor: "#856404" }, // Darker text
-        "À facturer": { color: "rgba(255, 193, 7, 0.1)", textColor: "#856404" }, // Darker text
-        "À livrer": { color: "rgba(255, 193, 7, 0.1)", textColor: "#856404" }, // Darker text
-        "En attente": { color: "rgba(108, 117, 125, 0.1)", textColor: "#6c757d" } // Grey for On Hold
-    };
-
-    // Traduire le statut si une traduction existe, sinon utiliser le statut brut
-    const displayStatus = statusTranslations[status] || status;
-    // Utiliser le statut traduit (ou brut si pas de traduction) pour chercher la config de couleur
-    var style = config[displayStatus] || { color: "rgba(102, 102, 102, 0.1)", textColor: "#666" }; // Default grey
-
-    return "<span style='background-color: " + style.color + "; font-size: 11px; color: " + style.textColor + "; border-radius: 4px; padding: 2px 4px; margin-right: 4px;'>" +
-           displayStatus + "</span>";
 }
 
 // Fonction pour configurer le bouton de génération automatique du numéro de bon de commande
