@@ -809,6 +809,116 @@ function is_suivi_cycle_request_type(frm) {
     return SUIVI_CYCLE_REQUEST_TYPES.includes(frm.doc.request_type);
 }
 
+/** Carte suivi cycle : bloc études + devis/commandes (même mise en page FA / dossier EB). */
+function html_suivi_cycle_linked_document_card(d, cfg) {
+    const linkedDt = cfg.linkedDocType;
+    const nameEsc = frappe.utils.escape_html(d.name);
+    const subtitleHtml = cfg.subtitleHtml || "";
+    const demStat = d.status || "";
+
+    let html = "<div style=\"border:0.5px solid #d1d8dd;border-radius:8px;overflow:hidden;background:#fff;\">";
+    html +=
+        "<div style=\"padding:8px 12px;border-bottom:0.5px solid #d1d8dd;background:#f8f9fa;font-size:12px;font-weight:600;\">";
+    html +=
+        "<a href=\"#\" onclick=\"frappe.set_route('Form','" +
+        linkedDt +
+        "','" +
+        d.name +
+        "');return false;\">" +
+        nameEsc +
+        "</a>";
+    html += subtitleHtml;
+    html += " &nbsp; ";
+    html += cycle_status_badge(demStat);
+    html += "</div>";
+
+    html += "<div style=\"padding:10px 12px;display:flex;flex-direction:column;gap:10px;\">";
+    html +=
+        "<div><div style=\"font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:4px;\">" +
+        __("Études de faisabilité") +
+        "</div>";
+    const etudes = d.etudes || [];
+    if (!etudes.length) {
+        html += "<p style=\"font-size:11px;color:#94a3b8;margin:0;\">" + __("Aucune étude.") + "</p>";
+    } else {
+        etudes.forEach(function(e) {
+            const eDt = e.doctype || "Etude Faisabilite";
+            const st = e.status || "";
+            html += "<div style=\"font-size:12px;margin-bottom:4px;\">";
+            html +=
+                "<a href=\"#\" onclick=\"frappe.set_route('Form','" +
+                eDt +
+                "','" +
+                e.name +
+                "');return false;\">" +
+                frappe.utils.escape_html(e.name) +
+                "</a> ";
+            html += cycle_status_badge(st);
+            html += "</div>";
+        });
+    }
+    html += "</div>";
+
+    html +=
+        "<div><div style=\"font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:4px;\">" +
+        __("Devis & commandes") +
+        "</div>";
+    const sales = d.sales_documents || [];
+    if (!sales.length) {
+        html +=
+            "<p style=\"font-size:11px;color:#94a3b8;margin:0;\">" +
+            __("Aucun devis ni commande liés.") +
+            "</p>";
+    } else {
+        sales.forEach(function(doc) {
+            const st = doc.status || "";
+            html += "<div style=\"font-size:12px;margin-bottom:6px;\">";
+            if (doc.doctype === "Quotation") {
+                html += "<strong>" + __("Devis") + ":</strong> ";
+                html +=
+                    "<a href=\"#\" onclick=\"frappe.set_route('Form','Quotation','" +
+                    doc.name +
+                    "');return false;\">" +
+                    frappe.utils.escape_html(doc.name) +
+                    "</a> ";
+            } else if (doc.doctype === "Sales Order") {
+                html += "<strong>" + __("Commande") + ":</strong> ";
+                html +=
+                    "<a href=\"#\" onclick=\"frappe.set_route('Form','Sales Order','" +
+                    doc.name +
+                    "');return false;\">" +
+                    frappe.utils.escape_html(doc.name) +
+                    "</a> ";
+                const bcNum = doc.bon_de_commande_client;
+                const bcDate = doc.delivery_date;
+                if (bcNum || bcDate) {
+                    const parts = [];
+                    if (bcNum) {
+                        parts.push("N\u00ba BC: " + frappe.utils.escape_html(bcNum));
+                    }
+                    if (bcDate) {
+                        parts.push(__("Livraison") + " : " + frappe.datetime.str_to_user(bcDate));
+                    }
+                    html +=
+                        "<span style=\"font-size:11px;color:#64748b;margin-left:4px;\">" +
+                        parts.join(" \u00b7 ") +
+                        "</span>";
+                }
+            }
+            html +=
+                "<span style=\"display:inline-block;margin-left:8px;vertical-align:middle;\">" +
+                cycle_status_badge(st) +
+                "</span>";
+            html += "</div>";
+        });
+    }
+    html += "</div>";
+
+    html += "</div>";
+    html += "</div>";
+    return html;
+}
+
 function render_suivi_cycle_html(frm) {
     const field = frm.get_field("suivi_cycle_html");
     if (!field || !field.$wrapper) {
@@ -837,7 +947,35 @@ function render_suivi_cycle_html(frm) {
         method: "aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial.get_cycle_documents",
         args: { ticket_name: frm.doc.name },
         callback: function(res) {
-            const demandes = (res.message && res.message.demandes) || [];
+            const msg = res.message || {};
+            const demandes = msg.demandes || [];
+            const dossiersEb = msg.dossiers || [];
+            const isEb = frm.doc.request_type === "Essai Blanc";
+
+            if (isEb) {
+                if (!dossiersEb.length) {
+                    field.$wrapper.html(
+                        "<p class=\"text-muted small\" style=\"padding:8px 0;\">" +
+                            frappe.utils.escape_html(
+                                __(
+                                    "Aucun dossier essai blanc lié. Utilisez Créer → Dossier Essai Blanc pour démarrer le cycle."
+                                )
+                            ) +
+                            "</p>"
+                    );
+                    return;
+                }
+                let htmlEb = "<div style=\"display:flex;flex-direction:column;gap:14px;\">";
+                dossiersEb.forEach(function(d) {
+                    htmlEb += html_suivi_cycle_linked_document_card(d, {
+                        linkedDocType: "Dossier Essai Blanc"
+                    });
+                });
+                htmlEb += "</div>";
+                field.$wrapper.html(htmlEb);
+                return;
+            }
+
             if (!demandes.length) {
                 field.$wrapper.html(
                     "<p class=\"text-muted small\" style=\"padding:8px 0;\">" +
@@ -853,107 +991,11 @@ function render_suivi_cycle_html(frm) {
 
             let html = "<div style=\"display:flex;flex-direction:column;gap:14px;\">";
             demandes.forEach(function(d) {
-                const demName = frappe.utils.escape_html(d.name);
-                const demType = d.type ? " · " + frappe.utils.escape_html(d.type) : "";
-                const demStat = d.status || "";
-                html += "<div style=\"border:0.5px solid #d1d8dd;border-radius:8px;overflow:hidden;background:#fff;\">";
-                html +=
-                    "<div style=\"padding:8px 12px;border-bottom:0.5px solid #d1d8dd;background:#f8f9fa;font-size:12px;font-weight:600;\">";
-                html +=
-                    "<a href=\"#\" onclick=\"frappe.set_route('Form','Demande Faisabilite','" +
-                    d.name +
-                    "');return false;\">" +
-                    demName +
-                    "</a>" +
-                    demType +
-                    " &nbsp; ";
-                html += cycle_status_badge(demStat);
-                html += "</div>";
-
-                html += "<div style=\"padding:10px 12px;display:flex;flex-direction:column;gap:10px;\">";
-                // Études
-                html += "<div><div style=\"font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:4px;\">" + __("Études de faisabilité") + "</div>";
-                const etudes = d.etudes || [];
-                if (!etudes.length) {
-                    html += "<p style=\"font-size:11px;color:#94a3b8;margin:0;\">" + __("Aucune étude.") + "</p>";
-                } else {
-                    etudes.forEach(function(e) {
-                        const dt = e.doctype || "Etude Faisabilite";
-                        const st = e.status || "";
-                        html += "<div style=\"font-size:12px;margin-bottom:4px;\">";
-                        html +=
-                            "<a href=\"#\" onclick=\"frappe.set_route('Form','" +
-                            dt +
-                            "','" +
-                            e.name +
-                            "');return false;\">" +
-                            frappe.utils.escape_html(e.name) +
-                            "</a> ";
-                        html += cycle_status_badge(st);
-                        html += "</div>";
-                    });
-                }
-                html += "</div>";
-
-                // Documents de vente
-                html += "<div><div style=\"font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:4px;\">" + __("Devis & commandes") + "</div>";
-                const sales = d.sales_documents || [];
-                if (!sales.length) {
-                    html += "<p style=\"font-size:11px;color:#94a3b8;margin:0;\">" + __("Aucun devis ni commande liés.") + "</p>";
-                } else {
-                    sales.forEach(function(doc) {
-                        const st = doc.status || "";
-                        html += "<div style=\"font-size:12px;margin-bottom:6px;\">";
-                        if (doc.doctype === "Quotation") {
-                            html += "<strong>" + __("Devis") + ":</strong> ";
-                            html +=
-                                "<a href=\"#\" onclick=\"frappe.set_route('Form','Quotation','" +
-                                doc.name +
-                                "');return false;\">" +
-                                frappe.utils.escape_html(doc.name) +
-                                "</a> ";
-                        } else if (doc.doctype === "Sales Order") {
-                            html += "<strong>" + __("Commande") + ":</strong> ";
-                            html +=
-                                "<a href=\"#\" onclick=\"frappe.set_route('Form','Sales Order','" +
-                                doc.name +
-                                "');return false;\">" +
-                                frappe.utils.escape_html(doc.name) +
-                                "</a> ";
-                            {
-                                const bcNum = doc.bon_de_commande_client;
-                                const bcDate = doc.delivery_date;
-                                if (bcNum || bcDate) {
-                                    const parts = [];
-                                    if (bcNum) {
-                                        parts.push(
-                                            "N\u00ba BC: " + frappe.utils.escape_html(bcNum)
-                                        );
-                                    }
-                                    if (bcDate) {
-                                        parts.push(
-                                            __("Livraison") +
-                                                " : " +
-                                                frappe.datetime.str_to_user(bcDate)
-                                        );
-                                    }
-                                    html +=
-                                        "<span style=\"font-size:11px;color:#64748b;margin-left:4px;\">" +
-                                        parts.join(" \u00b7 ") +
-                                        "</span>";
-                                }
-                            }
-                        }
-                        html +=
-                            "<span style=\"display:inline-block;margin-left:8px;vertical-align:middle;\">" +
-                            cycle_status_badge(st) +
-                            "</span>";
-                        html += "</div>";
-                    });
-                }
-                html += "</div>";
-
-                html += "</div></div>";
+                const demTypeSubtitle = d.type ? " · " + frappe.utils.escape_html(d.type) : "";
+                html += html_suivi_cycle_linked_document_card(d, {
+                    linkedDocType: "Demande Faisabilite",
+                    subtitleHtml: demTypeSubtitle
+                });
             });
             html += "</div>";
             field.$wrapper.html(html);

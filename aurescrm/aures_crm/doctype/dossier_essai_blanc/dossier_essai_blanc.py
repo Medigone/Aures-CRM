@@ -77,10 +77,11 @@ class DossierEssaiBlanc(Document):
 				frappe.throw(
 					_("L'article {0} est un sous-article. Sélectionnez l'article parent.").format(row.article)
 				)
-			key = (row.article, cint(row.quantite))
-			if key in seen:
-				frappe.throw(_("Doublon détecté : {0} avec la quantité {1}.").format(row.article, row.quantite))
-			seen.add(key)
+			if row.article in seen:
+				frappe.throw(
+					_("Doublon détecté : l'article {0} figure déjà dans la liste.").format(row.article)
+				)
+			seen.add(row.article)
 			row.designation_article = item.item_name
 			row.essai_blanc = 1
 
@@ -108,7 +109,7 @@ def _get_item_info(article):
 
 
 @frappe.whitelist()
-def add_article(docname, article, quantite, date_livraison):
+def add_article(docname, article, quantite, date_livraison, avec_code_pharma=0):
 	dossier = frappe.get_doc("Dossier Essai Blanc", docname)
 	if dossier.status != "Nouveau":
 		frappe.throw(_("Les articles ne peuvent être ajoutés qu'au statut Nouveau."))
@@ -119,8 +120,8 @@ def add_article(docname, article, quantite, date_livraison):
 		frappe.throw(_("Cet article n'est pas coché Essai Blanc."))
 	if item.custom_client and item.custom_client != dossier.client:
 		frappe.throw(_("Cet article n'appartient pas au client du dossier."))
-	if any(row.article == article and cint(row.quantite) == cint(quantite) for row in dossier.get("articles") or []):
-		frappe.throw(_("Cet article existe déjà avec la même quantité."))
+	if any(row.article == article for row in dossier.get("articles") or []):
+		frappe.throw(_("Cet article est déjà présent dans le dossier."))
 	dossier.append(
 		"articles",
 		{
@@ -131,6 +132,7 @@ def add_article(docname, article, quantite, date_livraison):
 			"procede_article": item.get("custom_procédé") or "",
 			"essai_blanc": 1,
 			"statut_validation_client": "En attente",
+			"avec_code_pharma": cint(avec_code_pharma),
 		},
 	)
 	dossier.save(ignore_permissions=True)
@@ -598,13 +600,93 @@ def advance_dossier_essai_blanc_step(docname):
 				"Les transitions automatiques s'arrêtent à « Prêt pour livraison » (puis validation client)."
 			).format(dossier.status)
 		)
+	user = frappe.session.user
+	ts = now_datetime()
+	if next_status == "Production à lancer":
+		dossier.prod_a_lancer_par = user
+		dossier.prod_a_lancer_le = ts
+	elif next_status == "En production":
+		dossier.en_production_par = user
+		dossier.en_production_le = ts
+	elif next_status == "Prêt pour livraison":
+		dossier.pret_livraison_par = user
+		dossier.pret_livraison_le = ts
 	dossier.status = next_status
 	dossier.save(ignore_permissions=True)
 	return {"status": dossier.status}
 
 
+_ITEM_SUPPORT_FIELDS = ("custom_support", "custom_grammage")
+
+
+def _item_select_options_lines(fieldname):
+	field = frappe.get_meta("Item").get_field(fieldname)
+	if not field or field.fieldtype != "Select":
+		frappe.throw(_("Le champ {0} n'est pas un Select sur Article.").format(fieldname))
+	return field.options or ""
+
+
+def _parse_item_select_allowed_values(fieldname):
+	allowed = []
+	for raw in _item_select_options_lines(fieldname).split("\n"):
+		opt = (raw or "").strip()
+		if opt:
+			allowed.append(opt)
+	return allowed
+
+
+def _validate_item_support_grammage_values(custom_support, custom_grammage):
+	support_allowed = _parse_item_select_allowed_values("custom_support")
+	grammage_allowed = _parse_item_select_allowed_values("custom_grammage")
+	support_vals = set(support_allowed)
+	grammage_vals = set(grammage_allowed)
+
+	s = (custom_support or "").strip()
+	g = (custom_grammage or "").strip()
+	if not s or not g:
+		frappe.throw(_("Le support et le grammage validés par le client sont obligatoires."))
+	if s not in support_vals:
+		frappe.throw(_("Valeur de support invalide."))
+	if g not in grammage_vals:
+		frappe.throw(_("Valeur de grammage invalide."))
+	return s, g
+
+
 @frappe.whitelist()
-def set_article_validation(docname, row_name, validation_status, commentaire=None):
+def get_item_support_grammage_for_prompt(item_code):
+	if not item_code:
+		frappe.throw(_("Article manquant."))
+	if not frappe.db.exists("Item", item_code):
+		frappe.throw(_("Article introuvable."))
+	row = frappe.db.get_value("Item", item_code, list(_ITEM_SUPPORT_FIELDS), as_dict=True)
+	return {
+		"custom_support": row.get("custom_support") or "",
+		"custom_grammage": row.get("custom_grammage") or "",
+		"support_options": _item_select_options_lines("custom_support"),
+		"grammage_options": _item_select_options_lines("custom_grammage"),
+	}
+
+
+def _update_validation_status(dossier):
+	rows = [row for row in dossier.get("articles") or [] if row.article]
+	if not rows:
+		return
+	validated_count = sum(1 for row in rows if row.statut_validation_client == "Validé client")
+	if validated_count == len(rows):
+		dossier.status = "Validé client"
+	elif validated_count > 0:
+		dossier.status = "Partiellement validé client"
+
+
+@frappe.whitelist()
+def set_article_validation(
+	docname,
+	row_name,
+	validation_status,
+	commentaire=None,
+	custom_support=None,
+	custom_grammage=None,
+):
 	if validation_status not in ("Validé client", "Refusé client"):
 		frappe.throw(_("Statut de validation invalide."))
 	dossier = frappe.get_doc("Dossier Essai Blanc", docname)
@@ -618,25 +700,26 @@ def set_article_validation(docname, row_name, validation_status, commentaire=Non
 	row = next((item for item in dossier.get("articles") or [] if item.name == row_name), None)
 	if not row:
 		frappe.throw(_("Ligne article introuvable."))
+	if validation_status == "Validé client":
+		support_ok, grammage_ok = _validate_item_support_grammage_values(custom_support, custom_grammage)
+	else:
+		support_ok = grammage_ok = None
 	row.statut_validation_client = validation_status
 	row.commentaire_validation = commentaire or row.commentaire_validation
 	row.date_validation_client = now_datetime()
 	_update_validation_status(dossier)
 	dossier.save(ignore_permissions=True)
 	if validation_status == "Validé client":
-		frappe.db.set_value("Item", row.article, "custom_essai_blanc", 0)
+		frappe.db.set_value(
+			"Item",
+			row.article,
+			{
+				"custom_support": support_ok,
+				"custom_grammage": grammage_ok,
+				"custom_essai_blanc": 0,
+			},
+		)
 	return {"status": dossier.status}
-
-
-def _update_validation_status(dossier):
-	rows = [row for row in dossier.get("articles") or [] if row.article]
-	if not rows:
-		return
-	validated_count = sum(1 for row in rows if row.statut_validation_client == "Validé client")
-	if validated_count == len(rows):
-		dossier.status = "Validé client"
-	elif validated_count > 0:
-		dossier.status = "Partiellement validé client"
 
 
 @frappe.whitelist()

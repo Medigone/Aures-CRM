@@ -606,16 +606,87 @@ def get_admin_ventes_users(doctype, txt, searchfield, start, page_len, filters):
     )
 
 
+def _enrich_sales_documents_for_cycle_html(sales_raw):
+    sales_enriched = []
+    for sd in sales_raw or []:
+        row = dict(sd)
+        if sd.get("doctype") == "Quotation":
+            extra = frappe.db.get_value(
+                "Quotation",
+                sd["name"],
+                ["docstatus", "status"],
+                as_dict=True,
+            )
+            if extra:
+                row["docstatus"] = extra.get("docstatus")
+                if extra.get("status") is not None:
+                    row["status"] = extra.get("status")
+        elif sd.get("doctype") == "Sales Order":
+            extra = frappe.db.get_value(
+                "Sales Order",
+                sd["name"],
+                [
+                    "docstatus",
+                    "status",
+                    "custom_bon_de_commande_client",
+                    "delivery_date",
+                    "custom_devis",
+                ],
+                as_dict=True,
+            )
+            if extra:
+                row["docstatus"] = extra.get("docstatus")
+                if extra.get("status") is not None:
+                    row["status"] = extra.get("status")
+                row["bon_de_commande_client"] = extra.get("custom_bon_de_commande_client")
+                dd = extra.get("delivery_date")
+                row["delivery_date"] = str(dd) if dd else None
+                row["devis_lie"] = extra.get("custom_devis")
+        sales_enriched.append(row)
+    return sales_enriched
+
+
 @frappe.whitelist()
 def get_cycle_documents(ticket_name):
     """
     Agrège les demandes, études, devis et commandes liés au ticket pour affichage HTML.
+
+    Pour le type « Essai Blanc » : dossiers DEB liés au ticket (études et ventes comme une FA).
     """
     if not ticket_name:
         frappe.throw(_("Ticket manquant."))
 
     ticket = frappe.get_doc("Ticket Commercial", ticket_name)
     ticket.check_permission("read")
+
+    if cstr(ticket.request_type or "") == "Essai Blanc":
+        from aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc import (
+            get_linked_documents_for_dossier,
+        )
+
+        dossiers_raw = frappe.get_all(
+            "Dossier Essai Blanc",
+            filters={"ticket_commercial": ticket_name},
+            fields=["name", "status", "modified"],
+            order_by="modified desc",
+        )
+
+        out_dossiers = []
+        for doss in dossiers_raw:
+            linked = get_linked_documents_for_dossier(doss.name)
+            out_dossiers.append(
+                {
+                    "name": doss.name,
+                    "status": doss.status,
+                    "modified": str(doss.modified) if doss.get("modified") else None,
+                    "etudes": linked.get("etudes") or [],
+                    "sales_documents": _enrich_sales_documents_for_cycle_html(
+                        linked.get("sales_documents") or []
+                    ),
+                }
+            )
+
+        return {"demandes": [], "dossiers": out_dossiers}
 
     from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import (
         get_linked_documents_for_demande,
@@ -632,43 +703,7 @@ def get_cycle_documents(ticket_name):
     for dem in demandes:
         linked = get_linked_documents_for_demande(dem.name)
         etudes = linked.get("etudes") or []
-        sales_raw = linked.get("sales_documents") or []
-        sales_enriched = []
-        for sd in sales_raw:
-            row = dict(sd)
-            if sd.get("doctype") == "Quotation":
-                extra = frappe.db.get_value(
-                    "Quotation",
-                    sd["name"],
-                    ["docstatus", "status"],
-                    as_dict=True,
-                )
-                if extra:
-                    row["docstatus"] = extra.get("docstatus")
-                    if extra.get("status") is not None:
-                        row["status"] = extra.get("status")
-            elif sd.get("doctype") == "Sales Order":
-                extra = frappe.db.get_value(
-                    "Sales Order",
-                    sd["name"],
-                    [
-                        "docstatus",
-                        "status",
-                        "custom_bon_de_commande_client",
-                        "delivery_date",
-                        "custom_devis",
-                    ],
-                    as_dict=True,
-                )
-                if extra:
-                    row["docstatus"] = extra.get("docstatus")
-                    if extra.get("status") is not None:
-                        row["status"] = extra.get("status")
-                    row["bon_de_commande_client"] = extra.get("custom_bon_de_commande_client")
-                    dd = extra.get("delivery_date")
-                    row["delivery_date"] = str(dd) if dd else None
-                    row["devis_lie"] = extra.get("custom_devis")
-            sales_enriched.append(row)
+        sales_enriched = _enrich_sales_documents_for_cycle_html(linked.get("sales_documents"))
         out_demandes.append(
             {
                 "name": dem.name,
@@ -680,7 +715,7 @@ def get_cycle_documents(ticket_name):
             }
         )
 
-    return {"demandes": out_demandes}
+    return {"demandes": out_demandes, "dossiers": []}
 
 
 ALLOWED_DECISION_RAPPROCHEMENT = (

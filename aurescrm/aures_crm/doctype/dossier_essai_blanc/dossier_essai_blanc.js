@@ -22,6 +22,161 @@ function escape_html(value) {
     return frappe.utils.escape_html(value || "");
 }
 
+/** Filtres Link Item pour les lignes articles (exclut les articles déjà sur d'autres lignes). */
+function deb_article_link_filters(frm, cdn) {
+    const filters = {
+        custom_essai_blanc: 1,
+        custom_sous_article: 0,
+        custom_article_parent: ["is", "not set"],
+    };
+    if (frm.doc.client) {
+        filters.custom_client = frm.doc.client;
+    }
+    const existing = (frm.doc.articles || [])
+        .filter((r) => r.article && (!cdn || r.name !== cdn))
+        .map((r) => r.article);
+    if (existing.length) {
+        filters.name = ["not in", existing];
+    }
+    return filters;
+}
+
+function deb_code_pharma_prompt_labels() {
+    return {
+        sans: __("Sans Code pharma"),
+        avec: __("Avec Code pharma"),
+    };
+}
+
+function prompt_deb_add_article(frm) {
+    if (frm.is_new()) {
+        frappe.msgprint(__("Enregistrez le dossier avant d'ajouter des articles."));
+        return;
+    }
+    if (frm.doc.status !== "Nouveau") {
+        frappe.msgprint(__("Les articles ne peuvent être ajoutés qu'au statut Nouveau."));
+        return;
+    }
+    frappe.prompt(
+        [
+            {
+                fieldname: "article",
+                fieldtype: "Link",
+                label: __("Article"),
+                options: "Item",
+                reqd: 1,
+                get_query: function() {
+                    return { filters: deb_article_link_filters(frm) };
+                },
+            },
+            {
+                fieldname: "quantite",
+                fieldtype: "Int",
+                label: __("Quantité"),
+                reqd: 1,
+            },
+            {
+                fieldname: "date_livraison",
+                fieldtype: "Date",
+                label: __("Date de livraison"),
+                default: frm.doc.date_livraison,
+                reqd: 1,
+            },
+            (function() {
+                const pharma = deb_code_pharma_prompt_labels();
+                return {
+                    fieldname: "code_pharma",
+                    fieldtype: "Select",
+                    label: __("Code pharma"),
+                    options: pharma.sans + "\n" + pharma.avec,
+                    default: pharma.sans,
+                    reqd: 1,
+                };
+            })(),
+        ],
+        function(values) {
+            if ((frm.doc.articles || []).some((r) => r.article === values.article)) {
+                frappe.msgprint(__("Cet article est déjà présent dans le dossier."));
+                return;
+            }
+            frappe.db.get_value(
+                "Item",
+                values.article,
+                [
+                    "item_name",
+                    "custom_sous_article",
+                    "custom_article_parent",
+                    "custom_essai_blanc",
+                    "custom_client",
+                    "custom_procédé",
+                ],
+                function(message) {
+                    if (!message || !Object.keys(message).length) {
+                        frappe.msgprint(__("Article introuvable."));
+                        return;
+                    }
+                    if (!cint(message.custom_essai_blanc)) {
+                        frappe.msgprint(__("Cet article n'est pas coché Essai Blanc."));
+                        return;
+                    }
+                    if (
+                        message.custom_client &&
+                        frm.doc.client &&
+                        message.custom_client !== frm.doc.client
+                    ) {
+                        frappe.msgprint(__("Cet article n'appartient pas au client du dossier."));
+                        return;
+                    }
+                    if (cint(message.custom_sous_article) || message.custom_article_parent) {
+                        frappe.msgprint(
+                            __("Sélectionnez l'article parent (article composé), pas un sous-article.")
+                        );
+                        return;
+                    }
+                    const pharma = deb_code_pharma_prompt_labels();
+                    const row = frm.add_child("articles");
+                    row.article = values.article;
+                    row.designation_article = message.item_name || "";
+                    row.quantite = cint(values.quantite);
+                    row.date_livraison = values.date_livraison;
+                    row.procede_article = message.custom_procédé || "";
+                    row.avec_code_pharma = values.code_pharma === pharma.avec ? 1 : 0;
+                    row.essai_blanc = 1;
+                    row.statut_validation_client = "En attente";
+                    frm.refresh_field("articles");
+                    frm.save();
+                }
+            );
+        },
+        __("Ajouter un article"),
+        __("Ajouter")
+    );
+}
+
+function setup_deb_articles_grid_tools(frm) {
+    if (frm.doc.status !== "Nouveau") {
+        return;
+    }
+    const grid_field = frm.get_field("articles");
+    if (grid_field && grid_field.grid) {
+        grid_field.grid.wrapper.find(".grid-add-row").hide();
+    }
+    const html_f = frm.get_field("html_article_add");
+    if (!html_f || !html_f.$wrapper) {
+        return;
+    }
+    html_f.$wrapper.empty();
+    const $btn = $(
+        '<button type="button" id="deb-add-article-btn" class="btn btn-primary btn-sm" style="margin-bottom:10px;">' +
+            __("+ Article") +
+            "</button>"
+    );
+    html_f.$wrapper.append($btn);
+    $btn.on("click", function() {
+        prompt_deb_add_article(frm);
+    });
+}
+
 function deb_inject_layout_styles() {
     return (
         "<style>" +
@@ -172,7 +327,39 @@ function get_status_badge(status) {
     );
 }
 
+/** Pastilles infos article : quantité ; badge « Avec Code pharma » seulement si coché. */
+function deb_article_meta_badges(row) {
+    const qtyText = __("Quantité") + " : " + escape_html(String(row.quantite != null ? row.quantite : ""));
+    const chips = [{ bg: "rgba(59, 130, 246, 0.14)", fg: "#1e40af", text: qtyText }];
+    if (cint(row.avec_code_pharma)) {
+        chips.push({
+            bg: "rgba(22, 163, 74, 0.16)",
+            fg: "#15803d",
+            text: __("Avec Code pharma"),
+        });
+    }
+    let out = "";
+    chips.forEach((c) => {
+        out +=
+            "<span style=\"display:inline-flex;align-items:center;background-color:" +
+            c.bg +
+            ";font-size:11px;font-weight:600;color:" +
+            c.fg +
+            ";border-radius:9999px;padding:3px 10px;line-height:1.35;white-space:nowrap;max-width:100%;box-sizing:border-box;\">" +
+            c.text +
+            "</span>";
+    });
+    return out;
+}
+
 function render_articles_html(frm) {
+    if (frm.doc.status === "Nouveau") {
+        const hf = frm.get_field("html_articles");
+        if (hf && hf.$wrapper) {
+            hf.$wrapper.empty();
+        }
+        return;
+    }
     const rows = frm.doc.articles || [];
     const n = rows.length;
     const countLabel = n + " " + (n > 1 ? __("lignes") : __("ligne"));
@@ -180,26 +367,10 @@ function render_articles_html(frm) {
     let html = deb_inject_layout_styles();
     html += deb_section_root_open();
 
-    if (frm.doc.status === "Nouveau") {
-        html +=
-            "<button id=\"deb-add-article\" type=\"button\" class=\"btn btn-primary btn-sm\" style=\"align-self:flex-start;\">" +
-            __("+ Article") +
-            "</button>";
-    }
-
     html += "<div style=\"flex:1;min-width:280px;display:flex;flex-direction:column;\">";
     html += deb_card_shell_open();
     html += deb_card_header(__("Articles essai blanc"), countLabel);
     html += deb_card_body_open(false);
-
-    if (frm.doc.status === "Confirmée" && !frm.is_new()) {
-        html +=
-            "<p class=\"text-muted small\" style=\"margin:0 0 14px 0;line-height:1.45;\">" +
-            __(
-                "Le statut du dossier suit les études : démarrez et finalisez chaque étude de faisabilité depuis sa fiche (workflow)."
-            ) +
-            "</p>";
-    }
 
     if (!rows.length) {
         html += "<p class=\"text-muted small\" style=\"margin:0;\">" + __("Aucun article ajouté.") + "</p>";
@@ -210,43 +381,24 @@ function render_articles_html(frm) {
                 "<div style=\"display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;\">";
             html += "<div style=\"min-width:0;\">";
             html +=
-                "<div style=\"font-weight:600;font-size:13px;line-height:1.4;color:" +
+                "<div style=\"display:flex;align-items:center;flex-wrap:wrap;gap:8px;line-height:1.4;\">" +
+                "<span style=\"font-weight:600;font-size:13px;color:" +
                 DEB.text +
                 ";\">" +
                 escape_html(row.article) +
                 (row.designation_article ? " — " + escape_html(row.designation_article) : "") +
-                "</div>";
-            html +=
-                "<div class=\"text-muted small\" style=\"margin-top:6px;line-height:1.45;\">" +
-                __("Quantité") +
-                ": " +
-                escape_html(row.quantite) +
-                " · " +
-                __("Livraison") +
-                ": " +
-                escape_html(row.date_livraison) +
-                " · " +
-                __("Procédé") +
-                ": " +
-                escape_html(row.procede_article || "—") +
-                "</div>";
-            html +=
-                "<div style=\"margin-top:8px;\">" +
+                "</span>" +
                 get_status_badge(row.statut_validation_client || "En attente") +
+                "</div>";
+            html +=
+                "<div style=\"display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;\">" +
+                deb_article_meta_badges(row) +
                 "</div>";
             html += "</div>";
             html +=
                 "<div style=\"display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center;\">";
-            if (frm.doc.status === "Nouveau") {
-                html +=
-                    "<button type=\"button\" class=\"btn btn-danger btn-xs deb-remove-article\" data-row=\"" +
-                    escape_html(row.name) +
-                    "\">" +
-                    __("Retirer") +
-                    "</button>";
-            }
             if (
-                ["Prêt pour livraison", "Partiellement validé client", "Validé client"].includes(frm.doc.status)
+                ["Prêt pour livraison", "Partiellement validé client"].includes(frm.doc.status)
             ) {
                 html +=
                     "<button type=\"button\" class=\"btn btn-primary btn-xs deb-validate-article\" data-row=\"" +
@@ -272,89 +424,11 @@ function render_articles_html(frm) {
 
 function bind_article_actions(frm) {
     const wrapper = frm.get_field("html_articles").$wrapper;
-    wrapper.find("#deb-add-article").off("click").on("click", () => prompt_add_article(frm));
-    wrapper.find(".deb-remove-article").off("click").on("click", function() {
-        remove_article(frm, this.dataset.row);
-    });
     wrapper.find(".deb-validate-article").off("click").on("click", function() {
-        set_article_validation(frm, this.dataset.row, "Validé client");
+        prompt_ok_client_article(frm, this.dataset.row);
     });
     wrapper.find(".deb-refuse-article").off("click").on("click", function() {
         set_article_validation(frm, this.dataset.row, "Refusé client");
-    });
-}
-
-function prompt_add_article(frm) {
-    if (frm.is_new()) {
-        frappe.msgprint(__("Enregistrez le dossier avant d'ajouter des articles."));
-        return;
-    }
-    if (frm.doc.status !== "Nouveau") {
-        frappe.msgprint(__("Les articles ne peuvent être ajoutés qu'au statut Nouveau."));
-        return;
-    }
-    frappe.prompt(
-        [
-            {
-                fieldname: "article",
-                fieldtype: "Link",
-                label: __("Article"),
-                options: "Item",
-                reqd: 1,
-                get_query: function() {
-                    const filters = {
-                        custom_essai_blanc: 1,
-                        custom_sous_article: 0,
-                        custom_article_parent: ["is", "not set"],
-                    };
-                    if (frm.doc.client) {
-                        filters.custom_client = frm.doc.client;
-                    }
-                    return { filters };
-                },
-            },
-            {
-                fieldname: "quantite",
-                fieldtype: "Int",
-                label: __("Quantité"),
-                reqd: 1,
-            },
-            {
-                fieldname: "date_livraison",
-                fieldtype: "Date",
-                label: __("Date de livraison"),
-                default: frm.doc.date_livraison,
-                reqd: 1,
-            },
-        ],
-        function(values) {
-            frappe.call({
-                method: "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.add_article",
-                args: {
-                    docname: frm.doc.name,
-                    article: values.article,
-                    quantite: values.quantite,
-                    date_livraison: values.date_livraison,
-                },
-                callback: function() {
-                    frm.reload_doc();
-                },
-            });
-        },
-        __("Ajouter un article"),
-        __("Ajouter")
-    );
-}
-
-function remove_article(frm, row_name) {
-    frappe.confirm(__("Supprimer cet article du dossier ?"), function() {
-        frappe.call({
-            method: "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.remove_article",
-            args: { docname: frm.doc.name, row_name: row_name },
-            callback: function() {
-                frm.reload_doc();
-            },
-        });
     });
 }
 
@@ -375,6 +449,60 @@ function generate_etudes(frm) {
             });
         }
     );
+}
+
+function prompt_ok_client_article(frm, row_name) {
+    const rows = frm.doc.articles || [];
+    const row = rows.find((r) => r.name === row_name);
+    if (!row || !row.article) {
+        frappe.msgprint(__("Article introuvable pour cette ligne."));
+        return;
+    }
+    frappe.call({
+        method: "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.get_item_support_grammage_for_prompt",
+        args: { item_code: row.article },
+        callback: function(res) {
+            const d = res.message || {};
+            frappe.prompt(
+                [
+                    {
+                        fieldname: "custom_support",
+                        fieldtype: "Select",
+                        label: __("Papier"),
+                        options: d.support_options || "",
+                        default: d.custom_support || "",
+                        reqd: 1,
+                    },
+                    {
+                        fieldname: "custom_grammage",
+                        fieldtype: "Select",
+                        label: __("Grammage"),
+                        options: d.grammage_options || "",
+                        default: d.custom_grammage || "",
+                        reqd: 1,
+                    },
+                ],
+                function(values) {
+                    frappe.call({
+                        method:
+                            "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.set_article_validation",
+                        args: {
+                            docname: frm.doc.name,
+                            row_name: row_name,
+                            validation_status: "Validé client",
+                            custom_support: values.custom_support,
+                            custom_grammage: values.custom_grammage,
+                        },
+                        callback: function() {
+                            frm.reload_doc();
+                        },
+                    });
+                },
+                __("Validé client"),
+                __("Confirmer")
+            );
+        },
+    });
 }
 
 function set_article_validation(frm, row_name, validation_status) {
@@ -493,17 +621,14 @@ function load_linked_documents(frm) {
 }
 
 frappe.ui.form.on("Dossier Essai Blanc", {
+    articles_add(frm, cdt, cdn) {
+        if (frm.doc.date_livraison) {
+            frappe.model.set_value(cdt, cdn, "date_livraison", frm.doc.date_livraison);
+        }
+    },
     refresh(frm) {
-        frm.set_query("article", "articles", function() {
-            const filters = {
-                custom_essai_blanc: 1,
-                custom_sous_article: 0,
-                custom_article_parent: ["is", "not set"],
-            };
-            if (frm.doc.client) {
-                filters.custom_client = frm.doc.client;
-            }
-            return { filters };
+        frm.set_query("article", "articles", function(doc, cdt, cdn) {
+            return { filters: deb_article_link_filters(frm, cdn) };
         });
 
         frm.clear_custom_buttons();
@@ -517,6 +642,16 @@ frappe.ui.form.on("Dossier Essai Blanc", {
                             "Ce dossier n'est plus au statut « Nouveau » et ne peut pas être confirmé ainsi."
                         ),
                         indicator: "red",
+                    });
+                    return;
+                }
+                if (frm.is_dirty()) {
+                    frappe.msgprint({
+                        title: __("Enregistrement requis"),
+                        message: __(
+                            "Enregistrez le dossier pour prendre en compte les articles du tableau avant de confirmer."
+                        ),
+                        indicator: "orange",
                     });
                     return;
                 }
@@ -610,6 +745,7 @@ frappe.ui.form.on("Dossier Essai Blanc", {
         }
 
         render_articles_html(frm);
+        setup_deb_articles_grid_tools(frm);
         load_linked_documents(frm);
 
         if (
@@ -640,23 +776,31 @@ frappe.ui.form.on("Dossier Essai Blanc", {
             "Production à lancer": __("En prod."),
             "En production": __("Prêt livr."),
         };
+        const fluxNextStatusLabels = {
+            Commandé: __("Production à lancer"),
+            "Production à lancer": __("En production"),
+            "En production": __("Prêt pour livraison"),
+        };
         if (fluxLabels[frm.doc.status] && !frm.is_new()) {
             frm.add_custom_button(fluxLabels[frm.doc.status], function() {
-                frappe.call({
-                    method:
-                        "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.advance_dossier_essai_blanc_step",
-                    args: { docname: frm.doc.name },
-                    freeze: true,
-                    freeze_message: __("Mise à jour du dossier..."),
-                    callback: function(r) {
-                        if (r.message && r.message.status) {
-                            frappe.show_alert({
-                                message: __("Statut du dossier : {0}", [r.message.status]),
-                                indicator: "green",
-                            });
-                        }
-                        frm.reload_doc();
-                    },
+                const nextLabel = fluxNextStatusLabels[frm.doc.status];
+                frappe.confirm(__("Confirmer le passage du dossier au statut « {0} » ?", [nextLabel]), function() {
+                    frappe.call({
+                        method:
+                            "aurescrm.aures_crm.doctype.dossier_essai_blanc.dossier_essai_blanc.advance_dossier_essai_blanc_step",
+                        args: { docname: frm.doc.name },
+                        freeze: true,
+                        freeze_message: __("Mise à jour du dossier..."),
+                        callback: function(r) {
+                            if (r.message && r.message.status) {
+                                frappe.show_alert({
+                                    message: __("Statut du dossier : {0}", [r.message.status]),
+                                    indicator: "green",
+                                });
+                            }
+                            frm.reload_doc();
+                        },
+                    });
                 });
             })
                 .removeClass("btn-default")

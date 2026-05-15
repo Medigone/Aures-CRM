@@ -22,10 +22,22 @@
   "section_liens",
   "liens",
   "section_articles_html",
-  "html_articles",
-  "section_articles_storage",
+  "html_article_add",
   "articles",
-  "amended_from"
+  "html_articles",
+  "amended_from",
+  "tra\u00e7abilit\u00e9_tab",
+  "section_trace_post_commande",
+  "prod_a_lancer_par",
+  "prod_a_lancer_le",
+  "column_break_trace_prod_a_lancer",
+  "en_production_par",
+  "en_production_le",
+  "section_break_wxjo",
+  "column_break_trace_en_production",
+  "pret_livraison_par",
+  "pret_livraison_le",
+  "column_break_trace_pret_livraison"
  ],
  "fields": [
   {
@@ -37,6 +49,69 @@
    "in_standard_filter": 1,
    "label": "Statut",
    "options": "Nouveau\nConfirm\u00e9e\nEn \u00e9tude\n\u00c9tude partiellement finalis\u00e9e\n\u00c9tude finalis\u00e9e\nDevis \u00e9tabli\nCommand\u00e9\nProduction \u00e0 lancer\nEn production\nPr\u00eat pour livraison\nPartiellement valid\u00e9 client\nValid\u00e9 client\nCl\u00f4tur\u00e9\nAnnul\u00e9"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval: ['Command\u00e9', 'Production \u00e0 lancer', 'En production', 'Pr\u00eat pour livraison', 'Partiellement valid\u00e9 client', 'Valid\u00e9 client', 'Cl\u00f4tur\u00e9'].includes(doc.status)",
+   "fieldname": "section_trace_post_commande",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: ['Command\u00e9', 'Production \u00e0 lancer', 'En production', 'Pr\u00eat pour livraison', 'Partiellement valid\u00e9 client', 'Valid\u00e9 client', 'Cl\u00f4tur\u00e9'].includes(doc.status)",
+   "fieldname": "prod_a_lancer_par",
+   "fieldtype": "Link",
+   "label": "Passage en production \u00e0 lancer par",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_trace_prod_a_lancer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: ['Command\u00e9', 'Production \u00e0 lancer', 'En production', 'Pr\u00eat pour livraison', 'Partiellement valid\u00e9 client', 'Valid\u00e9 client', 'Cl\u00f4tur\u00e9'].includes(doc.status)",
+   "fieldname": "prod_a_lancer_le",
+   "fieldtype": "Datetime",
+   "label": "Passage en production \u00e0 lancer le",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: ['Command\u00e9', 'Production \u00e0 lancer', 'En production', 'Pr\u00eat pour livraison', 'Partiellement valid\u00e9 client', 'Valid\u00e9 client', 'Cl\u00f4tur\u00e9'].includes(doc.status)",
+   "fieldname": "en_production_par",
+   "fieldtype": "Link",
+   "label": "Passage en production par",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_trace_en_production",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: ['Command\u00e9', 'Production \u00e0 lancer', 'En production', 'Pr\u00eat pour livraison', 'Partiellement valid\u00e9 client', 'Valid\u00e9 client', 'Cl\u00f4tur\u00e9'].includes(doc.status)",
+   "fieldname": "en_production_le",
+   "fieldtype": "Datetime",
+   "label": "Passage en production le",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: ['Command\u00e9', 'Production \u00e0 lancer', 'En production', 'Pr\u00eat pour livraison', 'Partiellement valid\u00e9 client', 'Valid\u00e9 client', 'Cl\u00f4tur\u00e9'].includes(doc.status)",
+   "fieldname": "pret_livraison_par",
+   "fieldtype": "Link",
+   "label": "Passage pr\u00eat pour livraison par",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_trace_pret_livraison",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: ['Command\u00e9', 'Production \u00e0 lancer', 'En production', 'Pr\u00eat pour livraison', 'Partiellement valid\u00e9 client', 'Valid\u00e9 client', 'Cl\u00f4tur\u00e9'].includes(doc.status)",
+   "fieldname": "pret_livraison_le",
+   "fieldtype": "Datetime",
+   "label": "Passage pr\u00eat pour livraison le",
+   "read_only": 1
   },
   {
    "fieldname": "section_dates",
@@ -77,8 +152,6 @@
    "fetch_if_empty": 1,
    "fieldname": "niveau_urgence",
    "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Niveau d'urgence",
    "options": "U0\nU1\nU2\nU3",
    "read_only": 1
@@ -147,25 +220,28 @@
   },
   {
    "fieldname": "section_articles_html",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "html_articles",
-   "fieldtype": "HTML",
-   "label": "Articles"
-  },
-  {
-   "fieldname": "section_articles_storage",
    "fieldtype": "Section Break",
-   "hidden": 1
+   "label": "Articles essai blanc"
   },
   {
+   "depends_on": "eval: doc.status == 'Nouveau'",
+   "fieldname": "html_article_add",
+   "fieldtype": "HTML",
+   "label": " "
+  },
+  {
+   "depends_on": "eval: doc.status == 'Nouveau'",
    "fieldname": "articles",
    "fieldtype": "Table",
-   "hidden": 1,
-   "label": "Articles",
+   "label": "Lignes articles",
    "options": "Articles Dossier Essai Blanc",
    "read_only_depends_on": "eval: !['Nouveau'].includes(doc.status)"
+  },
+  {
+   "depends_on": "eval: doc.status != 'Nouveau'",
+   "fieldname": "html_articles",
+   "fieldtype": "HTML",
+   "label": "Articles (synth\u00e8se)"
   },
   {
    "fieldname": "amended_from",
@@ -176,12 +252,21 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "tra\u00e7abilit\u00e9_tab",
+   "fieldtype": "Tab Break",
+   "label": "Tra\u00e7abilit\u00e9"
+  },
+  {
+   "fieldname": "section_break_wxjo",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-14 14:02:13.874084",
+ "modified": "2026-05-15 22:50:17.403653",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Dossier Essai Blanc",

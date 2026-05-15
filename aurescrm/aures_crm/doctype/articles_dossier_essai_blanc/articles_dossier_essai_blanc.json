@@ -11,6 +11,7 @@
   "quantite",
   "date_livraison",
   "procede_article",
+  "avec_code_pharma",
   "essai_blanc",
   "column_break_etude",
   "etude_doctype",
@@ -61,7 +62,14 @@
    "read_only": 1
   },
   {
-   "default": "1",
+   "default": "0",
+   "fieldname": "avec_code_pharma",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Code pharma (impression essai)"
+  },
+  {
+   "depends_on": "eval:parent.status!='Nouveau'",
    "fieldname": "essai_blanc",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -69,10 +77,12 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:parent.status!='Nouveau'",
    "fieldname": "column_break_etude",
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:parent.status!='Nouveau'",
    "fieldname": "etude_doctype",
    "fieldtype": "Select",
    "label": "Type étude",
@@ -80,6 +90,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:parent.status!='Nouveau'",
    "fieldname": "etude_name",
    "fieldtype": "Dynamic Link",
    "label": "Étude",
@@ -87,6 +98,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:parent.status!='Nouveau'",
    "default": "En attente",
    "fieldname": "statut_validation_client",
    "fieldtype": "Select",
@@ -95,12 +107,14 @@
    "options": "En attente\nValidé client\nRefusé client"
   },
   {
+   "depends_on": "eval:parent.status!='Nouveau'",
    "fieldname": "date_validation_client",
    "fieldtype": "Datetime",
    "label": "Date validation client",
    "read_only": 1
   },
   {
+   "depends_on": "eval:parent.status!='Nouveau'",
    "fieldname": "commentaire_validation",
    "fieldtype": "Small Text",
    "label": "Commentaire validation"
