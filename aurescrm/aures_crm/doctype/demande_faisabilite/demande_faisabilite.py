@@ -609,12 +609,14 @@ def get_articles_for_quotation(docname):
 def _etude_ligne_simple_realisable(docname, article, quantite):
     """True si une étude Offset ou Flexo « simple » (sans article_parent) est Réalisable pour cette quantité."""
     q = cint(quantite)
+    # Parent vide : Link souvent NULL en base ; devis : ignorer études annulées (docstatus 2).
     filt = {
         "demande_faisabilite": docname,
         "status": "Réalisable",
         "article": article,
-        "article_parent": "",
+        "article_parent": ["is", "not set"],
         "quantite": q,
+        "docstatus": ["!=", 2],
     }
     if frappe.db.exists("Etude Faisabilite", filt):
         return True
@@ -643,6 +645,7 @@ def _etude_ligne_composite_realisable(docname, parent_article, parent_qty):
             "article": sa.name,
             "article_parent": parent_article,
             "quantite": target_qty,
+            "docstatus": ["!=", 2],
         }
         if not frappe.db.exists("Etude Faisabilite", filt) and not frappe.db.exists(
             "Etude Faisabilite Flexo", filt
