@@ -773,20 +773,25 @@ def get_sales_documents_for_demande(demande_name):
 def get_linked_documents_for_demande(demande_name):
     """
     Récupère les Etudes Faisabilite (Offset et Flexo), Quotations et Sales Orders liés à une Demande Faisabilite.
+
+    Études : chaque type est trié par nom de document asc (pour l'alignement général avec
+    l'ordre de génération / la table articles ; exceptions possibles pour les composés).
     """
     # Récupérer les études Offset
     etudes_offset = frappe.get_list(
         "Etude Faisabilite",
         filters={"demande_faisabilite": demande_name},
         fields=["name", "status", "item_name", "article"],
-        ignore_permissions=True
+        order_by="name asc",
+        ignore_permissions=True,
     )
     # Récupérer les études Flexo
     etudes_flexo = frappe.get_list(
         "Etude Faisabilite Flexo",
         filters={"demande_faisabilite": demande_name},
         fields=["name", "status", "item_name", "article"],
-        ignore_permissions=True
+        order_by="name asc",
+        ignore_permissions=True,
     )
     # Ajouter un champ pour différencier le type (pour l'affichage JS)
     for e in etudes_offset:
