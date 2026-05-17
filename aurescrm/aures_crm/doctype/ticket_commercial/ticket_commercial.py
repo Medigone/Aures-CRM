@@ -31,7 +31,7 @@ STATUT_TICKET_BLOCAGE_CREANCE = "Blocage Créance"
 CHECKLIST_TERMINE_FIELDS = {
     "Bon de commande": ("checklist_bc_demande_faisabilite", "checklist_bc_devis"),
     "Demande de devis": ("checklist_dd_articles",),
-    "Essai Blanc": ("checklist_eb_articles", "checklist_eb_fiche_technique"),
+    "Essai Blanc": ("checklist_eb_articles", "checklist_eb_dossier_essai_blanc"),
     "Réclamation": ("checklist_rec_photo", "checklist_rec_quantites"),
 }
 

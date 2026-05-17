@@ -43,7 +43,7 @@
   "checklist_dd_articles",
   "section_cl_eb",
   "checklist_eb_articles",
-  "checklist_eb_fiche_technique",
+  "checklist_eb_dossier_essai_blanc",
   "section_cl_rec",
   "checklist_rec_photo",
   "checklist_rec_quantites",
@@ -506,14 +506,6 @@
    "permlevel": 1
   },
   {
-   "default": "0",
-   "depends_on": "eval:doc.request_type==\"Essai Blanc\"",
-   "fieldname": "checklist_eb_fiche_technique",
-   "fieldtype": "Check",
-   "label": "Fiche technique (pi\u00e8ce jointe)",
-   "permlevel": 1
-  },
-  {
    "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
    "fieldname": "section_cl_rec",
    "fieldtype": "Section Break",
@@ -540,12 +532,20 @@
    "fieldname": "suivi_cr\u00e9ance_tab",
    "fieldtype": "Tab Break",
    "label": "Suivi cr\u00e9ance"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.request_type==\"Essai Blanc\"",
+   "fieldname": "checklist_eb_dossier_essai_blanc",
+   "fieldtype": "Check",
+   "label": "Dossier Essai Blanc",
+   "permlevel": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-11 11:31:02.633376",
+ "modified": "2026-05-17 09:36:15.895419",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
