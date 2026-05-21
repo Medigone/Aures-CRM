@@ -1742,7 +1742,7 @@
    "creation": "2025-05-17 21:39:22.488676",
    "default": null,
    "depends_on": null,
-   "description": "Deux cotes (ex. 56\u00d7280, 56,3\u00d7280) ou trois (ex. 80\u00d735\u00d7118). S\u00e9parateur entre cotes : x ou \u00d7. D\u00e9cimales avec virgule ou point. Sans unit\u00e9 mm.",
+   "description": "Une cote (ex. 75 ou 75 mm), deux (56\u00d7280, 56,3\u00d7280) ou trois (80\u00d735\u00d7118). S\u00e9parateur entre cotes : x ou \u00d7. D\u00e9cimales avec virgule ou point. Stockage sans mm.",
    "docstatus": 0,
    "dt": "Item",
    "fetch_from": null,

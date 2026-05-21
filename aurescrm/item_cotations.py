@@ -1,7 +1,7 @@
 # Copyright (c) 2025, Medigo and contributors
 # For license information, please see license.txt
 
-"""Cotations article (Item.custom_cotations_article) : 2 ou 3 cotes, séparateur x ou ×, décimales . ou ,, sans mm."""
+"""Cotations article (Item.custom_cotations_article) : 1, 2 ou 3 cotes, séparateur x ou ×, décimales . ou ,, sans mm."""
 
 import re
 
@@ -11,7 +11,18 @@ from frappe.utils import cint
 
 # Segments : entiers ou décimales (56, 56.3, 56,3). Séparateur entre cotes : x (après normalisation du ×).
 _NUM = r"\d+(?:[.,]\d+)?"
+_COTATIONS_ONE = re.compile(rf"^({_NUM})$")
 _COTATIONS_FULL = re.compile(rf"^({_NUM})x({_NUM})x({_NUM})$|^({_NUM})x({_NUM})$")
+
+def _cotations_format_error():
+	return _(
+		"Les cotations article doivent comporter 1, 2 ou 3 cotes (ex. « 75 », « 75 mm », « 56x280 », « 56,3×280 », « 80x35x118 »). "
+		"Séparateur : x ou ×. Décimales avec . ou ,. Sans mm."
+	)
+
+
+def _matches_cotations_format(s):
+	return bool(_COTATIONS_ONE.match(s) or _COTATIONS_FULL.match(s))
 
 
 def _canonicalize_cotations_segments(s):
@@ -31,21 +42,26 @@ def normalize_cotations_article(value):
 	s = re.sub(r"\s*mm\s*$", "", s, flags=re.I).strip()
 	s = re.sub(r"\s+", "", s)
 	s = s.replace("×", "x").replace("X", "x")
-	if _COTATIONS_FULL.match(s):
+	if _matches_cotations_format(s):
 		return _canonicalize_cotations_segments(s)
 	return None
 
 
 def build_cotations_from_dimensions(largeur, hauteur, longueur):
-	"""2 segments si longueur absente ou 0 ; sinon 3 segments. None si largeur ou hauteur invalides."""
+	"""1 segment si une seule dimension ; 2 si largeur+hauteur ; 3 si longueur aussi. None si invalide."""
 	lw = cint(largeur) if largeur is not None else 0
 	h = cint(hauteur) if hauteur is not None else 0
 	lo = cint(longueur) if longueur is not None else 0
-	if lw <= 0 or h <= 0:
+	positives = sum(1 for v in (lw, h, lo) if v > 0)
+	if positives == 0:
 		return None
-	if lo <= 0:
-		return f"{lw}x{h}"
-	return f"{lw}x{h}x{lo}"
+	if positives == 1:
+		return str(lw if lw > 0 else h if h > 0 else lo)
+	if lw > 0 and h > 0:
+		if lo <= 0:
+			return f"{lw}x{h}"
+		return f"{lw}x{h}x{lo}"
+	return None
 
 
 def validate_cotations_article_format(value):
@@ -55,25 +71,15 @@ def validate_cotations_article_format(value):
 	s = str(value).strip()
 	if not s:
 		return
-	if not _COTATIONS_FULL.match(s):
-		frappe.throw(
-			_(
-				"Les cotations article doivent comporter 2 ou 3 cotes (ex. « 56x280 », « 56,3×280 », « 80x35x118 »). "
-				"Séparateur : x ou ×. Décimales avec . ou ,. Sans mm."
-			)
-		)
+	if not _matches_cotations_format(s):
+		frappe.throw(_cotations_format_error())
 
 
 def _apply_non_empty_user_cotations(doc, raw):
 	"""Applique une saisie utilisateur non vide : normalise et assigne à doc."""
 	norm = normalize_cotations_article(raw)
 	if norm is None:
-		frappe.throw(
-			_(
-				"Les cotations article doivent comporter 2 ou 3 cotes (ex. « 56x280 », « 56,3×280 », « 80x35x118 »). "
-				"Séparateur : x ou ×. Décimales avec . ou ,. Sans mm."
-			)
-		)
+		frappe.throw(_cotations_format_error())
 	doc.custom_cotations_article = norm
 	validate_cotations_article_format(doc.custom_cotations_article)
 
