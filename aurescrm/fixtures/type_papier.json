@@ -1,0 +1,110 @@
+[
+ {
+  "doctype": "Type Papier",
+  "name": "Autocollant",
+  "libelle": "Autocollant",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "Bristol",
+  "libelle": "Bristol",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "BBTB",
+  "libelle": "BBTB",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "BB",
+  "libelle": "BB",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "BBTB FSC",
+  "libelle": "BBTB FSC",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "B Gris",
+  "libelle": "B Gris",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "B Kraft",
+  "libelle": "B Kraft",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "Papier Offset",
+  "libelle": "Papier Offset",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "REH",
+  "libelle": "REH",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "REH Martelé",
+  "libelle": "REH Martelé",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "REH Martelé Métallisé",
+  "libelle": "REH Martelé Métallisé",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "Thermosoudable",
+  "libelle": "Thermosoudable",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "NCR",
+  "libelle": "NCR",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "Listing",
+  "libelle": "Listing",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "lamine",
+  "libelle": "lamine",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "Couché",
+  "libelle": "Couché",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "Goblet avec PE",
+  "libelle": "Goblet avec PE",
+  "disabled": 0
+ },
+ {
+  "doctype": "Type Papier",
+  "name": "Autres",
+  "libelle": "Autres",
+  "disabled": 0
+ }
+]

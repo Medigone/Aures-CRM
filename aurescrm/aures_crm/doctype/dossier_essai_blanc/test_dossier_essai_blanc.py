@@ -5,6 +5,12 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from aurescrm.aures_crm.doctype.dossier_essai_blanc import dossier_essai_blanc as deb_module
+from aurescrm.item_paper_options import (
+	ensure_grammage_papier,
+	ensure_type_papier,
+	get_grammage_papier_options,
+	get_type_papier_options,
+)
 
 
 class TestDossierEssaiBlanc(FrappeTestCase):
@@ -17,18 +23,21 @@ class TestDossierEssaiBlanc(FrappeTestCase):
 		self.assertIn("custom_grammage", out)
 		self.assertIn("support_options", out)
 		self.assertIn("grammage_options", out)
-		self.assertIsInstance(out["support_options"], str)
-		self.assertIsInstance(out["grammage_options"], str)
+		self.assertIsInstance(out["support_options"], list)
+		self.assertIsInstance(out["grammage_options"], list)
 
 	def test_validate_item_support_grammage_values_rejects_blank(self):
 		with self.assertRaises(frappe.ValidationError):
 			deb_module._validate_item_support_grammage_values("", "")
 
 	def test_validate_item_support_grammage_values_accepts_known_options(self):
-		support_opts = deb_module._parse_item_select_allowed_values("custom_support")
-		gram_opts = deb_module._parse_item_select_allowed_values("custom_grammage")
+		support_opts = get_type_papier_options()
+		gram_opts = get_grammage_papier_options()
 		if not support_opts or not gram_opts:
-			return
+			support = ensure_type_papier("Test Support DEB")
+			gram = ensure_grammage_papier(999)
+			support_opts = [support]
+			gram_opts = [gram]
 		s, g = deb_module._validate_item_support_grammage_values(support_opts[0], gram_opts[0])
 		self.assertEqual(s, support_opts[0])
 		self.assertEqual(g, gram_opts[0])

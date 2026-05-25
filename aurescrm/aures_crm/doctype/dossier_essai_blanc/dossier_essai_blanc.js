@@ -467,17 +467,17 @@ function prompt_ok_client_article(frm, row_name) {
                 [
                     {
                         fieldname: "custom_support",
-                        fieldtype: "Select",
+                        fieldtype: "Link",
                         label: __("Papier"),
-                        options: d.support_options || "",
+                        options: "Type Papier",
                         default: d.custom_support || "",
                         reqd: 1,
                     },
                     {
                         fieldname: "custom_grammage",
-                        fieldtype: "Select",
+                        fieldtype: "Link",
                         label: __("Grammage"),
-                        options: d.grammage_options || "",
+                        options: "Grammage Papier",
                         default: d.custom_grammage || "",
                         reqd: 1,
                     },

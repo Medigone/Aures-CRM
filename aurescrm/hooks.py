@@ -388,7 +388,8 @@ scheduler_events = {
 extend_bootinfo = ["aurescrm.aures_crm.boot.boot_session"]
 
 fixtures = [
-
+    "Type Papier",
+    "Grammage Papier",
     #     {
     #     "doctype": "Role",
     #     "filters": [["is_custom", "=", 1]]  # Export uniquement les rôles custom

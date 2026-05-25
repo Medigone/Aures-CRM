@@ -619,41 +619,24 @@ def advance_dossier_essai_blanc_step(docname):
 _ITEM_SUPPORT_FIELDS = ("custom_support", "custom_grammage")
 
 
-def _item_select_options_lines(fieldname):
-	field = frappe.get_meta("Item").get_field(fieldname)
-	if not field or field.fieldtype != "Select":
-		frappe.throw(_("Le champ {0} n'est pas un Select sur Article.").format(fieldname))
-	return field.options or ""
-
-
-def _parse_item_select_allowed_values(fieldname):
-	allowed = []
-	for raw in _item_select_options_lines(fieldname).split("\n"):
-		opt = (raw or "").strip()
-		if opt:
-			allowed.append(opt)
-	return allowed
-
-
 def _validate_item_support_grammage_values(custom_support, custom_grammage):
-	support_allowed = _parse_item_select_allowed_values("custom_support")
-	grammage_allowed = _parse_item_select_allowed_values("custom_grammage")
-	support_vals = set(support_allowed)
-	grammage_vals = set(grammage_allowed)
+	from aurescrm.item_paper_options import is_valid_grammage_papier, is_valid_type_papier
 
 	s = (custom_support or "").strip()
 	g = (custom_grammage or "").strip()
 	if not s or not g:
 		frappe.throw(_("Le support et le grammage validés par le client sont obligatoires."))
-	if s not in support_vals:
+	if not is_valid_type_papier(s):
 		frappe.throw(_("Valeur de support invalide."))
-	if g not in grammage_vals:
+	if not is_valid_grammage_papier(g):
 		frappe.throw(_("Valeur de grammage invalide."))
 	return s, g
 
 
 @frappe.whitelist()
 def get_item_support_grammage_for_prompt(item_code):
+	from aurescrm.item_paper_options import get_grammage_papier_options, get_type_papier_options
+
 	if not item_code:
 		frappe.throw(_("Article manquant."))
 	if not frappe.db.exists("Item", item_code):
@@ -662,8 +645,8 @@ def get_item_support_grammage_for_prompt(item_code):
 	return {
 		"custom_support": row.get("custom_support") or "",
 		"custom_grammage": row.get("custom_grammage") or "",
-		"support_options": _item_select_options_lines("custom_support"),
-		"grammage_options": _item_select_options_lines("custom_grammage"),
+		"support_options": get_type_papier_options(),
+		"grammage_options": get_grammage_papier_options(),
 	}
 
 
