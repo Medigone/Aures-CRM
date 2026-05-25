@@ -4,7 +4,133 @@
 import frappe
 from frappe.model.document import Document
 from frappe import _ # Ajout de l'import
-from frappe.utils import now_datetime, add_days, getdate, cint, flt
+from frappe.utils import now_datetime, add_days, getdate, cint, flt, cstr
+
+
+FAISABILITE_PROCEDES = frozenset({"Offset", "Flexo"})
+
+
+@frappe.whitelist()
+def get_expected_procede_from_ticket(ticket_name):
+	"""Procédé attendu (Offset/Flexo) depuis le site du ticket commercial."""
+	if not ticket_name:
+		return None
+	site = frappe.db.get_value("Ticket Commercial", ticket_name, "site")
+	if not site:
+		return None
+	return frappe.db.get_value("Site Production", site, "procede")
+
+
+def _get_item_procede(item_code):
+	return cstr(frappe.db.get_value("Item", item_code, "custom_procédé")).strip()
+
+
+def _get_row_procedes(row):
+	"""Ensemble des procédés d'une ligne (article simple ou sous-articles d'un composé)."""
+	if not row.article:
+		return set()
+
+	is_compose = cint(frappe.db.get_value("Item", row.article, "custom_article_compose"))
+	if is_compose:
+		sous_articles = frappe.get_all(
+			"Item",
+			filters={"custom_article_parent": row.article},
+			fields=["name", "custom_procédé"],
+		)
+		procedes = set()
+		for sa in sous_articles:
+			procede = cstr(sa.get("custom_procédé") or "").strip()
+			if procede:
+				procedes.add(procede)
+		return procedes
+
+	procede = cstr(row.procede_article or _get_item_procede(row.article)).strip()
+	return {procede} if procede else set()
+
+
+def _throw_procede_mismatch(row, article_procede, expected_procede, ticket_name=None, site_name=None):
+	if expected_procede == "Offset":
+		frappe.throw(
+			_(
+				"L'article {0} est en {1} ; seuls les articles Offset sont autorisés "
+				"pour ce ticket ({2}, site {3})."
+			).format(row.article, article_procede, ticket_name or "", site_name or "")
+		)
+	frappe.throw(
+		_(
+			"L'article {0} est en {1} ; seuls les articles Flexo sont autorisés "
+			"pour ce ticket ({2}, site {3})."
+		).format(row.article, article_procede, ticket_name or "", site_name or "")
+	)
+
+
+def _validate_row_procede(row, expected_procede, ticket_name=None, site_name=None):
+	procedes = _get_row_procedes(row)
+	if not procedes:
+		frappe.throw(
+			_("L'article {0} n'a pas de procédé renseigné (custom_procédé).").format(row.article)
+		)
+
+	for procede in procedes:
+		if procede not in FAISABILITE_PROCEDES:
+			frappe.throw(
+				_("Procédé invalide pour l'article {0} : {1}").format(row.article, procede)
+			)
+		if procede != expected_procede:
+			_throw_procede_mismatch(row, procede, expected_procede, ticket_name, site_name)
+
+
+def _validate_articles_procede(demande, expected_procede, ticket_name=None, site_name=None):
+	for row in demande.get("liste_articles"):
+		if row.article:
+			_validate_row_procede(row, expected_procede, ticket_name, site_name)
+
+
+def _validate_articles_homogeneous(demande):
+	all_procedes = set()
+	for row in demande.get("liste_articles"):
+		if not row.article:
+			continue
+		row_procedes = _get_row_procedes(row)
+		if not row_procedes:
+			frappe.throw(
+				_("L'article {0} n'a pas de procédé renseigné (custom_procédé).").format(row.article)
+			)
+		for procede in row_procedes:
+			if procede not in FAISABILITE_PROCEDES:
+				frappe.throw(
+					_("Procédé invalide pour l'article {0} : {1}").format(row.article, procede)
+				)
+		all_procedes.update(row_procedes)
+
+	if len(all_procedes) > 1:
+		frappe.throw(
+			_("Tous les articles d'une demande doivent être du même procédé (Flexo ou Offset).")
+		)
+
+
+def validate_procede_for_demande(demande):
+	"""Valide la cohérence procédé ticket/site ↔ articles."""
+	if not demande.get("liste_articles"):
+		return
+
+	if demande.ticket_commercial:
+		expected = get_expected_procede_from_ticket(demande.ticket_commercial)
+		site_name = frappe.db.get_value("Ticket Commercial", demande.ticket_commercial, "site")
+		if expected not in FAISABILITE_PROCEDES:
+			frappe.throw(
+				_("Le site du ticket {0} n'a pas un procédé Offset ou Flexo valide.").format(
+					demande.ticket_commercial
+				)
+			)
+		_validate_articles_procede(
+			demande,
+			expected,
+			ticket_name=demande.ticket_commercial,
+			site_name=site_name,
+		)
+	else:
+		_validate_articles_homogeneous(demande)
 
 
 class DemandeFaisabilite(Document):
@@ -84,6 +210,8 @@ class DemandeFaisabilite(Document):
 						existing_demandes[0].name
 					)
 				)
+
+		validate_procede_for_demande(self)
 
 	def set_ticket_bc_rapprochement_decision(self):
 		if not self.ticket_commercial:
@@ -276,6 +404,8 @@ def generate_etude_faisabilite(docname):
 
         if not demande.get("liste_articles"):
             frappe.throw("Aucun article n'a été ajouté à la demande.")
+
+        validate_procede_for_demande(demande)
 
         communs = [
             "demande_faisabilite", "article", "article_parent", "quantite",

@@ -237,7 +237,122 @@ function get_liste_articles_item_query(frm) {
     if (frm.doc.client) {
         filters.custom_client = frm.doc.client;
     }
+    if (frm._expected_procede) {
+        filters.custom_procédé = frm._expected_procede;
+    }
     return { filters };
+}
+
+function load_expected_procede(frm, callback) {
+    if (!frm.doc.ticket_commercial) {
+        frm._expected_procede = null;
+        update_procede_ui(frm);
+        if (callback) {
+            callback();
+        }
+        return;
+    }
+
+    frappe.call({
+        method:
+            "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.get_expected_procede_from_ticket",
+        args: { ticket_name: frm.doc.ticket_commercial },
+        callback: function(r) {
+            frm._expected_procede = r.message || null;
+            update_procede_ui(frm);
+            if (callback) {
+                callback();
+            }
+        },
+    });
+}
+
+function update_procede_ui(frm) {
+    const html_field = frm.get_field("html");
+    if (!html_field || !html_field.$wrapper) {
+        return;
+    }
+
+    const $wrapper = html_field.$wrapper;
+    let $info = $wrapper.find("#expected-procede-info");
+    if (!$info.length) {
+        $wrapper.prepend(
+            '<p id="expected-procede-info" class="text-muted small" style="margin-bottom:8px;"></p>'
+        );
+        $info = $wrapper.find("#expected-procede-info");
+    }
+
+    const $btn = $wrapper.find("#add-article-btn");
+    if (frm.doc.ticket_commercial) {
+        if (frm._expected_procede) {
+            $info.text(__("Procédé attendu : {0}", [frm._expected_procede]));
+            $btn.prop("disabled", false);
+        } else {
+            $info.text(
+                __("Impossible de déterminer le procédé attendu (ticket sans site valide).")
+            );
+            $btn.prop("disabled", true);
+        }
+    } else {
+        $info.text(
+            __(
+                "Sans ticket lié : tous les articles doivent être du même procédé (Flexo ou Offset)."
+            )
+        );
+        $btn.prop("disabled", false);
+    }
+}
+
+function validate_article_procede_for_demande(frm, item_procede, article_code) {
+    const procede = (item_procede || "").trim();
+    if (!procede) {
+        frappe.msgprint(
+            __("L'article {0} n'a pas de procédé renseigné (custom_procédé).", [article_code])
+        );
+        return false;
+    }
+
+    if (frm._expected_procede && procede !== frm._expected_procede) {
+        frappe.msgprint(
+            __(
+                "L'article {0} est en {1} ; seuls les articles {2} sont autorisés pour ce ticket.",
+                [article_code, procede, frm._expected_procede]
+            )
+        );
+        return false;
+    }
+
+    return true;
+}
+
+function validate_homogeneous_procede_on_client(frm) {
+    if (frm.doc.ticket_commercial || !frm.doc.liste_articles || !frm.doc.liste_articles.length) {
+        return true;
+    }
+
+    const procedes = new Set();
+    for (const row of frm.doc.liste_articles) {
+        if (!row.article) {
+            continue;
+        }
+        const procede = (row.procede_article || "").trim();
+        if (!procede) {
+            frappe.msgprint(
+                __("L'article {0} n'a pas de procédé renseigné (custom_procédé).", [row.article])
+            );
+            return false;
+        }
+        procedes.add(procede);
+    }
+
+    if (procedes.size > 1) {
+        frappe.msgprint(
+            __("Tous les articles d'une demande doivent être du même procédé (Flexo ou Offset).")
+        );
+        return false;
+    }
+
+    return true;
 }
 
 frappe.ui.form.on("Articles Demande Faisabilite", {
@@ -257,6 +372,8 @@ frappe.ui.form.on("Articles Demande Faisabilite", {
 
 frappe.ui.form.on('Demande Faisabilite', {
     refresh: function(frm) {
+        load_expected_procede(frm);
+
         // Filtrer les sous-articles dans la table enfant liste_articles
         frm.set_query("article", "liste_articles", function() {
             return get_liste_articles_item_query(frm);
@@ -332,7 +449,12 @@ frappe.ui.form.on('Demande Faisabilite', {
                         frappe.db.get_value(
                             "Item",
                             values.article,
-                            ["item_name", "custom_sous_article", "custom_article_parent"],
+                            [
+                                "item_name",
+                                "custom_sous_article",
+                                "custom_article_parent",
+                                "custom_procédé",
+                            ],
                             function(message) {
                                 if (
                                     cint(message && message.custom_sous_article) ||
@@ -341,6 +463,15 @@ frappe.ui.form.on('Demande Faisabilite', {
                                     frappe.msgprint(
                                         __("Sélectionnez l'article parent (article composé), pas un sous-article.")
                                     );
+                                    return;
+                                }
+                                if (
+                                    !validate_article_procede_for_demande(
+                                        frm,
+                                        message && message.custom_procédé,
+                                        values.article
+                                    )
+                                ) {
                                     return;
                                 }
                                 var row = frm.add_child('liste_articles');
@@ -361,6 +492,8 @@ frappe.ui.form.on('Demande Faisabilite', {
                 );
             });
         }
+
+        update_procede_ui(frm);
 
         // --- Bouton "Confirmer" ---
         // Vérifier que la demande est dans le statut initial "Brouillon" et que le document existe
@@ -624,6 +757,11 @@ frappe.ui.form.on('Demande Faisabilite', {
     client: function(frm) {
         setup_bouton_generer(frm);
     },
+
+    ticket_commercial: function(frm) {
+        load_expected_procede(frm);
+    },
+
     validate: function(frm) {
         const duplicate = find_duplicate_article_qty(frm.doc.liste_articles);
         if (duplicate) {
@@ -633,6 +771,30 @@ frappe.ui.form.on('Demande Faisabilite', {
                     duplicate.quantite
                 ])
             );
+            frappe.validated = false;
+            return;
+        }
+
+        if (frm._expected_procede && frm.doc.liste_articles) {
+            for (const row of frm.doc.liste_articles) {
+                if (!row.article) {
+                    continue;
+                }
+                const procede = (row.procede_article || "").trim();
+                if (procede && procede !== frm._expected_procede) {
+                    frappe.msgprint(
+                        __(
+                            "L'article {0} est en {1} ; seuls les articles {2} sont autorisés pour ce ticket.",
+                            [row.article, procede, frm._expected_procede]
+                        )
+                    );
+                    frappe.validated = false;
+                    return;
+                }
+            }
+        }
+
+        if (!validate_homogeneous_procede_on_client(frm)) {
             frappe.validated = false;
         }
     }
