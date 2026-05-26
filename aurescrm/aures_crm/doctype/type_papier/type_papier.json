@@ -14,7 +14,7 @@
    "fieldname": "libelle",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Libellé",
+   "label": "Libell\u00e9",
    "reqd": 1,
    "unique": 1
   },
@@ -23,12 +23,12 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Désactivé"
+   "label": "D\u00e9sactiv\u00e9"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-25 10:00:00",
+ "modified": "2026-05-26 10:01:05.917342",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Type Papier",
@@ -56,6 +56,22 @@
    "write": 1
   },
   {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Responsable \u00c9tude Faisabilit\u00e9",
+   "select": 1,
+   "write": 1
+  },
+  {
    "read": 1,
    "report": 1,
    "role": "Superviseur CRM",
@@ -63,12 +79,12 @@
   },
   {
    "read": 1,
-   "role": "Commercial Itinérant",
+   "role": "Commercial Itin\u00e9rant",
    "select": 1
   },
   {
    "read": 1,
-   "role": "Commercial Sédentaire",
+   "role": "Commercial S\u00e9dentaire",
    "select": 1
   }
  ],
