@@ -51,14 +51,14 @@ class Trace(Document):
 			)
 
 
-def _resolve_file_for_trace_fichier(src_trace_name, fichier_trace_url):
-	"""Retrouve le document File du tracé source (préférence: pièce jointe sur Trace)."""
+def _resolve_attached_file(doctype, docname, fieldname, file_url):
+	"""Retrouve le document File source (préférence: pièce jointe sur le document)."""
 	row = frappe.db.get_value(
 		"File",
 		{
-			"attached_to_doctype": "Trace",
-			"attached_to_name": src_trace_name,
-			"attached_to_field": "fichier_trace",
+			"attached_to_doctype": doctype,
+			"attached_to_name": docname,
+			"attached_to_field": fieldname,
 		},
 		["name"],
 		as_dict=True,
@@ -66,20 +66,20 @@ def _resolve_file_for_trace_fichier(src_trace_name, fichier_trace_url):
 	if row and row.get("name"):
 		return frappe.get_doc("File", row["name"])
 
-	if not fichier_trace_url:
+	if not file_url:
 		return None
 
-	name = frappe.db.get_value("File", {"file_url": fichier_trace_url}, "name")
+	name = frappe.db.get_value("File", {"file_url": file_url}, "name")
 	if name:
 		return frappe.get_doc("File", name)
 
 	# file_url peut varier légèrement (slash initial)
-	base = (fichier_trace_url or "").rstrip("/")
+	base = (file_url or "").rstrip("/")
 	if base.startswith("/"):
 		alt = base.lstrip("/")
 	else:
 		alt = "/" + base
-	for url in {fichier_trace_url, base, alt}:
+	for url in {file_url, base, alt}:
 		if not url:
 			continue
 		name = frappe.db.get_value("File", {"file_url": url}, "name")
@@ -89,24 +89,24 @@ def _resolve_file_for_trace_fichier(src_trace_name, fichier_trace_url):
 	return None
 
 
-def _copy_and_rename_trace_file(src_trace_name, fichier_trace_url, new_trace_name, article):
-	"""Copie le fichier liaison tracé vers un nouveau File, renommé {trace}-{item_name}.{ext}."""
-	src_file = _resolve_file_for_trace_fichier(src_trace_name, fichier_trace_url)
+def _copy_and_rename_attached_file(doctype, src_docname, fieldname, file_url, new_docname, article):
+	"""Copie le fichier attaché vers un nouveau File, renommé {new_docname}-{item_name}.{ext}."""
+	src_file = _resolve_attached_file(doctype, src_docname, fieldname, file_url)
 	if not src_file:
 		return None
 
 	try:
 		content = src_file.get_content()
 	except Exception:
-		frappe.log_error(title="duplicate_trace lecture fichier source")
+		frappe.log_error(title=f"duplicate {doctype} lecture fichier source")
 		return None
 
 	item_name = frappe.db.get_value("Item", article, "item_name") or article
 	safe_item = re.sub(r'[\\/:*?"<>|]', "_", str(item_name)).strip() or article
 	_, ext = os.path.splitext(src_file.file_name or "")
-	if not ext and fichier_trace_url:
-		_, ext = os.path.splitext(fichier_trace_url.split("/")[-1])
-	new_filename = f"{new_trace_name}-{safe_item}{ext}"
+	if not ext and file_url:
+		_, ext = os.path.splitext(file_url.split("/")[-1])
+	new_filename = f"{new_docname}-{safe_item}{ext}"
 
 	new_file = frappe.get_doc(
 		{
@@ -114,13 +114,20 @@ def _copy_and_rename_trace_file(src_trace_name, fichier_trace_url, new_trace_nam
 			"file_name": new_filename,
 			"is_private": src_file.is_private,
 			"content": content,
-			"attached_to_doctype": "Trace",
-			"attached_to_name": new_trace_name,
-			"attached_to_field": "fichier_trace",
+			"attached_to_doctype": doctype,
+			"attached_to_name": new_docname,
+			"attached_to_field": fieldname,
 		}
 	)
 	new_file.save()
 	return new_file.file_url
+
+
+def _copy_and_rename_trace_file(src_trace_name, fichier_trace_url, new_trace_name, article):
+	"""Copie le fichier liaison tracé vers un nouveau File, renommé {trace}-{item_name}.{ext}."""
+	return _copy_and_rename_attached_file(
+		"Trace", src_trace_name, "fichier_trace", fichier_trace_url, new_trace_name, article
+	)
 
 
 @frappe.whitelist()
@@ -143,7 +150,73 @@ def get_trace_for_article(article):
 		fichier_trace_name = os.path.basename(row["fichier_trace"].rstrip("/"))
 
 	row["fichier_trace_name"] = fichier_trace_name
+	row["impositions_count"] = frappe.db.count("Imposition", {"trace": row["name"]})
 	return row
+
+
+# Champs copiés d'une imposition source vers sa copie (defaut est recalculé par hook).
+IMPOSITION_COPY_FIELDS = (
+	"procede",
+	"format_imp",
+	"laize_pal",
+	"format_laize_palette",
+	"forme_decoupe",
+	"nbr_poses",
+	"taux_chutes",
+	"format_laize",
+	"format_developpement",
+)
+
+
+def _duplicate_impositions_for_trace(src_trace_name, new_trace_name, client, article):
+	"""Duplique toutes les impositions du tracé source vers le nouveau tracé/article.
+
+	Retourne (liste des impositions créées, nom de la copie de l'imposition idéale).
+	"""
+	src_impositions = frappe.get_all(
+		"Imposition",
+		filters={"trace": src_trace_name},
+		fields=["name"],
+		order_by="creation asc",
+	)
+
+	created = []
+	source_default_copy = None
+	for row in src_impositions:
+		src_imp = frappe.get_doc("Imposition", row.name)
+		new_imp = frappe.new_doc("Imposition")
+		new_imp.client = client
+		new_imp.article = article
+		new_imp.trace = new_trace_name
+		for fieldname in IMPOSITION_COPY_FIELDS:
+			new_imp.set(fieldname, src_imp.get(fieldname))
+		new_imp.insert()
+
+		file_copied = False
+		if src_imp.fichier_imp:
+			file_url = _copy_and_rename_attached_file(
+				"Imposition", src_imp.name, "fichier_imp", src_imp.fichier_imp, new_imp.name, article
+			)
+			if file_url:
+				new_imp.fichier_imp = file_url
+				new_imp.save()
+				file_copied = True
+
+		created.append({"name": new_imp.name, "source": src_imp.name, "file_copied": file_copied})
+		if src_imp.defaut:
+			source_default_copy = new_imp.name
+
+	ideale = None
+	if created:
+		# Le hook on_update recalcule le flag "Idéale" sur la nouvelle combinaison :
+		# on lui fait confiance en priorité pour rester cohérent avec le badge UI.
+		ideale = frappe.db.get_value(
+			"Imposition", {"trace": new_trace_name, "defaut": 1}, "name"
+		)
+		if not ideale:
+			ideale = source_default_copy or created[0]["name"]
+
+	return created, ideale
 
 
 @frappe.whitelist()
@@ -154,10 +227,13 @@ def duplicate_trace_from_reference(
 	article_reference,
 	dimensions=None,
 	points_colle=None,
+	duplicate_impositions=0,
 ):
 	"""
 	Duplique un tracé existant vers un nouvel article (même client).
 	`article` = article cible (étude en cours), `article_reference` = article source (tracé à copier).
+	Si `duplicate_impositions` est vrai, les impositions du tracé source sont
+	également dupliquées (nouveaux codes IMP-... générés automatiquement).
 	"""
 	if not article_reference:
 		frappe.throw(_("Veuillez sélectionner un article de référence."))
@@ -209,12 +285,21 @@ def duplicate_trace_from_reference(
 			new_trace.fichier_trace = file_url
 			new_trace.save()
 
+	impositions_created = []
+	imposition_ideale = None
+	if cint(duplicate_impositions):
+		impositions_created, imposition_ideale = _duplicate_impositions_for_trace(
+			src.name, new_trace.name, client, article
+		)
+
 	return {
 		"name": new_trace.name,
 		"fichier_trace": new_trace.fichier_trace,
 		"dimensions": new_trace.dimensions,
 		"points_colle": new_trace.points_colle,
 		"file_copied": bool(file_url),
+		"impositions": impositions_created,
+		"imposition_ideale": imposition_ideale,
 	}
 
 

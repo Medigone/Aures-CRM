@@ -1270,7 +1270,7 @@ function load_trace_imposition_links(frm) {
                 frappe.msgprint({ title: __('Prérequis manquants'), message: __('Veuillez remplir les champs Client et Article avant de dupliquer une Trace.'), indicator: 'orange' });
                 return;
             }
-            var dupState = { sourceTrace: null, sourceHadFile: false };
+            var dupState = { sourceTrace: null, sourceHadFile: false, sourceImpositionsCount: 0 };
 
             var d = new frappe.ui.Dialog({
                 title: __('Dupliquer un tracé existant'),
@@ -1281,6 +1281,8 @@ function load_trace_imposition_links(frm) {
                         options:
                             '<p class="text-muted small" style="margin-bottom:0;">' +
                             _ef_esc(__('Sélectionnez un article du même client qui possède déjà un tracé (ex. autre parfum).')) +
+                            ' ' +
+                            _ef_esc(__('Le tracé (et ses impositions si souhaité) sera dupliqué avec de nouveaux codes générés automatiquement.')) +
                             '</p>',
                     },
                     {
@@ -1301,6 +1303,7 @@ function load_trace_imposition_links(frm) {
                             var ref = d.get_value('article_reference');
                             dupState.sourceTrace = null;
                             dupState.sourceHadFile = false;
+                            dupState.sourceImpositionsCount = 0;
                             var wrap = d.fields_dict.source_summary && d.fields_dict.source_summary.$wrapper;
                             if (!wrap) {
                                 return;
@@ -1309,6 +1312,7 @@ function load_trace_imposition_links(frm) {
                                 wrap.html('');
                                 d.set_value('dimensions', '');
                                 d.set_value('points_colle', '');
+                                d.set_df_property('duplicate_impositions', 'hidden', 1);
                                 return;
                             }
                             frappe.call({
@@ -1323,17 +1327,22 @@ function load_trace_imposition_links(frm) {
                                         );
                                         d.set_value('dimensions', '');
                                         d.set_value('points_colle', '');
+                                        d.set_df_property('duplicate_impositions', 'hidden', 1);
                                         return;
                                     }
                                     var t = r0.message;
                                     dupState.sourceTrace = t.name;
                                     dupState.sourceHadFile = !!(t.fichier_trace);
+                                    dupState.sourceImpositionsCount = t.impositions_count || 0;
                                     d.set_value('dimensions', t.dimensions || '');
                                     d.set_value('points_colle', t.points_colle != null && t.points_colle !== '' ? t.points_colle : 0);
                                     var fn = t.fichier_trace_name || '';
                                     var fhtml = fn
                                         ? '<br><strong>' + _ef_esc(__('Fichier')) + ':</strong> ' + _ef_esc(fn)
                                         : '<br><span class="text-muted">' + _ef_esc(__('Aucun fichier sur le tracé source')) + '</span>';
+                                    var ihtml = dupState.sourceImpositionsCount
+                                        ? '<br><strong>' + _ef_esc(__('Impositions')) + ':</strong> ' + dupState.sourceImpositionsCount
+                                        : '<br><span class="text-muted">' + _ef_esc(__('Aucune imposition sur le tracé source')) + '</span>';
                                     wrap.html(
                                         '<div class="alert alert-info" style="margin-top:8px;margin-bottom:0;font-size:12px;line-height:1.45;">' +
                                             '<strong>' +
@@ -1341,8 +1350,10 @@ function load_trace_imposition_links(frm) {
                                             ':</strong> ' +
                                             _ef_esc(t.name) +
                                             fhtml +
+                                            ihtml +
                                             '</div>'
                                     );
+                                    d.set_df_property('duplicate_impositions', 'hidden', dupState.sourceImpositionsCount ? 0 : 1);
                                 },
                             });
                         },
@@ -1362,6 +1373,16 @@ function load_trace_imposition_links(frm) {
                         fieldname: 'points_colle',
                         fieldtype: 'Int',
                         description: __('Nombre de points de colle'),
+                    },
+                    {
+                        label: __('Dupliquer aussi les impositions'),
+                        fieldname: 'duplicate_impositions',
+                        fieldtype: 'Check',
+                        default: 1,
+                        hidden: 1,
+                        description: __(
+                            "Copie les impositions du tracé source vers le nouveau tracé (nouveaux codes générés automatiquement). L'imposition idéale sera liée à cette étude."
+                        ),
                     },
                 ],
                 primary_action_label: __('Dupliquer'),
@@ -1392,6 +1413,7 @@ function load_trace_imposition_links(frm) {
                             article_reference: v.article_reference,
                             dimensions: v.dimensions,
                             points_colle: v.points_colle,
+                            duplicate_impositions: dupState.sourceImpositionsCount && v.duplicate_impositions ? 1 : 0,
                         },
                         freeze: true,
                         freeze_message: __('Duplication du tracé…'),
@@ -1415,7 +1437,12 @@ function load_trace_imposition_links(frm) {
                             }
                             var newId = r.message.name;
                             var dims = r.message.dimensions;
+                            var newImpositions = r.message.impositions || [];
+                            var impositionIdeale = r.message.imposition_ideale || null;
                             frm.set_value('trace', newId);
+                            if (impositionIdeale) {
+                                frm.set_value('imposition', impositionIdeale);
+                            }
                             frappe.call({
                                 method: 'aurescrm.item_cotations.sync_item_cotations_from_trace',
                                 args: { article: frm.doc.article, dimensions: dims },
@@ -1440,38 +1467,78 @@ function load_trace_imposition_links(frm) {
                                             if (r_sync.message && r_sync.message.success) {
                                                 frm.set_value('points_colle', r_sync.message.points_colle);
                                             }
-                                            if (!dupState.sourceHadFile) {
-                                                frappe.show_alert(
-                                                    {
-                                                        message: __(
-                                                            'Tracé dupliqué. Aucun fichier sur le tracé source — ajoutez un fichier si nécessaire.'
-                                                        ),
-                                                        indicator: 'orange',
+                                            var finishDuplication = function () {
+                                                if (!dupState.sourceHadFile) {
+                                                    frappe.show_alert(
+                                                        {
+                                                            message: __(
+                                                                'Tracé dupliqué. Aucun fichier sur le tracé source — ajoutez un fichier si nécessaire.'
+                                                            ),
+                                                            indicator: 'orange',
+                                                        },
+                                                        6
+                                                    );
+                                                } else if (!r.message.file_copied) {
+                                                    frappe.show_alert(
+                                                        {
+                                                            message: __(
+                                                                "Le tracé a été créé mais le fichier n'a pas pu être copié — joignez-le manuellement."
+                                                            ),
+                                                            indicator: 'orange',
+                                                        },
+                                                        6
+                                                    );
+                                                } else {
+                                                    frappe.show_alert({ message: __('Tracé dupliqué avec succès.'), indicator: 'green' }, 5);
+                                                }
+                                                if (newImpositions.length) {
+                                                    var filesMissing = newImpositions.filter(function (imp) {
+                                                        return !imp.file_copied;
+                                                    }).length;
+                                                    frappe.show_alert(
+                                                        {
+                                                            message: __('{0} imposition(s) dupliquée(s).', [newImpositions.length]) +
+                                                                (filesMissing
+                                                                    ? ' ' + __('{0} fichier(s) non copié(s) — joignez-les manuellement.', [filesMissing])
+                                                                    : ''),
+                                                            indicator: filesMissing ? 'orange' : 'green',
+                                                        },
+                                                        6
+                                                    );
+                                                }
+                                                d.hide();
+                                                frm.save()
+                                                    .then(function () {
+                                                        load_trace_imposition_links(frm);
+                                                        refresh_attached_files(frm);
+                                                    })
+                                                    .catch(function (err) {
+                                                        console.error('Save failed after duplicate Trace:', err);
+                                                    });
+                                            };
+                                            if (impositionIdeale) {
+                                                frappe.call({
+                                                    method: 'aurescrm.aures_crm.doctype.imposition.imposition.sync_taux_chutes_to_etude',
+                                                    args: {
+                                                        imposition_name: impositionIdeale,
+                                                        etude_faisabilite_name: frm.doc.name,
                                                     },
-                                                    6
-                                                );
-                                            } else if (!r.message.file_copied) {
-                                                frappe.show_alert(
-                                                    {
-                                                        message: __(
-                                                            "Le tracé a été créé mais le fichier n'a pas pu être copié — joignez-le manuellement."
-                                                        ),
-                                                        indicator: 'orange',
+                                                    callback: function (r_taux) {
+                                                        if (r_taux.message && r_taux.message.success) {
+                                                            frm.set_value('taux_chutes', r_taux.message.taux_chutes);
+                                                            if (r_taux.message.nbr_feuilles != null) {
+                                                                frm.set_value('nbr_feuilles', r_taux.message.nbr_feuilles);
+                                                            }
+                                                        }
+                                                        finishDuplication();
                                                     },
-                                                    6
-                                                );
-                                            } else {
-                                                frappe.show_alert({ message: __('Tracé dupliqué avec succès.'), indicator: 'green' }, 5);
-                                            }
-                                            d.hide();
-                                            frm.save()
-                                                .then(function () {
-                                                    load_trace_imposition_links(frm);
-                                                    refresh_attached_files(frm);
-                                                })
-                                                .catch(function (err) {
-                                                    console.error('Save failed after duplicate Trace:', err);
+                                                    error: function () {
+                                                        finishDuplication();
+                                                    },
                                                 });
+                                            } else {
+                                                finishDuplication();
+                                            }
                                         },
                                         error: function () {
                                             frappe.msgprint({
