@@ -9,8 +9,9 @@ from collections import defaultdict
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, flt, formatdate, get_url_to_form, getdate, today
-from frappe.utils.data import escape_html
+from frappe.utils import cint, flt, formatdate, get_url_to_form, getdate, now, today
+
+DOSSIER_APERCU_TEMPLATE = "templates/dossier_fabrication/apercu.html"
 
 # Doit rester aligné sur `options` du champ naming_series dans dossier_fabrication.json (pas DF-, réservé ailleurs).
 DOSSIER_FABRICATION_NAMING_SERIES = "DOF-.YYYY.-"
@@ -145,6 +146,56 @@ def _first_ligne_for_article(doc: Document, article: str):
 		if ln.article == article:
 			return ln
 	return None
+
+
+def _is_planification_locked(doc: Document) -> bool:
+	return bool(getattr(doc, "planification_validee", 0))
+
+
+def _ensure_planification_editable(doc: Document) -> None:
+	if _is_planification_locked(doc):
+		frappe.throw(
+			_("La planification est validée : le programme livraison ne peut plus être modifié."),
+			title=_("Planification verrouillée"),
+		)
+
+
+def _validate_offset_machine(machine_name: str | None) -> None:
+	"""Machine vide autorisée ; sinon presse offset (aligné planning charge machines)."""
+	if not machine_name:
+		return
+	if not frappe.db.exists(
+		"Machine",
+		{
+			"name": machine_name,
+			"type_equipement": "Presse Offset",
+			"procede": "Offset",
+		},
+	):
+		frappe.throw(
+			_("Sélectionnez une presse offset (procédé Offset) ou laissez vide."),
+			title=_("Machine"),
+		)
+
+
+def _programme_row_for_name(doc: Document, programme_row_name: str):
+	for r in doc.get("programme_livraison") or []:
+		if r.name == programme_row_name:
+			return r
+	return None
+
+
+def _sync_etude_technique_planning_from_programme_row(row) -> None:
+	if not row.etude_technique or not frappe.db.exists("Etude Technique", row.etude_technique):
+		return
+	_et_meta = frappe.get_meta("Etude Technique")
+	updates: dict[str, object] = {}
+	if row.machine and _et_meta.has_field("machine"):
+		updates["machine"] = row.machine
+	if getattr(row, "date_fabrication_prevue", None) and _et_meta.has_field("date_planification_production"):
+		updates["date_planification_production"] = row.date_fabrication_prevue
+	if updates:
+		frappe.db.set_value("Etude Technique", row.etude_technique, updates)
 
 
 def _dossier_ligne_has_delivery_date_field() -> bool:
@@ -327,47 +378,41 @@ def _etude_technique_status_color(status: str | None) -> str | None:
 	return colors_by_status.get(status)
 
 
-def build_dossier_apercu_html(doc: Document) -> str:
-	"""Synthèse HTML : récap par article + détail du programme livraison."""
+def _item_names_map(articles: set[str]) -> dict[str, str]:
+	if not articles:
+		return {}
+	return {
+		row.name: row.item_name or row.name
+		for row in frappe.get_all(
+			"Item",
+			filters={"name": ["in", list(articles)]},
+			fields=["name", "item_name"],
+		)
+	}
+
+
+def _programme_sort_date(row) -> datetime.date:
+	fab = getattr(row, "date_fabrication_prevue", None)
+	if fab:
+		return _date_for_sort(fab)
+	return _date_for_sort(getattr(row, "date_livraison", None))
+
+
+def build_dossier_apercu_context(doc: Document) -> dict:
+	"""Contexte Jinja pour la synthèse articles / programme livraison."""
 	if not doc.sales_order:
-		return "<p class='text-muted'>Pas de commande liée.</p>"
+		return {"no_sales_order": True}
 
-	style = """
-<style>
-.dossier-apercu { font-size:12px; }
-.dossier-apercu table { background:var(--card-bg); border:1px solid var(--border-color); border-collapse:separate; border-radius:10px; border-spacing:0; margin-bottom:1rem; overflow:hidden; table-layout:auto; width:100%; }
-.dossier-apercu th, .dossier-apercu td { border-bottom:1px solid var(--border-color); padding:10px 12px; vertical-align:middle; }
-.dossier-apercu tbody tr:last-child td { border-bottom:0; }
-.dossier-apercu th { background:#f4f5f6; color: var(--text-muted); font-weight:700; text-align:left; white-space:nowrap; }
-.dossier-apercu th:first-child { border-top-left-radius:10px; }
-.dossier-apercu th:last-child { border-top-right-radius:10px; }
-.dossier-apercu h4 { margin: 1rem 0 0.5rem 0; font-size: 13px; }
-.dossier-apercu .df-muted { color: var(--text-muted); font-size:11px; }
-.dossier-apercu .df-link { font-weight:600; }
-.dossier-apercu .df-article-code { font-weight:700; white-space:nowrap; word-break:normal; }
-.dossier-apercu .df-designation { color: var(--text-muted); font-size:11px; white-space:nowrap; }
-.dossier-apercu .df-number { text-align:right; white-space:nowrap; }
-.dossier-apercu .df-date { white-space:nowrap; }
-.dossier-apercu .df-badge { border-radius:999px; display:inline-block; font-size:11px; font-weight:600; line-height:1; margin-top:4px; padding:4px 8px; }
-.dossier-apercu .df-progress { background:#edf0f2; border-radius:999px; height:9px; margin-top:6px; overflow:hidden; width:100%; }
-.dossier-apercu .df-progress-bar { background:#22c55e; border-radius:999px; height:100%; min-width:0; }
-.dossier-apercu .df-progress-cell { min-width:150px; }
-.dossier-apercu .df-study-cell { min-width:155px; }
-.dossier-apercu .df-study-inline { align-items:center; display:flex; gap:8px; white-space:nowrap; }
-.dossier-apercu .df-title-row { align-items:center; display:flex; justify-content:space-between; margin:1rem 0 0.5rem 0; }
-.dossier-apercu .df-title-row h4 { margin:0; }
-.dossier-apercu .df-title-pct { border-radius:999px; display:inline-block; font-size:12px; font-weight:700; padding:4px 9px; }
-.dossier-apercu .df-title-pct-red { background:#ffe8e8; color:#c53030; }
-.dossier-apercu .df-title-pct-orange { background:#fff3d6; color:#9a6700; }
-.dossier-apercu .df-title-pct-green { background:#e7f7ee; color:#16794c; }
-.dossier-apercu .df-date-fab-cell { white-space:normal; }
-.dossier-apercu .df-edit-date-fab { flex-shrink:0; }
-.dossier-apercu .df-fab-date-row { align-items:center; display:flex; flex-wrap:wrap; gap:6px; }
-</style>
-"""
+	articles: set[str] = set()
+	for ln in doc.get("lignes") or []:
+		if ln.article:
+			articles.add(ln.article)
+	for pr in doc.get("programme_livraison") or []:
+		if pr.article:
+			articles.add(pr.article)
+	item_names = _item_names_map(articles)
 
-	# --- Récap articles (lignes après agrégation)
-	recap_rows = ""
+	recap_rows: list[dict] = []
 	total_cmd = 0.0
 	total_prog = 0.0
 	for ln in doc.get("lignes") or []:
@@ -378,40 +423,22 @@ def build_dossier_apercu_html(doc: Document) -> str:
 		q_prod = flt(ln.quantite_produite or 0)
 		base = q_cmd if q_cmd > 0 else q_prog
 		pct = round((q_prod / base) * 100, 1) if base and base > 0 else 0
-		r_prog = flt(ln.quantite_restante_a_programmer or 0)
-		r_prod = flt(ln.quantite_restante_a_produire or 0)
 		total_cmd += q_cmd
 		total_prog += q_prog
-		name_art = escape_html(ln.designation_article or frappe.db.get_value("Item", ln.article, "item_name") or "")
-		recap_rows += f"""<tr>
-<td><span class="df-article-code">{escape_html(ln.article)}</span></td>
-<td><span class="df-designation">{name_art}</span></td>
-<td class="df-number">{q_cmd:g}</td>
-<td class="df-number">{q_prog:g}</td>
-<td class="df-number">{q_prod:g}</td>
-<td class="df-number">{pct}%</td>
-<td class="df-number">{r_prog:g}</td>
-<td class="df-number">{r_prod:g}</td>
-<td>{escape_html(ln.statut_article or "")}</td>
-</tr>"""
+		recap_rows.append(
+			{
+				"article": ln.article,
+				"designation": ln.designation_article or item_names.get(ln.article, ""),
+				"q_cmd": f"{q_cmd:g}",
+				"q_prog": f"{q_prog:g}",
+				"q_prod": f"{q_prod:g}",
+				"pct": pct,
+				"r_prog": f"{flt(ln.quantite_restante_a_programmer or 0):g}",
+				"r_prod": f"{flt(ln.quantite_restante_a_produire or 0):g}",
+				"statut": ln.statut_article or "",
+			}
+		)
 
-	recap_block = f"""
-<h4>{escape_html(_("Récapitulatif par article"))}</h4>
-<table>
-<thead><tr>
-<th>{escape_html(_("Article"))}</th>
-<th>{escape_html(_("Désignation"))}</th>
-<th class="df-number">{escape_html(_("Q. commandée"))}</th>
-<th class="df-number">{escape_html(_("Q. programmée"))}</th>
-<th class="df-number">{escape_html(_("Q. produite"))}</th>
-<th class="df-number">{escape_html(_("% produit"))}</th>
-<th class="df-number">{escape_html(_("Reste prog."))}</th>
-<th class="df-number">{escape_html(_("Reste prod."))}</th>
-<th>{escape_html(_("Statut"))}</th>
-</tr></thead>
-<tbody>{recap_rows or f'<tr><td colspan="9">{escape_html(_("Aucune ligne article."))}</td></tr>'}</tbody>
-</table>
-"""
 	pct_programme = round((total_prog / total_cmd) * 100, 1) if total_cmd > 0 else 0
 	if pct_programme <= 0:
 		pct_programme_class = "df-title-pct-red"
@@ -420,18 +447,11 @@ def build_dossier_apercu_html(doc: Document) -> str:
 	else:
 		pct_programme_class = "df-title-pct-orange"
 
-	# --- Détail programme livraison (tri par date de fabrication prévue, sinon livraison réf.)
 	prog = list(doc.get("programme_livraison") or [])
-
-	def _programme_sort_date(row):
-		fab = getattr(row, "date_fabrication_prevue", None)
-		if fab:
-			return _date_for_sort(fab)
-		return _date_for_sort(getattr(row, "date_livraison", None))
-
 	prog.sort(key=lambda r: (_programme_sort_date(r), r.idx or 0))
+
 	etude_names = [pr.etude_technique for pr in prog if pr.etude_technique]
-	etude_status_by_name = {}
+	etude_status_by_name: dict[str, str] = {}
 	if etude_names:
 		for etude in frappe.get_all(
 			"Etude Technique",
@@ -440,78 +460,57 @@ def build_dossier_apercu_html(doc: Document) -> str:
 		):
 			etude_status_by_name[etude.name] = etude.status
 
-	detail_rows = ""
+	programme_rows: list[dict] = []
 	for pr in prog:
 		q_prog_line = flt(pr.quantite_a_produire)
 		q_prod_line = flt(pr.quantite_produite or 0)
 		pct_line = round((q_prod_line / q_prog_line) * 100, 1) if q_prog_line > 0 else 0
-		pct_width = min(max(pct_line, 0), 100)
-		if pr.etude_technique:
-			etude_status = etude_status_by_name.get(pr.etude_technique) or _("Non créée")
-			badge_style = _badge_style_for_color(_etude_technique_status_color(etude_status) or "gray")
-			etude_link = f"""
-<a class="df-link" href="{escape_html(get_url_to_form('Etude Technique', pr.etude_technique))}">
-{escape_html(pr.etude_technique)}
-</a>
-"""
-			badge_html = (
-				f'<span class="df-badge" style="{badge_style}">{escape_html(etude_status)}</span>'
-			)
-		else:
-			etude_link = ""
-			badge_html = ""
-		if pr.designation_article:
-			designation = escape_html(pr.designation_article)
-		elif pr.article:
-			designation = escape_html(frappe.db.get_value("Item", pr.article, "item_name") or "")
-		else:
-			designation = ""
 		fab_val = getattr(pr, "date_fabrication_prevue", None)
 		try:
 			fab_iso = getdate(fab_val).strftime("%Y-%m-%d") if fab_val else ""
 		except Exception:
 			fab_iso = ""
-		df = escape_html(formatdate(fab_val) if fab_val else "")
-		edit_fab_btn = f"""<button type="button" class="btn btn-default btn-xs df-edit-date-fab" data-programme-row="{escape_html(pr.name or "")}" data-date-iso="{escape_html(fab_iso)}" title="{escape_html(_("Modifier la date de fabrication"))}">{escape_html(_("Modifier"))}</button>"""
-		df_cell = f"""<td class="df-date df-date-fab-cell"><div class="df-fab-date-row"><span class="df-fab-date-text">{df}</span>{edit_fab_btn}</div></td>"""
-		dl = escape_html(formatdate(pr.date_livraison) if pr.date_livraison else "")
-		detail_rows += f"""<tr>
-<td><span class="df-article-code">{escape_html(pr.article or "")}</span></td>
-<td><span class="df-designation">{designation}</span></td>
-{df_cell}
-<td class="df-date">{dl}</td>
-<td class="df-number">{q_prog_line:g}</td>
-<td class="df-progress-cell">
-	<div><strong>{q_prod_line:g}</strong> / {q_prog_line:g} <span class="df-muted">({pct_line:g}%)</span></div>
-	<div class="df-progress"><div class="df-progress-bar" style="width:{pct_width:g}%"></div></div>
-</td>
-<td class="df-study-cell">
-	<div class="df-study-inline">
-		{etude_link}{badge_html}
-	</div>
-</td>
-</tr>"""
 
-	detail_block = f"""
-<div class="df-title-row">
-	<h4>{escape_html(_("Programme livraison"))}</h4>
-	<span class="df-title-pct {pct_programme_class}">{pct_programme:g}%</span>
-</div>
-<table>
-<thead><tr>
-<th>{escape_html(_("Article"))}</th>
-<th>{escape_html(_("Désignation"))}</th>
-<th>{escape_html(_("Date fabrication prévue"))}</th>
-<th>{escape_html(_("Date livraison référence"))}</th>
-<th class="df-number">{escape_html(_("Q. programmée"))}</th>
-<th>{escape_html(_("Q. produite"))}</th>
-<th>{escape_html(_("Étude liée"))}</th>
-</tr></thead>
-<tbody>{detail_rows or f'<tr><td colspan="7">{escape_html(_("Aucune ligne de programme."))}</td></tr>'}</tbody>
-</table>
-"""
+		row_ctx: dict = {
+			"article": pr.article or "",
+			"designation": pr.designation_article or item_names.get(pr.article or "", ""),
+			"machine": pr.machine or "",
+			"date_fabrication": formatdate(fab_val) if fab_val else "",
+			"date_fabrication_iso": fab_iso,
+			"programme_row_name": pr.name or "",
+			"date_livraison": formatdate(pr.date_livraison) if pr.date_livraison else "",
+			"q_prog": f"{q_prog_line:g}",
+			"q_prod": f"{q_prod_line:g}",
+			"pct": pct_line,
+			"pct_width": min(max(pct_line, 0), 100),
+			"etude_technique": pr.etude_technique or "",
+		}
+		if pr.etude_technique:
+			etude_status = etude_status_by_name.get(pr.etude_technique) or _("Non créée")
+			row_ctx["etude_status"] = etude_status
+			row_ctx["etude_url"] = get_url_to_form("Etude Technique", pr.etude_technique)
+			row_ctx["etude_badge_style"] = _badge_style_for_color(
+				_etude_technique_status_color(etude_status) or "gray"
+			)
+		programme_rows.append(row_ctx)
 
-	return f'<div class="dossier-apercu" data-dossier-name="{escape_html(doc.name)}" style="overflow-x:auto">{style}{recap_block}{detail_block}</div>'
+	return {
+		"no_sales_order": False,
+		"dossier_name": doc.name,
+		"planification_validee": _is_planification_locked(doc),
+		"recap_rows": recap_rows,
+		"programme_rows": programme_rows,
+		"pct_programme": pct_programme,
+		"pct_programme_class": pct_programme_class,
+	}
+
+
+def build_dossier_apercu_html(doc: Document) -> str:
+	"""Rendu Jinja de la synthèse (affichage Desk uniquement, non persisté)."""
+	context = build_dossier_apercu_context(doc)
+	if context.get("no_sales_order"):
+		return f"<p class='text-muted'>{_('Pas de commande liée.')}</p>"
+	return frappe.render_template(DOSSIER_APERCU_TEMPLATE, context, is_path=True)
 
 
 class DossierFabrication(Document):
@@ -526,18 +525,15 @@ class DossierFabrication(Document):
 		_ensure_programme_date_fabrication_prevue(self)
 		_sync_statuts_programme(self)
 		_sync_ligne_aggregates_from_programme(self)
-		self.html_apercu = build_dossier_apercu_html(self)
 
-
-@frappe.whitelist()
-def get_dossier_apercu_html(dossier_name: str) -> str:
-	"""Retourne l'aperçu HTML à afficher dans le champ HTML du formulaire."""
-	dossier = frappe.get_doc("Dossier Fabrication", dossier_name)
-	dossier.check_permission("read")
-	_sync_ligne_delivery_dates_from_sales_order(dossier)
-	_sync_statuts_programme(dossier)
-	_sync_ligne_aggregates_from_programme(dossier)
-	return build_dossier_apercu_html(dossier)
+	@frappe.whitelist()
+	def get_dossier_apercu_html(self):
+		"""Retourne l'aperçu HTML pour le champ HTML du formulaire (non persisté)."""
+		self.check_permission("read")
+		_sync_ligne_delivery_dates_from_sales_order(self)
+		_sync_statuts_programme(self)
+		_sync_ligne_aggregates_from_programme(self)
+		return build_dossier_apercu_html(self)
 
 
 @frappe.whitelist()
@@ -548,13 +544,19 @@ def add_programme_livraison(
 	date_fabrication_prevue: str,
 	quantite_a_produire,
 	bat: str | None = None,
+	machine: str | None = None,
 	allow_overflow: int | str = 0,
 ):
 	"""Ajoute une ligne dans programme_livraison avec défauts issus de la ligne article."""
 	dossier = frappe.get_doc("Dossier Fabrication", dossier_name)
+	dossier.check_permission("write")
+	_ensure_planification_editable(dossier)
 	ligne = _first_ligne_for_article(dossier, article)
 	if not ligne:
 		frappe.throw(_("Article introuvable dans les lignes du dossier."))
+
+	selected_machine = (machine or "").strip() or ligne.machine
+	_validate_offset_machine(selected_machine or None)
 
 	tot_cmd = _totaux_commandes_par_article(dossier).get(article, 0)
 	already = sum(
@@ -581,7 +583,7 @@ def add_programme_livraison(
 	row.maquette = ligne.maquette
 	row.trace = ligne.trace
 	row.imposition = ligne.imposition
-	row.machine = ligne.machine
+	row.machine = selected_machine
 	row.etude_faisabilite = ligne.etude_faisabilite
 	row.quantite_produite = 0
 	row.statut = "Planifié"
@@ -599,42 +601,43 @@ def update_programme_date_fabrication_prevue(
 	"""Met à jour la date fabrication prévue d'une ligne programme depuis l'aperçu HTML ; synchronise l'étude technique liée."""
 	dossier = frappe.get_doc("Dossier Fabrication", dossier_name)
 	dossier.check_permission("write")
-	target = None
-	for r in dossier.get("programme_livraison") or []:
-		if r.name == programme_row_name:
-			target = r
-			break
+	target = _programme_row_for_name(dossier, programme_row_name)
 	if not target:
 		frappe.throw(_("Ligne programme introuvable."))
 	if not date_fabrication_prevue:
 		frappe.throw(_("La date de fabrication prévue est obligatoire."))
 
 	target.date_fabrication_prevue = getdate(date_fabrication_prevue)
-
-	if target.etude_technique and frappe.db.exists("Etude Technique", target.etude_technique):
-		_et_meta = frappe.get_meta("Etude Technique")
-		if _et_meta.has_field("date_planification_production"):
-			frappe.db.set_value(
-				"Etude Technique",
-				target.etude_technique,
-				"date_planification_production",
-				target.date_fabrication_prevue,
-			)
+	_sync_etude_technique_planning_from_programme_row(target)
 
 	dossier.save()
 	return {"ok": 1}
 
 
 @frappe.whitelist()
-def create_etude_technique_from_programme_line(dossier_name: str, programme_idx: int):
-	"""Crée une Étude Technique pour la ligne programme d'index 1..n."""
+def update_programme_machine(
+	dossier_name: str,
+	programme_row_name: str,
+	machine: str | None = None,
+):
+	"""Met à jour la machine d'une ligne programme ; synchronise l'étude technique liée."""
 	dossier = frappe.get_doc("Dossier Fabrication", dossier_name)
-	idx = cint(programme_idx)
-	prog = dossier.get("programme_livraison") or []
-	if idx < 1 or idx > len(prog):
-		frappe.throw(_("Numéro de ligne programme invalide."))
+	dossier.check_permission("write")
+	target = _programme_row_for_name(dossier, programme_row_name)
+	if not target:
+		frappe.throw(_("Ligne programme introuvable."))
 
-	row = prog[idx - 1]
+	m = (machine or "").strip() or None
+	_validate_offset_machine(m)
+	target.machine = m
+	_sync_etude_technique_planning_from_programme_row(target)
+
+	dossier.save()
+	return {"ok": 1}
+
+
+def _create_etude_for_programme_row(dossier: Document, row) -> str:
+	"""Crée une Étude Technique pour une ligne programme et retourne son nom."""
 	if row.etude_technique:
 		frappe.throw(_("Une étude technique existe déjà pour cette ligne programme."))
 
@@ -702,9 +705,77 @@ def create_etude_technique_from_programme_line(dossier_name: str, programme_idx:
 	technical_study.insert(ignore_permissions=True)
 
 	row.etude_technique = technical_study.name
+	return technical_study.name
+
+
+@frappe.whitelist()
+def create_etude_technique_from_programme_line(dossier_name: str, programme_idx: int):
+	"""Crée une Étude Technique pour la ligne programme d'index 1..n."""
+	dossier = frappe.get_doc("Dossier Fabrication", dossier_name)
+	dossier.check_permission("write")
+	idx = cint(programme_idx)
+	prog = dossier.get("programme_livraison") or []
+	if idx < 1 or idx > len(prog):
+		frappe.throw(_("Numéro de ligne programme invalide."))
+
+	row = prog[idx - 1]
+	name = _create_etude_for_programme_row(dossier, row)
 	dossier.save(ignore_permissions=True)
 
-	return {"name": technical_study.name}
+	return {"name": name}
+
+
+@frappe.whitelist()
+def valider_planification(dossier_name: str):
+	"""Valide la planification : génère toutes les études techniques et verrouille le programme."""
+	dossier = frappe.get_doc("Dossier Fabrication", dossier_name)
+	dossier.check_permission("write")
+	if _is_planification_locked(dossier):
+		frappe.throw(_("La planification est déjà validée pour ce dossier."))
+
+	prog = dossier.get("programme_livraison") or []
+	if not prog:
+		frappe.throw(_("Aucune ligne dans le programme livraison à valider."))
+
+	errors: list[str] = []
+	for idx, row in enumerate(prog, start=1):
+		label = row.article or _("ligne {0}").format(idx)
+		if not row.machine:
+			errors.append(_("{0} : machine obligatoire.").format(label))
+		if not getattr(row, "date_fabrication_prevue", None):
+			errors.append(_("{0} : date de fabrication prévue obligatoire.").format(label))
+		ligne = _first_ligne_for_article(dossier, row.article) if row.article else None
+		trace = row.trace or (ligne.trace if ligne else None)
+		imposition = row.imposition or (ligne.imposition if ligne else None)
+		if not trace or not imposition:
+			errors.append(_("{0} : tracé et imposition obligatoires.").format(label))
+
+	if errors:
+		frappe.throw(
+			"<br>".join(errors),
+			title=_("Planification incomplète"),
+		)
+
+	created: list[str] = []
+	for row in prog:
+		if row.etude_technique:
+			continue
+		created.append(_create_etude_for_programme_row(dossier, row))
+
+	dossier.planification_validee = 1
+	dossier.date_validation_planification = now()
+	dossier.valide_par = frappe.session.user
+	dossier.status = "En cours"
+	_sync_statuts_programme(dossier)
+	_sync_ligne_aggregates_from_programme(dossier)
+	dossier.save(ignore_permissions=True)
+
+	frappe.msgprint(
+		_("Planification validée. {0} étude(s) technique(s) créée(s).").format(len(created)),
+		indicator="green",
+		title=_("Planification validée"),
+	)
+	return {"ok": 1, "created_count": len(created), "created": created}
 
 
 @frappe.whitelist()
@@ -712,6 +783,7 @@ def clear_programme_livraison(dossier_name: str):
 	"""Supprime toutes les lignes du programme et retire le lien dossier sur les études techniques liées."""
 	dossier = frappe.get_doc("Dossier Fabrication", dossier_name)
 	dossier.check_permission("write")
+	_ensure_planification_editable(dossier)
 
 	for row in list(dossier.programme_livraison or []):
 		if row.etude_technique and frappe.db.exists("Etude Technique", row.etude_technique):

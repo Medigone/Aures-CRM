@@ -16,14 +16,14 @@ const PLANNING_JOB_PLANIF_ICON_SVG = `<svg class="planning-job-icon" width="12" 
 /** Édition planif. (machine / date) sur carte job. */
 const PLANNING_EDIT_ICON_SVG = `<svg class="job-planning-edit-icon" width="12" height="12" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M10 21H5C3.89543 21 3 20.1046 3 19V10H21M15 4V2M15 4V6M15 4H10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 10V6C3 4.89543 3.89543 4 5 4H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 10V6C21 4.89543 20.1046 4 19 4H18.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21.6669 16.6667C21.0481 15.097 19.635 14 17.9906 14C16.2322 14 14.7382 15.2545 14.1973 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.9951 16.772H21.4001C21.7314 16.772 22.0001 16.5034 22.0001 16.172V14.5498" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M14.3341 19.3333C14.9529 20.903 16.366 22 18.0103 22C19.7687 22 21.2628 20.7455 21.8037 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16.0049 19.228H14.5999C14.2686 19.228 13.9999 19.4966 13.9999 19.828V21.4502" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
 
-frappe.pages["planning-charge-machines"].on_page_load = function (wrapper) {
+frappe.pages["planning-production"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("Planning charge machines"),
+		title: __("Planning Production"),
 		single_column: true,
 	});
 
-	const planning_page = new PlanningChargeMachinesPage(page, wrapper);
+	const planning_page = new PlanningProductionPage(page, wrapper);
 	wrapper.planning_page = planning_page;
 
 	page.set_primary_action(__("Actualiser"), () => planning_page.refresh(), "refresh");
@@ -35,17 +35,17 @@ frappe.pages["planning-charge-machines"].on_page_load = function (wrapper) {
 	planning_page.refresh();
 };
 
-frappe.pages["planning-charge-machines"].refresh = function (wrapper) {
+frappe.pages["planning-production"].refresh = function (wrapper) {
 	if (wrapper.planning_page) {
 		wrapper.planning_page.refresh();
 	}
 };
 
-class PlanningChargeMachinesPage {
+class PlanningProductionPage {
 	constructor(page, wrapper) {
 		this.page = page;
 		this.wrapper = wrapper;
-		this.$body = $(`<div class="planning-charge-machines planning-charge-root"></div>`).appendTo(
+		this.$body = $(`<div class="planning-production planning-production-root"></div>`).appendTo(
 			this.page.main
 		);
 		this.last_data = null;
@@ -117,6 +117,22 @@ class PlanningChargeMachinesPage {
 			change: () => this.refresh(),
 		});
 
+		this.df_client = this.page.add_field({
+			fieldname: "client",
+			label: __("Client"),
+			fieldtype: "Link",
+			options: "Customer",
+			change: () => this.refresh(),
+		});
+
+		this.df_article = this.page.add_field({
+			fieldname: "article",
+			label: __("Article"),
+			fieldtype: "Link",
+			options: "Item",
+			change: () => this.refresh(),
+		});
+
 		this.df_src_fais = this.page.add_field({
 			fieldname: "src_faisabilite",
 			label: __("Inclure faisabilité"),
@@ -159,6 +175,8 @@ class PlanningChargeMachinesPage {
 			granularity: this.granularity_api_value(),
 			machine: this.df_machine.get_value() || "",
 			niveau_urgence: this.df_urgence.get_value() || "",
+			client: this.df_client.get_value() || "",
+			article: this.df_article.get_value() || "",
 			sources: sources.join(","),
 		};
 	}
@@ -168,7 +186,7 @@ class PlanningChargeMachinesPage {
 		if (!sources.length) {
 			this.last_data = null;
 			this.$body.html(
-				`<div class="planning-charge-print-region">${this.build_print_banner_html({})}<div class="text-muted">${__(
+				`<div class="planning-production-print-region">${this.build_print_banner_html({})}<div class="text-muted">${__(
 					"Sélectionnez au moins une source."
 				)}</div></div>`
 			);
@@ -176,7 +194,7 @@ class PlanningChargeMachinesPage {
 		}
 
 		frappe.call({
-			method: "aurescrm.aures_crm.page.planning_charge_machines.planning_charge_machines.get_planning_charge",
+			method: "aurescrm.aures_crm.page.planning_production.planning_production.get_planning_charge",
 			args: {
 				date_from: this.df_from.get_value(),
 				date_to: this.df_to.get_value(),
@@ -184,6 +202,8 @@ class PlanningChargeMachinesPage {
 				granularity: this.granularity_api_value(),
 				machine: this.df_machine.get_value() || null,
 				niveau_urgence: this.df_urgence.get_value() || null,
+				client: this.df_client.get_value() || null,
+				article: this.df_article.get_value() || null,
 				sources: sources.join(","),
 			},
 			freeze: true,
@@ -260,6 +280,8 @@ class PlanningChargeMachinesPage {
 			],
 			[__("Regroupement"), this.df_granularity.get_value() || __("—")],
 			[__("Machine"), this.df_machine.get_value() || __("Toutes")],
+			[__("Client"), this.df_client.get_value() || __("Tous")],
+			[__("Article"), this.df_article.get_value() || __("Tous")],
 			[__("Origine des dates"), this.df_temporal_basis.get_value() || __("—")],
 			[__("Urgence"), this.df_urgence.get_value() || __("Toutes")],
 			[__("Sources"), srcParts.length ? srcParts.join(", ") : __("—")],
@@ -273,7 +295,7 @@ class PlanningChargeMachinesPage {
 			})
 			.join("");
 		return `<header class="planning-print-header" aria-label="${esc(__("En-tête d’impression"))}">
-			<h1 class="planning-print-title">${esc(__("Planning charge machines"))}</h1>
+			<h1 class="planning-print-title">${esc(__("Planning Production"))}</h1>
 			<p class="planning-print-datetime">${esc(__("Imprimé le"))} ${esc(nowDt)}</p>
 			<table class="planning-print-filters-table">${filtBody}</table>
 		</header>`;
@@ -289,7 +311,7 @@ class PlanningChargeMachinesPage {
 		if (!machines.length) {
 			const emptyBanner = this.build_print_banner_html(data.meta || {});
 			this.$body.html(
-				`<div class="planning-charge-print-region">${emptyBanner}<div class="text-muted">${__(
+				`<div class="planning-production-print-region">${emptyBanner}<div class="text-muted">${__(
 					"Aucune machine / charge pour ces filtres."
 				)}</div></div>`
 			);
@@ -305,7 +327,7 @@ class PlanningChargeMachinesPage {
 				: `${tbLbl} — ${__("charge machines offset (échéances / planif.)")}`;
 		let html = printBanner;
 		html += `<p class="text-muted small planning-axis-hint">${frappe.utils.escape_html(axisHint)}</p>`;
-		html += `<div class="planning-charge-scroll"><table class="table table-bordered planning-pivot"><thead><tr>`;
+		html += `<div class="planning-production-scroll"><table class="table table-bordered planning-pivot"><thead><tr>`;
 		html += `<th class="sticky-corner"><span class="planning-th-date-label">${PLANNING_DATE_ICON_SVG}<span class="planning-th-date-text">${frappe.utils.escape_html(
 			__("Date")
 		)}</span></span></th>`;
@@ -383,7 +405,7 @@ class PlanningChargeMachinesPage {
 			)}</span>
 		</div>`;
 
-		this.$body.html(`<div class="planning-charge-print-region">${html}</div>`);
+		this.$body.html(`<div class="planning-production-print-region">${html}</div>`);
 		this.bind_cell_clicks();
 	}
 
@@ -558,10 +580,7 @@ class PlanningChargeMachinesPage {
 		const self = this;
 		const planDefault =
 			j.stored_plan_date || j.dt_planification || frappe.datetime.get_today();
-		const dateLabel =
-			j.source_key === "faisabilite"
-				? __("Date d'échéance (planification charge)")
-				: __("Date planification production");
+		const dateLabel = __("Date planification production");
 		const d = new frappe.ui.Dialog({
 			title: __("Modifier la planification"),
 			fields: [
@@ -597,7 +616,7 @@ class PlanningChargeMachinesPage {
 					),
 					() => {
 						frappe.call({
-							method: "aurescrm.aures_crm.page.planning_charge_machines.planning_charge_machines.update_planning_charge_job",
+							method: "aurescrm.aures_crm.page.planning_production.planning_production.update_planning_charge_job",
 							args: {
 								doctype: j.source,
 								name: j.doc_name,
@@ -670,7 +689,7 @@ class PlanningChargeMachinesPage {
 				}
 			}
 		}
-		frappe.tools.downloadify(rows, null, __("planning_charge_machines"));
+		frappe.tools.downloadify(rows, null, __("planning_production"));
 		frappe.show_alert({ message: __("Export CSV lancé"), indicator: "green" });
 	}
 
@@ -684,7 +703,7 @@ class PlanningChargeMachinesPage {
 			return;
 		}
 		open_url_post(frappe.request.url, {
-			cmd: "aurescrm.aures_crm.page.planning_charge_machines.planning_charge_machines.export_planning_charge_excel",
+			cmd: "aurescrm.aures_crm.page.planning_production.planning_production.export_planning_charge_excel",
 			...this.build_export_form_params(),
 		});
 		frappe.show_alert({ message: __("Export Excel lancé"), indicator: "green" });

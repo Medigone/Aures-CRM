@@ -1,0 +1,122 @@
+<div class="dossier-apercu" data-dossier-name="{{ dossier_name }}">
+	<h4 class="df-section-title">{{ _("Récapitulatif par article") }}</h4>
+	<div class="df-recap-scroll">
+		<table class="df-recap-table">
+			<thead>
+				<tr>
+					<th>{{ _("Article") }}</th>
+					<th class="df-number">{{ _("Cmd") }}</th>
+					<th class="df-number">{{ _("Prog") }}</th>
+					<th class="df-number">{{ _("Prod") }}</th>
+					<th>{{ _("Avancement") }}</th>
+					<th>{{ _("Statut") }}</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% if recap_rows %}
+					{% for row in recap_rows %}
+					<tr>
+						<td class="df-article-cell">
+							<span class="df-article-code" title="{{ row.designation }}">{{ row.article }}</span>
+							{% if row.designation %}
+							<span class="df-designation df-designation--truncate" title="{{ row.designation }}">{{ row.designation }}</span>
+							{% endif %}
+						</td>
+						<td class="df-number">{{ row.q_cmd }}</td>
+						<td class="df-number">{{ row.q_prog }}</td>
+						<td class="df-number">{{ row.q_prod }}</td>
+						<td class="df-progress-cell df-progress-cell--compact">
+							<span class="df-progress-label">{{ row.pct }}%</span>
+							<div class="df-progress">
+								<div class="df-progress-bar" style="width:{{ row.pct }}%"></div>
+							</div>
+							<span class="df-muted df-reste-hint">{{ _("Reste prog.") }} {{ row.r_prog }} · {{ _("Reste prod.") }} {{ row.r_prod }}</span>
+						</td>
+						<td><span class="df-statut-pill">{{ row.statut }}</span></td>
+					</tr>
+					{% endfor %}
+				{% else %}
+					<tr>
+						<td colspan="6">{{ _("Aucune ligne article.") }}</td>
+					</tr>
+				{% endif %}
+			</tbody>
+		</table>
+	</div>
+
+	<div class="df-title-row">
+		<h4 class="df-section-title">{{ _("Programme livraison") }}</h4>
+		<span class="df-title-pct {{ pct_programme_class }}">{{ pct_programme }}%</span>
+	</div>
+
+	{% if programme_rows %}
+		<div class="df-programme-cards">
+			{% for row in programme_rows %}
+			<article class="df-prog-card" data-programme-row="{{ row.programme_row_name }}">
+				<header class="df-prog-card__head">
+					<div class="df-prog-card__article">
+						<span class="df-article-code">{{ row.article }}</span>
+						{% if row.designation %}
+						<span class="df-designation df-designation--truncate" title="{{ row.designation }}">{{ row.designation }}</span>
+						{% endif %}
+					</div>
+					{% if row.etude_technique %}
+					<div class="df-prog-card__etude">
+						<a class="df-link" href="{{ row.etude_url }}" title="{{ row.etude_technique }}">{{ row.etude_technique }}</a>
+						<span class="df-badge" style="{{ row.etude_badge_style }}">{{ row.etude_status }}</span>
+					</div>
+					{% endif %}
+				</header>
+
+				<div class="df-prog-card__grid">
+					<div class="df-prog-card__field">
+						<span class="df-field-label">{{ _("Machine") }}</span>
+						<div class="df-field-value df-machine-row">
+							<span class="df-machine-text">{{ row.machine or "—" }}</span>
+							<button
+								type="button"
+								class="btn btn-default btn-xs btn-icon df-edit-machine"
+								data-programme-row="{{ row.programme_row_name }}"
+								data-machine="{{ row.machine or '' }}"
+								title="{{ _('Modifier la machine') }}"
+								aria-label="{{ _('Modifier la machine') }}"
+							>✎</button>
+						</div>
+					</div>
+					<div class="df-prog-card__field">
+						<span class="df-field-label">{{ _("Fab. prévue") }}</span>
+						<div class="df-field-value df-fab-date-row">
+							<span class="df-fab-date-text">{{ row.date_fabrication or "—" }}</span>
+							<button
+								type="button"
+								class="btn btn-default btn-xs btn-icon df-edit-date-fab"
+								data-programme-row="{{ row.programme_row_name }}"
+								data-date-iso="{{ row.date_fabrication_iso }}"
+								title="{{ _('Modifier la date de fabrication') }}"
+								aria-label="{{ _('Modifier la date de fabrication') }}"
+							>✎</button>
+						</div>
+					</div>
+					<div class="df-prog-card__field">
+						<span class="df-field-label">{{ _("Livr. réf.") }}</span>
+						<span class="df-field-value">{{ row.date_livraison or "—" }}</span>
+					</div>
+					<div class="df-prog-card__field">
+						<span class="df-field-label">{{ _("Qté programmée") }}</span>
+						<span class="df-field-value df-number-inline">{{ row.q_prog }}</span>
+					</div>
+				</div>
+
+				<footer class="df-prog-card__footer">
+					<span class="df-muted">{{ _("Produit") }} <strong>{{ row.q_prod }}</strong> / {{ row.q_prog }} ({{ row.pct }}%)</span>
+					<div class="df-progress df-progress--card">
+						<div class="df-progress-bar" style="width:{{ row.pct_width }}%"></div>
+					</div>
+				</footer>
+			</article>
+			{% endfor %}
+		</div>
+	{% else %}
+		<p class="df-empty text-muted">{{ _("Aucune ligne de programme.") }}</p>
+	{% endif %}
+</div>

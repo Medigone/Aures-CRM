@@ -76,7 +76,8 @@ function add_dossier_fabrication_button_once(frm) {
 						__('Confirmer la création d\'un dossier fabrication pour cette commande ?'),
 						() => {
 							frappe.call({
-								method: 'aurescrm.sales_order_hooks.generate_technical_studies',
+								method:
+									'aurescrm.sales_order_hooks.create_dossier_fabrication_from_button',
 								args: { sales_order_name: frm.doc.name },
 								callback(res) {
 									if (!res.exc) {

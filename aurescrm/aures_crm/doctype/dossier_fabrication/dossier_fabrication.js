@@ -6,47 +6,48 @@ function parse_qty(v) {
 }
 
 /**
- * Les champs fieldtype "HTML" dans Frappe affichent par défaut uniquement `df.options`
- * (template DocField), pas la valeur `doc.html_apercu`. On injecte donc le HTML serveur.
- * Utiliser `ControlHTML.html()` évite de casser la structure interne du contrôle.
+ * Champ HTML Desk : affichage via df.options (pas doc.html_apercu).
+ * Pattern Frappe : méthode whitelisted + set_df_property + refresh_field.
  */
 function render_html_apercu(frm) {
-	try {
-		const fld = frm.fields_dict.html_apercu;
-		if (!fld || !fld.$wrapper || !fld.$wrapper.length) {
-			return;
-		}
+	if (frm.is_new()) {
+		frm.set_df_property(
+			'html_apercu',
+			'options',
+			`<p class="text-muted">${__('Enregistrez le document pour afficher la synthèse.')}</p>`
+		);
+		frm.refresh_field('html_apercu');
+		return;
+	}
 
-		const set_html = (inner) => {
-			if (typeof fld.html === 'function') {
-				fld.html(inner);
-			} else {
-				fld.$wrapper.html(inner);
-			}
-		};
+	frappe.require('/assets/aurescrm/css/dossier_fabrication.css').then(() => {
+		frm.set_df_property(
+			'html_apercu',
+			'options',
+			`<p class="text-muted">${__('Chargement de la synthèse...')}</p>`
+		);
+		frm.refresh_field('html_apercu');
 
-		if (frm.is_new()) {
-			set_html(`<p class="text-muted">${__('Enregistrez le document pour afficher la synthèse.')}</p>`);
-			return;
-		}
-
-		set_html(`<p class="text-muted">${__('Chargement de la synthèse...')}</p>`);
 		frappe.call({
-			method:
-				'aurescrm.aures_crm.doctype.dossier_fabrication.dossier_fabrication.get_dossier_apercu_html',
-			args: { dossier_name: frm.doc.name },
+			method: 'get_dossier_apercu_html',
+			doc: frm.doc,
 			callback(r) {
 				if (!r.exc && r.message) {
-					set_html(r.message);
+					frm.set_df_property('html_apercu', 'options', r.message);
+					frm.refresh_field('html_apercu');
 					bind_apercu_programme_fab_date(frm);
+					bind_apercu_programme_machine(frm);
 				} else {
-					set_html(`<p class="text-muted">${__('Aucune synthèse disponible.')}</p>`);
+					frm.set_df_property(
+						'html_apercu',
+						'options',
+						`<p class="text-muted">${__('Aucune synthèse disponible.')}</p>`
+					);
+					frm.refresh_field('html_apercu');
 				}
 			},
 		});
-	} catch (e) {
-		console.error('Dossier Fabrication html_apercu', e);
-	}
+	});
 }
 
 function qty_commandee_article(frm, article) {
@@ -98,6 +99,24 @@ function first_ligne_for_article(frm, article) {
 		}
 	}
 	return null;
+}
+
+function is_planification_locked(frm) {
+	return !!frm.doc.planification_validee;
+}
+
+function machine_link_query() {
+	return {
+		filters: {
+			type_equipement: 'Presse Offset',
+			procede: 'Offset',
+		},
+	};
+}
+
+function set_programme_livraison_readonly(frm) {
+	const locked = is_planification_locked(frm);
+	frm.set_df_property('programme_livraison', 'read_only', locked ? 1 : 0);
 }
 
 function bind_apercu_programme_fab_date(frm) {
@@ -155,16 +174,76 @@ function bind_apercu_programme_fab_date(frm) {
 	});
 }
 
+function bind_apercu_programme_machine(frm) {
+	const fld = frm.fields_dict.html_apercu;
+	if (!fld || !fld.$wrapper || !fld.$wrapper.length) {
+		return;
+	}
+	fld.$wrapper.off('click.dfProgMachine');
+	fld.$wrapper.on('click.dfProgMachine', '.df-edit-machine', function (e) {
+		e.preventDefault();
+		e.stopPropagation();
+		const programme_row = $(this).attr('data-programme-row');
+		const defMachine = $(this).attr('data-machine') || '';
+		if (!programme_row || frm.is_new()) {
+			return;
+		}
+		const d = new frappe.ui.Dialog({
+			title: __('Machine'),
+			fields: [
+				{
+					fieldname: 'machine',
+					fieldtype: 'Link',
+					options: 'Machine',
+					label: __('Machine (presse offset)'),
+					get_query: () => machine_link_query(),
+					default: defMachine || null,
+				},
+			],
+			primary_action_label: __('Enregistrer'),
+			primary_action(values) {
+				frappe.call({
+					method:
+						'aurescrm.aures_crm.doctype.dossier_fabrication.dossier_fabrication.update_programme_machine',
+					args: {
+						dossier_name: frm.doc.name,
+						programme_row_name: programme_row,
+						machine: values.machine || '',
+					},
+					callback(r) {
+						if (!r.exc) {
+							d.hide();
+							frappe.show_alert({
+								message: __('Machine mise à jour.'),
+								indicator: 'green',
+							});
+							frm.reload_doc();
+						}
+					},
+				});
+			},
+		});
+		d.show();
+	});
+}
+
 frappe.ui.form.on('Dossier Fabrication', {
 	refresh(frm) {
 		try {
 			setTimeout(() => render_html_apercu(frm), 0);
+			set_programme_livraison_readonly(frm);
 
 			if (frm.is_new()) {
 				return;
 			}
 
-			if (has_remaining_qty_to_program(frm)) {
+			const locked = is_planification_locked(frm);
+			const prog = frm.doc.programme_livraison || [];
+			const eligible_etude = prog
+				.map((row, i) => ({ row, programme_idx: i + 1 }))
+				.filter(({ row }) => row.article && !row.etude_technique);
+
+			if (!locked && has_remaining_qty_to_program(frm)) {
 				frm.add_custom_button(__('Programme livraison'), () => {
 				try {
 					const articles = articles_from_lignes(frm);
@@ -212,6 +291,13 @@ frappe.ui.form.on('Dossier Fabrication', {
 								reqd: 1,
 							},
 							{
+								fieldname: 'machine',
+								fieldtype: 'Link',
+								options: 'Machine',
+								label: __('Machine'),
+								get_query: () => machine_link_query(),
+							},
+							{
 								fieldname: 'allow_overflow',
 								fieldtype: 'Check',
 								label: __('Autoriser le dépassement de la quantité commandée'),
@@ -229,6 +315,7 @@ frappe.ui.form.on('Dossier Fabrication', {
 									date_livraison: values.date_livraison,
 									date_fabrication_prevue: values.date_fabrication_prevue,
 									quantite_a_produire: values.quantite_a_produire,
+									machine: values.machine || '',
 									allow_overflow: values.allow_overflow ? 1 : 0,
 								},
 								callback(r) {
@@ -260,6 +347,9 @@ frappe.ui.form.on('Dossier Fabrication', {
 						const ligne = first_ligne_for_article(frm, art);
 						if (ligne && ligne.date_livraison_commande) {
 							d.set_value('date_livraison', ligne.date_livraison_commande);
+						}
+						if (ligne && ligne.machine) {
+							d.set_value('machine', ligne.machine);
 						}
 						d.set_value('date_fabrication_prevue', frappe.datetime.get_today());
 						const badge_style =
@@ -293,12 +383,7 @@ frappe.ui.form.on('Dossier Fabrication', {
 				});
 			}
 
-			const prog = frm.doc.programme_livraison || [];
-			const eligible_etude = prog
-				.map((row, i) => ({ row, programme_idx: i + 1 }))
-				.filter(({ row }) => row.article && !row.etude_technique);
-
-			if (prog.length) {
+			if (!locked && prog.length) {
 				frm.add_custom_button(
 					__('Réinitialiser le programme livraison'),
 					() => {
@@ -328,7 +413,7 @@ frappe.ui.form.on('Dossier Fabrication', {
 				);
 			}
 
-			if (eligible_etude.length) {
+			if (!locked && eligible_etude.length) {
 				frm.add_custom_button(__('Créer étude technique'), () => {
 					try {
 						const articles_disponibles = [
@@ -536,6 +621,33 @@ frappe.ui.form.on('Dossier Fabrication', {
 						});
 					}
 				});
+			}
+
+			if (!locked && prog.length && eligible_etude.length) {
+				frm.add_custom_button(
+					__('Valider la planification'),
+					() => {
+						frappe.confirm(
+							__(
+								'Valider la planification et générer toutes les études techniques ? Le programme sera verrouillé.'
+							),
+							() => {
+								frappe.call({
+									method:
+										'aurescrm.aures_crm.doctype.dossier_fabrication.dossier_fabrication.valider_planification',
+									args: { dossier_name: frm.doc.name },
+									freeze: true,
+									callback(res) {
+										if (!res.exc) {
+											frm.reload_doc();
+										}
+									},
+								});
+							}
+						);
+					},
+					__('Actions')
+				);
 			}
 		} catch (e) {
 			console.error('Dossier Fabrication refresh', e);

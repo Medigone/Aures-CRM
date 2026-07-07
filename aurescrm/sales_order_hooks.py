@@ -121,10 +121,10 @@ def update_quotation_status_on_so_cancel(doc, method):
 
 
 @frappe.whitelist()
-def generate_technical_studies(sales_order_name):
+def create_dossier_fabrication_from_button(sales_order_name):
 	"""
-	Legacy / bouton commande : crée le Dossier Fabrication si absent.
-	Les études techniques se créent depuis une ligne du programme livraison du dossier.
+	Bouton commande : crée le Dossier Fabrication si absent.
+	Les études techniques se créent depuis le dossier (validation planification).
 	"""
 	try:
 		sales_order = frappe.get_doc("Sales Order", sales_order_name)
@@ -134,7 +134,7 @@ def generate_technical_studies(sales_order_name):
 			link = frappe.utils.get_link_to_form("Dossier Fabrication", name)
 			if not had_before:
 				frappe.msgprint(
-					_("Dossier fabrication créé : {0}. Programmez les livraisons puis créez les études depuis le dossier.").format(
+					_("Dossier fabrication créé : {0}. Programmez les livraisons puis validez la planification depuis le dossier.").format(
 						link
 					),
 					indicator="green",
@@ -142,7 +142,7 @@ def generate_technical_studies(sales_order_name):
 				)
 			else:
 				frappe.msgprint(
-					_("Dossier fabrication : {0}. Programmez les livraisons puis créez les études depuis la grille « Programme livraison ».").format(
+					_("Dossier fabrication : {0}. Programmez les livraisons puis validez la planification depuis le dossier.").format(
 						link
 					),
 					indicator="blue",
@@ -159,14 +159,20 @@ def generate_technical_studies(sales_order_name):
 			)
 	except Exception as e:
 		frappe.log_error(
-			f"generate_technical_studies dossier for Sales Order {sales_order_name}: {e}",
-			"generate_technical_studies",
+			f"create_dossier_fabrication_from_button for Sales Order {sales_order_name}: {e}",
+			"create_dossier_fabrication_from_button",
 		)
 		frappe.msgprint(
 			_("Échec : {0}").format(str(e)),
 			indicator="red",
 			title=_("Erreur"),
 		)
+
+
+@frappe.whitelist()
+def generate_technical_studies(sales_order_name):
+	"""Alias legacy — ne crée que le dossier fabrication (pas d'études techniques)."""
+	return create_dossier_fabrication_from_button(sales_order_name)
 
 
 @frappe.whitelist()

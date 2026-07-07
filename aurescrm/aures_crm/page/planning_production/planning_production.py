@@ -278,6 +278,8 @@ def _fetch_faisabilite(
 	date_to: date,
 	niveau_urgence: str | None,
 	allowed_machines: set[str] | None,
+	client: str | None = None,
+	article: str | None = None,
 ) -> list[dict]:
 	filters: dict[str, Any] = {
 		"docstatus": ["<", 2],
@@ -286,6 +288,10 @@ def _fetch_faisabilite(
 	}
 	if niveau_urgence:
 		filters["niveau_urgence"] = niveau_urgence
+	if client:
+		filters["client"] = client
+	if article:
+		filters["article"] = article
 
 	fields = [
 		"name",
@@ -350,10 +356,16 @@ def _fetch_technique(
 	date_to: date,
 	niveau_urgence: str | None,
 	allowed_machines: set[str] | None,
+	client: str | None = None,
+	article: str | None = None,
 ) -> list[dict]:
-	filters: dict[str, Any] = {"docstatus": 1, "procede": "Offset"}
+	filters: dict[str, Any] = {"docstatus": ["<", 2], "procede": "Offset"}
 	if niveau_urgence:
 		filters["niveau_urgence"] = niveau_urgence
+	if client:
+		filters["client"] = client
+	if article:
+		filters["article"] = article
 
 	fields = [
 		"name",
@@ -544,19 +556,253 @@ def _planning_charge_validate_machine(machine_name: str | None) -> None:
 		)
 
 
+def _find_etude_technique_for_faisabilite(ef) -> str | None:
+	"""Trouve l'étude technique liée à une étude de faisabilité (sans champ etude_faisabilite sur ET)."""
+	article = ef.article
+	demande = ef.demande_faisabilite
+
+	if demande and article:
+		dossier_name = frappe.db.get_value(
+			"Dossier Fabrication",
+			{"demande_faisabilite": demande},
+			"name",
+		)
+		if dossier_name:
+			row = _find_programme_row_for_planning(dossier_name, article, ef.name)
+			if row and row.etude_technique:
+				return row.etude_technique
+
+	if article and demande:
+		return frappe.db.get_value(
+			"Etude Technique",
+			{"article": article, "demande_faisabilite": demande},
+			"name",
+			order_by="modified desc",
+		)
+	return None
+
+
+def _find_programme_row_for_planning(
+	dossier_name: str,
+	article: str,
+	etude_faisabilite: str | None = None,
+) -> dict | None:
+	"""Ligne programme livraison la plus pertinente pour un article dans un dossier."""
+	if not dossier_name or not article:
+		return None
+	rows = frappe.get_all(
+		"Dossier Fabrication Programme Livraison",
+		filters={"parent": dossier_name, "article": article},
+		fields=["name", "etude_technique", "etude_faisabilite"],
+		order_by="idx asc",
+	)
+	if not rows:
+		return None
+	if etude_faisabilite:
+		for row in rows:
+			if row.etude_faisabilite == etude_faisabilite:
+				return row
+	for row in rows:
+		if row.etude_technique:
+			return row
+	return rows[0]
+
+
+def _enrich_faisabilite_jobs_from_production(
+	jobs: list[dict],
+	temporal_basis: str,
+) -> list[dict]:
+	"""
+	Pour les cartes faisabilité encore affichées, refléter machine/date
+	depuis l'étude technique ou le programme dossier (pas l'étude faisabilité).
+	"""
+	enriched: list[dict] = []
+	for job in jobs:
+		if job.get("source_key") != "faisabilite":
+			enriched.append(job)
+			continue
+
+		ef_name = job.get("doc_name")
+		if not ef_name or not frappe.db.exists("Etude Faisabilite", ef_name):
+			enriched.append(job)
+			continue
+
+		ef = frappe.get_doc("Etude Faisabilite", ef_name)
+		et_name = _find_etude_technique_for_faisabilite(ef)
+		machine = None
+		dt_plan = None
+
+		if et_name:
+			et = frappe.db.get_value(
+				"Etude Technique",
+				et_name,
+				["machine", "date_planification_production", "date_echeance"],
+				as_dict=True,
+			)
+			if et:
+				machine = et.machine
+				dt_plan = et.date_planification_production or et.date_echeance
+
+		if ef.demande_faisabilite and ef.article:
+			dossier_name = frappe.db.get_value(
+				"Dossier Fabrication",
+				{"demande_faisabilite": ef.demande_faisabilite},
+				"name",
+			)
+			if dossier_name:
+				row = _find_programme_row_for_planning(dossier_name, ef.article, ef.name)
+				if row:
+					pr = frappe.db.get_value(
+						"Dossier Fabrication Programme Livraison",
+						row.name,
+						["machine", "date_fabrication_prevue"],
+						as_dict=True,
+					)
+					if pr:
+						if machine is None:
+							machine = pr.machine
+						dt_plan = dt_plan or pr.date_fabrication_prevue
+
+		if machine is None and not dt_plan:
+			enriched.append(job)
+			continue
+
+		updated = dict(job)
+		if machine is not None:
+			updated["machine"] = machine or ""
+		if dt_plan:
+			updated["stored_plan_date"] = str(dt_plan)
+			updated["dt_planification"] = str(dt_plan)
+			if temporal_basis == "livraison_client":
+				display_date = updated.get("dt_livraison")
+			else:
+				display_date = dt_plan
+			updated["raw_date"] = str(display_date) if display_date else updated.get("raw_date")
+		enriched.append(updated)
+
+	return enriched
+
+
+def _job_in_display_range(job: dict, date_from_d: date, date_to_d: date) -> bool:
+	"""Vérifie si la date d'affichage du job est dans la plage filtre."""
+	raw = job.get("raw_date")
+	if not raw or raw == NO_DATE_KEY:
+		return True
+	dd = getdate(raw)
+	return date_from_d <= dd <= date_to_d
+
+
+def _resolve_production_planning_targets(doctype: str, name: str) -> dict[str, str | None]:
+	"""
+	Résout étude technique + ligne programme dossier à mettre à jour.
+	Ne modifie jamais l'étude de faisabilité.
+	"""
+	out: dict[str, str | None] = {
+		"etude_technique": None,
+		"dossier_name": None,
+		"programme_row_name": None,
+	}
+
+	if doctype == "Etude Technique":
+		et = frappe.get_doc("Etude Technique", name)
+		out["etude_technique"] = et.name
+		out["dossier_name"] = getattr(et, "dossier_fabrication", None) or None
+		row_name = getattr(et, "ligne_dossier_fabrication", None) or None
+		if row_name:
+			out["programme_row_name"] = row_name
+		elif out["dossier_name"] and et.article:
+			row = _find_programme_row_for_planning(
+				out["dossier_name"],
+				et.article,
+				None,
+			)
+			if row:
+				out["programme_row_name"] = row.name
+		return out
+
+	if doctype == "Etude Faisabilite":
+		ef = frappe.get_doc("Etude Faisabilite", name)
+		article = ef.article
+		demande = ef.demande_faisabilite
+
+		et_name = _find_etude_technique_for_faisabilite(ef)
+
+		dossier_name = None
+		if demande:
+			dossier_name = frappe.db.get_value(
+				"Dossier Fabrication",
+				{"demande_faisabilite": demande},
+				"name",
+			)
+
+		programme_row_name = None
+		if dossier_name and article:
+			row = _find_programme_row_for_planning(dossier_name, article, ef.name)
+			if row:
+				programme_row_name = row.name
+				if not et_name and row.etude_technique:
+					et_name = row.etude_technique
+
+		if et_name and not dossier_name:
+			dossier_name = frappe.db.get_value("Etude Technique", et_name, "dossier_fabrication")
+		if et_name and not programme_row_name and dossier_name and article:
+			row = _find_programme_row_for_planning(dossier_name, article, ef.name)
+			if row:
+				programme_row_name = row.name
+
+		out["etude_technique"] = et_name
+		out["dossier_name"] = dossier_name
+		out["programme_row_name"] = programme_row_name
+		return out
+
+	return out
+
+
+def _apply_production_planning(
+	machine: str | None,
+	plan_date: date,
+	targets: dict[str, str | None],
+) -> None:
+	"""Met à jour étude technique et ligne programme dossier (pas la faisabilité)."""
+	m = (machine or "").strip() or None
+	pd = getdate(plan_date)
+
+	if targets.get("etude_technique"):
+		et = frappe.get_doc("Etude Technique", targets["etude_technique"])
+		if et.docstatus == 2:
+			frappe.throw(_("Impossible de modifier une étude technique annulée."))
+		frappe.has_permission("Etude Technique", "write", doc=et, throw=True)
+		et.machine = m
+		et.date_planification_production = pd
+		et.save()
+
+	if targets.get("programme_row_name"):
+		frappe.db.set_value(
+			"Dossier Fabrication Programme Livraison",
+			targets["programme_row_name"],
+			{
+				"machine": m,
+				"date_fabrication_prevue": pd,
+			},
+		)
+
+
 @frappe.whitelist()
 def update_planning_charge_job(doctype=None, name=None, machine=None, plan_date=None):
-	"""Met à jour machine et/ou date de planif. sur document soumis (champs allow_on_submit)."""
+	"""Met à jour machine/date sur étude technique + dossier fabrication (jamais étude faisabilité)."""
 	dt = (cstr(doctype) or "").strip()
 	nm = (cstr(name) or "").strip()
 	if dt not in ("Etude Faisabilite", "Etude Technique") or not nm:
 		frappe.throw(_("Document invalide."))
 
-	doc = frappe.get_doc(dt, nm)
-	if doc.docstatus == 2:
-		frappe.throw(_("Impossible de modifier un document annulé."))
+	if not frappe.db.exists(dt, nm):
+		frappe.throw(_("Document introuvable."))
 
-	frappe.has_permission(doc.doctype, "write", doc=doc, throw=True)
+	# Permission : document affiché dans le planning (source de la carte)
+	source_doc = frappe.get_doc(dt, nm)
+	if source_doc.docstatus == 2:
+		frappe.throw(_("Impossible de modifier un document annulé."))
+	frappe.has_permission(source_doc.doctype, "read", doc=source_doc, throw=True)
 
 	m = (cstr(machine) if machine is not None else "").strip()
 	_planning_charge_validate_machine(m or None)
@@ -565,14 +811,17 @@ def update_planning_charge_job(doctype=None, name=None, machine=None, plan_date=
 		frappe.throw(_("La date de planification est obligatoire."))
 	pd = getdate(plan_date)
 
-	if dt == "Etude Faisabilite":
-		doc.machine_prevue = m or None
-		doc.date_echeance = pd
-	else:
-		doc.machine = m or None
-		doc.date_planification_production = pd
+	targets = _resolve_production_planning_targets(dt, nm)
+	if not targets.get("etude_technique") and not targets.get("programme_row_name"):
+		frappe.throw(
+			_(
+				"Aucune étude technique ni ligne de programme livraison liée. "
+				"Validez d'abord la planification dans le dossier fabrication."
+			),
+			title=_("Mise à jour impossible"),
+		)
 
-	doc.save()
+	_apply_production_planning(m or None, pd, targets)
 	return {"ok": True, "message": _("Planification mise à jour.")}
 
 
@@ -637,6 +886,8 @@ def export_planning_charge_excel(
 	granularity="day",
 	machine=None,
 	niveau_urgence=None,
+	client=None,
+	article=None,
 	sources=None,
 ):
 	"""Export .xlsx (mêmes filtres que le planning)."""
@@ -647,6 +898,8 @@ def export_planning_charge_excel(
 		granularity=granularity,
 		machine=machine,
 		niveau_urgence=niveau_urgence,
+		client=client,
+		article=article,
 		sources=sources,
 	)
 	rows = _build_planning_export_rows(result)
@@ -656,8 +909,8 @@ def export_planning_charge_excel(
 	from frappe.desk.utils import provide_binary_file
 	from frappe.utils.xlsxutils import make_xlsx
 
-	xlsx_bytes = make_xlsx(rows, str(_("Planning charge machines"))).getvalue()
-	provide_binary_file("planning_charge_machines", "xlsx", xlsx_bytes)
+	xlsx_bytes = make_xlsx(rows, str(_("Planning Production"))).getvalue()
+	provide_binary_file("planning_production", "xlsx", xlsx_bytes)
 
 
 @frappe.whitelist()
@@ -668,6 +921,8 @@ def get_planning_charge(
 	granularity="day",
 	machine=None,
 	niveau_urgence=None,
+	client=None,
+	article=None,
 	sources=None,
 ):
 	date_from_d = getdate(date_from) if date_from else getdate(add_days(today(), -30))
@@ -685,6 +940,8 @@ def get_planning_charge(
 
 	source_set = parse_sources(sources)
 	machine_name = (str(machine).strip() if machine else "") or None
+	client_name = (str(client).strip() if client else "") or None
+	article_code = (str(article).strip() if article else "") or None
 	allowed = _allowed_machines_for_query([machine_name] if machine_name else None)
 
 	jobs: list[dict] = []
@@ -696,13 +953,27 @@ def get_planning_charge(
 				date_to_d,
 				niveau_urgence,
 				allowed,
+				client_name,
+				article_code,
 			)
 		)
 	if "technique" in source_set:
-		jobs.extend(_fetch_technique(tb, date_from_d, date_to_d, niveau_urgence, allowed))
+		jobs.extend(
+			_fetch_technique(
+				tb,
+				date_from_d,
+				date_to_d,
+				niveau_urgence,
+				allowed,
+				client_name,
+				article_code,
+			)
+		)
 
 	# Un seul affichage par fil : si une étude technique existe pour la demande, la ligne faisabilité est retirée.
 	jobs = _deduplicate_jobs(jobs)
+	jobs = _enrich_faisabilite_jobs_from_production(jobs, tb)
+	jobs = [j for j in jobs if _job_in_display_range(j, date_from_d, date_to_d)]
 
 	_hydrate_labels(jobs)
 
@@ -715,5 +986,7 @@ def get_planning_charge(
 		"temporal_basis_label": tb_label,
 		"sources": sorted(source_set),
 		"scope": "offset_presse",
+		"client": client_name or "",
+		"article": article_code or "",
 	}
 	return result

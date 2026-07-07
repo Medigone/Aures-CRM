@@ -7,9 +7,9 @@
  "modified": "2026-04-24 10:00:00",
  "modified_by": "Administrator",
  "module": "Aures CRM",
- "name": "planning-charge-machines",
+ "name": "planning-production",
  "owner": "Administrator",
- "page_name": "planning-charge-machines",
+ "page_name": "planning-production",
  "roles": [
   {
    "role": "System Manager"
@@ -26,5 +26,5 @@
  ],
  "standard": "Yes",
  "system_page": 0,
- "title": "Planning Charge Machines"
+ "title": "Planning Production"
 }

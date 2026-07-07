@@ -10,6 +10,9 @@
   "naming_series",
   "section_statut",
   "status",
+  "planification_validee",
+  "date_validation_planification",
+  "valide_par",
   "section_refs",
   "sales_order",
   "quotation",
@@ -49,6 +52,27 @@
    "label": "Statut",
    "options": "Brouillon\nOuvert\nEn cours\nCl\u00f4tur\u00e9",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "planification_validee",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Planification valid\u00e9e",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_validation_planification",
+   "fieldtype": "Datetime",
+   "label": "Date validation planification",
+   "read_only": 1
+  },
+  {
+   "fieldname": "valide_par",
+   "fieldtype": "Link",
+   "label": "Valid\u00e9 par",
+   "options": "User",
+   "read_only": 1
   },
   {
    "fieldname": "section_refs",

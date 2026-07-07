@@ -1,6 +1,12 @@
-/* Planning charge machines — pivot table */
+/* Planning Production — pivot table */
 
-.planning-charge-root {
+/* Barre de filtres au-dessus du tableau sticky (évite que « Date » masque les listes Link). */
+.page-form {
+	position: relative;
+	z-index: 10;
+}
+
+.planning-production-root {
 	padding-bottom: 1rem;
 }
 
@@ -8,7 +14,7 @@
 	margin-bottom: 0.5rem;
 }
 
-.planning-charge-scroll {
+.planning-production-scroll {
 	--planning-card-width: 300px;
 	--planning-machine-col-width: calc(var(--planning-card-width) + 16px);
 	--planning-date-col-width: 176px;
@@ -33,7 +39,7 @@
 .planning-pivot thead th {
 	position: sticky;
 	top: 0;
-	z-index: 3;
+	z-index: 2;
 	background: var(--fg-color);
 	box-shadow: 0 1px 0 var(--border-color);
 	vertical-align: top;
@@ -77,7 +83,7 @@
 
 .planning-pivot .sticky-corner {
 	left: 0;
-	z-index: 4;
+	z-index: 3;
 	width: var(--planning-date-col-width);
 	min-width: var(--planning-date-col-width);
 	max-width: var(--planning-date-col-width);
@@ -87,7 +93,7 @@
 .planning-pivot .sticky-date {
 	position: sticky;
 	left: 0;
-	z-index: 2;
+	z-index: 1;
 	background: var(--fg-color);
 	box-shadow: 1px 0 0 var(--border-color);
 	vertical-align: top;
@@ -609,12 +615,12 @@
 		visibility: hidden !important;
 	}
 
-	.planning-charge-print-region,
-	.planning-charge-print-region * {
+	.planning-production-print-region,
+	.planning-production-print-region * {
 		visibility: visible !important;
 	}
 
-	.planning-charge-print-region {
+	.planning-production-print-region {
 		position: absolute;
 		left: 0;
 		top: 0;
@@ -671,7 +677,7 @@
 		display: none !important;
 	}
 
-	.planning-charge-scroll {
+	.planning-production-scroll {
 		max-height: none !important;
 		overflow: visible !important;
 		box-shadow: none !important;
