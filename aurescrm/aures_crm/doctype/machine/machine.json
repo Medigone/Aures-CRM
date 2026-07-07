@@ -294,7 +294,8 @@
    "fieldname": "total_couleurs",
    "fieldtype": "Int",
    "label": "Total couleurs",
-   "non_negative": 1
+   "non_negative": 1,
+   "read_only": 1
   },
   {
    "fieldname": "column_break_bqbj",

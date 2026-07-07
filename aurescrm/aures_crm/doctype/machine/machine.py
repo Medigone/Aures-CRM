@@ -1,13 +1,18 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class Machine(Document):
 	def validate(self):
 		self.set_is_active_from_status()
+		self.set_total_couleurs()
 		if self.type_equipement == "Presse Offset":
 			self.validate_format_dimensions()
+
+	def set_total_couleurs(self):
+		self.total_couleurs = cint(self.nb_couleurs_recto) + cint(self.nb_couleurs_verso)
 
 	def set_is_active_from_status(self):
 		self.is_active = 1 if self.status == "Operationnelle" else 0

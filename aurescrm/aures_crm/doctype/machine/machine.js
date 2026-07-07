@@ -1,3 +1,10 @@
+function set_total_couleurs(frm) {
+	frm.set_value(
+		'total_couleurs',
+		cint(frm.doc.nb_couleurs_recto) + cint(frm.doc.nb_couleurs_verso)
+	);
+}
+
 frappe.ui.form.on('Machine', {
 	refresh: function(frm) {
 		frm.set_query('site_production', function() {
@@ -42,11 +49,15 @@ frappe.ui.form.on('Machine', {
 			frm.set_value('retiration', 0);
 			frm.set_value('nb_couleurs_recto', 0);
 			frm.set_value('nb_couleurs_verso', 0);
+			frm.set_value('total_couleurs', 0);
 			frm.set_value('gache_calage', 0);
 			frm.set_value('format_max_laize', 0);
 			frm.set_value('format_max_developpement', 0);
 			frm.set_value('format_min_laize', 0);
 			frm.set_value('format_min_developpement', 0);
 		}
-	}
+	},
+
+	nb_couleurs_recto: set_total_couleurs,
+	nb_couleurs_verso: set_total_couleurs
 });
