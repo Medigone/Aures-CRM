@@ -16,6 +16,18 @@ class EtudeTechnique(Document):
 	def before_save(self):
 		"""Assure que le calcul est fait avant la sauvegarde."""
 		self.calculate_quant_feuilles()
+		self.set_passages()
+
+	def before_update_after_submit(self):
+		# machine modifiable après soumission (planning) : garder passages/charge cohérents.
+		self.set_passages()
+
+	def set_passages(self):
+		"""Nombre de passages presse et charge (feuilles × passages) selon la machine choisie."""
+		from aurescrm.passages import get_nb_passages
+
+		self.nb_passages = get_nb_passages(self.article, self.machine, self.maquette)
+		self.charge_feuilles = (self.quant_feuilles or 0) * (self.nb_passages or 0)
 
 	def set_existing_bat(self):
 		"""Recherche et définit le BAT existant pour l'article avec le statut 'BAT-P Validé'."""

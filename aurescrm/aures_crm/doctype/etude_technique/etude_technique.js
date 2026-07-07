@@ -494,3 +494,41 @@ if (!window.show_item_technical_specs) {
 		});
 	};
 }
+
+// Nombre de passages presse : recalcul à la volée quand la machine change
+// (le serveur reste la source de vérité au save via EtudeTechnique.set_passages).
+frappe.ui.form.on('Etude Technique', {
+	machine: function (frm) {
+		aures_et_refresh_passages(frm);
+	},
+	quantite: function (frm) {
+		aures_et_refresh_passages(frm);
+	}
+});
+
+function aures_et_refresh_passages(frm) {
+	if (!frm.doc.machine || !frm.doc.article) {
+		frm.set_value('nb_passages', 0);
+		frm.set_value('charge_feuilles', 0);
+		return;
+	}
+	frappe.call({
+		method: 'aurescrm.passages.get_passages_pour_machine',
+		args: {
+			article: frm.doc.article,
+			machine: frm.doc.machine,
+			maquette: frm.doc.maquette || null
+		},
+		callback: function (r) {
+			var info = r.message || {};
+			var p = info.calculable ? info.passages : 0;
+			frm.set_value('nb_passages', p);
+			frm.set_value('charge_feuilles', (frm.doc.quant_feuilles || 0) * p);
+			if (info.detail) {
+				frm.set_df_property('nb_passages', 'description', info.detail);
+			} else if (info.raison) {
+				frm.set_df_property('nb_passages', 'description', info.raison);
+			}
+		}
+	});
+}

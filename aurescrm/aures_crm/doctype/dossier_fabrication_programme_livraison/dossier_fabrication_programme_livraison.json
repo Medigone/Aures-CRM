@@ -17,6 +17,7 @@
   "trace",
   "imposition",
   "machine",
+  "nb_passages",
   "column_break_p3",
   "etude_faisabilite",
   "etude_technique",
@@ -103,6 +104,16 @@
    "in_list_view": 1,
    "label": "Machine",
    "options": "Machine"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "nb_passages",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Passages",
+   "non_negative": 1,
+   "read_only": 1
   },
   {
    "fieldname": "column_break_p3",

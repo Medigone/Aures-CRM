@@ -31,6 +31,8 @@
   "machine_prevue",
   "statut_machine_prevue",
   "format_machine",
+  "nb_passages",
+  "charge_feuilles",
   "column_break_machine",
   "section_break_zxac",
   "html_doc",
@@ -390,6 +392,28 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Format machine (laize x d\u00e9v.)",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "nb_passages",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Nombre de passages",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "charge_feuilles",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Charge presse (feuilles \u00d7 passages)",
+   "non_negative": 1,
+   "precision": "2",
    "read_only": 1
   },
   {

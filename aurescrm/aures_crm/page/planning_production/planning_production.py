@@ -302,6 +302,7 @@ def _fetch_faisabilite(
 		"article",
 		"quantite",
 		"nbr_feuilles",
+		"nb_passages",
 		"status",
 		"niveau_urgence",
 		"demande_faisabilite",
@@ -336,6 +337,7 @@ def _fetch_faisabilite(
 				"article": r.get("article") or "",
 				"qte_article": r.get("quantite") or 0,
 				"qte_feuilles": float(r.get("nbr_feuilles") or 0),
+				"nb_passages": int(r.get("nb_passages") or 0),
 				"statut": st_label,
 				"status_badge": {
 					"label": st_label,
@@ -378,6 +380,7 @@ def _fetch_technique(
 		"article",
 		"quantite",
 		"quant_feuilles",
+		"nb_passages",
 		"status",
 		"niveau_urgence",
 		"demande_faisabilite",
@@ -442,6 +445,7 @@ def _fetch_technique(
 				"article": r.get("article") or "",
 				"qte_article": r.get("quantite") or 0,
 				"qte_feuilles": float(r.get("quant_feuilles") or 0),
+				"nb_passages": int(r.get("nb_passages") or 0),
 				"statut": st_label,
 				"status_badge": {
 					"label": st_label,
@@ -480,6 +484,8 @@ def _build_matrix(jobs: list[dict], granularity: str) -> dict[str, Any]:
 			"article_label": j.get("article_label", ""),
 			"qte_article": j["qte_article"],
 			"qte_feuilles": j["qte_feuilles"],
+			"nb_passages": int(j.get("nb_passages") or 0),
+			"charge": float(j.get("qte_feuilles") or 0) * int(j.get("nb_passages") or 0),
 			"statut": j.get("statut", ""),
 			"urgence": j.get("urgence", ""),
 			"stage": j["stage"],
@@ -502,9 +508,12 @@ def _build_matrix(jobs: list[dict], granularity: str) -> dict[str, Any]:
 	dates_out = [{"key": dk, "label": _date_label(dk, granularity)} for dk in date_keys]
 
 	by_date: dict[str, dict[str, Any]] = {}
-	by_machine: dict[str, dict[str, Any]] = defaultdict(lambda: {"jobs": 0, "feuilles": 0.0})
+	by_machine: dict[str, dict[str, Any]] = defaultdict(
+		lambda: {"jobs": 0, "feuilles": 0.0, "charge": 0.0}
+	)
 	grand_jobs = 0
 	grand_feuilles = 0.0
+	grand_charge = 0.0
 
 	cells_out: dict[str, dict[str, Any]] = {}
 
@@ -512,18 +521,28 @@ def _build_matrix(jobs: list[dict], granularity: str) -> dict[str, Any]:
 		cells_out[dk] = {}
 		row_jobs = 0
 		row_feuilles = 0.0
+		row_charge = 0.0
 		for m in ordered_machines:
 			jlist = cell_data[dk][m]
 			nj = len(jlist)
 			sf = sum(float(x.get("qte_feuilles") or 0) for x in jlist)
-			cells_out[dk][m] = {"jobs": jlist, "job_count": nj, "feuilles_sum": sf}
+			sc = sum(float(x.get("charge") or 0) for x in jlist)
+			cells_out[dk][m] = {
+				"jobs": jlist,
+				"job_count": nj,
+				"feuilles_sum": sf,
+				"charge_sum": sc,
+			}
 			row_jobs += nj
 			row_feuilles += sf
+			row_charge += sc
 			by_machine[m]["jobs"] += nj
 			by_machine[m]["feuilles"] += sf
-		by_date[dk] = {"jobs": row_jobs, "feuilles": row_feuilles}
+			by_machine[m]["charge"] += sc
+		by_date[dk] = {"jobs": row_jobs, "feuilles": row_feuilles, "charge": row_charge}
 		grand_jobs += row_jobs
 		grand_feuilles += row_feuilles
+		grand_charge += row_charge
 
 	return {
 		"granularity": granularity,
@@ -533,7 +552,7 @@ def _build_matrix(jobs: list[dict], granularity: str) -> dict[str, Any]:
 		"totals": {
 			"by_date": by_date,
 			"by_machine": dict(by_machine),
-			"grand": {"jobs": grand_jobs, "feuilles": grand_feuilles},
+			"grand": {"jobs": grand_jobs, "feuilles": grand_feuilles, "charge": grand_charge},
 		},
 	}
 
@@ -630,17 +649,19 @@ def _enrich_faisabilite_jobs_from_production(
 		ef = frappe.get_doc("Etude Faisabilite", ef_name)
 		et_name = _find_etude_technique_for_faisabilite(ef)
 		machine = None
+		nb_passages = None
 		dt_plan = None
 
 		if et_name:
 			et = frappe.db.get_value(
 				"Etude Technique",
 				et_name,
-				["machine", "date_planification_production", "date_echeance"],
+				["machine", "nb_passages", "date_planification_production", "date_echeance"],
 				as_dict=True,
 			)
 			if et:
 				machine = et.machine
+				nb_passages = et.nb_passages
 				dt_plan = et.date_planification_production or et.date_echeance
 
 		if ef.demande_faisabilite and ef.article:
@@ -655,12 +676,13 @@ def _enrich_faisabilite_jobs_from_production(
 					pr = frappe.db.get_value(
 						"Dossier Fabrication Programme Livraison",
 						row.name,
-						["machine", "date_fabrication_prevue"],
+						["machine", "nb_passages", "date_fabrication_prevue"],
 						as_dict=True,
 					)
 					if pr:
 						if machine is None:
 							machine = pr.machine
+							nb_passages = pr.nb_passages
 						dt_plan = dt_plan or pr.date_fabrication_prevue
 
 		if machine is None and not dt_plan:
@@ -670,6 +692,7 @@ def _enrich_faisabilite_jobs_from_production(
 		updated = dict(job)
 		if machine is not None:
 			updated["machine"] = machine or ""
+			updated["nb_passages"] = int(nb_passages or 0)
 		if dt_plan:
 			updated["stored_plan_date"] = str(dt_plan)
 			updated["dt_planification"] = str(dt_plan)
@@ -777,12 +800,18 @@ def _apply_production_planning(
 		et.save()
 
 	if targets.get("programme_row_name"):
+		from aurescrm.passages import get_nb_passages
+
+		row_article = frappe.db.get_value(
+			"Dossier Fabrication Programme Livraison", targets["programme_row_name"], "article"
+		)
 		frappe.db.set_value(
 			"Dossier Fabrication Programme Livraison",
 			targets["programme_row_name"],
 			{
 				"machine": m,
 				"date_fabrication_prevue": pd,
+				"nb_passages": get_nb_passages(row_article, m),
 			},
 		)
 
@@ -825,6 +854,94 @@ def update_planning_charge_job(doctype=None, name=None, machine=None, plan_date=
 	return {"ok": True, "message": _("Planification mise à jour.")}
 
 
+@frappe.whitelist()
+def get_machine_recommendations(article=None, plan_date=None, exclude_source=None, exclude_name=None):
+	"""Aide au choix machine pour le dialogue de replanification.
+
+	Pour chaque presse offset : passages presse pour l'article + charge déjà planifiée
+	à la date choisie (job en cours d'édition exclu). La machine « idéale » minimise
+	les passages (coût), puis la charge du jour (équilibrage).
+	"""
+	article = (cstr(article) or "").strip()
+	if not article:
+		frappe.throw(_("Article requis."))
+	pd = getdate(plan_date) if plan_date and cstr(plan_date).strip() else None
+	excl_name = (cstr(exclude_name) or "").strip()
+	excl_source = (cstr(exclude_source) or "").strip()
+
+	machines = frappe.get_all(
+		"Machine",
+		filters={
+			"type_equipement": "Presse Offset",
+			"procede": "Offset",
+			"status": ["!=", "Désactivé"],
+		},
+		fields=["name", "nom", "status", "total_couleurs", "vernis"],
+		order_by="nom asc",
+	)
+	if not machines:
+		return {"machines": [], "date": str(pd) if pd else None}
+
+	from aurescrm.passages import get_passages_par_machine
+
+	pinfos = get_passages_par_machine(article, [m.name for m in machines])
+
+	# Charge du jour par machine : mêmes règles que la grille (dédup, enrichissement).
+	load_by_machine: dict[str, dict[str, float]] = {}
+	if pd:
+		day = get_planning_charge(date_from=str(pd), date_to=str(pd), granularity="day")
+		row = (day.get("cells") or {}).get(str(pd)) or {}
+		for mname, cell in row.items():
+			jobs = [
+				x
+				for x in (cell.get("jobs") or [])
+				if not (excl_name and x.get("doc_name") == excl_name and x.get("source") == excl_source)
+			]
+			load_by_machine[mname] = {
+				"jobs": len(jobs),
+				"feuilles": sum(float(x.get("qte_feuilles") or 0) for x in jobs),
+				"charge": sum(float(x.get("charge") or 0) for x in jobs),
+			}
+
+	out = []
+	for m in machines:
+		pi = pinfos.get(m.name) or {}
+		load = load_by_machine.get(m.name) or {"jobs": 0, "feuilles": 0.0, "charge": 0.0}
+		out.append(
+			{
+				"machine": m.name,
+				"label": (m.nom or m.name).strip(),
+				"status": (m.status or "").strip(),
+				"status_indicator": _get_machine_status_indicator(m.status or ""),
+				"calculable": bool(pi.get("calculable")),
+				"passages": int(pi.get("passages") or 0),
+				"detail": pi.get("detail") or "",
+				"raison": pi.get("raison") or "",
+				"jobs": load["jobs"],
+				"feuilles": load["feuilles"],
+				"charge": load["charge"],
+				"ideal": False,
+			}
+		)
+
+	# Tri : passages croissants (coût) puis charge du jour ; non calculables en fin de liste.
+	computables = sorted(
+		[o for o in out if o["calculable"]],
+		key=lambda o: (o["passages"], o["jobs"], o["charge"], o["label"]),
+	)
+	others = sorted([o for o in out if not o["calculable"]], key=lambda o: o["label"])
+	ranked = computables + others
+
+	# Machine idéale : coût minimum d'abord, machine opérationnelle préférée à métriques égales.
+	ideal = next((o for o in computables if o["status"] == "Operationnelle"), None) or next(
+		(o for o in computables if o["status"] not in ("En Panne", "Hors Service")), None
+	)
+	if ideal:
+		ideal["ideal"] = True
+
+	return {"machines": ranked, "date": str(pd) if pd else None}
+
+
 def _build_planning_export_rows(result: dict[str, Any]) -> list[list[Any]]:
 	"""Lignes tabulaires (en-tête + données) alignées sur l’export CSV du client."""
 	header = [
@@ -839,6 +956,8 @@ def _build_planning_export_rows(result: dict[str, Any]) -> list[list[Any]]:
 		str(_("Article")),
 		str(_("Qté article")),
 		str(_("Qté feuilles")),
+		str(_("Nb passages")),
+		str(_("Charge (feuilles × passages)")),
 		str(_("Date livraison")),
 		str(_("Date planif. production")),
 		str(_("Urgence")),
@@ -870,6 +989,8 @@ def _build_planning_export_rows(result: dict[str, Any]) -> list[list[Any]]:
 						j.get("article_label") or "",
 						j.get("qte_article"),
 						j.get("qte_feuilles"),
+						j.get("nb_passages") or 0,
+						j.get("charge") or 0,
 						j.get("dt_livraison") or "",
 						j.get("dt_planification") or "",
 						j.get("urgence") or "",

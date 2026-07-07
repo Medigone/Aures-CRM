@@ -318,7 +318,7 @@ function show_machine_picker_dialog(frm) {
     d.show();
     frappe.call({
         method: 'aurescrm.aures_crm.doctype.etude_faisabilite.etude_faisabilite.get_machines_for_etude_selection',
-        args: { procede: frm.doc.procede || '' },
+        args: { procede: frm.doc.procede || '', article: frm.doc.article || '' },
         callback: function (r) {
             var list = r.message || [];
             var w = d.fields_dict.machine_list.$wrapper;
@@ -383,6 +383,14 @@ function show_machine_picker_dialog(frm) {
                 var sub1 = [mc.type_equipement, mm].filter(Boolean).join(' · ');
                 var sub2 = proc;
                 var chips = [];
+                if (mc.total_couleurs) {
+                    chips.push(
+                        mc.total_couleurs +
+                            ' ' +
+                            __('couleurs') +
+                            (mc.vernis ? ' + ' + __('vernis') : '')
+                    );
+                }
                 if (mc.format_max_laize && mc.format_max_developpement) {
                     chips.push(
                         __('Format max') +
@@ -406,6 +414,28 @@ function show_machine_picker_dialog(frm) {
                         return '<span class="aures-mpick-chip">' + _ef_esc(c) + '</span>';
                     })
                     .join('');
+                var passagesPill = '';
+                if (mc.passages_info) {
+                    var pi = mc.passages_info;
+                    if (pi.calculable) {
+                        var pLbl = pi.passages === 1 ? __('1 passage') : pi.passages + ' ' + __('passages');
+                        passagesPill =
+                            '<span class="indicator-pill ' +
+                            (pi.passages === 1 ? 'green' : pi.passages === 2 ? 'orange' : 'red') +
+                            '" title="' +
+                            _ef_esc(pi.detail || '') +
+                            '">' +
+                            _ef_esc(pLbl) +
+                            '</span>';
+                    } else {
+                        passagesPill =
+                            '<span class="indicator-pill gray" title="' +
+                            _ef_esc(pi.raison || '') +
+                            '">' +
+                            _ef_esc(__('Passages ?')) +
+                            '</span>';
+                    }
+                }
                 var btn =
                     '<button type="button" class="btn btn-default btn-sm" disabled>' +
                     _ef_esc(__('Machine actuelle')) +
@@ -444,6 +474,7 @@ function show_machine_picker_dialog(frm) {
                         (statut
                             ? '<span class="indicator-pill ' + pill_class + '">' + _ef_esc(statut) + '</span>'
                             : '') +
+                        passagesPill +
                         '</div>' +
                         subHtml +
                         (chipsHtml ? '<div class="aures-mpick-ch">' + chipsHtml + '</div>' : '') +
@@ -507,6 +538,8 @@ function load_machine_panel(frm, immediate) {
             'format_min_developpement',
             'vitesse_max',
             'temps_calage',
+            'total_couleurs',
+            'vernis',
             'nb_couleurs_recto',
             'nb_couleurs_verso',
             'gache_calage',
@@ -544,8 +577,14 @@ function load_machine_panel(frm, immediate) {
                 }
                 frm.set_value('format_machine', fmt_machine, undefined, true);
 
+                var passages_info = null;
+
                 var finish = function (imp) {
                     var alerts = [];
+
+                    if (passages_info && !passages_info.calculable && passages_info.raison) {
+                        alerts.push(__('Passages non calculables : {0}', [passages_info.raison]));
+                    }
 
                     if (imp && m) {
                         if (
@@ -623,6 +662,8 @@ function load_machine_panel(frm, immediate) {
                     if (m.type_equipement === 'Presse Offset') {
                         addSpec(__('Procédé'), m.procede);
                         addSpec(__('Type de presse'), m.type_presse);
+                        addSpec(__('Total couleurs (groupes)'), m.total_couleurs);
+                        addSpec(__('Tour vernis'), m.vernis ? __('Oui') : __('Non'));
                         addSpec(__('Couleurs recto'), m.nb_couleurs_recto);
                         addSpec(__('Couleurs verso'), m.nb_couleurs_verso);
                         addSpec(__('Gâche calage (feuilles)'), m.gache_calage);
@@ -642,6 +683,16 @@ function load_machine_panel(frm, immediate) {
                     }
                     if (imp && imp.nbr_poses != null && imp.nbr_poses !== '') {
                         addSpec(__('Poses par feuille (imposition)'), imp.nbr_poses);
+                    }
+                    if (passages_info && passages_info.calculable) {
+                        addSpec(__('Nombre de passages'), passages_info.passages);
+                        var feuilles_etude = parseFloat(frm.doc.nbr_feuilles) || 0;
+                        if (feuilles_etude > 0) {
+                            addSpec(
+                                __('Charge presse (feuilles × passages)'),
+                                Math.ceil(feuilles_etude * passages_info.passages)
+                            );
+                        }
                     }
 
                     var specsHtml = specs
@@ -684,6 +735,12 @@ function load_machine_panel(frm, immediate) {
                         '">' +
                         _ef_esc(docName === titleTrim ? __('Voir la fiche') : frm.doc.machine_prevue) +
                         '</a></div>';
+                    var passagesDetail =
+                        passages_info && passages_info.detail
+                            ? '<div class="text-muted small" style="margin-top:10px;line-height:1.45;">' +
+                              _ef_esc(passages_info.detail) +
+                              '</div>'
+                            : '';
                     var html =
                         AURES_MACHINE_CARD_CSS +
                         '<div class="aures-mui aures-mcard">' +
@@ -714,26 +771,49 @@ function load_machine_panel(frm, immediate) {
                         '<div class="aures-mcard-main">' +
                         '<div class="aures-mcard-specg">' +
                         specsHtml +
-                        '</div></div></div></div>';
+                        '</div>' +
+                        passagesDetail +
+                        '</div></div></div>';
 
                     html_field.$wrapper.html(html);
                     bind_machine_panel_select_button(frm);
                 };
 
-                if (frm.doc.imposition) {
+                var load_imposition_then_finish = function () {
+                    if (frm.doc.imposition) {
+                        frappe.call({
+                            method: 'frappe.client.get_value',
+                            args: {
+                                doctype: 'Imposition',
+                                filters: { name: frm.doc.imposition },
+                                fieldname: ['format_laize', 'format_developpement', 'nbr_poses']
+                            },
+                            callback: function (r2) {
+                                finish(r2.message || null);
+                            }
+                        });
+                    } else {
+                        finish(null);
+                    }
+                };
+
+                if (frm.doc.article && m.type_equipement === 'Presse Offset') {
                     frappe.call({
-                        method: 'frappe.client.get_value',
+                        method: 'aurescrm.passages.get_passages_pour_machine',
                         args: {
-                            doctype: 'Imposition',
-                            filters: { name: frm.doc.imposition },
-                            fieldname: ['format_laize', 'format_developpement', 'nbr_poses']
+                            article: frm.doc.article,
+                            machine: frm.doc.machine_prevue
                         },
-                        callback: function (r2) {
-                            finish(r2.message || null);
+                        callback: function (rp) {
+                            passages_info = rp.message || null;
+                            load_imposition_then_finish();
+                        },
+                        error: function () {
+                            load_imposition_then_finish();
                         }
                     });
                 } else {
-                    finish(null);
+                    load_imposition_then_finish();
                 }
             }
         });

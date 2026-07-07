@@ -21,9 +21,20 @@ class EtudeFaisabilite(Document):
 			self.auto_link_existing_trace()
 		self.set_format_machine()
 		self.set_statut_machine_prevue()
+		self.set_passages()
+
+	def before_update_after_submit(self):
+		# machine_prevue est modifiable après soumission : garder passages/charge cohérents.
+		self.set_passages()
 
 	def validate(self):
 		self.set_nbr_feuilles()
+
+	def set_passages(self):
+		from aurescrm.passages import get_nb_passages
+
+		self.nb_passages = get_nb_passages(self.article, self.machine_prevue)
+		self.charge_feuilles = flt(self.nbr_feuilles or 0) * (self.nb_passages or 0)
 
 	def set_nbr_feuilles(self):
 		if not self.imposition:
@@ -96,8 +107,11 @@ def get_existing_trace_for_article(article):
 
 
 @frappe.whitelist()
-def get_machines_for_etude_selection(procede=None):
-	"""Machines éligibles pour l'étude (statut ≠ Désactivé, Presse Offset, procédé optionnel)."""
+def get_machines_for_etude_selection(procede=None, article=None):
+	"""Machines éligibles pour l'étude (statut ≠ Désactivé, Presse Offset, procédé optionnel).
+
+	Si un article est fourni, chaque machine reçoit `passages_info` (nombre de passages presse).
+	"""
 	frappe.has_permission(doctype="Machine", ptype="read", throw=True)
 	filters = [
 		["status", "!=", "Désactivé"],
@@ -120,12 +134,27 @@ def get_machines_for_etude_selection(procede=None):
 		"min_qt",
 		"vitesse_max",
 		"site_production",
+		"total_couleurs",
+		"vernis",
 	]
 	rows = frappe.get_all("Machine", filters=filters, fields=fields, order_by="nom asc")
 	# URL absolue pour <img> dans le dialogue (évite résolution relative / lazy edge cases).
 	for row in rows:
 		if row.get("image"):
 			row["image_href"] = get_url(row["image"])
+
+	if article:
+		from aurescrm.passages import compute_passages, get_besoins_impression
+
+		besoins = get_besoins_impression(article)
+		for row in rows:
+			row["passages_info"] = compute_passages(
+				row.get("total_couleurs"),
+				row.get("vernis"),
+				besoins["couleurs"],
+				besoins["vernis_groupe"],
+				besoins["vernis_tour"],
+			)
 	return rows
 
 

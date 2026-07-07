@@ -332,12 +332,14 @@ class PlanningProductionPage {
 			__("Date")
 		)}</span></span></th>`;
 		for (const m of machines) {
-			const tm = by_m[m.name] || { jobs: 0, feuilles: 0 };
+			const tm = by_m[m.name] || { jobs: 0, feuilles: 0, charge: 0 };
 			const headBadges = this.render_totals_pills_html(
 				tm.jobs,
 				tm.feuilles,
+				tm.charge,
 				__("Total jobs pour cette machine"),
-				__("Total feuilles pour cette machine")
+				__("Total feuilles pour cette machine"),
+				__("Charge presse pour cette machine (feuilles × passages)")
 			);
 			const stLbl = (m.machine_status_label || "").trim();
 			const thTitle = stLbl
@@ -362,10 +364,8 @@ class PlanningProductionPage {
 			const line1Left = `<div class="machine-head-line1-left">${mIconWrap}${nameRow}</div>`;
 			html += `<th class="machine-col" title="${thTitle}">
 				<div class="machine-head-row">
-					<div class="machine-head-line1">
-						${line1Left}
-						<div class="date-cell-badges machine-head-badges">${headBadges}</div>
-					</div>
+					<div class="machine-head-line1">${line1Left}</div>
+					<div class="date-cell-badges machine-head-badges">${headBadges}</div>
 				</div>
 			</th>`;
 		}
@@ -373,21 +373,27 @@ class PlanningProductionPage {
 
 		for (const d of dates) {
 			const dk = d.key;
-			const row_tot = totals.by_date[dk] || { jobs: 0, feuilles: 0 };
+			const row_tot = totals.by_date[dk] || { jobs: 0, feuilles: 0, charge: 0 };
 			html += `<tr><td class="date-cell sticky-date">${this.render_date_column_header(
 				d.label,
 				row_tot.jobs,
-				row_tot.feuilles
+				row_tot.feuilles,
+				row_tot.charge
 			)}</td>`;
 			for (const m of machines) {
-				const cell = (cells[dk] && cells[dk][m.name]) || { jobs: [], job_count: 0, feuilles_sum: 0 };
+				const cell = (cells[dk] && cells[dk][m.name]) || {
+					jobs: [],
+					job_count: 0,
+					feuilles_sum: 0,
+					charge_sum: 0,
+				};
 				html += `<td class="pivot-cell" data-date="${frappe.utils.escape_html(dk)}" data-machine="${frappe.utils.escape_html(
 					m.name
 				)}">`;
 				html += this.render_cell_jobs(cell.jobs || []);
 				html += `<div class="cell-foot text-muted small">${cell.job_count} · <strong>${format_fe(
 					cell.feuilles_sum
-				)}</strong> ${__("f.")}</div>`;
+				)}</strong> ${__("f.")} · <strong>${format_fe(cell.charge_sum || 0)}</strong> ${__("f×p")}</div>`;
 				html += `</td>`;
 			}
 			html += `</tr>`;
@@ -409,10 +415,11 @@ class PlanningProductionPage {
 		this.bind_cell_clicks();
 	}
 
-	/** Badges jobs + feuilles (ligne date, en-tête machine, etc.). */
-	render_totals_pills_html(jobCount, feuillesSum, titleJobs, titleFeuilles) {
+	/** Badges jobs + feuilles + charge presse (ligne date, en-tête machine, etc.). */
+	render_totals_pills_html(jobCount, feuillesSum, chargeSum, titleJobs, titleFeuilles, titleCharge) {
 		const tj = titleJobs || __("Total jobs sur cette ligne");
 		const tf = titleFeuilles || __("Total feuilles sur cette ligne");
+		const tc = titleCharge || __("Charge presse sur cette ligne (feuilles × passages)");
 		const jobsPill = `<span class="planning-pill planning-pill-row-jobs" title="${frappe.utils.escape_html(tj)}">
 			<span class="planning-pill-label">${__("Jobs")}</span>
 			<span class="planning-pill-value">${jobCount}</span>
@@ -421,15 +428,19 @@ class PlanningProductionPage {
 			<span class="planning-pill-label">${__("F.")}</span>
 			<span class="planning-pill-value">${format_fe(feuillesSum)}</span>
 		</span>`;
-		return `${jobsPill}${feuillesPill}`;
+		const chargePill = `<span class="planning-pill planning-pill-row-charge" title="${frappe.utils.escape_html(tc)}">
+			<span class="planning-pill-label">${__("F×P")}</span>
+			<span class="planning-pill-value">${format_fe(chargeSum || 0)}</span>
+		</span>`;
+		return `${jobsPill}${feuillesPill}${chargePill}`;
 	}
 
 	/** Première colonne corps : libellé de date + badges totaux pour la ligne. */
-	render_date_column_header(label, jobCount, feuillesSum) {
+	render_date_column_header(label, jobCount, feuillesSum, chargeSum) {
 		const lbl = frappe.utils.escape_html(label);
 		return `<div class="date-cell-inner">
 			<div class="date-cell-title-row">${PLANNING_DATE_ICON_SVG}<span class="date-cell-title">${lbl}</span></div>
-			<div class="date-cell-badges date-cell-badges--stack">${this.render_totals_pills_html(jobCount, feuillesSum)}</div>
+			<div class="date-cell-badges date-cell-badges--stack">${this.render_totals_pills_html(jobCount, feuillesSum, chargeSum)}</div>
 		</div>`;
 	}
 
@@ -487,10 +498,25 @@ class PlanningProductionPage {
 			const qtyPill = `<span class="planning-pill planning-pill--ind-blue" title="${__(
 				"Quantité article"
 			)}"><span class="planning-pill-label">${__("Q.ART")}</span><span class="planning-pill-value">${qty}</span></span>`;
+			const nbPass = parseInt(j.nb_passages, 10) || 0;
 			const feuillesPill = `<span class="planning-pill planning-pill--ind-green" title="${__(
 				"Quantité feuilles"
 			)}"><span class="planning-pill-label">${__("Q.F")}</span><span class="planning-pill-value">${fe}</span></span>`;
-			const metaPills = [statusPill, qtyPill, feuillesPill].filter(Boolean);
+			const passagesPill = nbPass
+				? `<span class="planning-pill planning-pill--ind-purple" title="${__(
+						"Nombre de passages presse"
+					)}"><span class="planning-pill-label">${__("PASS.")}</span><span class="planning-pill-value">×${nbPass}</span></span>`
+				: `<span class="planning-pill planning-pill--ind-gray" title="${__(
+						"Passages non calculés (couleurs ou machine incomplètes)"
+					)}"><span class="planning-pill-label">${__("PASS.")}</span><span class="planning-pill-value">?</span></span>`;
+			const chargePill = nbPass
+				? `<span class="planning-pill planning-pill--ind-orange" title="${__(
+						"Charge presse (feuilles × passages)"
+					)}"><span class="planning-pill-label">${__("F×P")}</span><span class="planning-pill-value">${format_fe(
+						j.charge || 0
+					)}</span></span>`
+				: "";
+			const metaPills = [statusPill, qtyPill, feuillesPill, passagesPill, chargePill].filter(Boolean);
 			const metaRow = metaPills.length
 				? `<div class="job-meta-badges">${metaPills.join("")}</div>`
 				: "";
@@ -519,7 +545,8 @@ class PlanningProductionPage {
 					? `<div class="job-row-header">${metaRow || '<span class="job-meta-spacer"></span>'}${datesCorner || ""}</div>`
 					: "";
 
-			h += `<div class="job-row ${urgCls}${srcCls ? ` ${srcCls}` : ""}" data-source="${frappe.utils.escape_html(
+			const multiPassCls = nbPass > 1 ? " job-row--multi-pass" : "";
+			h += `<div class="job-row ${urgCls}${srcCls ? ` ${srcCls}` : ""}${multiPassCls}" data-source="${frappe.utils.escape_html(
 				j.source
 			)}" data-name="${frappe.utils.escape_html(j.doc_name)}" title="${cardUrgTitle}">
 				${editBtn}
@@ -581,8 +608,11 @@ class PlanningProductionPage {
 		const planDefault =
 			j.stored_plan_date || j.dt_planification || frappe.datetime.get_today();
 		const dateLabel = __("Date planification production");
-		const d = new frappe.ui.Dialog({
+		let d = null;
+		const d_ref = () => d;
+		d = new frappe.ui.Dialog({
 			title: __("Modifier la planification"),
+			size: "large",
 			fields: [
 				{
 					fieldname: "machine",
@@ -597,6 +627,7 @@ class PlanningProductionPage {
 						},
 					}),
 					default: j.machine_doc || null,
+					change: () => self.highlight_machine_reco(d_ref()),
 				},
 				{
 					fieldname: "plan_date",
@@ -604,6 +635,15 @@ class PlanningProductionPage {
 					fieldtype: "Date",
 					reqd: 1,
 					default: planDefault,
+					change: () => self.load_machine_reco(d_ref(), j),
+				},
+				{
+					fieldtype: "Section Break",
+					label: __("Aide au choix machine (passages × charge du jour)"),
+				},
+				{
+					fieldtype: "HTML",
+					fieldname: "machine_reco",
 				},
 			],
 			primary_action_label: __("Enregistrer"),
@@ -641,6 +681,100 @@ class PlanningProductionPage {
 			},
 		});
 		d.show();
+		this.load_machine_reco(d, j);
+	}
+
+	/** Surligne la ligne de la machine sélectionnée dans le tableau d'aide. */
+	highlight_machine_reco(d) {
+		if (!d || !d.fields_dict.machine_reco) return;
+		const current = d.get_value("machine") || "";
+		d.fields_dict.machine_reco.$wrapper
+			.find(".planning-reco-row")
+			.removeClass("planning-reco-row--current")
+			.filter(`[data-machine="${CSS.escape(current)}"]`)
+			.addClass("planning-reco-row--current");
+	}
+
+	/** Charge le comparatif machines (passages + charge à la date choisie) dans le dialogue. */
+	load_machine_reco(d, j) {
+		if (!d || !d.fields_dict.machine_reco) return;
+		const self = this;
+		const wrap = d.fields_dict.machine_reco.$wrapper;
+		if (!j.item_code) {
+			wrap.html(`<div class="text-muted small">${__("Article inconnu : comparatif indisponible.")}</div>`);
+			return;
+		}
+		wrap.html(`<div class="text-muted small">${__("Chargement du comparatif…")}</div>`);
+		frappe.call({
+			method:
+				"aurescrm.aures_crm.page.planning_production.planning_production.get_machine_recommendations",
+			args: {
+				article: j.item_code,
+				plan_date: d.get_value("plan_date") || "",
+				exclude_source: j.source,
+				exclude_name: j.doc_name,
+			},
+			callback(r) {
+				const data = r.message || {};
+				const list = data.machines || [];
+				if (!list.length) {
+					wrap.html(`<div class="text-muted small">${__("Aucune presse offset disponible.")}</div>`);
+					return;
+				}
+				const esc = frappe.utils.escape_html;
+				const dateLbl = data.date
+					? frappe.datetime.str_to_user(data.date, false, true)
+					: __("date non choisie");
+				let h = `<table class="table table-sm planning-reco-table">
+					<thead><tr>
+						<th>${__("Machine")}</th>
+						<th class="text-center">${__("Passages")}</th>
+						<th class="text-center">${__("Jobs")} (${esc(dateLbl)})</th>
+						<th class="text-center">${__("F×P")} (${esc(dateLbl)})</th>
+						<th></th>
+					</tr></thead><tbody>`;
+				for (const m of list) {
+					const idealBadge = m.ideal
+						? `<span class="indicator-pill green planning-reco-ideal">★ ${__("Recommandée")}</span>`
+						: "";
+					const statusDot = m.status
+						? `<span class="machine-head-status-dot machine-head-status-dot--ind-${esc(
+								m.status_indicator || "gray"
+							)}" title="${esc(m.status)}"></span>`
+						: "";
+					const passCell = m.calculable
+						? `<span class="planning-pill planning-pill--ind-${
+								m.passages === 1 ? "green" : m.passages === 2 ? "orange" : "red"
+							}" title="${esc(m.detail)}">×${m.passages}</span>`
+						: `<span class="planning-pill planning-pill--ind-gray" title="${esc(m.raison)}">?</span>`;
+					h += `<tr class="planning-reco-row${m.ideal ? " planning-reco-row--ideal" : ""}" data-machine="${esc(
+						m.machine
+					)}" title="${esc(m.detail || m.raison || "")}">
+						<td><span class="planning-reco-name">${statusDot} ${esc(m.label)}</span> ${idealBadge}</td>
+						<td class="text-center">${passCell}</td>
+						<td class="text-center">${m.jobs}</td>
+						<td class="text-center">${format_fe(m.charge)}</td>
+						<td class="text-right"><button type="button" class="btn btn-xs btn-default planning-reco-pick" data-machine="${esc(
+							m.machine
+						)}">${__("Choisir")}</button></td>
+					</tr>`;
+				}
+				h += `</tbody></table>
+					<div class="text-muted small">${__(
+						"Recommandation : passages minimum (coût), puis charge du jour minimum (équilibrage). Le job en cours d'édition est exclu des compteurs."
+					)}</div>`;
+				wrap.html(h);
+				wrap.off("click.recoPick").on("click.recoPick", ".planning-reco-pick, .planning-reco-row", function (ev) {
+					ev.stopPropagation();
+					const mn = $(this).closest("[data-machine]").attr("data-machine");
+					if (mn && d.get_value("machine") !== mn) {
+						d.set_value("machine", mn);
+					}
+					self.highlight_machine_reco(d);
+				});
+				self.highlight_machine_reco(d);
+			},
+		});
 	}
 
 	export_csv() {
@@ -661,6 +795,8 @@ class PlanningProductionPage {
 			__("Article"),
 			__("Qté article"),
 			__("Qté feuilles"),
+			__("Nb passages"),
+			__("Charge (feuilles × passages)"),
 			__("Date livraison"),
 			__("Date planif. production"),
 			__("Urgence"),
@@ -682,6 +818,8 @@ class PlanningProductionPage {
 						j.article_label,
 						j.qte_article,
 						j.qte_feuilles,
+						j.nb_passages || 0,
+						j.charge || 0,
 						j.dt_livraison || "",
 						j.dt_planification || "",
 						j.urgence || "",

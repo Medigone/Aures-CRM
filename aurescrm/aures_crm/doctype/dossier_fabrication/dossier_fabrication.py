@@ -196,6 +196,30 @@ def _sync_etude_technique_planning_from_programme_row(row) -> None:
 		updates["date_planification_production"] = row.date_fabrication_prevue
 	if updates:
 		frappe.db.set_value("Etude Technique", row.etude_technique, updates)
+		if "machine" in updates and _et_meta.has_field("nb_passages"):
+			from aurescrm.passages import update_etude_technique_passages
+
+			update_etude_technique_passages(row.etude_technique)
+
+
+def _sync_passages(doc: Document) -> None:
+	"""nb_passages des lignes et du programme selon (article, machine) ; cache par couple."""
+	from aurescrm.passages import get_nb_passages
+
+	cache: dict[tuple[str, str], int] = {}
+
+	def _np(article: str | None, machine: str | None) -> int:
+		if not article or not machine:
+			return 0
+		key = (article, machine)
+		if key not in cache:
+			cache[key] = get_nb_passages(article, machine)
+		return cache[key]
+
+	for ln in doc.get("lignes") or []:
+		ln.nb_passages = _np(ln.article, ln.machine)
+	for prow in doc.get("programme_livraison") or []:
+		prow.nb_passages = _np(prow.article, prow.machine)
 
 
 def _dossier_ligne_has_delivery_date_field() -> bool:
@@ -525,6 +549,7 @@ class DossierFabrication(Document):
 		_ensure_programme_date_fabrication_prevue(self)
 		_sync_statuts_programme(self)
 		_sync_ligne_aggregates_from_programme(self)
+		_sync_passages(self)
 
 	@frappe.whitelist()
 	def get_dossier_apercu_html(self):

@@ -27,12 +27,14 @@
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
+/* Peu de machines : la table occupe toute la largeur ; beaucoup : défilement horizontal. */
 .planning-pivot {
 	margin-bottom: 0;
 	font-size: 12px;
 	border-collapse: separate;
 	border-spacing: 0;
-	width: max-content;
+	width: 100%;
+	min-width: max-content;
 	max-width: none;
 }
 
@@ -47,9 +49,7 @@
 }
 
 .planning-pivot thead th.machine-col {
-	width: var(--planning-machine-col-width);
 	min-width: var(--planning-machine-col-width);
-	max-width: var(--planning-machine-col-width);
 	box-sizing: border-box;
 }
 
@@ -151,11 +151,20 @@
 	border-color: #86efac;
 }
 
+/* Charge presse (feuilles × passages) */
+.planning-pivot .planning-pill-row-charge {
+	background: #ede9fe;
+	color: #5b21b6;
+	border-color: #c4b5fd;
+}
+
 /* En-tête colonne machine : icône + nom + point statut (couleur) | badges totaux */
+/* Ligne 1 : icône + nom complet + point statut ; ligne 2 : badges totaux */
 .planning-pivot .machine-head-row {
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
+	gap: 6px;
 	min-width: 0;
 }
 
@@ -253,16 +262,15 @@
 
 .planning-pivot .machine-head-badges {
 	flex-shrink: 0;
-	align-self: flex-start;
-	justify-content: flex-end;
+	align-self: stretch;
+	justify-content: flex-start;
+	flex-wrap: wrap;
 }
 
 .planning-pivot .pivot-cell {
 	vertical-align: top;
 	padding: 8px !important;
-	width: var(--planning-machine-col-width);
 	min-width: var(--planning-machine-col-width);
-	max-width: var(--planning-machine-col-width);
 	box-sizing: border-box;
 }
 
@@ -313,6 +321,12 @@
 
 .planning-pivot .job-row--urg-u3 {
 	background: #fef2f2;
+}
+
+/* Plus d'un passage presse : fond rouge clair (prime sur la teinte urgence) */
+.planning-pivot .job-row.job-row--multi-pass {
+	background: #fee2e2;
+	border-color: #fca5a5;
 }
 
 .planning-pivot .job-row:hover {
@@ -416,15 +430,14 @@
 	color: var(--text-muted);
 }
 
-/* 2×2 : ligne 1 urgence + statut, ligne 2 Q.ART + Q.F — aligné avec les 2 lignes de dates */
+/* Pastilles en flux avec repli : jamais de chevauchement avec le coin dates */
 .planning-pivot .job-meta-badges {
-	display: grid;
-	grid-template-columns: repeat(2, max-content);
-	column-gap: 6px;
-	row-gap: 6px;
-	align-content: start;
-	justify-content: start;
-	justify-items: start;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-content: flex-start;
+	justify-content: flex-start;
+	min-width: 0;
 }
 
 .planning-pivot .planning-pill {
@@ -713,4 +726,124 @@
 		font-size: 8pt;
 		break-inside: avoid;
 	}
+}
+
+/* ===== Dialogue replanification : comparatif machines (passages × charge) ===== */
+.planning-reco-table {
+	margin-bottom: 6px;
+	font-size: 12px;
+}
+
+.planning-reco-table thead th {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-muted);
+	border-bottom: 1px solid var(--border-color);
+	white-space: nowrap;
+}
+
+.planning-reco-table td {
+	vertical-align: middle;
+}
+
+.planning-reco-row {
+	cursor: pointer;
+}
+
+.planning-reco-row:hover td {
+	background: var(--control-bg);
+}
+
+.planning-reco-row--ideal td {
+	background: #f0fdf4;
+}
+
+.planning-reco-row--current td {
+	background: #eff6ff;
+}
+
+.planning-reco-row--current .planning-reco-name {
+	font-weight: 700;
+}
+
+.planning-reco-name {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.planning-reco-ideal {
+	margin-left: 6px;
+}
+
+/* Pastilles et point statut : mêmes styles que la grille, scopés pour le dialogue */
+.planning-reco-table .planning-pill {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 4px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.2;
+	padding: 3px 8px;
+	border-radius: 999px;
+	border: 1px solid var(--border-color);
+	white-space: nowrap;
+}
+
+.planning-reco-table .planning-pill--ind-green {
+	background: #dcfce7;
+	color: #166534;
+	border-color: #86efac;
+}
+
+.planning-reco-table .planning-pill--ind-orange {
+	background: #ffedd5;
+	color: #9a3412;
+	border-color: #fdba74;
+}
+
+.planning-reco-table .planning-pill--ind-red {
+	background: #fee2e2;
+	color: #991b1b;
+	border-color: #fecaca;
+}
+
+.planning-reco-table .planning-pill--ind-gray {
+	background: #f1f5f9;
+	color: #475569;
+	border-color: #cbd5e1;
+}
+
+.planning-reco-table .machine-head-status-dot {
+	flex-shrink: 0;
+	display: inline-block;
+	width: 11px;
+	height: 11px;
+	border-radius: 50%;
+	box-sizing: border-box;
+	border: 1px solid transparent;
+}
+
+.planning-reco-table .machine-head-status-dot--ind-green {
+	background: #bbf7d0;
+	border-color: #166534;
+}
+
+.planning-reco-table .machine-head-status-dot--ind-orange {
+	background: #fed7aa;
+	border-color: #9a3412;
+}
+
+.planning-reco-table .machine-head-status-dot--ind-red {
+	background: #fecaca;
+	border-color: #991b1b;
+}
+
+.planning-reco-table .machine-head-status-dot--ind-gray {
+	background: #e2e8f0;
+	border-color: #475569;
 }

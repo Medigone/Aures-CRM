@@ -23,6 +23,7 @@
   "trace",
   "imposition",
   "machine",
+  "nb_passages",
   "column_break_d3",
   "etude_faisabilite"
  ],
@@ -151,6 +152,14 @@
    "fieldtype": "Link",
    "label": "Machine",
    "options": "Machine",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "nb_passages",
+   "fieldtype": "Int",
+   "label": "Passages",
+   "non_negative": 1,
    "read_only": 1
   },
   {

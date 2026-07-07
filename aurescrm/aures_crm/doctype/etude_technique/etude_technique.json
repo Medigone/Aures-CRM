@@ -34,6 +34,8 @@
   "procede",
   "nbr_poses",
   "machine",
+  "nb_passages",
+  "charge_feuilles",
   "column_break_zsog",
   "quantite",
   "quant_feuilles",
@@ -367,6 +369,23 @@
    "options": "Machine"
   },
   {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "nb_passages",
+   "fieldtype": "Int",
+   "label": "Nombre de passages",
+   "non_negative": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "charge_feuilles",
+   "fieldtype": "Int",
+   "label": "Charge presse (feuilles \u00d7 passages)",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "column_break_zsog",
    "fieldtype": "Column Break"
   },
@@ -445,7 +464,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-28 09:44:23.867812",
+ "modified": "2026-07-07 13:02:51.456080",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Technique",
