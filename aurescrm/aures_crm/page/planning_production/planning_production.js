@@ -502,8 +502,9 @@ class PlanningProductionPage {
 			const feuillesPill = `<span class="planning-pill planning-pill--ind-green" title="${__(
 				"Quantité feuilles"
 			)}"><span class="planning-pill-label">${__("Q.F")}</span><span class="planning-pill-value">${fe}</span></span>`;
+			const passInd = nbPass > 1 ? "red" : "green";
 			const passagesPill = nbPass
-				? `<span class="planning-pill planning-pill--ind-purple" title="${__(
+				? `<span class="planning-pill planning-pill--ind-${passInd}" title="${__(
 						"Nombre de passages presse"
 					)}"><span class="planning-pill-label">${__("PASS.")}</span><span class="planning-pill-value">×${nbPass}</span></span>`
 				: `<span class="planning-pill planning-pill--ind-gray" title="${__(
@@ -545,8 +546,7 @@ class PlanningProductionPage {
 					? `<div class="job-row-header">${metaRow || '<span class="job-meta-spacer"></span>'}${datesCorner || ""}</div>`
 					: "";
 
-			const multiPassCls = nbPass > 1 ? " job-row--multi-pass" : "";
-			h += `<div class="job-row ${urgCls}${srcCls ? ` ${srcCls}` : ""}${multiPassCls}" data-source="${frappe.utils.escape_html(
+			h += `<div class="job-row ${urgCls}${srcCls ? ` ${srcCls}` : ""}" data-source="${frappe.utils.escape_html(
 				j.source
 			)}" data-name="${frappe.utils.escape_html(j.doc_name)}" title="${cardUrgTitle}">
 				${editBtn}

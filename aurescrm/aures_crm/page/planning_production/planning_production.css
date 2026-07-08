@@ -323,12 +323,6 @@
 	background: #fef2f2;
 }
 
-/* Plus d'un passage presse : fond rouge clair (prime sur la teinte urgence) */
-.planning-pivot .job-row.job-row--multi-pass {
-	background: #fee2e2;
-	border-color: #fca5a5;
-}
-
 .planning-pivot .job-row:hover {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 	border-color: var(--primary);
