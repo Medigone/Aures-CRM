@@ -24,3 +24,4 @@ aurescrm.patches.v1_0.update_nextcloud_email_template
 aurescrm.patches.migrate_item_support_grammage_to_link
 aurescrm.patches.rename_planning_charge_machines_page
 aurescrm.patches.backfill_nb_passages
+aurescrm.patches.backfill_dossier_fabrication_status

@@ -44,13 +44,14 @@
    "label": "Statut"
   },
   {
-   "default": "Brouillon",
+   "default": "Ouvert",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Brouillon\nOuvert\nEn cours\nCl\u00f4tur\u00e9",
+   "options": "Ouvert\nProgrammation en cours\nProgrammation compl\u00e8te\nPlanification valid\u00e9e\nCl\u00f4tur\u00e9",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -247,7 +248,28 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Ouvert"
+  },
+  {
+   "color": "Orange",
+   "title": "Programmation en cours"
+  },
+  {
+   "color": "Yellow",
+   "title": "Programmation complète"
+  },
+  {
+   "color": "Green",
+   "title": "Planification validée"
+  },
+  {
+   "color": "Gray",
+   "title": "Clôturé"
+  }
+ ],
  "title_field": "sales_order",
  "track_changes": 1
 }

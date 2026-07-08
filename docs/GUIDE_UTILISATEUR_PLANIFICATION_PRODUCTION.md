@@ -24,9 +24,21 @@ Un `Dossier Fabrication` est créé automatiquement dès qu'une commande client 
 Pour retrouver les dossiers en attente de programmation :
 
 1. Ouvrez la liste `Dossier Fabrication`.
-2. Filtrez sur `Statut = Ouvert` (dossiers pas encore programmés) ou `En cours` (partiellement programmés).
+2. Filtrez sur `Statut = Ouvert` ou `Programmation en cours`.
 
 Chaque dossier correspond à une commande client. Chaque ligne du programme de livraison correspond à un article à produire, avec une quantité et une date de livraison attendue.
+
+### Comprendre le statut du dossier
+
+Le statut (`Statut`) est calculé automatiquement, vous n'avez rien à choisir manuellement :
+
+- **Ouvert** : rien n'est encore programmé.
+- **Programmation en cours** : une partie des articles/quantités est programmée, mais pas tout.
+- **Programmation complète** : toutes les quantités de tous les articles sont programmées — le dossier est prêt à être validé.
+- **Planification validée** : la planification a été validée (bouton `Valider la planification`), les études techniques sont générées, le programme est verrouillé.
+- **Clôturé** : dossier terminé (action manuelle, une fois la production livrée).
+
+**Règle importante** : le bouton `Valider la planification` reste bloqué tant que la quantité commandée de chaque article n'est pas intégralement répartie dans le programme de livraison. Un message indique précisément quel article et quelle quantité manquent.
 
 ## Programmer un dossier
 

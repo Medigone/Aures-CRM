@@ -649,6 +649,28 @@ frappe.ui.form.on('Dossier Fabrication', {
 					__('Actions')
 				);
 			}
+
+			if (locked && frm.doc.status !== 'Clôturé') {
+				frm.add_custom_button(
+					__('Clôturer'),
+					() => {
+						frappe.confirm(__('Clôturer ce dossier de fabrication ?'), () => {
+							frappe.call({
+								method:
+									'aurescrm.aures_crm.doctype.dossier_fabrication.dossier_fabrication.cloturer_dossier',
+								args: { dossier_name: frm.doc.name },
+								freeze: true,
+								callback(res) {
+									if (!res.exc) {
+										frm.reload_doc();
+									}
+								},
+							});
+						});
+					},
+					__('Actions')
+				);
+			}
 		} catch (e) {
 			console.error('Dossier Fabrication refresh', e);
 		}

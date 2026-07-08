@@ -141,6 +141,29 @@ def _sync_ligne_aggregates_from_programme(doc: Document) -> None:
 			ln.statut_article = "Programmation complète"
 
 
+def _compute_programmation_status(doc: Document) -> str:
+	"""Statut de programmation dérivé des lignes (avant toute validation de planification)."""
+	lignes = [ln for ln in (doc.get("lignes") or []) if ln.article]
+	if not lignes:
+		return "Ouvert"
+	statuts = {ln.statut_article for ln in lignes}
+	if not statuts - {"À programmer"}:
+		return "Ouvert"
+	if statuts == {"Programmation complète"}:
+		return "Programmation complète"
+	return "Programmation en cours"
+
+
+def _sync_dossier_status(doc: Document) -> None:
+	"""Statut calculé : Clôturé reste manuel, le reste reflète la programmation/planification."""
+	if doc.status == "Clôturé":
+		return
+	if _is_planification_locked(doc):
+		doc.status = "Planification validée"
+		return
+	doc.status = _compute_programmation_status(doc)
+
+
 def _first_ligne_for_article(doc: Document, article: str):
 	for ln in doc.get("lignes") or []:
 		if ln.article == article:
@@ -550,6 +573,7 @@ class DossierFabrication(Document):
 		_sync_statuts_programme(self)
 		_sync_ligne_aggregates_from_programme(self)
 		_sync_passages(self)
+		_sync_dossier_status(self)
 
 	@frappe.whitelist()
 	def get_dossier_apercu_html(self):
@@ -775,6 +799,17 @@ def valider_planification(dossier_name: str):
 		if not trace or not imposition:
 			errors.append(_("{0} : tracé et imposition obligatoires.").format(label))
 
+	tot_cmd_by_article = _totaux_commandes_par_article(dossier)
+	tot_prog_by_article, _tot_prod_by_article = _sommes_programme_par_article(dossier)
+	for article, qty_cmd in tot_cmd_by_article.items():
+		qty_prog = tot_prog_by_article.get(article, 0.0)
+		if qty_prog + 1e-6 < qty_cmd:
+			errors.append(
+				_("{0} : quantité non entièrement programmée ({1}/{2}).").format(
+					article, qty_prog, qty_cmd
+				)
+			)
+
 	if errors:
 		frappe.throw(
 			"<br>".join(errors),
@@ -790,7 +825,6 @@ def valider_planification(dossier_name: str):
 	dossier.planification_validee = 1
 	dossier.date_validation_planification = now()
 	dossier.valide_par = frappe.session.user
-	dossier.status = "En cours"
 	_sync_statuts_programme(dossier)
 	_sync_ligne_aggregates_from_programme(dossier)
 	dossier.save(ignore_permissions=True)
@@ -801,6 +835,21 @@ def valider_planification(dossier_name: str):
 		title=_("Planification validée"),
 	)
 	return {"ok": 1, "created_count": len(created), "created": created}
+
+
+@frappe.whitelist()
+def cloturer_dossier(dossier_name: str):
+	"""Clôture manuelle du dossier une fois la planification validée."""
+	dossier = frappe.get_doc("Dossier Fabrication", dossier_name)
+	dossier.check_permission("write")
+	if not _is_planification_locked(dossier):
+		frappe.throw(_("La planification doit être validée avant de clôturer le dossier."))
+	if dossier.status == "Clôturé":
+		frappe.throw(_("Le dossier est déjà clôturé."))
+
+	dossier.status = "Clôturé"
+	dossier.save(ignore_permissions=True)
+	return {"ok": 1}
 
 
 @frappe.whitelist()
