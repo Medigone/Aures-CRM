@@ -151,7 +151,9 @@ def update_item_description(doc, method):
         offset_fields.append(f"Pelliculage: {doc.custom_pelliculage}")
     if doc.custom_marquage_à_chaud and str(doc.custom_marquage_à_chaud).lower() != 'sans':
         offset_fields.append(f"Marquage à chaud: {doc.custom_marquage_à_chaud}")
-    
+    if doc.custom_marquage_à_froid and str(doc.custom_marquage_à_froid).lower() != 'sans':
+        offset_fields.append(f"Marquage à froid: {doc.custom_marquage_à_froid}")
+
     if offset_fields:
         description_parts.append("OFFSET: " + " | ".join(offset_fields))
     
