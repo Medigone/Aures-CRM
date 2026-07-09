@@ -287,6 +287,7 @@ def _build_site_tree(
 			"type": "site",
 			"label": site.nom_site or name,
 			"type_site": site.type_site or "",
+			"couleur": site.couleur or "",
 			"responsable": resp,
 			"responsable_label": responsable_labels.get(resp, resp),
 			"children": [],
@@ -454,7 +455,7 @@ def get_organigramme(
 		sites = frappe.get_all(
 			"Site RH",
 			filters=site_filters,
-			fields=["name", "nom_site", "site_parent", "type_site", "responsable_site"],
+			fields=["name", "nom_site", "site_parent", "type_site", "responsable_site", "couleur"],
 			order_by="nom_site asc",
 		)
 

@@ -554,6 +554,7 @@ class OrganigrammeRHPage {
 
 	build_site_card(node, has_children) {
 		const is_open = this.expanded.has(node.id);
+		const color = node.couleur || "#0ea5e9";
 		const direct = node.employee_count || 0;
 		const total = node.total_employee_count || direct;
 		const emp_label =
@@ -565,9 +566,9 @@ class OrganigrammeRHPage {
 		const sub_label = node.child_count ? __("{0} sous-site(s)", [node.child_count]) : "";
 
 		return $(`
-			<div class="org-card org-card-site org-open-site" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0">
+			<div class="org-card org-card-site org-open-site" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0" style="border-left-color: ${frappe.utils.escape_html(color)}">
 				<div class="org-card-top">
-					<div class="org-avatar org-avatar-site">
+					<div class="org-avatar org-avatar-site" style="background: ${frappe.utils.escape_html(color)}">
 						<span class="org-avatar-initials">${frappe.utils.escape_html(this.get_initials(node.label))}</span>
 					</div>
 					<div class="org-info">

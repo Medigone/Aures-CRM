@@ -12,6 +12,7 @@
   "column_break_main",
   "responsable_site",
   "actif",
+  "couleur",
   "section_localisation",
   "adresse",
   "column_break_localisation",
@@ -61,6 +62,13 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Actif"
+  },
+  {
+   "description": "Attribuée automatiquement (couleur libre dans la palette). Modifiable si besoin.",
+   "fieldname": "couleur",
+   "fieldtype": "Color",
+   "in_list_view": 1,
+   "label": "Couleur"
   },
   {
    "fieldname": "section_localisation",
