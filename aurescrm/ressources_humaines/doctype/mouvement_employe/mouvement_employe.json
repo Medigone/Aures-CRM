@@ -1,0 +1,229 @@
+{
+ "actions": [],
+ "autoname": "MVT-RH-.YYYY.-.#####",
+ "creation": "2026-07-09 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_principal",
+  "employe",
+  "type_mouvement",
+  "cree_automatiquement",
+  "column_break_principal",
+  "date_mouvement",
+  "motif",
+  "piece_jointe",
+  "section_statut",
+  "ancien_statut",
+  "column_break_statut",
+  "nouveau_statut",
+  "section_affectation",
+  "ancien_departement",
+  "ancien_poste",
+  "ancien_site",
+  "ancien_responsable",
+  "column_break_affectation",
+  "nouveau_departement",
+  "nouveau_poste",
+  "nouveau_site",
+  "nouveau_responsable"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_principal",
+   "fieldtype": "Section Break",
+   "label": "Mouvement"
+  },
+  {
+   "fieldname": "employe",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employé",
+   "options": "Employe",
+   "reqd": 1
+  },
+  {
+   "fieldname": "type_mouvement",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type de mouvement",
+   "options": "\nEntrée\nChangement de poste\nChangement de département\nChangement de site\nChangement de responsable\nSortie\nRéintégration\nCorrection administrative\nAutre",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cree_automatiquement",
+   "fieldtype": "Check",
+   "label": "Créé automatiquement",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_principal",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_mouvement",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date du mouvement",
+   "reqd": 1
+  },
+  {
+   "fieldname": "motif",
+   "fieldtype": "Small Text",
+   "label": "Motif"
+  },
+  {
+   "fieldname": "piece_jointe",
+   "fieldtype": "Attach",
+   "label": "Pièce jointe"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_statut",
+   "fieldtype": "Section Break",
+   "label": "Statut"
+  },
+  {
+   "fieldname": "ancien_statut",
+   "fieldtype": "Data",
+   "label": "Ancien statut",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_statut",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nouveau_statut",
+   "fieldtype": "Data",
+   "label": "Nouveau statut",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_affectation",
+   "fieldtype": "Section Break",
+   "label": "Affectation"
+  },
+  {
+   "fieldname": "ancien_departement",
+   "fieldtype": "Link",
+   "label": "Ancien département",
+   "options": "Departement RH"
+  },
+  {
+   "fieldname": "ancien_poste",
+   "fieldtype": "Link",
+   "label": "Ancien poste",
+   "options": "Poste RH"
+  },
+  {
+   "fieldname": "ancien_site",
+   "fieldtype": "Link",
+   "label": "Ancien site",
+   "options": "Site RH"
+  },
+  {
+   "fieldname": "ancien_responsable",
+   "fieldtype": "Link",
+   "label": "Ancien responsable",
+   "options": "Employe"
+  },
+  {
+   "fieldname": "column_break_affectation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nouveau_departement",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Nouveau département",
+   "options": "Departement RH"
+  },
+  {
+   "fieldname": "nouveau_poste",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Nouveau poste",
+   "options": "Poste RH"
+  },
+  {
+   "fieldname": "nouveau_site",
+   "fieldtype": "Link",
+   "label": "Nouveau site",
+   "options": "Site RH"
+  },
+  {
+   "fieldname": "nouveau_responsable",
+   "fieldtype": "Link",
+   "label": "Nouveau responsable",
+   "options": "Employe"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-09 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ressources Humaines",
+ "name": "Mouvement Employe",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "RH Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "RH User"
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "RH Viewer"
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Direction"
+  }
+ ],
+ "search_fields": "employe,type_mouvement",
+ "sort_field": "date_mouvement",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

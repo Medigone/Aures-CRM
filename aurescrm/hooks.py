@@ -248,6 +248,16 @@ doc_events = {
     "Suivi Creance": {
         "before_save": "aurescrm.aures_crm.doctype.suivi_creance.suivi_creance.trigger_facture_recovery_on_mode_change"
     },
+    # Module Ressources Humaines
+    "Employe": {
+        "before_save": [
+            "aurescrm.rh_hooks.set_employee_full_name",
+            "aurescrm.rh_hooks.validate_employee_required_fields",
+            "aurescrm.rh_hooks.validate_employee_unique_admin_ids",
+            "aurescrm.rh_hooks.set_employee_operation_status"
+        ],
+        "on_update": "aurescrm.rh_hooks.create_employee_movement_if_assignment_changed"
+    },
     # Vous pourriez avoir d'autres DocTypes ici
     "Meeting Interne": {
         "before_save": "aurescrm.aures_crm.doctype.meeting_interne.meeting_interne.calculate_meeting_metrics",

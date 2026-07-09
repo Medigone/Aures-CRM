@@ -1,0 +1,242 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"rh_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Ressources Humaines</b></span>\",\"col\":12}},{\"id\":\"rh_nc_actifs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Employes Actifs\",\"col\":4}},{\"id\":\"rh_nc_sortis\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Employes Sortis\",\"col\":4}},{\"id\":\"rh_nc_preintegres\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Employes Pre-integres\",\"col\":4}},{\"id\":\"rh_spacer1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"rh_sc_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Raccourcis</b></span>\",\"col\":12}},{\"id\":\"rh_sc_employes\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Employés\",\"col\":3}},{\"id\":\"rh_sc_departements\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Départements RH\",\"col\":3}},{\"id\":\"rh_sc_postes\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Postes RH\",\"col\":3}},{\"id\":\"rh_sc_sites\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sites RH\",\"col\":3}},{\"id\":\"rh_sc_contrats\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Types Contrat RH\",\"col\":3}},{\"id\":\"rh_sc_mouvements\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Mouvements Employé\",\"col\":3}},{\"id\":\"rh_sc_registre\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Registre des employés\",\"col\":3}},{\"id\":\"rh_sc_incomplets\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dossiers incomplets\",\"col\":3}},{\"id\":\"rh_sc_documents\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Documents à renouveler\",\"col\":3}},{\"id\":\"rh_spacer2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"rh_links_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Données\\u00a0RH</b></span>\",\"col\":12}},{\"id\":\"rh_card_employes\",\"type\":\"card\",\"data\":{\"card_name\":\"Employés\",\"col\":4}},{\"id\":\"rh_card_referentiels\",\"type\":\"card\",\"data\":{\"card_name\":\"Référentiels\",\"col\":4}},{\"id\":\"rh_card_rapports\",\"type\":\"card\",\"data\":{\"card_name\":\"Rapports\",\"col\":4}}]",
+ "creation": "2026-07-09 10:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "users",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Ressources Humaines",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employés",
+   "link_count": 2,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employé",
+   "link_count": 0,
+   "link_to": "Employe",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Mouvement Employé",
+   "link_count": 0,
+   "link_to": "Mouvement Employe",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Référentiels",
+   "link_count": 4,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Département RH",
+   "link_count": 0,
+   "link_to": "Departement RH",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Poste RH",
+   "link_count": 0,
+   "link_to": "Poste RH",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Site RH",
+   "link_count": 0,
+   "link_to": "Site RH",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Type Contrat RH",
+   "link_count": 0,
+   "link_to": "Type Contrat RH",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Rapports",
+   "link_count": 5,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Registre des employés",
+   "link_count": 0,
+   "link_to": "Registre des Employes",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Employés actifs par département",
+   "link_count": 0,
+   "link_to": "Employes Actifs par Departement",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Employés par site",
+   "link_count": 0,
+   "link_to": "Employes par Site",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Dossiers employés incomplets",
+   "link_count": 0,
+   "link_to": "Dossiers Employes Incomplets",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Documents à renouveler",
+   "link_count": 0,
+   "link_to": "Documents a Renouveler",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-07-09 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ressources Humaines",
+ "name": "Ressources Humaines",
+ "number_cards": [
+  {
+   "label": "Employés Actifs",
+   "number_card_name": "Employes Actifs"
+  },
+  {
+   "label": "Employés Sortis",
+   "number_card_name": "Employes Sortis"
+  },
+  {
+   "label": "Employés Pré-intégrés",
+   "number_card_name": "Employes Pre-integres"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 10.0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Employés",
+   "link_to": "Employe",
+   "stats_filter": "{\"statut\":\"Actif\"}",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Départements RH",
+   "link_to": "Departement RH",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Postes RH",
+   "link_to": "Poste RH",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sites RH",
+   "link_to": "Site RH",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Types Contrat RH",
+   "link_to": "Type Contrat RH",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "label": "Mouvements Employé",
+   "link_to": "Mouvement Employe",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "",
+   "label": "Registre des employés",
+   "link_to": "Registre des Employes",
+   "type": "Report"
+  },
+  {
+   "color": "Yellow",
+   "doc_view": "",
+   "label": "Dossiers incomplets",
+   "link_to": "Dossiers Employes Incomplets",
+   "type": "Report"
+  },
+  {
+   "color": "Red",
+   "doc_view": "",
+   "label": "Documents à renouveler",
+   "link_to": "Documents a Renouveler",
+   "type": "Report"
+  }
+ ],
+ "title": "Ressources Humaines"
+}

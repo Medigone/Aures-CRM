@@ -1,6 +1,7 @@
 [pre_model_sync]
 # Patches added in this section will be executed before doctypes are migrated
 # Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
+aurescrm.patches.create_rh_roles
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
@@ -25,3 +26,4 @@ aurescrm.patches.migrate_item_support_grammage_to_link
 aurescrm.patches.rename_planning_charge_machines_page
 aurescrm.patches.backfill_nb_passages
 aurescrm.patches.backfill_dossier_fabrication_status
+aurescrm.patches.seed_rh_referentiels

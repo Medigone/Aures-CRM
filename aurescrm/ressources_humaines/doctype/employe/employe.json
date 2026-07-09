@@ -1,0 +1,412 @@
+{
+ "actions": [],
+ "autoname": "EMP-.YYYY.-.#####",
+ "creation": "2026-07-09 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_identite",
+  "matricule",
+  "nom",
+  "prenom",
+  "nom_complet",
+  "sexe",
+  "date_naissance",
+  "lieu_naissance",
+  "column_break_identite",
+  "photo",
+  "nationalite",
+  "situation_familiale",
+  "telephone",
+  "email_personnel",
+  "adresse",
+  "commune",
+  "wilaya",
+  "section_statut_rh",
+  "statut",
+  "date_entree",
+  "column_break_statut",
+  "date_sortie",
+  "motif_sortie",
+  "observation_sortie",
+  "section_affectation",
+  "departement",
+  "poste",
+  "site",
+  "column_break_affectation",
+  "type_contrat",
+  "responsable_hierarchique",
+  "date_derniere_affectation",
+  "section_administratif",
+  "nin",
+  "numero_piece_identite",
+  "date_expiration_piece_identite",
+  "column_break_administratif",
+  "numero_cnas",
+  "numero_compte_bancaire",
+  "notes_administratives",
+  "section_documents",
+  "documents",
+  "section_systeme",
+  "est_utilisateur_erp",
+  "utilisateur_erp",
+  "column_break_systeme",
+  "actif_pour_operations",
+  "notes_internes"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_identite",
+   "fieldtype": "Section Break",
+   "label": "Identité"
+  },
+  {
+   "fieldname": "matricule",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Matricule"
+  },
+  {
+   "fieldname": "nom",
+   "fieldtype": "Data",
+   "label": "Nom",
+   "reqd": 1
+  },
+  {
+   "fieldname": "prenom",
+   "fieldtype": "Data",
+   "label": "Prénom",
+   "reqd": 1
+  },
+  {
+   "fieldname": "nom_complet",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom complet",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sexe",
+   "fieldtype": "Select",
+   "label": "Sexe",
+   "options": "\nHomme\nFemme"
+  },
+  {
+   "fieldname": "date_naissance",
+   "fieldtype": "Date",
+   "label": "Date de naissance"
+  },
+  {
+   "fieldname": "lieu_naissance",
+   "fieldtype": "Data",
+   "label": "Lieu de naissance"
+  },
+  {
+   "fieldname": "column_break_identite",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "photo",
+   "fieldtype": "Attach Image",
+   "label": "Photo"
+  },
+  {
+   "default": "Algérienne",
+   "fieldname": "nationalite",
+   "fieldtype": "Data",
+   "label": "Nationalité"
+  },
+  {
+   "fieldname": "situation_familiale",
+   "fieldtype": "Select",
+   "label": "Situation familiale",
+   "options": "\nCélibataire\nMarié(e)\nDivorcé(e)\nVeuf(ve)"
+  },
+  {
+   "fieldname": "telephone",
+   "fieldtype": "Data",
+   "label": "Téléphone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "email_personnel",
+   "fieldtype": "Data",
+   "label": "Email personnel",
+   "options": "Email"
+  },
+  {
+   "fieldname": "adresse",
+   "fieldtype": "Small Text",
+   "label": "Adresse"
+  },
+  {
+   "fieldname": "commune",
+   "fieldtype": "Data",
+   "label": "Commune"
+  },
+  {
+   "fieldname": "wilaya",
+   "fieldtype": "Data",
+   "label": "Wilaya"
+  },
+  {
+   "fieldname": "section_statut_rh",
+   "fieldtype": "Section Break",
+   "label": "Statut RH"
+  },
+  {
+   "default": "Pré-intégré",
+   "fieldname": "statut",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Pré-intégré\nActif\nInactif\nSorti",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_entree",
+   "fieldtype": "Date",
+   "label": "Date d'entrée",
+   "mandatory_depends_on": "eval:doc.statut==\"Actif\""
+  },
+  {
+   "fieldname": "column_break_statut",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.statut==\"Sorti\"",
+   "fieldname": "date_sortie",
+   "fieldtype": "Date",
+   "label": "Date de sortie",
+   "mandatory_depends_on": "eval:doc.statut==\"Sorti\""
+  },
+  {
+   "depends_on": "eval:doc.statut==\"Sorti\"",
+   "fieldname": "motif_sortie",
+   "fieldtype": "Select",
+   "label": "Motif de sortie",
+   "mandatory_depends_on": "eval:doc.statut==\"Sorti\"",
+   "options": "\nDémission\nFin de contrat\nLicenciement\nRetraite\nAbandon de poste\nAutre"
+  },
+  {
+   "depends_on": "eval:doc.statut==\"Sorti\"",
+   "fieldname": "observation_sortie",
+   "fieldtype": "Small Text",
+   "label": "Observation de sortie"
+  },
+  {
+   "fieldname": "section_affectation",
+   "fieldtype": "Section Break",
+   "label": "Affectation"
+  },
+  {
+   "fieldname": "departement",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Département",
+   "mandatory_depends_on": "eval:doc.statut==\"Actif\"",
+   "options": "Departement RH"
+  },
+  {
+   "fieldname": "poste",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Poste",
+   "mandatory_depends_on": "eval:doc.statut==\"Actif\"",
+   "options": "Poste RH"
+  },
+  {
+   "fieldname": "site",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Site",
+   "mandatory_depends_on": "eval:doc.statut==\"Actif\"",
+   "options": "Site RH"
+  },
+  {
+   "fieldname": "column_break_affectation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "type_contrat",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type de contrat",
+   "mandatory_depends_on": "eval:doc.statut==\"Actif\"",
+   "options": "Type Contrat RH"
+  },
+  {
+   "fieldname": "responsable_hierarchique",
+   "fieldtype": "Link",
+   "label": "Responsable hiérarchique",
+   "options": "Employe"
+  },
+  {
+   "fieldname": "date_derniere_affectation",
+   "fieldtype": "Date",
+   "label": "Date dernière affectation",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_administratif",
+   "fieldtype": "Section Break",
+   "label": "Informations administratives"
+  },
+  {
+   "fieldname": "nin",
+   "fieldtype": "Data",
+   "label": "NIN"
+  },
+  {
+   "fieldname": "numero_piece_identite",
+   "fieldtype": "Data",
+   "label": "Numéro pièce d'identité"
+  },
+  {
+   "fieldname": "date_expiration_piece_identite",
+   "fieldtype": "Date",
+   "label": "Date expiration pièce d'identité"
+  },
+  {
+   "fieldname": "column_break_administratif",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "numero_cnas",
+   "fieldtype": "Data",
+   "label": "Numéro CNAS"
+  },
+  {
+   "fieldname": "numero_compte_bancaire",
+   "fieldtype": "Data",
+   "label": "Numéro compte bancaire"
+  },
+  {
+   "fieldname": "notes_administratives",
+   "fieldtype": "Small Text",
+   "label": "Notes administratives"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_documents",
+   "fieldtype": "Section Break",
+   "label": "Documents"
+  },
+  {
+   "fieldname": "documents",
+   "fieldtype": "Table",
+   "label": "Documents administratifs",
+   "options": "Document Employe"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_systeme",
+   "fieldtype": "Section Break",
+   "label": "Données système"
+  },
+  {
+   "default": "0",
+   "fieldname": "est_utilisateur_erp",
+   "fieldtype": "Check",
+   "label": "Est utilisateur ERP"
+  },
+  {
+   "depends_on": "eval:doc.est_utilisateur_erp",
+   "fieldname": "utilisateur_erp",
+   "fieldtype": "Link",
+   "label": "Utilisateur ERP",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_systeme",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "actif_pour_operations",
+   "fieldtype": "Check",
+   "label": "Actif pour opérations",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes_internes",
+   "fieldtype": "Text Editor",
+   "label": "Notes internes"
+  }
+ ],
+ "image_field": "photo",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-09 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ressources Humaines",
+ "name": "Employe",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "RH Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "RH User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "RH Viewer"
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Direction"
+  }
+ ],
+ "search_fields": "nom_complet,matricule,telephone,numero_cnas,nin",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "nom_complet",
+ "track_changes": 1
+}

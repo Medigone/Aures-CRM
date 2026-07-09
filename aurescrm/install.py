@@ -9,6 +9,16 @@ from frappe.utils import get_site_path
 def after_install():
     """Hook appelé après l'installation de l'app"""
     setup_plan_flexo_assets()
+    setup_rh_module()
+
+
+def setup_rh_module():
+    """Créer les rôles RH et les données de base du module Ressources Humaines"""
+    try:
+        from aurescrm.ressources_humaines.setup import setup_rh_module as _setup_rh
+        _setup_rh()
+    except Exception as e:
+        frappe.log_error(f"Error setting up RH module: {str(e)}", "RH Module Setup")
 
 def setup_plan_flexo_assets():
     """S'assurer que les assets pour Plan Flexo sont disponibles"""
