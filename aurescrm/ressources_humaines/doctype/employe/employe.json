@@ -1,7 +1,7 @@
 {
  "actions": [],
  "autoname": "EMP-.YYYY.-.#####",
- "creation": "2026-07-09 10:00:00.000000",
+ "creation": "2026-07-09 10:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -10,18 +10,23 @@
   "nom",
   "prenom",
   "nom_complet",
-  "sexe",
-  "date_naissance",
-  "lieu_naissance",
   "column_break_identite",
   "photo",
-  "nationalite",
-  "situation_familiale",
   "telephone",
   "email_personnel",
-  "adresse",
+  "section_break_ntcf",
+  "date_naissance",
+  "lieu_naissance",
+  "column_break_yheo",
+  "nationalite",
+  "sexe",
+  "situation_familiale",
+  "section_break_wojg",
   "commune",
   "wilaya",
+  "column_break_fyzy",
+  "adresse",
+  "statut_rh_tab",
   "section_statut_rh",
   "statut",
   "date_entree",
@@ -29,6 +34,7 @@
   "date_sortie",
   "motif_sortie",
   "observation_sortie",
+  "affectation_tab",
   "section_affectation",
   "departement",
   "poste",
@@ -37,6 +43,7 @@
   "type_contrat",
   "responsable_hierarchique",
   "date_derniere_affectation",
+  "informations_administratives_tab",
   "section_administratif",
   "nin",
   "numero_piece_identite",
@@ -45,20 +52,26 @@
   "numero_cnas",
   "numero_compte_bancaire",
   "notes_administratives",
+  "documents_tab",
   "section_documents",
   "documents",
+  "donn\u00e9es_syst\u00e8me_tab",
   "section_systeme",
   "est_utilisateur_erp",
   "utilisateur_erp",
   "column_break_systeme",
   "actif_pour_operations",
-  "notes_internes"
+  "notes_internes",
+  "lft",
+  "rgt",
+  "is_group",
+  "old_parent",
+  "parent_employe"
  ],
  "fields": [
   {
    "fieldname": "section_identite",
-   "fieldtype": "Section Break",
-   "label": "Identité"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "matricule",
@@ -75,7 +88,7 @@
   {
    "fieldname": "prenom",
    "fieldtype": "Data",
-   "label": "Prénom",
+   "label": "Pr\u00e9nom",
    "reqd": 1
   },
   {
@@ -111,21 +124,21 @@
    "label": "Photo"
   },
   {
-   "default": "Algérienne",
+   "default": "Alg\u00e9rienne",
    "fieldname": "nationalite",
    "fieldtype": "Data",
-   "label": "Nationalité"
+   "label": "Nationalit\u00e9"
   },
   {
    "fieldname": "situation_familiale",
    "fieldtype": "Select",
    "label": "Situation familiale",
-   "options": "\nCélibataire\nMarié(e)\nDivorcé(e)\nVeuf(ve)"
+   "options": "\nC\u00e9libataire\nMari\u00e9(e)\nDivorc\u00e9(e)\nVeuf(ve)"
   },
   {
    "fieldname": "telephone",
    "fieldtype": "Data",
-   "label": "Téléphone",
+   "label": "T\u00e9l\u00e9phone",
    "options": "Phone"
   },
   {
@@ -141,33 +154,36 @@
   },
   {
    "fieldname": "commune",
-   "fieldtype": "Data",
-   "label": "Commune"
+   "fieldtype": "Link",
+   "label": "Commune",
+   "options": "Communes"
   },
   {
+   "fetch_from": "commune.wilaya",
    "fieldname": "wilaya",
-   "fieldtype": "Data",
-   "label": "Wilaya"
+   "fieldtype": "Link",
+   "label": "Wilaya",
+   "options": "Wilayas",
+   "read_only": 1
   },
   {
    "fieldname": "section_statut_rh",
-   "fieldtype": "Section Break",
-   "label": "Statut RH"
+   "fieldtype": "Section Break"
   },
   {
-   "default": "Pré-intégré",
+   "default": "Pr\u00e9-int\u00e9gr\u00e9",
    "fieldname": "statut",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Pré-intégré\nActif\nInactif\nSorti",
+   "options": "Pr\u00e9-int\u00e9gr\u00e9\nActif\nInactif\nSorti",
    "reqd": 1
   },
   {
    "fieldname": "date_entree",
    "fieldtype": "Date",
-   "label": "Date d'entrée",
+   "label": "Date d'entr\u00e9e",
    "mandatory_depends_on": "eval:doc.statut==\"Actif\""
   },
   {
@@ -187,7 +203,7 @@
    "fieldtype": "Select",
    "label": "Motif de sortie",
    "mandatory_depends_on": "eval:doc.statut==\"Sorti\"",
-   "options": "\nDémission\nFin de contrat\nLicenciement\nRetraite\nAbandon de poste\nAutre"
+   "options": "\nD\u00e9mission\nFin de contrat\nLicenciement\nRetraite\nAbandon de poste\nAutre"
   },
   {
    "depends_on": "eval:doc.statut==\"Sorti\"",
@@ -197,15 +213,14 @@
   },
   {
    "fieldname": "section_affectation",
-   "fieldtype": "Section Break",
-   "label": "Affectation"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "departement",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Département",
+   "label": "D\u00e9partement",
    "mandatory_depends_on": "eval:doc.statut==\"Actif\"",
    "options": "Departement RH"
   },
@@ -243,20 +258,18 @@
   {
    "fieldname": "responsable_hierarchique",
    "fieldtype": "Link",
-   "label": "Responsable hiérarchique",
+   "label": "Responsable hi\u00e9rarchique",
    "options": "Employe"
   },
   {
    "fieldname": "date_derniere_affectation",
    "fieldtype": "Date",
-   "label": "Date dernière affectation",
+   "label": "Date derni\u00e8re affectation",
    "read_only": 1
   },
   {
-   "collapsible": 1,
    "fieldname": "section_administratif",
-   "fieldtype": "Section Break",
-   "label": "Informations administratives"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "nin",
@@ -266,12 +279,12 @@
   {
    "fieldname": "numero_piece_identite",
    "fieldtype": "Data",
-   "label": "Numéro pièce d'identité"
+   "label": "Num\u00e9ro pi\u00e8ce d'identit\u00e9"
   },
   {
    "fieldname": "date_expiration_piece_identite",
    "fieldtype": "Date",
-   "label": "Date expiration pièce d'identité"
+   "label": "Date expiration pi\u00e8ce d'identit\u00e9"
   },
   {
    "fieldname": "column_break_administratif",
@@ -280,12 +293,12 @@
   {
    "fieldname": "numero_cnas",
    "fieldtype": "Data",
-   "label": "Numéro CNAS"
+   "label": "Num\u00e9ro CNAS"
   },
   {
    "fieldname": "numero_compte_bancaire",
    "fieldtype": "Data",
-   "label": "Numéro compte bancaire"
+   "label": "Num\u00e9ro compte bancaire"
   },
   {
    "fieldname": "notes_administratives",
@@ -293,10 +306,8 @@
    "label": "Notes administratives"
   },
   {
-   "collapsible": 1,
    "fieldname": "section_documents",
-   "fieldtype": "Section Break",
-   "label": "Documents"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "documents",
@@ -305,10 +316,8 @@
    "options": "Document Employe"
   },
   {
-   "collapsible": 1,
    "fieldname": "section_systeme",
-   "fieldtype": "Section Break",
-   "label": "Données système"
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -331,23 +340,100 @@
    "default": "0",
    "fieldname": "actif_pour_operations",
    "fieldtype": "Check",
-   "label": "Actif pour opérations",
+   "label": "Actif pour op\u00e9rations",
    "read_only": 1
   },
   {
    "fieldname": "notes_internes",
    "fieldtype": "Text Editor",
    "label": "Notes internes"
+  },
+  {
+   "fieldname": "statut_rh_tab",
+   "fieldtype": "Tab Break",
+   "label": "Statut RH"
+  },
+  {
+   "fieldname": "affectation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Affectation"
+  },
+  {
+   "fieldname": "informations_administratives_tab",
+   "fieldtype": "Tab Break",
+   "label": "Informations administratives"
+  },
+  {
+   "fieldname": "documents_tab",
+   "fieldtype": "Tab Break",
+   "label": "Documents"
+  },
+  {
+   "fieldname": "donn\u00e9es_syst\u00e8me_tab",
+   "fieldtype": "Tab Break",
+   "label": "Donn\u00e9es syst\u00e8me"
+  },
+  {
+   "fieldname": "section_break_ntcf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_yheo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_wojg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fyzy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Left",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Right",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Is Group"
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "label": "Old Parent",
+   "options": "Employe"
+  },
+  {
+   "fieldname": "parent_employe",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Parent Employe",
+   "options": "Employe"
   }
  ],
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-09 10:00:00.000000",
+ "modified": "2026-07-09 11:32:01.673728",
  "modified_by": "Administrator",
  "module": "Ressources Humaines",
  "name": "Employe",
  "naming_rule": "Expression (old style)",
+ "nsm_parent_field": "parent_employe",
  "owner": "Administrator",
  "permissions": [
   {
@@ -402,6 +488,7 @@
    "role": "Direction"
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "nom_complet,matricule,telephone,numero_cnas,nin",
  "show_title_field_in_link": 1,
  "sort_field": "modified",

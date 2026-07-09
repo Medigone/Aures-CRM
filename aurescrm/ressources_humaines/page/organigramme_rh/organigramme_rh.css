@@ -1,0 +1,331 @@
+/* Organigramme RH — arbre horizontal, racine à gauche, branches empilées à droite */
+
+:root {
+	--org-line-color: var(--border-color);
+	--org-gap: 30px;
+}
+
+.page-form {
+	position: relative;
+	z-index: 10;
+}
+
+.organigramme-rh-root {
+	padding-bottom: 1.5rem;
+}
+
+.organigramme-loading,
+.organigramme-empty {
+	padding: 2rem 1rem;
+	text-align: center;
+	color: var(--text-muted);
+}
+
+.organigramme-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 0.85rem;
+	padding: 0 0.15rem;
+	font-size: 12px;
+}
+
+.organigramme-tree {
+	position: relative;
+	text-align: left;
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: 14px;
+	padding: 1.5rem 1.25rem 2rem;
+	max-height: calc(100vh - 220px);
+	overflow: auto;
+	box-shadow: 0 8px 24px rgba(18, 38, 63, 0.06);
+}
+
+/* Regroupement des racines (généralement une seule), empilées verticalement. */
+.org-forest {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 48px;
+}
+
+.org-orphan-list {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 20px;
+}
+
+/* --- Nœud (carte à gauche + sa descendance à droite) --- */
+
+.org-tree-node {
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	position: relative;
+}
+
+/* Colonne d'enfants à droite d'un nœud. Les traits de connexion sont calculés et
+   dessinés en JS (cf. draw_connectors) une fois les cartes rendues, afin qu'ils ne
+   dépassent jamais au-delà d'une carte réelle, quelle que soit sa hauteur. */
+.org-children {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 22px;
+	position: relative;
+	margin-left: var(--org-gap);
+}
+
+.org-children > .org-tree-node {
+	padding-left: var(--org-gap);
+}
+
+.org-connector-layer {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.org-connector {
+	position: absolute;
+	background: var(--org-line-color);
+}
+
+/* --- Carte --- */
+
+.org-card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	width: 248px;
+	padding: 0.55rem 0.65rem;
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	background: var(--card-bg, #fff);
+	cursor: pointer;
+	text-align: left;
+	transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+	box-shadow: 0 1px 2px rgba(18, 38, 63, 0.04);
+}
+
+.org-card-top {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.55rem;
+}
+
+.org-card:hover {
+	border-color: var(--primary);
+	box-shadow: 0 8px 22px rgba(18, 38, 63, 0.08);
+	transform: translateY(-1px);
+}
+
+.org-card-dept {
+	background: var(--card-bg, #fff);
+	border-left: 3px solid var(--primary);
+}
+
+.org-avatar {
+	flex: 0 0 34px;
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	overflow: visible;
+	background: var(--primary);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 0.05rem;
+	position: relative;
+}
+
+.org-avatar-dept {
+	background: var(--text-muted);
+	border-radius: 9px;
+}
+
+.org-avatar-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 50%;
+}
+
+.org-avatar-star {
+	position: absolute;
+	right: -3px;
+	bottom: -3px;
+	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+	background: #f5a623;
+	color: #fff;
+	font-size: 9px;
+	line-height: 15px;
+	text-align: center;
+	border: 1.5px solid #fff;
+	box-shadow: 0 1px 2px rgba(18, 38, 63, 0.18);
+}
+
+.org-card-responsable {
+	border-color: rgba(245, 166, 35, 0.45);
+}
+
+.org-avatar-initials {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+.org-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.org-name {
+	font-weight: 600;
+	font-size: 12.5px;
+	line-height: 1.3;
+	white-space: normal;
+	overflow-wrap: break-word;
+	color: var(--heading-color, var(--text-color));
+}
+
+.org-poste {
+	margin-top: 0.15rem;
+	font-size: 10.5px;
+	color: var(--text-muted);
+	line-height: 1.35;
+	white-space: normal;
+	overflow-wrap: break-word;
+}
+
+.org-matricule {
+	margin-top: 0.2rem;
+	font-size: 10px;
+	color: var(--text-muted);
+	line-height: 1.3;
+	letter-spacing: 0.02em;
+}
+
+.org-card-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	padding-top: 0.35rem;
+	border-top: 1px solid var(--border-color);
+}
+
+.org-foot-text {
+	font-size: 9.5px;
+	color: var(--text-muted);
+	white-space: normal;
+	overflow-wrap: break-word;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.org-dept-label {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.org-niveau {
+	flex: 0 0 auto;
+	font-size: 8.5px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	padding: 0.14rem 0.4rem;
+	border-radius: 999px;
+	background: rgba(46, 125, 50, 0.08);
+	color: #2e7d32;
+	border: 1px solid rgba(46, 125, 50, 0.14);
+	white-space: nowrap;
+}
+
+/* Bouton +/- / compteur : chevauche le bord droit de la carte. */
+.org-toggle-btn {
+	position: absolute;
+	right: -13px;
+	top: 50%;
+	transform: translateY(-50%);
+	min-width: 26px;
+	height: 26px;
+	padding: 0 0.35rem;
+	border-radius: 999px;
+	border: 1px solid var(--border-color);
+	background: #fff;
+	color: var(--text-muted);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 13px;
+	line-height: 1;
+	cursor: pointer;
+	z-index: 2;
+	box-shadow: 0 1px 3px rgba(18, 38, 63, 0.12);
+}
+
+.org-toggle-btn.org-toggle-count {
+	font-size: 11px;
+	font-weight: 700;
+	color: #fff;
+	border-color: var(--primary);
+	background: var(--primary);
+	box-shadow: 0 2px 6px rgba(82, 123, 255, 0.35);
+}
+
+.org-toggle-btn:hover {
+	border-color: var(--primary);
+	color: var(--primary);
+	background: #fff;
+}
+
+.org-toggle-btn.org-toggle-count:hover {
+	color: #fff;
+	background: var(--primary);
+	filter: brightness(1.08);
+	transform: translateY(-50%) scale(1.06);
+}
+
+.organigramme-orphan {
+	margin-top: 2rem;
+	padding-top: 1rem;
+	border-top: 1px dashed var(--border-color);
+}
+
+.organigramme-orphan-title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--text-muted);
+	padding: 0.25rem 0.5rem 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+@media (max-width: 768px) {
+	.organigramme-tree {
+		max-height: none;
+		padding: 1.25rem 0.65rem 1.5rem;
+	}
+
+	.org-card {
+		width: 210px;
+	}
+
+	.org-niveau {
+		display: none;
+	}
+}

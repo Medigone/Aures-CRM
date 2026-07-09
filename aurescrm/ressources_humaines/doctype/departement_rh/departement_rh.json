@@ -11,6 +11,7 @@
   "column_break_main",
   "responsable_departement",
   "actif",
+  "couleur",
   "section_details",
   "description"
  ],
@@ -49,6 +50,13 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Actif"
+  },
+  {
+   "description": "Attribu\u00e9e automatiquement (couleur libre dans la palette). Modifiable si besoin.",
+   "fieldname": "couleur",
+   "fieldtype": "Color",
+   "in_list_view": 1,
+   "label": "Couleur"
   },
   {
    "fieldname": "section_details",
