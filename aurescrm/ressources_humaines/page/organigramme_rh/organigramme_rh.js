@@ -44,8 +44,25 @@ class OrganigrammeRHPage {
 			fieldname: "mode",
 			label: __("Vue"),
 			fieldtype: "Select",
-			options: ["Hiérarchie", "Départements"].join("\n"),
+			options: ["Hiérarchie", "Départements", "Sites"].join("\n"),
 			default: "Hiérarchie",
+			change: () => {
+				this.sync_filter_visibility();
+				this.refresh();
+			},
+		});
+
+		this.df_employe = this.page.add_field({
+			fieldname: "employe",
+			label: __("Employé"),
+			fieldtype: "Link",
+			options: "Employe",
+			get_query: () => {
+				const filters = {};
+				const statut = this.df_statut.get_value();
+				if (statut) filters.statut = statut;
+				return { filters };
+			},
 			change: () => this.refresh(),
 		});
 
@@ -72,18 +89,52 @@ class OrganigrammeRHPage {
 			label: __("Site"),
 			fieldtype: "Link",
 			options: "Site RH",
+			get_query: () => ({ filters: { actif: 1 } }),
 			change: () => this.refresh(),
 		});
+
+		this.sync_filter_visibility();
+	}
+
+	get_mode() {
+		const mode_label = this.df_mode.get_value() || "Hiérarchie";
+		if (mode_label === "Départements") return "departements";
+		if (mode_label === "Sites") return "sites";
+		return "hierarchie";
+	}
+
+	sync_filter_visibility() {
+		const mode = this.get_mode();
+		const is_hierarchie = mode === "hierarchie";
+		const is_sites = mode === "sites";
+
+		if (this.df_employe && this.df_employe.$wrapper) {
+			this.df_employe.$wrapper.toggle(is_hierarchie);
+		}
+		if (this.df_departement && this.df_departement.$wrapper) {
+			this.df_departement.$wrapper.toggle(!is_sites);
+		}
+
+		if (!is_hierarchie && this.df_employe.get_value()) {
+			this.df_employe.set_value("");
+		}
+		if (is_sites && this.df_departement.get_value()) {
+			this.df_departement.set_value("");
+		}
 	}
 
 	get_filters() {
-		const mode_label = this.df_mode.get_value() || "Hiérarchie";
-		return {
-			mode: mode_label === "Départements" ? "departements" : "hierarchie",
+		const mode = this.get_mode();
+		const filters = {
+			mode,
 			statut: this.df_statut.get_value() || "",
 			departement: this.df_departement.get_value() || "",
 			site: this.df_site.get_value() || "",
 		};
+		if (mode === "hierarchie") {
+			filters.employe = this.df_employe.get_value() || "";
+		}
+		return filters;
 	}
 
 	refresh() {
@@ -95,9 +146,21 @@ class OrganigrammeRHPage {
 			args: filters,
 			callback: (r) => {
 				this.last_data = r.message || { tree: [], meta: {} };
-				// Racines ouvertes par défaut, le reste replié pour rester lisible.
 				this.expanded = new Set();
-				(this.last_data.tree || []).forEach((n) => this.expanded.add(n.id));
+				const focus = this.last_data.focus_employee || (this.last_data.meta || {}).focus_employee;
+				if (focus) {
+					// Chaîne filtrée : ouvrir tous les nœuds pour voir le chemin jusqu'au PDG.
+					const walk = (nodes) => {
+						(nodes || []).forEach((n) => {
+							this.expanded.add(n.id);
+							walk(n.children);
+						});
+					};
+					walk(this.last_data.tree);
+				} else {
+					// Racines ouvertes par défaut, le reste replié pour rester lisible.
+					(this.last_data.tree || []).forEach((n) => this.expanded.add(n.id));
+				}
 				this.render();
 			},
 			error: () => {
@@ -198,6 +261,13 @@ class OrganigrammeRHPage {
 										meta.department_count || 0,
 										meta.employee_count || 0,
 								  ])
+								: mode === "sites"
+								? __("{0} sites · {1} employés", [
+										meta.site_count || 0,
+										meta.employee_count || 0,
+								  ])
+								: meta.focus_employee
+								? __("Chaîne hiérarchique · {0} personne(s)", [meta.chain_length || meta.employee_count || 0])
 								: __("{0} employés · {1} racines", [
 										meta.employee_count || 0,
 										meta.root_count || 0,
@@ -217,6 +287,8 @@ class OrganigrammeRHPage {
 				`<div class="organigramme-empty">${__(
 					mode === "departements"
 						? "Aucun département à afficher."
+						: mode === "sites"
+						? "Aucun site à afficher."
 						: "Aucun élément à afficher. Vérifiez les filtres et que les responsables hiérarchiques sont renseignés."
 				)}</div>`
 			);
@@ -227,11 +299,13 @@ class OrganigrammeRHPage {
 			});
 			$tree.append($forest);
 
-			if (mode === "departements" && meta.orphan_count > 0) {
+			if ((mode === "departements" || mode === "sites") && meta.orphan_count > 0) {
 				$tree.append(
 					`<div class="organigramme-orphan">
 						<div class="organigramme-orphan-title">${__(
-							"{0} employé(s) sans département",
+							mode === "sites"
+								? "{0} employé(s) sans site"
+								: "{0} employé(s) sans département",
 							[meta.orphan_count]
 						)}</div>
 					</div>`
@@ -327,16 +401,28 @@ class OrganigrammeRHPage {
 			const name = $(e.currentTarget).data("name");
 			if (name) frappe.set_route("Form", "Departement RH", name);
 		});
+
+		$wrap.on("click", ".org-open-site", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const name = $(e.currentTarget).data("name");
+			if (name) frappe.set_route("Form", "Site RH", name);
+		});
 	}
 
 	render_tree_node(node, mode) {
 		const children = node.children || [];
 		const has_children = children.length > 0;
 		const is_open = this.expanded.has(node.id);
-		const is_dept = node.type === "departement";
 
 		const $node = $(`<div class="org-tree-node" data-id="${frappe.utils.escape_html(node.id)}"></div>`);
-		$node.append(is_dept ? this.build_department_card(node, has_children) : this.build_employee_card(node, has_children));
+		if (node.type === "departement") {
+			$node.append(this.build_department_card(node, has_children));
+		} else if (node.type === "site") {
+			$node.append(this.build_site_card(node, has_children));
+		} else {
+			$node.append(this.build_employee_card(node, has_children));
+		}
 
 		if (has_children && is_open) {
 			const $children = $(`<div class="org-children"></div>`);
@@ -378,11 +464,24 @@ class OrganigrammeRHPage {
 			  )}</span>`
 			: "";
 		const is_resp = !!node.is_responsable_departement;
+		const is_focus = !!node.is_focus;
+		const dept_color = node.departement_couleur || "";
+		const border_style = dept_color
+			? ` style="border-left-color: ${frappe.utils.escape_html(dept_color)}"`
+			: "";
+		const card_classes = [
+			"org-card",
+			"org-open-employe",
+			"org-card-emp",
+			is_resp ? "org-card-responsable" : "",
+			dept_color ? "org-card-has-dept" : "",
+			is_focus ? "org-card-focus" : "",
+		]
+			.filter(Boolean)
+			.join(" ");
 
 		return $(`
-			<div class="org-card org-open-employe${is_resp ? " org-card-responsable" : ""}" data-name="${frappe.utils.escape_html(
-			node.id
-		)}" role="button" tabindex="0">
+			<div class="${card_classes}" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0"${border_style}>
 				<div class="org-card-top">
 					<div class="org-avatar">${photo}${
 						is_resp
@@ -390,9 +489,19 @@ class OrganigrammeRHPage {
 							: ""
 					}</div>
 					<div class="org-info">
-						<div class="org-name">${frappe.utils.escape_html(node.label || node.id)}</div>
+						<div class="org-name">${frappe.utils.escape_html(node.label || node.id)}${
+							is_focus
+								? `<span class="org-focus-tag" title="${__("Employé sélectionné")}">${__("Sélectionné")}</span>`
+								: ""
+						}</div>
 						${node.poste ? `<div class="org-poste">${frappe.utils.escape_html(node.poste)}</div>` : ""}
-						${node.matricule ? `<div class="org-matricule">${frappe.utils.escape_html(node.matricule)}</div>` : ""}
+						${
+							node.matricule || node.site
+								? `<div class="org-matricule">${frappe.utils.escape_html(
+										[node.matricule, node.site].filter(Boolean).join(" - ")
+								  )}</div>`
+								: ""
+						}
 					</div>
 				</div>
 				${
@@ -429,6 +538,41 @@ class OrganigrammeRHPage {
 					</div>
 					<div class="org-info">
 						<div class="org-name">${frappe.utils.escape_html(node.label || node.id)}</div>
+						${node.responsable_label ? `<div class="org-poste">${__("Resp.")}: ${frappe.utils.escape_html(node.responsable_label)}</div>` : ""}
+						<div class="org-matricule">${frappe.utils.escape_html(emp_label)}</div>
+					</div>
+				</div>
+				${
+					sub_label
+						? `<div class="org-card-footer"><span class="org-foot-text">${frappe.utils.escape_html(sub_label)}</span></div>`
+						: ""
+				}
+				${this.build_toggle_btn(has_children, is_open, node.child_count || 0)}
+			</div>
+		`);
+	}
+
+	build_site_card(node, has_children) {
+		const is_open = this.expanded.has(node.id);
+		const direct = node.employee_count || 0;
+		const total = node.total_employee_count || direct;
+		const emp_label =
+			total > 0
+				? total === direct
+					? __("{0} employé(s)", [total])
+					: __("{0} employé(s) · {1} direct(s)", [total, direct])
+				: __("Aucun employé");
+		const sub_label = node.child_count ? __("{0} sous-site(s)", [node.child_count]) : "";
+
+		return $(`
+			<div class="org-card org-card-site org-open-site" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0">
+				<div class="org-card-top">
+					<div class="org-avatar org-avatar-site">
+						<span class="org-avatar-initials">${frappe.utils.escape_html(this.get_initials(node.label))}</span>
+					</div>
+					<div class="org-info">
+						<div class="org-name">${frappe.utils.escape_html(node.label || node.id)}</div>
+						${node.type_site ? `<div class="org-poste">${frappe.utils.escape_html(node.type_site)}</div>` : ""}
 						${node.responsable_label ? `<div class="org-poste">${__("Resp.")}: ${frappe.utils.escape_html(node.responsable_label)}</div>` : ""}
 						<div class="org-matricule">${frappe.utils.escape_html(emp_label)}</div>
 					</div>

@@ -123,9 +123,63 @@
 	transform: translateY(-1px);
 }
 
+.org-card-emp.org-card-has-dept {
+	border-left: 3px solid var(--border-color);
+}
+
+.org-card-emp.org-card-has-dept:hover {
+	/* conserver la couleur département sur le bord gauche au survol */
+	border-top-color: var(--primary);
+	border-right-color: var(--primary);
+	border-bottom-color: var(--primary);
+}
+
+.org-card-focus {
+	background: #f0faf2;
+	border-color: #8fd4a0;
+	box-shadow: 0 0 0 1px rgba(143, 212, 160, 0.45), 0 6px 16px rgba(46, 125, 50, 0.08);
+}
+
+.org-card-focus.org-card-has-dept {
+	/* le bord gauche reste la couleur département ; le reste du contour en vert clair */
+	border-top-color: #8fd4a0;
+	border-right-color: #8fd4a0;
+	border-bottom-color: #8fd4a0;
+}
+
+.org-card-focus:hover {
+	border-color: #6fc484;
+	background: #e8f7eb;
+}
+
+.org-card-focus.org-card-has-dept:hover {
+	border-top-color: #6fc484;
+	border-right-color: #6fc484;
+	border-bottom-color: #6fc484;
+}
+
+.org-focus-tag {
+	display: inline-block;
+	margin-left: 0.35rem;
+	font-size: 8.5px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	padding: 0.1rem 0.35rem;
+	border-radius: 999px;
+	background: #2e7d32;
+	color: #fff;
+	vertical-align: middle;
+}
+
 .org-card-dept {
 	background: var(--card-bg, #fff);
 	border-left: 3px solid var(--primary);
+}
+
+.org-card-site {
+	background: var(--card-bg, #fff);
+	border-left: 3px solid #0ea5e9;
 }
 
 .org-avatar {
@@ -145,6 +199,11 @@
 
 .org-avatar-dept {
 	background: var(--text-muted);
+	border-radius: 9px;
+}
+
+.org-avatar-site {
+	background: #0ea5e9;
 	border-radius: 9px;
 }
 
@@ -169,10 +228,6 @@
 	text-align: center;
 	border: 1.5px solid #fff;
 	box-shadow: 0 1px 2px rgba(18, 38, 63, 0.18);
-}
-
-.org-card-responsable {
-	border-color: rgba(245, 166, 35, 0.45);
 }
 
 .org-avatar-initials {
