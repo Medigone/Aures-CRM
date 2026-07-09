@@ -1,0 +1,33 @@
+{
+ "creation": "2026-07-09 12:00:00",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-sitemap",
+ "idx": 0,
+ "modified": "2026-07-09 12:00:00",
+ "modified_by": "Administrator",
+ "module": "Ressources Humaines",
+ "name": "organigramme-rh",
+ "owner": "Administrator",
+ "page_name": "organigramme-rh",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "RH Manager"
+  },
+  {
+   "role": "RH User"
+  },
+  {
+   "role": "RH Viewer"
+  },
+  {
+   "role": "Direction"
+  }
+ ],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "Organigramme"
+}
