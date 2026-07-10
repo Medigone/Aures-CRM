@@ -1,0 +1,26 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Site Bench du projet
+
+Le site de ce projet est **aurescrm.intrapro.net**.
+
+- Toujours passer `--site aurescrm.intrapro.net` aux commandes bench.
+- Ne jamais lancer `bench migrate`, `bench console`, `bench clear-cache`, etc. sans `--site`.
+- Ne pas inventer ni demander un autre nom de site sauf indication explicite de l'utilisateur.
+
+```bash
+# ❌ BAD
+bench migrate
+bench clear-cache
+bench console
+
+# ✅ GOOD
+bench --site aurescrm.intrapro.net migrate
+bench --site aurescrm.intrapro.net clear-cache
+bench --site aurescrm.intrapro.net console
+bench --site aurescrm.intrapro.net execute aurescrm.api.my_method
+bench --site aurescrm.intrapro.net mariadb
+```

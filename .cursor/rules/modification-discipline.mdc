@@ -1,0 +1,50 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Méthode de travail obligatoire
+
+Avant de modifier le code :
+
+1. Examiner l'arborescence concernée.
+2. Lire les fichiers existants liés à la fonctionnalité.
+3. Rechercher tous les usages des symboles, DocTypes et fieldnames concernés.
+4. Identifier les hooks, workflows, fixtures, permissions et tâches planifiées liés.
+5. Expliquer brièvement l'approche.
+6. Modifier le minimum de fichiers nécessaire.
+
+# Interdictions
+
+Ne jamais :
+- supprimer une fonctionnalité existante sans demande explicite ;
+- remplacer tout un fichier lorsqu'une modification ciblée suffit ;
+- renommer un champ ou un DocType sans migration ;
+- modifier les fichiers de Frappe ou ERPNext ;
+- créer un doublon d'une fonction existante ;
+- contourner les permissions avec `ignore_permissions=True` ;
+- utiliser `frappe.db.commit()` pour masquer un problème transactionnel ;
+- ajouter une dépendance sans vérifier qu'elle est nécessaire ;
+- exécuter une commande destructive ;
+- supprimer une fixture ou un workflow sans analyser son usage ;
+- modifier les données de production directement.
+
+# Compatibilité
+
+- Préserver les données existantes.
+- Préserver les API utilisées ailleurs.
+- Préserver les noms de méthodes appelées depuis JavaScript ou hooks.py.
+- Prévoir une migration pour toute évolution de structure.
+- Une migration doit être rejouable ou protégée contre la double exécution.
+- Ne pas mélanger refactorisation générale et fonctionnalité métier dans la même modification.
+
+# Après modification
+
+Toujours :
+- relire le diff ;
+- rechercher les références cassées ;
+- vérifier les noms de champs ;
+- vérifier les traductions ;
+- vérifier les permissions ;
+- lancer les tests pertinents ;
+- indiquer clairement ce qui n'a pas pu être vérifié.
