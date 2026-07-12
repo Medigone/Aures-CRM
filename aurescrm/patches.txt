@@ -27,3 +27,4 @@ aurescrm.patches.rename_planning_charge_machines_page
 aurescrm.patches.backfill_nb_passages
 aurescrm.patches.backfill_dossier_fabrication_status
 aurescrm.patches.seed_rh_referentiels
+aurescrm.patches.remove_rh_reports_renouveler_incomplets
