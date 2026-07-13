@@ -41,12 +41,14 @@
   "quantite_feuilles",
   "tab_3_tab",
   "section_support",
-  "grammage",
-  "surface_feuille",
-  "column_break_support",
-  "poids_feuille",
+  "support",
+  "designation_support",
   "cout_support_kg",
   "cout_support_feuille",
+  "column_break_support",
+  "grammage",
+  "poids_feuille",
+  "surface_feuille",
   "tab_5_tab",
   "section_finitions",
   "fin_pelliculage",
@@ -634,7 +636,7 @@
    "label": "G\u00e2che de Tirage"
   },
   {
-   "default": "3",
+   "default": "0",
    "fieldname": "taux_gache_tirage",
    "fieldtype": "Percent",
    "label": "Taux de G\u00e2che Tirage (%)",
@@ -749,7 +751,7 @@
   {
    "fieldname": "tab_3_tab",
    "fieldtype": "Tab Break",
-   "label": "Support"
+   "label": "Papier"
   },
   {
    "fieldname": "tab_4_tab",
@@ -760,12 +762,26 @@
    "fieldname": "tab_5_tab",
    "fieldtype": "Tab Break",
    "label": "Co\u00fbts Variables"
+  },
+  {
+   "fieldname": "support",
+   "fieldtype": "Link",
+   "label": "Support/Papier",
+   "link_filters": "[[\"Item\",\"custom_type_article\",\"=\",\"G\u00e9n\u00e9ral\"]]",
+   "options": "Item"
+  },
+  {
+   "fetch_from": "support.item_name",
+   "fieldname": "designation_support",
+   "fieldtype": "Data",
+   "label": "D\u00e9signation Support",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-24 11:42:31.063589",
+ "modified": "2026-07-13 08:22:08.261129",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Devis",
