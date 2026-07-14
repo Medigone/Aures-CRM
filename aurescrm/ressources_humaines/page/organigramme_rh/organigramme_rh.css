@@ -310,12 +310,19 @@
 	white-space: nowrap;
 }
 
-/* Bouton modifier : coin supérieur droit de la carte. */
-.org-edit-btn {
+/* Actions carte : + (enfant) et crayon (modifier). */
+.org-card-actions {
 	position: absolute;
 	top: 6px;
 	right: 6px;
 	z-index: 3;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.org-edit-btn,
+.org-add-child-btn {
 	width: 24px;
 	height: 24px;
 	padding: 0;
@@ -334,8 +341,11 @@
 }
 
 .org-card:hover .org-edit-btn,
+.org-card:hover .org-add-child-btn,
 .org-edit-btn:hover,
-.org-edit-btn:focus {
+.org-edit-btn:focus,
+.org-add-child-btn:hover,
+.org-add-child-btn:focus {
 	opacity: 1;
 	border-color: var(--primary);
 	color: var(--primary);
@@ -343,7 +353,44 @@
 
 .org-card-dept .org-card-top,
 .org-card-site .org-card-top {
-	padding-right: 1.4rem;
+	padding-right: 3.2rem;
+}
+
+.org-card-emp .org-card-top {
+	padding-right: 4.5rem;
+}
+
+.org-transfer-btn {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	z-index: 3;
+	height: 24px;
+	padding: 0 0.45rem;
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	background: var(--card-bg, #fff);
+	color: var(--text-muted);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.25rem;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1;
+	cursor: pointer;
+	opacity: 0.8;
+	box-shadow: 0 1px 2px rgba(18, 38, 63, 0.08);
+	transition: opacity 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+	white-space: nowrap;
+}
+
+.org-card-emp:hover .org-transfer-btn,
+.org-transfer-btn:hover,
+.org-transfer-btn:focus {
+	opacity: 1;
+	border-color: var(--primary);
+	color: var(--primary);
 }
 
 /* Liste employés dans le dialog */

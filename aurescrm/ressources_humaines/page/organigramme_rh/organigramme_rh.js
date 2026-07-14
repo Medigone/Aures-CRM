@@ -137,8 +137,10 @@ class OrganigrammeRHPage {
 		return filters;
 	}
 
-	refresh() {
+	refresh(options = {}) {
 		const filters = this.get_filters();
+		const preserve_expanded = options.preserve_expanded ? new Set(this.expanded) : null;
+		const ensure_open = options.ensure_open || [];
 		this.$body.html(`<div class="text-muted organigramme-loading">${__("Chargement…")}</div>`);
 
 		frappe.call({
@@ -146,10 +148,13 @@ class OrganigrammeRHPage {
 			args: filters,
 			callback: (r) => {
 				this.last_data = r.message || { tree: [], meta: {} };
-				this.expanded = new Set();
 				const focus = this.last_data.focus_employee || (this.last_data.meta || {}).focus_employee;
-				if (focus) {
+				if (preserve_expanded) {
+					this.expanded = preserve_expanded;
+					(this.last_data.tree || []).forEach((n) => this.expanded.add(n.id));
+				} else if (focus) {
 					// Chaîne filtrée : ouvrir tous les nœuds pour voir le chemin jusqu'au PDG.
+					this.expanded = new Set();
 					const walk = (nodes) => {
 						(nodes || []).forEach((n) => {
 							this.expanded.add(n.id);
@@ -159,8 +164,12 @@ class OrganigrammeRHPage {
 					walk(this.last_data.tree);
 				} else {
 					// Racines ouvertes par défaut, le reste replié pour rester lisible.
+					this.expanded = new Set();
 					(this.last_data.tree || []).forEach((n) => this.expanded.add(n.id));
 				}
+				ensure_open.forEach((id) => {
+					if (id) this.expanded.add(String(id));
+				});
 				this.render();
 			},
 			error: () => {
@@ -397,6 +406,25 @@ class OrganigrammeRHPage {
 			if (doctype && name) this.open_edit_dialog(String(doctype), String(name));
 		});
 
+		$wrap.on("click", ".org-add-child-btn", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const $btn = $(e.currentTarget);
+			const doctype = $btn.attr("data-doctype");
+			const parent = $btn.attr("data-parent");
+			const parent_label = $btn.attr("data-parent-label") || parent;
+			if (doctype && parent) {
+				this.open_create_child_dialog(String(doctype), String(parent), String(parent_label));
+			}
+		});
+
+		$wrap.on("click", ".org-transfer-btn", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const name = $(e.currentTarget).attr("data-name");
+			if (name) this.open_transfer_dialog(String(name));
+		});
+
 		$wrap.on("click", ".org-open-employe", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
@@ -426,6 +454,171 @@ class OrganigrammeRHPage {
 		)}" data-name="${frappe.utils.escape_html(name)}" title="${__("Modifier")}" aria-label="${__(
 			"Modifier"
 		)}"><span class="fa fa-pencil"></span></button>`;
+	}
+
+	build_add_child_btn(doctype, parent_name, parent_label) {
+		if (!frappe.model.can_create(doctype)) return "";
+		const title =
+			doctype === "Site RH" ? __("Ajouter un sous-site") : __("Ajouter un sous-département");
+		return `<button type="button" class="org-add-child-btn" data-doctype="${frappe.utils.escape_html(
+			doctype
+		)}" data-parent="${frappe.utils.escape_html(parent_name)}" data-parent-label="${frappe.utils.escape_html(
+			parent_label || parent_name
+		)}" title="${frappe.utils.escape_html(title)}" aria-label="${frappe.utils.escape_html(
+			title
+		)}"><span class="fa fa-plus"></span></button>`;
+	}
+
+	build_card_actions(doctype, name, label) {
+		const edit = this.build_edit_btn(doctype, name);
+		const add = this.build_add_child_btn(doctype, name, label);
+		if (!edit && !add) return "";
+		return `<div class="org-card-actions">${add}${edit}</div>`;
+	}
+
+	build_transfer_btn(name) {
+		if (!frappe.model.can_write("Employe")) return "";
+		return `<button type="button" class="org-transfer-btn" data-name="${frappe.utils.escape_html(
+			name
+		)}" title="${__("Transfert")}" aria-label="${__("Transfert")}"><span class="fa fa-exchange"></span> ${__(
+			"Transfert"
+		)}</button>`;
+	}
+
+	open_transfer_dialog(employe_name) {
+		frappe.db
+			.get_value("Employe", employe_name, ["name", "nom_complet", "departement", "site", "poste"])
+			.then((r) => {
+				const doc = (r && r.message) || {};
+				this.show_transfer_dialog(employe_name, doc);
+			});
+	}
+
+	show_transfer_dialog(employe_name, doc) {
+		const label = doc.nom_complet || employe_name;
+		const dialog = new frappe.ui.Dialog({
+			title: __("Transfert — {0}", [label]),
+			fields: [
+				{
+					fieldname: "departement",
+					label: __("Département"),
+					fieldtype: "Link",
+					options: "Departement RH",
+					default: doc.departement || "",
+					reqd: 1,
+					get_query: () => ({ filters: { actif: 1 } }),
+					onchange: () => refresh_responsable_preview(),
+				},
+				{
+					fieldname: "poste",
+					label: __("Poste"),
+					fieldtype: "Link",
+					options: "Poste RH",
+					default: doc.poste || "",
+					reqd: 1,
+				},
+				{
+					fieldname: "site",
+					label: __("Site"),
+					fieldtype: "Link",
+					options: "Site RH",
+					default: doc.site || "",
+					reqd: 1,
+					get_query: () => ({ filters: { actif: 1 } }),
+					onchange: () => refresh_responsable_preview(),
+				},
+				{
+					fieldname: "responsable_calcule",
+					label: __("Responsable hiérarchique (calculé)"),
+					fieldtype: "Data",
+					read_only: 1,
+					description: __("Priorité : responsable du site, sinon responsable du département"),
+				},
+				{
+					fieldname: "motif",
+					label: __("Motif"),
+					fieldtype: "Small Text",
+					description: __("Optionnel — enregistré sur le Mouvement Employé"),
+				},
+			],
+			primary_action_label: __("Transférer"),
+			primary_action: (values) => {
+				const new_dept = values.departement || "";
+				const new_site = values.site || "";
+				const new_poste = values.poste || "";
+				if (
+					new_dept === (doc.departement || "") &&
+					new_site === (doc.site || "") &&
+					new_poste === (doc.poste || "")
+				) {
+					frappe.msgprint(__("Aucun changement de département, de site ou de poste."));
+					return;
+				}
+				frappe.confirm(
+					__("Confirmer le transfert de {0} ?", [label]),
+					() => {
+						frappe.call({
+							method:
+								"aurescrm.ressources_humaines.page.organigramme_rh.organigramme_rh.transfer_employee",
+							args: {
+								name: employe_name,
+								departement: new_dept,
+								site: new_site,
+								poste: new_poste,
+								motif: values.motif || "",
+							},
+							freeze: true,
+							freeze_message: __("Transfert…"),
+							callback: (r) => {
+								dialog.hide();
+								const result = (r && r.message) || {};
+								const msg = result.mouvement
+									? __("{0} transféré — mouvement {1}", [
+											result.label || label,
+											result.mouvement,
+									  ])
+									: __("{0} transféré", [result.label || label]);
+								frappe.show_alert({ message: msg, indicator: "green" });
+								this.refresh({ preserve_expanded: true, ensure_open: [employe_name] });
+							},
+						});
+					}
+				);
+			},
+		});
+
+		const refresh_responsable_preview = () => {
+			const departement = dialog.get_value("departement") || "";
+			const site = dialog.get_value("site") || "";
+			frappe.call({
+				method:
+					"aurescrm.ressources_humaines.page.organigramme_rh.organigramme_rh.preview_responsable_hierarchique",
+				args: {
+					departement,
+					site,
+					employe: employe_name,
+				},
+				callback: (r) => {
+					const data = (r && r.message) || {};
+					let text = __("Aucun responsable trouvé");
+					if (data.responsable) {
+						const src =
+							data.source === "site"
+								? __("site")
+								: data.source === "departement"
+								? __("département")
+								: "";
+						text = src
+							? __("{0} (via {1})", [data.label || data.responsable, src])
+							: data.label || data.responsable;
+					}
+					dialog.set_value("responsable_calcule", text);
+				},
+			});
+		};
+
+		dialog.show();
+		refresh_responsable_preview();
 	}
 
 	open_employees_dialog(node_type, node_name) {
@@ -757,7 +950,104 @@ class OrganigrammeRHPage {
 									message: __("{0} mis à jour", [current_label]),
 									indicator: "green",
 								});
-								this.refresh();
+								this.refresh({ preserve_expanded: true });
+							},
+						});
+					}
+				);
+			},
+		});
+
+		dialog.show();
+	}
+
+	open_create_child_dialog(doctype, parent_name, parent_label) {
+		const is_site = doctype === "Site RH";
+		const parent_field = is_site ? "site_parent" : "departement_parent";
+		const label_field = is_site ? "nom_site" : "nom_departement";
+		const resp_field = is_site ? "responsable_site" : "responsable_departement";
+		const title = is_site
+			? __("Nouveau sous-site de {0}", [parent_label])
+			: __("Nouveau sous-département de {0}", [parent_label]);
+
+		const dialog_fields = [
+			{
+				fieldname: label_field,
+				label: is_site ? __("Nom du site") : __("Nom du département"),
+				fieldtype: "Data",
+				reqd: 1,
+			},
+			{
+				fieldname: parent_field,
+				label: is_site ? __("Site parent") : __("Département parent"),
+				fieldtype: "Link",
+				options: doctype,
+				default: parent_name,
+				reqd: 1,
+				read_only: 1,
+			},
+		];
+
+		if (is_site) {
+			dialog_fields.push({
+				fieldname: "type_site",
+				label: __("Type de site"),
+				fieldtype: "Select",
+				options: ["", "Siège", "Usine", "Atelier", "Dépôt", "Bureau", "Autre"].join("\n"),
+			});
+		}
+
+		dialog_fields.push(
+			{
+				fieldname: resp_field,
+				label: is_site ? __("Responsable du site") : __("Responsable du département"),
+				fieldtype: "Link",
+				options: "Employe",
+				get_query: () => ({ filters: { statut: "Actif" } }),
+			},
+			{
+				fieldname: "couleur",
+				label: __("Couleur"),
+				fieldtype: "Color",
+				description: __("Laissée vide : attribution automatique"),
+			},
+			{
+				fieldname: "actif",
+				label: __("Actif"),
+				fieldtype: "Check",
+				default: 1,
+			}
+		);
+
+		const dialog = new frappe.ui.Dialog({
+			title,
+			fields: dialog_fields,
+			primary_action_label: __("Créer"),
+			primary_action: (values) => {
+				const child_label = values[label_field] || "";
+				frappe.confirm(
+					__("Créer {0} sous {1} ?", [child_label, parent_label]),
+					() => {
+						frappe.call({
+							method:
+								"aurescrm.ressources_humaines.page.organigramme_rh.organigramme_rh.create_org_node",
+							args: {
+								doctype,
+								values,
+							},
+							freeze: true,
+							freeze_message: __("Création…"),
+							callback: (r) => {
+								dialog.hide();
+								const created = (r && r.message) || {};
+								frappe.show_alert({
+									message: __("{0} créé", [created.label || child_label]),
+									indicator: "green",
+								});
+								this.refresh({
+									preserve_expanded: true,
+									ensure_open: [parent_name],
+								});
 							},
 						});
 					}
@@ -840,6 +1130,7 @@ class OrganigrammeRHPage {
 
 		return $(`
 			<div class="${card_classes}" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0"${border_style}>
+				${this.build_transfer_btn(node.id)}
 				<div class="org-card-top">
 					<div class="org-avatar">${photo}${
 						is_resp
@@ -890,7 +1181,7 @@ class OrganigrammeRHPage {
 
 		return $(`
 			<div class="org-card org-card-dept org-open-departement" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0" style="border-left-color: ${frappe.utils.escape_html(color)}">
-				${this.build_edit_btn("Departement RH", node.id)}
+				${this.build_card_actions("Departement RH", node.id, node.label || node.id)}
 				<div class="org-card-top">
 					<div class="org-avatar org-avatar-dept" style="background: ${frappe.utils.escape_html(color)}">
 						<span class="org-avatar-initials">${frappe.utils.escape_html(this.get_initials(node.label))}</span>
@@ -926,7 +1217,7 @@ class OrganigrammeRHPage {
 
 		return $(`
 			<div class="org-card org-card-site org-open-site" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0" style="border-left-color: ${frappe.utils.escape_html(color)}">
-				${this.build_edit_btn("Site RH", node.id)}
+				${this.build_card_actions("Site RH", node.id, node.label || node.id)}
 				<div class="org-card-top">
 					<div class="org-avatar org-avatar-site" style="background: ${frappe.utils.escape_html(color)}">
 						<span class="org-avatar-initials">${frappe.utils.escape_html(this.get_initials(node.label))}</span>

@@ -258,9 +258,19 @@ doc_events = {
             "aurescrm.rh_hooks.set_employee_full_name",
             "aurescrm.rh_hooks.validate_employee_required_fields",
             "aurescrm.rh_hooks.validate_employee_unique_admin_ids",
-            "aurescrm.rh_hooks.set_employee_operation_status"
+            "aurescrm.rh_hooks.set_employee_operation_status",
+            "aurescrm.rh_hooks.assign_responsable_hierarchique",
         ],
-        "on_update": "aurescrm.rh_hooks.create_employee_movement_if_assignment_changed"
+        "on_update": [
+            "aurescrm.rh_hooks.create_employee_movement_if_assignment_changed",
+            "aurescrm.rh_hooks.sync_site_manager_chain_after_employee_update",
+        ],
+    },
+    "Site RH": {
+        "on_update": "aurescrm.rh_hooks.sync_hierarchy_on_site_update",
+    },
+    "Departement RH": {
+        "on_update": "aurescrm.rh_hooks.sync_hierarchy_on_department_update",
     },
     # Vous pourriez avoir d'autres DocTypes ici
     "Meeting Interne": {

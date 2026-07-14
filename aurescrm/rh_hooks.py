@@ -170,3 +170,198 @@ def create_employee_movement_if_assignment_changed(doc, method=None):
 
 	movement.flags.ignore_permissions = True
 	movement.insert()
+
+
+# ---------------------------------------------------------------------------
+# Responsable hiérarchique automatique (priorité site, sinon département)
+# ---------------------------------------------------------------------------
+
+
+def resolve_responsable_hierarchique(
+	departement: str | None = None,
+	site: str | None = None,
+	exclude_employee: str | None = None,
+) -> str | None:
+	"""Résoudre le responsable hiérarchique : site d'abord, sinon département."""
+	exclude_employee = (exclude_employee or "").strip() or None
+	site = (site or "").strip() or None
+	departement = (departement or "").strip() or None
+
+	if site:
+		site_resp = frappe.db.get_value("Site RH", site, "responsable_site")
+		site_resp = (site_resp or "").strip() or None
+		if site_resp and site_resp != exclude_employee:
+			return site_resp
+
+	if departement:
+		dept_resp = frappe.db.get_value("Departement RH", departement, "responsable_departement")
+		dept_resp = (dept_resp or "").strip() or None
+		if dept_resp and dept_resp != exclude_employee:
+			return dept_resp
+
+	return None
+
+
+def ensure_site_manager_reports_to_dept_manager(site_manager_id: str | None) -> None:
+	"""Le responsable de site remonte vers le responsable de son propre département."""
+	site_manager_id = (site_manager_id or "").strip() or None
+	if not site_manager_id:
+		return
+	if frappe.flags.get("ensuring_site_manager_chain"):
+		return
+
+	dept = frappe.db.get_value("Employe", site_manager_id, "departement")
+	dept = (dept or "").strip() or None
+	if not dept:
+		return
+
+	dept_manager = frappe.db.get_value("Departement RH", dept, "responsable_departement")
+	dept_manager = (dept_manager or "").strip() or None
+	if not dept_manager or dept_manager == site_manager_id:
+		return
+
+	current = frappe.db.get_value("Employe", site_manager_id, "responsable_hierarchique")
+	if (current or None) == dept_manager:
+		return
+
+	frappe.flags.ensuring_site_manager_chain = True
+	try:
+		manager = frappe.get_doc("Employe", site_manager_id)
+		manager.responsable_hierarchique = dept_manager
+		manager.flags.skip_auto_responsable = True
+		manager.save()
+	finally:
+		frappe.flags.ensuring_site_manager_chain = False
+
+
+def _reassign_employee_responsable(emp_name: str) -> None:
+	"""Recalculer et enregistrer le responsable hiérarchique d'un employé."""
+	emp_name = (emp_name or "").strip()
+	if not emp_name or not frappe.db.exists("Employe", emp_name):
+		return
+
+	emp = frappe.get_doc("Employe", emp_name)
+	resolved = resolve_responsable_hierarchique(
+		emp.departement, emp.site, exclude_employee=emp.name
+	)
+	if (emp.responsable_hierarchique or None) == (resolved or None):
+		return
+
+	emp.responsable_hierarchique = resolved
+	emp.flags.skip_auto_responsable = True
+	site_resp = None
+	if emp.site:
+		site_resp = frappe.db.get_value("Site RH", emp.site, "responsable_site")
+		site_resp = (site_resp or "").strip() or None
+	if resolved and site_resp and resolved == site_resp:
+		emp.flags._sync_site_manager_chain = resolved
+	emp.save()
+
+
+def assign_responsable_hierarchique(doc, method=None):
+	"""before_save Employé : recalculer le responsable si département/site change."""
+	if getattr(doc.flags, "skip_auto_responsable", False):
+		return
+
+	should_assign = False
+	if doc.is_new():
+		should_assign = bool(doc.departement or doc.site)
+	else:
+		previous = doc.get_doc_before_save()
+		if previous and (
+			(previous.departement or None) != (doc.departement or None)
+			or (previous.site or None) != (doc.site or None)
+		):
+			should_assign = True
+
+	if not should_assign:
+		return
+
+	resolved = resolve_responsable_hierarchique(
+		doc.departement, doc.site, exclude_employee=doc.name
+	)
+	doc.responsable_hierarchique = resolved
+
+	# Mémoriser pour sync chaîne après save (évite save imbriqué pendant before_save).
+	site_resp = None
+	if doc.site:
+		site_resp = frappe.db.get_value("Site RH", doc.site, "responsable_site")
+		site_resp = (site_resp or "").strip() or None
+	if resolved and site_resp and resolved == site_resp:
+		doc.flags._sync_site_manager_chain = resolved
+
+
+def sync_site_manager_chain_after_employee_update(doc, method=None):
+	"""on_update Employé : faire remonter le responsable de site vers le dept."""
+	manager = getattr(doc.flags, "_sync_site_manager_chain", None)
+	if manager:
+		ensure_site_manager_reports_to_dept_manager(manager)
+		return
+
+	if getattr(doc.flags, "skip_auto_responsable", False):
+		return
+
+	previous = doc.get_doc_before_save()
+	if previous and (previous.departement or None) != (doc.departement or None):
+		is_site_manager = frappe.db.exists(
+			"Site RH", {"responsable_site": doc.name, "actif": 1}
+		)
+		if is_site_manager:
+			ensure_site_manager_reports_to_dept_manager(doc.name)
+
+
+def sync_hierarchy_on_site_update(doc, method=None):
+	"""on_update Site RH : sync chaîne du responsable + employés actifs du site."""
+	previous = doc.get_doc_before_save()
+	resp_changed = True
+	if previous:
+		resp_changed = (previous.responsable_site or None) != (doc.responsable_site or None)
+
+	if not resp_changed:
+		return
+
+	if doc.responsable_site:
+		ensure_site_manager_reports_to_dept_manager(doc.responsable_site)
+
+	employees = frappe.get_all(
+		"Employe",
+		filters={"site": doc.name, "statut": "Actif"},
+		pluck="name",
+	)
+	for emp_name in employees:
+		_reassign_employee_responsable(emp_name)
+
+
+def sync_hierarchy_on_department_update(doc, method=None):
+	"""on_update Département RH : sync managers de site + employés sans chef de site."""
+	previous = doc.get_doc_before_save()
+	if previous and (previous.responsable_departement or None) == (
+		doc.responsable_departement or None
+	):
+		return
+
+	# Responsables de sites dont le département personnel = ce département.
+	site_manager_ids = frappe.get_all(
+		"Site RH",
+		filters={"actif": 1, "responsable_site": ["is", "set"]},
+		pluck="responsable_site",
+	)
+	for manager_id in {m for m in site_manager_ids if m}:
+		manager_dept = frappe.db.get_value("Employe", manager_id, "departement")
+		if manager_dept == doc.name:
+			ensure_site_manager_reports_to_dept_manager(manager_id)
+
+	# Employés actifs du département sans responsable de site exploitable.
+	employees = frappe.get_all(
+		"Employe",
+		filters={"departement": doc.name, "statut": "Actif"},
+		fields=["name", "site"],
+	)
+	for emp in employees:
+		site_resp = None
+		if emp.site:
+			site_resp = frappe.db.get_value("Site RH", emp.site, "responsable_site")
+			site_resp = (site_resp or "").strip() or None
+		if site_resp and site_resp != emp.name:
+			continue
+		_reassign_employee_responsable(emp.name)
