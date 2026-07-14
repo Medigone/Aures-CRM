@@ -2,6 +2,7 @@
 # Patches added in this section will be executed before doctypes are migrated
 # Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
 aurescrm.patches.create_rh_roles
+aurescrm.patches.create_guide_roles
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
@@ -28,3 +29,8 @@ aurescrm.patches.backfill_nb_passages
 aurescrm.patches.backfill_dossier_fabrication_status
 aurescrm.patches.seed_rh_referentiels
 aurescrm.patches.remove_rh_reports_renouveler_incomplets
+aurescrm.patches.rename_site_rh_to_series
+aurescrm.patches.rename_site_rh_series_to_srh_hash
+aurescrm.patches.rename_departement_rh_to_series
+aurescrm.patches.setup_guides_workflow
+aurescrm.patches.import_guides_from_docs

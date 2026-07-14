@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:nom_site",
+ "autoname": "SRH-.####",
  "creation": "2026-07-09 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -103,7 +103,7 @@
  "modified_by": "Administrator",
  "module": "Ressources Humaines",
  "name": "Site RH",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -159,6 +159,7 @@
   }
  ],
  "search_fields": "nom_site",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

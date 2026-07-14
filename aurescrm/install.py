@@ -10,6 +10,7 @@ def after_install():
     """Hook appelé après l'installation de l'app"""
     setup_plan_flexo_assets()
     setup_rh_module()
+    setup_guides_module()
 
 
 def setup_rh_module():
@@ -19,6 +20,15 @@ def setup_rh_module():
         _setup_rh()
     except Exception as e:
         frappe.log_error(f"Error setting up RH module: {str(e)}", "RH Module Setup")
+
+
+def setup_guides_module():
+    """Créer les rôles et le workflow du module Guides Utilisation"""
+    try:
+        from aurescrm.guides_utilisation.setup import setup_guides_module as _setup_guides
+        _setup_guides()
+    except Exception as e:
+        frappe.log_error(f"Error setting up Guides module: {str(e)}", "Guides Module Setup")
 
 def setup_plan_flexo_assets():
     """S'assurer que les assets pour Plan Flexo sont disponibles"""

@@ -46,16 +46,25 @@ FEMMES = {
 }
 
 
+def _dept_name(nom_departement: str) -> str | None:
+	return frappe.db.get_value("Departement RH", {"nom_departement": nom_departement}, "name")
+
+
+def _site_name(nom_site: str) -> str | None:
+	return frappe.db.get_value("Site RH", {"nom_site": nom_site}, "name")
+
+
 def ensure_postes() -> list[str]:
 	created = []
 	for intitule, dept, niveau in POSTES:
 		if frappe.db.exists("Poste RH", intitule):
 			continue
+		dept_id = _dept_name(dept)
 		frappe.get_doc(
 			{
 				"doctype": "Poste RH",
 				"intitule_poste": intitule,
-				"departement_par_defaut": dept,
+				"departement_par_defaut": dept_id,
 				"niveau": niveau,
 				"actif": 1,
 			}
@@ -65,6 +74,9 @@ def ensure_postes() -> list[str]:
 
 
 def link_departments_to_dg() -> None:
+	dg = _dept_name("Direction Générale")
+	if not dg:
+		return
 	for dept in [
 		"Commercial",
 		"Production",
@@ -76,13 +88,14 @@ def link_departments_to_dg() -> None:
 		"Back-Office",
 		"Administration",
 	]:
-		if frappe.db.exists("Departement RH", dept):
-			frappe.db.set_value("Departement RH", dept, "departement_parent", "Direction Générale")
+		dept_id = _dept_name(dept)
+		if dept_id:
+			frappe.db.set_value("Departement RH", dept_id, "departement_parent", dg)
 
 
 def seed_employees() -> dict:
 	dg = frappe.db.get_value("Employe", {"matricule": "0001"}, "name") or "EMP-2026-00002"
-	site = "Offset"
+	site = _site_name("Offset") or _site_name("Siège / Usine principale")
 	contrat = "CDI"
 	date_entree = add_days(today(), -400)
 
@@ -142,6 +155,7 @@ def seed_employees() -> dict:
 		else:
 			resp = None
 
+		dept_id = _dept_name(dept)
 		doc = frappe.get_doc(
 			{
 				"doctype": "Employe",
@@ -150,7 +164,7 @@ def seed_employees() -> dict:
 				"prenom": prenom,
 				"statut": "Actif",
 				"date_entree": date_entree,
-				"departement": dept,
+				"departement": dept_id,
 				"poste": poste,
 				"site": site,
 				"type_contrat": contrat,
@@ -189,8 +203,9 @@ def seed_employees() -> dict:
 		"Administration": by_matricule.get("F180"),
 	}
 	for dept, emp in dept_resp.items():
-		if emp and frappe.db.exists("Departement RH", dept):
-			frappe.db.set_value("Departement RH", dept, "responsable_departement", emp)
+		dept_id = _dept_name(dept)
+		if emp and dept_id:
+			frappe.db.set_value("Departement RH", dept_id, "responsable_departement", emp)
 
 	return {"created": created, "total_active": frappe.db.count("Employe", {"statut": "Actif"})}
 

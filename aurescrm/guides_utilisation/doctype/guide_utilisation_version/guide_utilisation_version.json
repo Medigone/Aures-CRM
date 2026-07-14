@@ -1,0 +1,176 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:{guide}-v{numero_version}",
+ "creation": "2026-07-14 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_meta",
+  "guide",
+  "numero_version",
+  "column_break_meta",
+  "statut",
+  "format_contenu",
+  "resume_modifications",
+  "section_contenu",
+  "contenu_markdown",
+  "contenu_riche",
+  "section_publication",
+  "publie_le",
+  "publie_par"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_meta",
+   "fieldtype": "Section Break",
+   "label": "Métadonnées"
+  },
+  {
+   "fieldname": "guide",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Guide",
+   "options": "Guide Utilisation",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "numero_version",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Numéro de version",
+   "non_negative": 1,
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_meta",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Brouillon",
+   "fieldname": "statut",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut",
+   "options": "Brouillon\nÀ valider\nPublié\nArchivé",
+   "read_only": 1
+  },
+  {
+   "default": "Markdown",
+   "fieldname": "format_contenu",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Format du contenu",
+   "options": "Markdown\nTexte riche",
+   "reqd": 1
+  },
+  {
+   "fieldname": "resume_modifications",
+   "fieldtype": "Small Text",
+   "label": "Résumé des modifications"
+  },
+  {
+   "fieldname": "section_contenu",
+   "fieldtype": "Section Break",
+   "label": "Contenu"
+  },
+  {
+   "depends_on": "eval:doc.format_contenu=='Markdown'",
+   "fieldname": "contenu_markdown",
+   "fieldtype": "Markdown Editor",
+   "label": "Contenu Markdown",
+   "mandatory_depends_on": "eval:doc.format_contenu=='Markdown'"
+  },
+  {
+   "depends_on": "eval:doc.format_contenu=='Texte riche'",
+   "fieldname": "contenu_riche",
+   "fieldtype": "Text Editor",
+   "label": "Contenu riche",
+   "mandatory_depends_on": "eval:doc.format_contenu=='Texte riche'"
+  },
+  {
+   "fieldname": "section_publication",
+   "fieldtype": "Section Break",
+   "label": "Publication"
+  },
+  {
+   "fieldname": "publie_le",
+   "fieldtype": "Datetime",
+   "label": "Publié le",
+   "read_only": 1
+  },
+  {
+   "fieldname": "publie_par",
+   "fieldtype": "Link",
+   "label": "Publié par",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-07-14 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Guides Utilisation",
+ "name": "Guide Utilisation Version",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guide Gestionnaire",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guide Validateur",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guide Redacteur",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "guide,resume_modifications",
+ "sort_field": "numero_version",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "numero_version",
+ "track_changes": 1
+}

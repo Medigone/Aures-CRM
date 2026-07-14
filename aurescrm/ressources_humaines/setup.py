@@ -56,7 +56,7 @@ def seed_rh_referentiels():
 			).insert(ignore_permissions=True)
 
 	for departement in DEPARTEMENTS:
-		if not frappe.db.exists("Departement RH", departement):
+		if not frappe.db.exists("Departement RH", {"nom_departement": departement}):
 			frappe.get_doc(
 				{"doctype": "Departement RH", "nom_departement": departement, "actif": 1}
 			).insert(ignore_permissions=True)

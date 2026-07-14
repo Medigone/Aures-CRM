@@ -1,0 +1,21 @@
+{
+ "creation": "2026-07-14 11:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "book",
+ "idx": 0,
+ "modified": "2026-07-14 11:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Guides Utilisation",
+ "name": "guides-utilisation",
+ "owner": "Administrator",
+ "page_name": "guides-utilisation",
+ "roles": [
+  {
+   "role": "All"
+  }
+ ],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "Guides d'utilisation"
+}

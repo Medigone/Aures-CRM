@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:nom_departement",
+ "autoname": "DRH-.####",
  "creation": "2026-07-09 10:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -71,11 +71,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-09 10:00:00.000000",
+ "modified": "2026-07-14 11:20:00.000000",
  "modified_by": "Administrator",
  "module": "Ressources Humaines",
  "name": "Departement RH",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -131,6 +131,7 @@
   }
  ],
  "search_fields": "nom_departement",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

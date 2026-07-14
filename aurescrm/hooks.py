@@ -124,12 +124,16 @@ permission_query_conditions = {
     "BOM": "aurescrm.custom_permissions.get_bom_permission_query_conditions",
     "Etude Faisabilite": "aurescrm.custom_permissions.get_feasibility_study_permission_query_conditions",
     "Etude Technique": "aurescrm.custom_permissions.get_technical_study_permission_query_conditions",
-    "Reclamations Clients": "aurescrm.custom_permissions.get_reclamations_clients_permission_query_conditions"
+    "Reclamations Clients": "aurescrm.custom_permissions.get_reclamations_clients_permission_query_conditions",
+    "Guide Utilisation": "aurescrm.guides_utilisation.permissions.get_guide_permission_query_conditions",
+    "Guide Utilisation Version": "aurescrm.guides_utilisation.permissions.get_version_permission_query_conditions",
 }
 
 has_permission = {
     "Customer": "aurescrm.custom_permissions.has_customer_permission",
     "Item": "aurescrm.custom_permissions.has_item_permission",
+    "Guide Utilisation": "aurescrm.guides_utilisation.permissions.has_guide_permission",
+    "Guide Utilisation Version": "aurescrm.guides_utilisation.permissions.has_version_permission",
 }
 
 override_whitelisted_methods = {

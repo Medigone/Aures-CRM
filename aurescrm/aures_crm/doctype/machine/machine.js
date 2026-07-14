@@ -51,10 +51,15 @@ frappe.ui.form.on('Machine', {
 			frm.set_value('nb_couleurs_verso', 0);
 			frm.set_value('total_couleurs', 0);
 			frm.set_value('gache_calage', 0);
+			frm.set_value('taux_gache_production', 0);
 			frm.set_value('format_max_laize', 0);
 			frm.set_value('format_max_developpement', 0);
 			frm.set_value('format_min_laize', 0);
 			frm.set_value('format_min_developpement', 0);
+			frm.set_value('grammage_min', 0);
+			frm.set_value('grammage_max', 0);
+			frm.set_value('marge_pince', 0);
+			frm.set_value('vernis', 0);
 		}
 	},
 

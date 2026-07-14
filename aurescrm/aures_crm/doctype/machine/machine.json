@@ -15,54 +15,69 @@
   "modele",
   "site_production",
   "atelier",
-  "production_tab",
-  "procede",
-  "column_break_bqbj",
-  "type_presse",
-  "presse_offset_section",
-  "total_couleurs",
-  "nb_couleurs_recto",
-  "nb_couleurs_verso",
-  "column_break_offset1",
-  "min_qt",
-  "gache_calage",
-  "section_break_yqyb",
-  "retiration",
-  "column_break_atmb",
-  "vernis",
-  "parametres_section",
+  "image",
+  "is_active",
+  "parametres_production_section",
   "vitesse_max",
+  "parametres_devis_section",
+  "utilisable_pour_devis",
+  "methode_calcul_devis",
+  "unite_production",
+  "column_break_devis",
+  "frais_fixes_lancement",
+  "cout_par_1000_unites",
+  "vitesse_standard_devis",
+  "min_qt",
+  "nombre_operateurs",
+  "date_revision_parametres",
+  "parametres_horaires_section",
   "temps_calage",
-  "column_break_params",
+  "column_break_horaires",
   "cout_horaire_calage",
   "cout_horaire_roulage",
+  "production_tab",
+  "procede",
+  "type_presse",
+  "column_break_bqbj",
+  "retiration",
+  "vernis",
+  "presse_offset_section",
+  "nb_couleurs_recto",
+  "nb_couleurs_verso",
+  "total_couleurs",
+  "column_break_offset1",
+  "gache_calage",
+  "taux_gache_production",
   "format_section",
   "format_max_laize",
   "format_max_developpement",
   "column_break_format",
   "format_min_laize",
   "format_min_developpement",
-  "configuration",
-  "section_break_pmrq",
-  "is_active",
-  "image",
+  "compatibilite_support_section",
+  "grammage_min",
+  "grammage_max",
+  "column_break_support",
+  "marge_pince",
   "observations_tab",
   "observations_section",
   "observations"
  ],
  "fields": [
   {
+   "default": "Operationnelle",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Statut Machine",
+   "options": "Operationnelle\nEn Maintenance\nEn Panne\nHors Service\nD\u00e9sactiv\u00e9",
+   "show_on_timeline": 1
+  },
+  {
    "fieldname": "identification_section",
    "fieldtype": "Section Break",
    "label": "Identification"
-  },
-  {
-   "fieldname": "nom",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Nom",
-   "reqd": 1,
-   "unique": 1
   },
   {
    "fieldname": "type_equipement",
@@ -71,6 +86,14 @@
    "label": "Type d'\u00e9quipement",
    "options": "Presse Offset\nPlieuse\nColleuse\nMassicot\nMachine D\u00e9coupe\nAutre",
    "reqd": 1
+  },
+  {
+   "fieldname": "nom",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom",
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "marque",
@@ -95,12 +118,9 @@
    "options": "Site Production"
   },
   {
-   "default": "1",
-   "fieldname": "is_active",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "in_standard_filter": 1,
-   "label": "Active"
+   "fieldname": "atelier",
+   "fieldtype": "Data",
+   "label": "Atelier"
   },
   {
    "fieldname": "image",
@@ -108,17 +128,108 @@
    "label": "Image"
   },
   {
-   "fieldname": "parametres_section",
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Active",
+   "read_only": 1
+  },
+  {
+   "fieldname": "parametres_production_section",
    "fieldtype": "Section Break",
    "label": "Param\u00e8tres de Production"
   },
   {
+   "description": "Vitesse constructeur, information technique uniquement. Ne pas utiliser pour le chiffrage.",
    "fieldname": "vitesse_max",
    "fieldtype": "Int",
-   "label": "Vitesse max (unit\u00e9s/heure)",
+   "label": "Vitesse maximale constructeur (unit\u00e9s/heure)",
    "non_negative": 1
   },
   {
+   "fieldname": "parametres_devis_section",
+   "fieldtype": "Section Break",
+   "label": "Param\u00e8tres de devis"
+  },
+  {
+   "default": "0",
+   "fieldname": "utilisable_pour_devis",
+   "fieldtype": "Check",
+   "label": "Utilisable pour les devis"
+  },
+  {
+   "default": "Forfait + co\u00fbt par 1000",
+   "fieldname": "methode_calcul_devis",
+   "fieldtype": "Select",
+   "label": "M\u00e9thode de calcul devis",
+   "options": "Forfait + co\u00fbt par 1000\nTemps \u00d7 co\u00fbt horaire",
+   "reqd": 1
+  },
+  {
+   "default": "Feuille",
+   "fieldname": "unite_production",
+   "fieldtype": "Select",
+   "label": "Unit\u00e9 de production",
+   "options": "Feuille\nUnit\u00e9\nM\u00e8tre lin\u00e9aire\nM\u00e8tre carr\u00e9\nKilogramme\nHeure",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_devis",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.methode_calcul_devis==\"Forfait + co\u00fbt par 1000\"",
+   "description": "Co\u00fbt fixe de mise en route / lancement job.",
+   "fieldname": "frais_fixes_lancement",
+   "fieldtype": "Currency",
+   "label": "Frais fixes de lancement",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.methode_calcul_devis==\"Forfait + co\u00fbt par 1000\"",
+   "description": "Co\u00fbt machine variable pour 1 000 unit\u00e9s de production (hors MO).",
+   "fieldname": "cout_par_1000_unites",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt par 1 000 unit\u00e9s",
+   "non_negative": 1
+  },
+  {
+   "description": "Vitesse r\u00e9aliste retenue pour le chiffrage (pas la vitesse constructeur).",
+   "fieldname": "vitesse_standard_devis",
+   "fieldtype": "Int",
+   "label": "Vitesse standard devis (unit\u00e9s/heure)",
+   "non_negative": 1
+  },
+  {
+   "description": "Quantit\u00e9 minimale utilis\u00e9e pour le calcul \u00e9conomique, exprim\u00e9e dans l\u2019unit\u00e9 de production.",
+   "fieldname": "min_qt",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9 minimale facturable",
+   "non_negative": 1
+  },
+  {
+   "default": "1",
+   "description": "Effectif typique sur la machine. La comptabilit\u00e9 calcule le co\u00fbt MO : effectif \u00d7 taux horaire MO \u00d7 heures.",
+   "fieldname": "nombre_operateurs",
+   "fieldtype": "Int",
+   "label": "Nombre d'op\u00e9rateurs",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "date_revision_parametres",
+   "fieldtype": "Date",
+   "label": "Date de r\u00e9vision des param\u00e8tres"
+  },
+  {
+   "depends_on": "eval:doc.methode_calcul_devis==\"Temps \u00d7 co\u00fbt horaire\"",
+   "fieldname": "parametres_horaires_section",
+   "fieldtype": "Section Break",
+   "label": "Param\u00e8tres horaires (avanc\u00e9)"
+  },
+  {
+   "depends_on": "eval:doc.methode_calcul_devis==\"Temps \u00d7 co\u00fbt horaire\"",
    "fieldname": "temps_calage",
    "fieldtype": "Float",
    "label": "Temps total calage (minutes)",
@@ -126,25 +237,31 @@
    "precision": "1"
   },
   {
-   "fieldname": "column_break_params",
+   "depends_on": "eval:doc.methode_calcul_devis==\"Temps \u00d7 co\u00fbt horaire\"",
+   "fieldname": "column_break_horaires",
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.methode_calcul_devis==\"Temps \u00d7 co\u00fbt horaire\"",
+   "description": "Co\u00fbt machine \u20ac/h en calage (amortissement, \u00e9nergie, maintenance\u2026 hors main-d'\u0153uvre).",
    "fieldname": "cout_horaire_calage",
    "fieldtype": "Currency",
-   "label": "Co\u00fbt horaire calage",
+   "label": "Co\u00fbt horaire machine \u2014 calage",
    "non_negative": 1
   },
   {
+   "depends_on": "eval:doc.methode_calcul_devis==\"Temps \u00d7 co\u00fbt horaire\"",
+   "description": "Co\u00fbt machine \u20ac/h en production (hors main-d'\u0153uvre).",
    "fieldname": "cout_horaire_roulage",
    "fieldtype": "Currency",
-   "label": "Co\u00fbt horaire roulage",
+   "label": "Co\u00fbt horaire machine \u2014 roulage",
    "non_negative": 1
   },
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
-   "fieldname": "presse_offset_section",
-   "fieldtype": "Section Break"
+   "fieldname": "production_tab",
+   "fieldtype": "Tab Break",
+   "label": "Param\u00e8tres Presse"
   },
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
@@ -162,6 +279,10 @@
    "options": "\nFeuille\nRotative"
   },
   {
+   "fieldname": "column_break_bqbj",
+   "fieldtype": "Column Break"
+  },
+  {
    "default": "0",
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
    "fieldname": "retiration",
@@ -169,8 +290,18 @@
    "label": "Retiration (recto-verso en un passage)"
   },
   {
-   "fieldname": "column_break_offset1",
-   "fieldtype": "Column Break"
+   "default": "0",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "description": "La presse dispose d'une tour vernis en ligne.",
+   "fieldname": "vernis",
+   "fieldtype": "Check",
+   "label": "Vernis en ligne"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "presse_offset_section",
+   "fieldtype": "Section Break",
+   "label": "Couleurs et g\u00e2che"
   },
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
@@ -188,9 +319,29 @@
   },
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "total_couleurs",
+   "fieldtype": "Int",
+   "label": "Total couleurs",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_offset1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
    "fieldname": "gache_calage",
    "fieldtype": "Int",
    "label": "G\u00e2che calage (feuilles)",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "description": "Pourcentage de perte appliqu\u00e9 \u00e0 la quantit\u00e9 nette (en plus de la g\u00e2che de calage).",
+   "fieldname": "taux_gache_production",
+   "fieldtype": "Percent",
+   "label": "Taux de g\u00e2che production",
    "non_negative": 1
   },
   {
@@ -201,6 +352,7 @@
   },
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "description": "Dimension exprim\u00e9e en millim\u00e8tres. Laize = largeur transversale.",
    "fieldname": "format_max_laize",
    "fieldtype": "Float",
    "label": "Format max laize (mm)",
@@ -209,6 +361,7 @@
   },
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "description": "Dimension exprim\u00e9e en millim\u00e8tres. D\u00e9veloppement = sens de passage machine.",
    "fieldname": "format_max_developpement",
    "fieldtype": "Float",
    "label": "Format max d\u00e9veloppement (mm)",
@@ -221,6 +374,7 @@
   },
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "description": "Dimension exprim\u00e9e en millim\u00e8tres.",
    "fieldname": "format_min_laize",
    "fieldtype": "Float",
    "label": "Format min laize (mm)",
@@ -229,11 +383,50 @@
   },
   {
    "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "description": "Dimension exprim\u00e9e en millim\u00e8tres.",
    "fieldname": "format_min_developpement",
    "fieldtype": "Float",
    "label": "Format min d\u00e9veloppement (mm)",
    "non_negative": 1,
    "precision": "1"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "compatibilite_support_section",
+   "fieldtype": "Section Break",
+   "label": "Compatibilit\u00e9 support"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "grammage_min",
+   "fieldtype": "Float",
+   "label": "Grammage minimum (g/m\u00b2)",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "fieldname": "grammage_max",
+   "fieldtype": "Float",
+   "label": "Grammage maximum (g/m\u00b2)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_support",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "description": "Zone non imprimable en amont (pince). Dimension en millim\u00e8tres.",
+   "fieldname": "marge_pince",
+   "fieldtype": "Float",
+   "label": "Marge de pince (mm)",
+   "non_negative": 1,
+   "precision": "1"
+  },
+  {
+   "fieldname": "observations_tab",
+   "fieldtype": "Tab Break",
+   "label": "Observations"
   },
   {
    "fieldname": "observations_section",
@@ -243,79 +436,12 @@
    "fieldname": "observations",
    "fieldtype": "Text Editor",
    "label": "Observations"
-  },
-  {
-   "fieldname": "section_break_pmrq",
-   "fieldtype": "Section Break"
-  },
-  {
-   "default": "Operationnelle",
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "hidden": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Statut Machine",
-   "options": "Operationnelle\nEn Maintenance\nEn Panne\nHors Service\nD\u00e9sactiv\u00e9",
-   "show_on_timeline": 1
-  },
-  {
-   "fieldname": "configuration",
-   "fieldtype": "Tab Break",
-   "label": "Configuration"
-  },
-  {
-   "depends_on": "eval: doc.type_equipement==\"Presse Offset\"",
-   "fieldname": "production_tab",
-   "fieldtype": "Tab Break",
-   "label": "Param\u00e8tres Presse"
-  },
-  {
-   "fieldname": "section_break_yqyb",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "min_qt",
-   "fieldtype": "Int",
-   "label": "Quantit\u00e9 Minimale (Feuilles)"
-  },
-  {
-   "fieldname": "column_break_atmb",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "vernis",
-   "fieldtype": "Check",
-   "label": "Vernis"
-  },
-  {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
-   "fieldname": "total_couleurs",
-   "fieldtype": "Int",
-   "label": "Total couleurs",
-   "non_negative": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_bqbj",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "observations_tab",
-   "fieldtype": "Tab Break",
-   "label": "Observations"
-  },
-  {
-   "fieldname": "atelier",
-   "fieldtype": "Data",
-   "label": "Atelier"
   }
  ],
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-07 10:16:15.060354",
+ "modified": "2026-07-14 10:40:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Machine",

@@ -1,0 +1,58 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"guides_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Guides</b></span>\",\"col\":12}},{\"id\":\"guides_spacer\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"guides_sc_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Raccourcis</b></span>\",\"col\":12}},{\"id\":\"guides_sc_bibliotheque\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Bibliotheque des guides\",\"col\":3}},{\"id\":\"guides_sc_guides\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Guides\",\"col\":3}},{\"id\":\"guides_sc_categories\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Categories\",\"col\":3}},{\"id\":\"guides_sc_versions\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Versions\",\"col\":3}}]",
+ "creation": "2026-07-14 11:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "file",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Guides",
+ "links": [],
+ "modified": "2026-07-14 12:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Guides Utilisation",
+ "name": "Guides",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 20.0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "",
+   "label": "Bibliotheque des guides",
+   "link_to": "guides-utilisation",
+   "type": "Page"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Guides",
+   "link_to": "Guide Utilisation",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Categories",
+   "link_to": "Guide Categorie",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Versions",
+   "link_to": "Guide Utilisation Version",
+   "type": "DocType"
+  }
+ ],
+ "title": "Guides"
+}
