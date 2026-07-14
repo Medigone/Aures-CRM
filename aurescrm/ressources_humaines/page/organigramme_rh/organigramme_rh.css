@@ -123,36 +123,24 @@
 	transform: translateY(-1px);
 }
 
-.org-card-emp.org-card-has-dept {
-	border-left: 3px solid var(--border-color);
-}
-
-.org-card-emp.org-card-has-dept:hover {
-	/* conserver la couleur département sur le bord gauche au survol */
-	border-top-color: var(--primary);
-	border-right-color: var(--primary);
-	border-bottom-color: var(--primary);
-}
-
-.org-card-focus {
+.org-card-focus:not(.org-card-emp) {
 	background: #f0faf2;
 	border-color: #8fd4a0;
 	box-shadow: 0 0 0 1px rgba(143, 212, 160, 0.45), 0 6px 16px rgba(46, 125, 50, 0.08);
 }
 
-.org-card-focus.org-card-has-dept {
-	/* le bord gauche reste la couleur département ; le reste du contour en vert clair */
+.org-card-focus:not(.org-card-emp).org-card-has-dept {
 	border-top-color: #8fd4a0;
 	border-right-color: #8fd4a0;
 	border-bottom-color: #8fd4a0;
 }
 
-.org-card-focus:hover {
+.org-card-focus:not(.org-card-emp):hover {
 	border-color: #6fc484;
 	background: #e8f7eb;
 }
 
-.org-card-focus.org-card-has-dept:hover {
+.org-card-focus:not(.org-card-emp).org-card-has-dept:hover {
 	border-top-color: #6fc484;
 	border-right-color: #6fc484;
 	border-bottom-color: #6fc484;
@@ -218,14 +206,18 @@
 	position: absolute;
 	right: -3px;
 	bottom: -3px;
+	box-sizing: border-box;
 	width: 15px;
 	height: 15px;
 	border-radius: 50%;
 	background: #f5a623;
 	color: #fff;
 	font-size: 9px;
-	line-height: 15px;
-	text-align: center;
+	line-height: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
 	border: 1.5px solid #fff;
 	box-shadow: 0 1px 2px rgba(18, 38, 63, 0.18);
 }
@@ -356,41 +348,196 @@
 	padding-right: 3.2rem;
 }
 
-.org-card-emp .org-card-top {
-	padding-right: 4.5rem;
-}
-
 .org-transfer-btn {
 	position: absolute;
 	top: 6px;
 	right: 6px;
 	z-index: 3;
+	width: 24px;
 	height: 24px;
-	padding: 0 0.45rem;
-	border: 1px solid var(--border-color);
+	padding: 0;
+	border: 1px solid var(--primary);
 	border-radius: 6px;
-	background: var(--card-bg, #fff);
-	color: var(--text-muted);
+	background: var(--primary);
+	color: #fff;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 0.25rem;
-	font-size: 10px;
-	font-weight: 600;
+	font-size: 11px;
 	line-height: 1;
 	cursor: pointer;
-	opacity: 0.8;
-	box-shadow: 0 1px 2px rgba(18, 38, 63, 0.08);
-	transition: opacity 0.12s ease, border-color 0.12s ease, color 0.12s ease;
-	white-space: nowrap;
+	opacity: 0.92;
+	box-shadow: 0 1px 2px rgba(18, 38, 63, 0.12);
+	transition: opacity 0.12s ease, filter 0.12s ease;
 }
 
 .org-card-emp:hover .org-transfer-btn,
 .org-transfer-btn:hover,
 .org-transfer-btn:focus {
 	opacity: 1;
-	border-color: var(--primary);
-	color: var(--primary);
+	filter: brightness(1.08);
+	color: #fff;
+}
+
+/* --- Carte employé : disposition type maquette --- */
+
+.org-card.org-card-emp {
+	width: 286px;
+	padding: 0.7rem 0.75rem 0.6rem;
+	gap: 0;
+	border: 1px solid #e6e8ee;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+}
+
+.org-card.org-card-emp:hover {
+	border-color: #d0d5dd;
+	box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+	transform: translateY(-1px);
+}
+
+.org-card-emp.org-card-focus {
+	background: #fff;
+	border-color: #8fd4a0;
+	box-shadow: 0 0 0 1px rgba(143, 212, 160, 0.35), 0 4px 12px rgba(16, 24, 40, 0.06);
+}
+
+.org-card-emp.org-card-focus:hover {
+	background: #fff;
+	border-color: #6fc484;
+}
+
+.org-card-emp .org-card-top {
+	align-items: flex-start;
+	gap: 0.65rem;
+	padding-right: 0;
+}
+
+.org-card-emp .org-avatar {
+	flex: 0 0 40px;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: #111827;
+	margin-top: 0;
+}
+
+.org-card-emp .org-avatar-initials {
+	font-size: 12px;
+	font-weight: 700;
+	color: #fff;
+}
+
+.org-card-emp .org-info {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding-right: 0.15rem;
+}
+
+.org-card-emp .org-name {
+	font-size: 13.5px;
+	font-weight: 700;
+	line-height: 1.25;
+	color: #111827;
+}
+
+.org-card-emp .org-poste {
+	margin-top: 0.12rem;
+	font-size: 11.5px;
+	color: #667085;
+	line-height: 1.35;
+}
+
+.org-card-emp .org-matricule {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.3rem;
+	margin-top: 0.4rem;
+	font-size: inherit;
+	letter-spacing: 0;
+	color: inherit;
+}
+
+.org-card-emp .org-matricule > span {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.12rem 0.4rem;
+	border-radius: 5px;
+	background: #f2f4f7;
+	color: #344054;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+		"Courier New", monospace;
+	font-size: 10.5px;
+	line-height: 1.25;
+}
+
+.org-card-emp .org-niveau {
+	flex: 0 0 auto;
+	align-self: flex-start;
+	margin-top: 0.05rem;
+	padding: 0.18rem 0.45rem;
+	border: none;
+	border-radius: 999px;
+	background: #e8f5e9;
+	color: #1b5e20;
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+}
+
+.org-card-emp .org-card-footer {
+	align-items: center;
+	margin-top: 0.55rem;
+	padding-top: 0.5rem;
+	border-top: 1px solid #eceff3;
+	gap: 0.5rem;
+}
+
+.org-card-emp .org-dept-label {
+	flex: 1 1 auto;
+	min-width: 0;
+	color: #111827;
+	font-size: 11.5px;
+	font-weight: 700;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.org-card-emp .org-dept-label .org-foot-text {
+	font-weight: 400;
+	font-size: 11px;
+	color: #667085 !important;
+}
+
+.org-card-emp .org-transfer-btn {
+	position: static;
+	top: auto;
+	right: auto;
+	flex: 0 0 auto;
+	width: 28px;
+	height: 28px;
+	border: none;
+	border-radius: 8px;
+	background: #111827;
+	color: #fff;
+	opacity: 1;
+	box-shadow: none;
+}
+
+.org-card-emp:hover .org-transfer-btn,
+.org-card-emp .org-transfer-btn:hover,
+.org-card-emp .org-transfer-btn:focus {
+	opacity: 1;
+	filter: none;
+	background: #000;
+	color: #fff;
+}
+
+.org-card-emp .org-toggle-btn {
+	right: -13px;
 }
 
 /* Liste employés dans le dialog */
@@ -521,7 +668,11 @@
 		width: 210px;
 	}
 
-	.org-niveau {
+	.org-card.org-card-emp {
+		width: 250px;
+	}
+
+	.org-card-emp .org-niveau {
 		display: none;
 	}
 }

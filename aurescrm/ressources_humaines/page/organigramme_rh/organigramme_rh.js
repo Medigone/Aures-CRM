@@ -480,9 +480,7 @@ class OrganigrammeRHPage {
 		if (!frappe.model.can_write("Employe")) return "";
 		return `<button type="button" class="org-transfer-btn" data-name="${frappe.utils.escape_html(
 			name
-		)}" title="${__("Transfert")}" aria-label="${__("Transfert")}"><span class="fa fa-exchange"></span> ${__(
-			"Transfert"
-		)}</button>`;
+		)}" title="${__("Transfert")}" aria-label="${__("Transfert")}"><span class="fa fa-exchange"></span></button>`;
 	}
 
 	open_transfer_dialog(employe_name) {
@@ -1104,19 +1102,36 @@ class OrganigrammeRHPage {
 			? `<img class="org-avatar-img" src="${frappe.utils.escape_html(node.photo)}" alt="">`
 			: `<span class="org-avatar-initials">${frappe.utils.escape_html(initials)}</span>`;
 		const level_badge = this.render_level_badge(node.niveau);
-		const dept_label = node.departement
-			? `<span class="org-dept-label" style="color:${frappe.utils.escape_html(
-					node.departement_couleur || "#667085"
-			  )}" title="${frappe.utils.escape_html(node.departement)}">${frappe.utils.escape_html(
-					node.departement
-			  )}</span>`
+		const child_count = node.child_count || 0;
+		const transfer_btn = this.build_transfer_btn(node.id);
+		const collab_label =
+			child_count === 1
+				? __("1 collaborateur")
+				: child_count
+				? __("{0} collaborateurs", [child_count])
+				: "";
+		const dept_name = node.departement_label || node.departement || "";
+		const dept_color = node.departement_couleur || "";
+		const dept_style = dept_color
+			? ` style="color:${frappe.utils.escape_html(dept_color)}"`
+			: "";
+		const dept_label = dept_name
+			? `<span class="org-dept-label"${dept_style} title="${frappe.utils.escape_html(
+					dept_name
+			  )}">${frappe.utils.escape_html(dept_name)}${
+					collab_label
+						? ` <span class="org-foot-text">· ${frappe.utils.escape_html(
+								collab_label
+						  )}</span>`
+						: ""
+			  }</span>`
+			: collab_label
+			? `<span class="org-dept-label"><span class="org-foot-text">${frappe.utils.escape_html(
+					collab_label
+			  )}</span></span>`
 			: "";
 		const is_resp = !!node.is_responsable_departement;
 		const is_focus = !!node.is_focus;
-		const dept_color = node.departement_couleur || "";
-		const border_style = dept_color
-			? ` style="border-left-color: ${frappe.utils.escape_html(dept_color)}"`
-			: "";
 		const card_classes = [
 			"org-card",
 			"org-open-employe",
@@ -1127,10 +1142,16 @@ class OrganigrammeRHPage {
 		]
 			.filter(Boolean)
 			.join(" ");
+		const codes = [node.matricule, node.site_label || node.site].filter(Boolean);
+		const codes_html = codes.length
+			? `<div class="org-matricule">${codes
+					.map((code) => `<span>${frappe.utils.escape_html(code)}</span>`)
+					.join("")}</div>`
+			: "";
+		const show_footer = dept_label || transfer_btn;
 
 		return $(`
-			<div class="${card_classes}" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0"${border_style}>
-				${this.build_transfer_btn(node.id)}
+			<div class="${card_classes}" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0">
 				<div class="org-card-top">
 					<div class="org-avatar">${photo}${
 						is_resp
@@ -1144,24 +1165,19 @@ class OrganigrammeRHPage {
 								: ""
 						}</div>
 						${node.poste ? `<div class="org-poste">${frappe.utils.escape_html(node.poste)}</div>` : ""}
-						${
-							node.matricule || node.site
-								? `<div class="org-matricule">${frappe.utils.escape_html(
-										[node.matricule, node.site].filter(Boolean).join(" - ")
-								  )}</div>`
-								: ""
-						}
+						${codes_html}
 					</div>
+					${level_badge}
 				</div>
 				${
-					dept_label || level_badge
+					show_footer
 						? `<div class="org-card-footer">
 							${dept_label || `<span></span>`}
-							${level_badge}
+							${transfer_btn}
 						</div>`
 						: ""
 				}
-				${this.build_toggle_btn(has_children, is_open, node.child_count || 0)}
+				${this.build_toggle_btn(has_children, is_open, child_count)}
 			</div>
 		`);
 	}

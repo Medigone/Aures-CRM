@@ -21,15 +21,37 @@ def _photo_url(photo: str | None) -> str | None:
 	return (photo or "").strip() or None
 
 
+def _dept_meta_maps() -> tuple[dict[str, str], dict[str, str]]:
+	"""Couleur et libellé (nom) par département RH."""
+	rows = frappe.get_all("Departement RH", fields=["name", "couleur", "nom_departement"])
+	color_map = {d.name: d.couleur or "" for d in rows}
+	label_map = {d.name: d.nom_departement or d.name for d in rows}
+	return color_map, label_map
+
+
+def _site_label_map() -> dict[str, str]:
+	"""Libellé (nom) par site RH."""
+	return {
+		s.name: s.nom_site or s.name
+		for s in frappe.get_all("Site RH", fields=["name", "nom_site"])
+	}
+
+
 def _employee_node(
 	emp: Any,
 	poste_map: dict[str, dict],
 	dept_color_map: dict[str, str],
 	responsable_ids: set[str],
 	*,
+	dept_label_map: dict[str, str] | None = None,
+	site_label_map: dict[str, str] | None = None,
 	is_focus: bool = False,
 ) -> dict[str, Any]:
 	poste_info = poste_map.get(emp.poste or "", {})
+	dept_id = emp.departement or ""
+	site_id = emp.site or ""
+	dept_label_map = dept_label_map or {}
+	site_label_map = site_label_map or {}
 	return {
 		"id": emp.name,
 		"type": "employe",
@@ -37,9 +59,11 @@ def _employee_node(
 		"matricule": emp.matricule or "",
 		"poste": emp.poste or "",
 		"niveau": poste_info.get("niveau") or "",
-		"departement": emp.departement or "",
-		"departement_couleur": dept_color_map.get(emp.departement or "") or "",
-		"site": emp.site or "",
+		"departement": dept_id,
+		"departement_label": dept_label_map.get(dept_id) or dept_id,
+		"departement_couleur": dept_color_map.get(dept_id) or "",
+		"site": site_id,
+		"site_label": site_label_map.get(site_id) or site_id,
 		"photo": _photo_url(emp.photo),
 		"statut": emp.statut or "",
 		"is_responsable_departement": emp.name in responsable_ids,
@@ -104,6 +128,8 @@ def _build_employee_chain_tree(
 	dept_color_map: dict[str, str],
 	responsable_ids: set[str],
 	focus_id: str,
+	dept_label_map: dict[str, str] | None = None,
+	site_label_map: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
 	"""Construit un arbre linéaire racine → … → employé sélectionné."""
 	if not chain_ids:
@@ -120,6 +146,8 @@ def _build_employee_chain_tree(
 				poste_map,
 				dept_color_map,
 				responsable_ids,
+				dept_label_map=dept_label_map,
+				site_label_map=site_label_map,
 				is_focus=(emp_id == focus_id),
 			)
 		)
@@ -141,6 +169,8 @@ def _build_employee_tree(
 	poste_map: dict[str, dict],
 	dept_color_map: dict[str, str],
 	responsable_ids: set[str] | None = None,
+	dept_label_map: dict[str, str] | None = None,
+	site_label_map: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
 	"""Construit un arbre à partir de responsable_hierarchique."""
 	responsable_ids = responsable_ids or set()
@@ -149,7 +179,14 @@ def _build_employee_tree(
 
 	for emp in employees:
 		name = emp.name
-		by_name[name] = _employee_node(emp, poste_map, dept_color_map, responsable_ids)
+		by_name[name] = _employee_node(
+			emp,
+			poste_map,
+			dept_color_map,
+			responsable_ids,
+			dept_label_map=dept_label_map,
+			site_label_map=site_label_map,
+		)
 		parent = (emp.responsable_hierarchique or "").strip()
 		if parent and parent != name:
 			children[parent].append(name)
@@ -384,10 +421,8 @@ def get_organigramme(
 			):
 				poste_map[p.name] = {"niveau": p.niveau or "", "intitule": p.intitule_poste or p.name}
 
-		dept_color_map: dict[str, str] = {
-			d.name: d.couleur or ""
-			for d in frappe.get_all("Departement RH", fields=["name", "couleur"])
-		}
+		dept_color_map, dept_label_map = _dept_meta_maps()
+		site_label_map = _site_label_map()
 		responsable_ids = {
 			d.responsable_departement
 			for d in frappe.get_all(
@@ -405,6 +440,8 @@ def get_organigramme(
 			dept_color_map,
 			responsable_ids,
 			employe,
+			dept_label_map=dept_label_map,
+			site_label_map=site_label_map,
 		)
 		return {
 			"mode": mode,
@@ -457,10 +494,8 @@ def get_organigramme(
 		):
 			poste_map[p.name] = {"niveau": p.niveau or "", "intitule": p.intitule_poste or p.name}
 
-	dept_color_map: dict[str, str] = {
-		d.name: d.couleur or ""
-		for d in frappe.get_all("Departement RH", fields=["name", "couleur"])
-	}
+	dept_color_map, dept_label_map = _dept_meta_maps()
+	site_label_map = _site_label_map()
 
 	if mode == "sites":
 		site_filters: dict[str, Any] = {"actif": 1}
@@ -554,7 +589,14 @@ def get_organigramme(
 		if d.responsable_departement
 	}
 
-	tree = _build_employee_tree(employees, poste_map, dept_color_map, responsable_ids)
+	tree = _build_employee_tree(
+		employees,
+		poste_map,
+		dept_color_map,
+		responsable_ids,
+		dept_label_map=dept_label_map,
+		site_label_map=site_label_map,
+	)
 	return {
 		"mode": mode,
 		"tree": tree,
