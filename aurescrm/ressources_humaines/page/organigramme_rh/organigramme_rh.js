@@ -388,6 +388,15 @@ class OrganigrammeRHPage {
 			if (id) this.toggle_node(String(id));
 		});
 
+		$wrap.on("click", ".org-edit-btn", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const $btn = $(e.currentTarget);
+			const doctype = $btn.data("doctype");
+			const name = $btn.data("name");
+			if (doctype && name) this.open_edit_dialog(String(doctype), String(name));
+		});
+
 		$wrap.on("click", ".org-open-employe", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
@@ -399,15 +408,364 @@ class OrganigrammeRHPage {
 			e.preventDefault();
 			e.stopPropagation();
 			const name = $(e.currentTarget).data("name");
-			if (name) frappe.set_route("Form", "Departement RH", name);
+			if (name) this.open_employees_dialog("departement", String(name));
 		});
 
 		$wrap.on("click", ".org-open-site", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			const name = $(e.currentTarget).data("name");
-			if (name) frappe.set_route("Form", "Site RH", name);
+			if (name) this.open_employees_dialog("site", String(name));
 		});
+	}
+
+	build_edit_btn(doctype, name) {
+		if (!frappe.model.can_write(doctype)) return "";
+		return `<button type="button" class="org-edit-btn" data-doctype="${frappe.utils.escape_html(
+			doctype
+		)}" data-name="${frappe.utils.escape_html(name)}" title="${__("Modifier")}" aria-label="${__(
+			"Modifier"
+		)}"><span class="fa fa-pencil"></span></button>`;
+	}
+
+	open_employees_dialog(node_type, node_name) {
+		const form_doctype = node_type === "site" ? "Site RH" : "Departement RH";
+		const page_length = 25;
+		frappe.call({
+			method:
+				"aurescrm.ressources_humaines.page.organigramme_rh.organigramme_rh.get_employees_for_node",
+			args: {
+				node_type,
+				node_name,
+				statut: this.df_statut.get_value() || "",
+				start: 0,
+				page_length,
+				order_by: "nom_complet",
+				order: "asc",
+			},
+			freeze: true,
+			freeze_message: __("Chargement des employés…"),
+			callback: (r) => {
+				const data = r.message || {};
+				this.show_employees_dialog({
+					...data,
+					node_type,
+					node_name,
+					form_doctype,
+					statut: this.df_statut.get_value() || "",
+					page_length,
+				});
+			},
+		});
+	}
+
+	show_employees_dialog(initial) {
+		const form_doctype = initial.form_doctype;
+		const node_type = initial.node_type;
+		const node_name = initial.node_name;
+		const statut = initial.statut || "";
+		const page_length = initial.page_length || 25;
+
+		let employees = (initial.employees || []).slice();
+		let total = initial.count || employees.length;
+		let has_more = !!initial.has_more;
+		let sort_key = initial.order_by || "nom_complet";
+		let sort_asc = (initial.order || "asc") !== "desc";
+		let loading = false;
+
+		const columns = [
+			{ key: "matricule", label: __("Matricule") },
+			{ key: "nom_complet", label: __("Nom complet") },
+			{ key: "poste", label: __("Poste") },
+			{ key: "statut", label: __("Statut") },
+			{ key: "departement", label: __("Département") },
+			{ key: "site", label: __("Site") },
+		];
+
+		const label = initial.label || node_name || "";
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("{0} — {1} employé(s)", [label, total]),
+			size: "extra-large",
+			fields: [
+				{
+					fieldtype: "HTML",
+					fieldname: "employees_html",
+				},
+			],
+			primary_action_label: __("Ouvrir la fiche"),
+			primary_action: () => {
+				dialog.hide();
+				if (node_name) frappe.set_route("Form", form_doctype, node_name);
+			},
+		});
+
+		const $html = dialog.fields_dict.employees_html.$wrapper;
+
+		const fetch_page = ({ start, append, order_by, order }) => {
+			if (loading) return;
+			loading = true;
+			render_table();
+
+			frappe.call({
+				method:
+					"aurescrm.ressources_humaines.page.organigramme_rh.organigramme_rh.get_employees_for_node",
+				args: {
+					node_type,
+					node_name,
+					statut,
+					start,
+					page_length,
+					order_by,
+					order,
+				},
+				callback: (r) => {
+					loading = false;
+					const data = r.message || {};
+					total = data.count || 0;
+					has_more = !!data.has_more;
+					sort_key = data.order_by || order_by;
+					sort_asc = (data.order || order) !== "desc";
+					if (append) {
+						employees = employees.concat(data.employees || []);
+					} else {
+						employees = (data.employees || []).slice();
+					}
+					dialog.set_title(__("{0} — {1} employé(s)", [label, total]));
+					render_table();
+				},
+				error: () => {
+					loading = false;
+					render_table();
+				},
+			});
+		};
+
+		const render_table = () => {
+			const rows_html = employees.length
+				? employees
+						.map((emp) => {
+							const name = frappe.utils.escape_html(emp.name || "");
+							return `<tr class="org-emp-row" data-name="${name}" role="button" tabindex="0">
+								<td>${frappe.utils.escape_html(emp.matricule || "")}</td>
+								<td class="org-emp-name">${frappe.utils.escape_html(emp.nom_complet || emp.name || "")}</td>
+								<td>${frappe.utils.escape_html(emp.poste || "")}</td>
+								<td>${frappe.utils.escape_html(emp.statut || "")}</td>
+								<td>${frappe.utils.escape_html(emp.departement || "")}</td>
+								<td>${frappe.utils.escape_html(emp.site || "")}</td>
+							</tr>`;
+						})
+						.join("")
+				: `<tr><td colspan="6" class="text-muted text-center">${__(
+						loading ? "Chargement…" : "Aucun employé"
+				  )}</td></tr>`;
+
+			const heads = columns
+				.map((col) => {
+					const active = col.key === sort_key;
+					const arrow = active ? (sort_asc ? " ▲" : " ▼") : "";
+					const cls = active ? " org-emp-th-active" : "";
+					return `<th class="org-emp-th-sortable${cls}" data-sort="${frappe.utils.escape_html(
+						col.key
+					)}" title="${__("Trier")}">${frappe.utils.escape_html(col.label)}${arrow}</th>`;
+				})
+				.join("");
+
+			const shown = employees.length;
+			const footer =
+				total > 0
+					? `<div class="org-emp-list-footer">
+						<span class="text-muted org-emp-list-meta">${__(
+							"{0} sur {1} affiché(s)",
+							[shown, total]
+						)}</span>
+						${
+							has_more
+								? `<button type="button" class="btn btn-default btn-sm org-emp-load-more" ${
+										loading ? "disabled" : ""
+								  }>${loading ? __("Chargement…") : __("Charger plus")}</button>`
+								: ""
+						}
+					</div>`
+					: "";
+
+			$html.html(`
+				<div class="org-emp-list-wrap">
+					<table class="table table-bordered table-hover org-emp-list-table">
+						<thead><tr>${heads}</tr></thead>
+						<tbody>${rows_html}</tbody>
+					</table>
+				</div>
+				${footer}
+			`);
+		};
+
+		dialog.show();
+		render_table();
+
+		$html.on("click", ".org-emp-th-sortable", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			if (loading) return;
+			const key = $(e.currentTarget).data("sort");
+			if (!key) return;
+			let next_asc = true;
+			if (sort_key === key) {
+				next_asc = !sort_asc;
+			}
+			fetch_page({
+				start: 0,
+				append: false,
+				order_by: key,
+				order: next_asc ? "asc" : "desc",
+			});
+		});
+
+		$html.on("click", ".org-emp-load-more", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			if (loading || !has_more) return;
+			fetch_page({
+				start: employees.length,
+				append: true,
+				order_by: sort_key,
+				order: sort_asc ? "asc" : "desc",
+			});
+		});
+
+		$html.on("click", ".org-emp-row", (e) => {
+			e.preventDefault();
+			const emp_name = $(e.currentTarget).data("name");
+			if (emp_name) {
+				dialog.hide();
+				frappe.set_route("Form", "Employe", emp_name);
+			}
+		});
+	}
+
+	open_edit_dialog(doctype, name) {
+		const is_site = doctype === "Site RH";
+		const fields = is_site
+			? [
+					"name",
+					"nom_site",
+					"site_parent",
+					"type_site",
+					"responsable_site",
+					"couleur",
+					"actif",
+			  ]
+			: [
+					"name",
+					"nom_departement",
+					"departement_parent",
+					"responsable_departement",
+					"couleur",
+					"actif",
+			  ];
+
+		frappe.db.get_value(doctype, name, fields).then((r) => {
+			const doc = (r && r.message) || {};
+			this.show_edit_dialog(doctype, name, doc);
+		});
+	}
+
+	show_edit_dialog(doctype, name, doc) {
+		const is_site = doctype === "Site RH";
+		const parent_field = is_site ? "site_parent" : "departement_parent";
+		const label_field = is_site ? "nom_site" : "nom_departement";
+		const resp_field = is_site ? "responsable_site" : "responsable_departement";
+		const current_label = doc[label_field] || name;
+
+		const dialog_fields = [
+			{
+				fieldname: label_field,
+				label: is_site ? __("Nom du site") : __("Nom du département"),
+				fieldtype: "Data",
+				reqd: 1,
+				default: doc[label_field] || "",
+			},
+			{
+				fieldname: parent_field,
+				label: is_site ? __("Site parent") : __("Département parent"),
+				fieldtype: "Link",
+				options: doctype,
+				default: doc[parent_field] || "",
+				get_query: () => ({
+					filters: {
+						actif: 1,
+						name: ["!=", name],
+					},
+				}),
+			},
+		];
+
+		if (is_site) {
+			dialog_fields.push({
+				fieldname: "type_site",
+				label: __("Type de site"),
+				fieldtype: "Select",
+				options: ["", "Siège", "Usine", "Atelier", "Dépôt", "Bureau", "Autre"].join("\n"),
+				default: doc.type_site || "",
+			});
+		}
+
+		dialog_fields.push(
+			{
+				fieldname: resp_field,
+				label: is_site ? __("Responsable du site") : __("Responsable du département"),
+				fieldtype: "Link",
+				options: "Employe",
+				default: doc[resp_field] || "",
+				get_query: () => ({ filters: { statut: "Actif" } }),
+			},
+			{
+				fieldname: "couleur",
+				label: __("Couleur"),
+				fieldtype: "Color",
+				default: doc.couleur || "",
+			},
+			{
+				fieldname: "actif",
+				label: __("Actif"),
+				fieldtype: "Check",
+				default: doc.actif == null ? 1 : cint(doc.actif),
+			}
+		);
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Modifier — {0}", [current_label]),
+			fields: dialog_fields,
+			primary_action_label: __("Enregistrer"),
+			primary_action: (values) => {
+				frappe.confirm(
+					__("Confirmer la modification de {0} ?", [current_label]),
+					() => {
+						frappe.call({
+							method:
+								"aurescrm.ressources_humaines.page.organigramme_rh.organigramme_rh.update_org_node",
+							args: {
+								doctype,
+								name,
+								values,
+							},
+							freeze: true,
+							freeze_message: __("Enregistrement…"),
+							callback: () => {
+								dialog.hide();
+								frappe.show_alert({
+									message: __("{0} mis à jour", [current_label]),
+									indicator: "green",
+								});
+								this.refresh();
+							},
+						});
+					}
+				);
+			},
+		});
+
+		dialog.show();
 	}
 
 	render_tree_node(node, mode) {
@@ -532,6 +890,7 @@ class OrganigrammeRHPage {
 
 		return $(`
 			<div class="org-card org-card-dept org-open-departement" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0" style="border-left-color: ${frappe.utils.escape_html(color)}">
+				${this.build_edit_btn("Departement RH", node.id)}
 				<div class="org-card-top">
 					<div class="org-avatar org-avatar-dept" style="background: ${frappe.utils.escape_html(color)}">
 						<span class="org-avatar-initials">${frappe.utils.escape_html(this.get_initials(node.label))}</span>
@@ -567,6 +926,7 @@ class OrganigrammeRHPage {
 
 		return $(`
 			<div class="org-card org-card-site org-open-site" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0" style="border-left-color: ${frappe.utils.escape_html(color)}">
+				${this.build_edit_btn("Site RH", node.id)}
 				<div class="org-card-top">
 					<div class="org-avatar org-avatar-site" style="background: ${frappe.utils.escape_html(color)}">
 						<span class="org-avatar-initials">${frappe.utils.escape_html(this.get_initials(node.label))}</span>

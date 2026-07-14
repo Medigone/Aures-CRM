@@ -244,21 +244,25 @@ def _build_department_tree(
 	return roots
 
 
-def _site_and_descendants(site_name: str) -> list[str]:
-	"""Retourne le site et tous ses descendants (via site_parent)."""
-	site_name = (site_name or "").strip()
-	if not site_name:
+def _descendants_via_parent(
+	doctype: str,
+	parent_field: str,
+	root_name: str,
+) -> list[str]:
+	"""Retourne le nœud et tous ses descendants via un champ parent Link."""
+	root_name = (root_name or "").strip()
+	if not root_name:
 		return []
 
-	rows = frappe.get_all("Site RH", fields=["name", "site_parent"])
+	rows = frappe.get_all(doctype, fields=["name", parent_field])
 	children: dict[str, list[str]] = defaultdict(list)
 	for row in rows:
-		parent = (row.site_parent or "").strip()
+		parent = (row.get(parent_field) or "").strip()
 		if parent and parent != row.name:
 			children[parent].append(row.name)
 
 	result: list[str] = []
-	stack = [site_name]
+	stack = [root_name]
 	seen: set[str] = set()
 	while stack:
 		current = stack.pop()
@@ -268,6 +272,16 @@ def _site_and_descendants(site_name: str) -> list[str]:
 		result.append(current)
 		stack.extend(children.get(current, []))
 	return result
+
+
+def _department_and_descendants(dept_name: str) -> list[str]:
+	"""Retourne le département et tous ses descendants (via departement_parent)."""
+	return _descendants_via_parent("Departement RH", "departement_parent", dept_name)
+
+
+def _site_and_descendants(site_name: str) -> list[str]:
+	"""Retourne le site et tous ses descendants (via site_parent)."""
+	return _descendants_via_parent("Site RH", "site_parent", site_name)
 
 
 def _build_site_tree(
@@ -549,4 +563,254 @@ def get_organigramme(
 			"employee_count": len(employees),
 			"root_count": len(tree),
 		},
+	}
+
+
+_ORG_NODE_ALLOWED_FIELDS = {
+	"Departement RH": (
+		"nom_departement",
+		"departement_parent",
+		"responsable_departement",
+		"couleur",
+		"actif",
+	),
+	"Site RH": (
+		"nom_site",
+		"site_parent",
+		"type_site",
+		"responsable_site",
+		"couleur",
+		"actif",
+	),
+}
+
+
+_ORG_EMP_ORDER_KEYS = frozenset(
+	{"matricule", "nom_complet", "poste", "statut", "departement", "site"}
+)
+_ORG_EMP_PAGE_DEFAULT = 25
+_ORG_EMP_PAGE_MAX = 100
+
+
+def _resolve_employees_for_node_scope(
+	node_type: str,
+	node_name: str,
+) -> tuple[dict[str, Any], str]:
+	"""Valide le nœud et retourne (filtres Employe, libellé du nœud)."""
+	if node_type == "departement":
+		if not frappe.db.exists("Departement RH", node_name):
+			frappe.throw(_("Département introuvable."), frappe.DoesNotExistError)
+		if not frappe.has_permission("Departement RH", "read", node_name):
+			frappe.throw(
+				_("Vous n'avez pas la permission de consulter ce département."),
+				frappe.PermissionError,
+			)
+		scope = _department_and_descendants(node_name)
+		label = frappe.db.get_value("Departement RH", node_name, "nom_departement") or node_name
+		return {"departement": ["in", scope]}, label
+
+	if not frappe.db.exists("Site RH", node_name):
+		frappe.throw(_("Site introuvable."), frappe.DoesNotExistError)
+	if not frappe.has_permission("Site RH", "read", node_name):
+		frappe.throw(
+			_("Vous n'avez pas la permission de consulter ce site."),
+			frappe.PermissionError,
+		)
+	scope = _site_and_descendants(node_name)
+	label = frappe.db.get_value("Site RH", node_name, "nom_site") or node_name
+	return {"site": ["in", scope]}, label
+
+
+def _enrich_employee_labels(employees: list) -> None:
+	"""Remplace les IDs département/site par leurs libellés (sur la page chargée)."""
+	dept_ids = {e.departement for e in employees if e.departement}
+	site_ids = {e.site for e in employees if e.site}
+	dept_labels: dict[str, str] = {}
+	site_labels: dict[str, str] = {}
+	if dept_ids:
+		for d in frappe.get_all(
+			"Departement RH",
+			filters={"name": ["in", list(dept_ids)]},
+			fields=["name", "nom_departement"],
+		):
+			dept_labels[d.name] = d.nom_departement or d.name
+	if site_ids:
+		for s in frappe.get_all(
+			"Site RH",
+			filters={"name": ["in", list(site_ids)]},
+			fields=["name", "nom_site"],
+		):
+			site_labels[s.name] = s.nom_site or s.name
+
+	for emp in employees:
+		emp["departement"] = dept_labels.get(emp.departement, emp.departement or "")
+		emp["site"] = site_labels.get(emp.site, emp.site or "")
+
+
+def _fetch_employees_page(
+	emp_filters: dict[str, Any],
+	*,
+	start: int,
+	page_length: int,
+	order_key: str,
+	order_dir: str,
+) -> list:
+	"""Charge une page d'employés avec tri (jointures pour libellés dept/site)."""
+	from frappe.query_builder import Order
+
+	emp = frappe.qb.DocType("Employe")
+	dept = frappe.qb.DocType("Departement RH")
+	site = frappe.qb.DocType("Site RH")
+
+	query = (
+		frappe.qb.from_(emp)
+		.left_join(dept)
+		.on(emp.departement == dept.name)
+		.left_join(site)
+		.on(emp.site == site.name)
+		.select(
+			emp.name,
+			emp.matricule,
+			emp.nom_complet,
+			emp.statut,
+			emp.poste,
+			emp.departement,
+			emp.site,
+			emp.telephone,
+		)
+	)
+
+	if "statut" in emp_filters:
+		query = query.where(emp.statut == emp_filters["statut"])
+	if "departement" in emp_filters:
+		query = query.where(emp.departement.isin(emp_filters["departement"][1]))
+	if "site" in emp_filters:
+		query = query.where(emp.site.isin(emp_filters["site"][1]))
+
+	order_map = {
+		"matricule": emp.matricule,
+		"nom_complet": emp.nom_complet,
+		"poste": emp.poste,
+		"statut": emp.statut,
+		"departement": dept.nom_departement,
+		"site": site.nom_site,
+	}
+	order_col = order_map[order_key]
+	qb_order = Order.desc if order_dir == "desc" else Order.asc
+	query = query.orderby(order_col, order=qb_order).orderby(emp.nom_complet, order=Order.asc)
+	query = query.limit(page_length).offset(start)
+	return query.run(as_dict=True)
+
+
+@frappe.whitelist()
+def get_employees_for_node(
+	node_type: str | None = None,
+	node_name: str | None = None,
+	statut: str | None = None,
+	start: int | str | None = 0,
+	page_length: int | str | None = None,
+	order_by: str | None = None,
+	order: str | None = None,
+):
+	"""Liste paginée des employés d'un département ou site (nœud + descendants)."""
+	from frappe.utils import cint
+
+	_check_employe_read()
+
+	node_type = (cstr(node_type) or "").strip().lower()
+	node_name = (cstr(node_name) or "").strip()
+	statut = (cstr(statut) or "").strip() or None
+
+	if node_type not in ("departement", "site"):
+		frappe.throw(_("Type de nœud invalide."), frappe.ValidationError)
+	if not node_name:
+		frappe.throw(_("Identifiant du nœud manquant."), frappe.ValidationError)
+
+	emp_filters, label = _resolve_employees_for_node_scope(node_type, node_name)
+	if statut:
+		emp_filters["statut"] = statut
+
+	start = max(0, cint(start))
+	page_length = cint(page_length) or _ORG_EMP_PAGE_DEFAULT
+	page_length = min(max(1, page_length), _ORG_EMP_PAGE_MAX)
+
+	order_key = (cstr(order_by) or "nom_complet").strip()
+	if order_key not in _ORG_EMP_ORDER_KEYS:
+		order_key = "nom_complet"
+	order_dir = "desc" if (cstr(order) or "").strip().lower() == "desc" else "asc"
+
+	total = frappe.db.count("Employe", emp_filters)
+	employees = _fetch_employees_page(
+		emp_filters,
+		start=start,
+		page_length=page_length,
+		order_key=order_key,
+		order_dir=order_dir,
+	)
+	_enrich_employee_labels(employees)
+
+	loaded = start + len(employees)
+	return {
+		"node_type": node_type,
+		"node_name": node_name,
+		"label": label,
+		"count": total,
+		"start": start,
+		"page_length": page_length,
+		"order_by": order_key,
+		"order": order_dir,
+		"has_more": loaded < total,
+		"employees": employees,
+	}
+
+
+@frappe.whitelist()
+def update_org_node(
+	doctype: str | None = None,
+	name: str | None = None,
+	values: str | dict | None = None,
+):
+	"""Mise à jour rapide d'un Département RH ou Site RH depuis l'organigramme."""
+	doctype = (cstr(doctype) or "").strip()
+	name = (cstr(name) or "").strip()
+
+	if doctype not in _ORG_NODE_ALLOWED_FIELDS:
+		frappe.throw(_("Type de document non autorisé."), frappe.ValidationError)
+	if not name:
+		frappe.throw(_("Identifiant manquant."), frappe.ValidationError)
+	if not frappe.db.exists(doctype, name):
+		frappe.throw(_("Document introuvable."), frappe.DoesNotExistError)
+	if not frappe.has_permission(doctype, "write", name):
+		frappe.throw(
+			_("Vous n'avez pas la permission de modifier ce document."),
+			frappe.PermissionError,
+		)
+
+	if isinstance(values, str):
+		values = frappe.parse_json(values) if values else {}
+	if not isinstance(values, dict):
+		frappe.throw(_("Valeurs invalides."), frappe.ValidationError)
+
+	allowed = _ORG_NODE_ALLOWED_FIELDS[doctype]
+	doc = frappe.get_doc(doctype, name)
+	updated = False
+	for field in allowed:
+		if field not in values:
+			continue
+		new_val = values[field]
+		if field == "actif":
+			new_val = 1 if new_val in (1, "1", True, "true") else 0
+		elif isinstance(new_val, str):
+			new_val = new_val.strip() or None
+		if doc.get(field) != new_val:
+			doc.set(field, new_val)
+			updated = True
+
+	if updated:
+		doc.save()
+
+	return {
+		"name": doc.name,
+		"doctype": doctype,
+		"label": doc.get("nom_departement") or doc.get("nom_site") or doc.name,
 	}

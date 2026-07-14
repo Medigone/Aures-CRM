@@ -310,6 +310,100 @@
 	white-space: nowrap;
 }
 
+/* Bouton modifier : coin supérieur droit de la carte. */
+.org-edit-btn {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	z-index: 3;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	background: var(--card-bg, #fff);
+	color: var(--text-muted);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	cursor: pointer;
+	opacity: 0.72;
+	box-shadow: 0 1px 2px rgba(18, 38, 63, 0.08);
+	transition: opacity 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.org-card:hover .org-edit-btn,
+.org-edit-btn:hover,
+.org-edit-btn:focus {
+	opacity: 1;
+	border-color: var(--primary);
+	color: var(--primary);
+}
+
+.org-card-dept .org-card-top,
+.org-card-site .org-card-top {
+	padding-right: 1.4rem;
+}
+
+/* Liste employés dans le dialog */
+.org-emp-list-wrap {
+	max-height: min(60vh, 480px);
+	overflow: auto;
+}
+
+.org-emp-list-table {
+	margin-bottom: 0;
+	font-size: 12px;
+}
+
+.org-emp-list-table thead th {
+	position: sticky;
+	top: 0;
+	background: var(--fg-color, #fff);
+	z-index: 1;
+	white-space: nowrap;
+}
+
+.org-emp-list-table thead th.org-emp-th-sortable {
+	cursor: pointer;
+	user-select: none;
+}
+
+.org-emp-list-table thead th.org-emp-th-sortable:hover {
+	color: var(--primary);
+}
+
+.org-emp-list-table thead th.org-emp-th-active {
+	color: var(--primary);
+}
+
+.org-emp-list-table .org-emp-row {
+	cursor: pointer;
+}
+
+.org-emp-list-table .org-emp-row:hover {
+	background: var(--bg-light-gray, #f5f7fa);
+}
+
+.org-emp-list-table .org-emp-name {
+	font-weight: 600;
+	color: var(--primary);
+}
+
+.org-emp-list-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin-top: 0.65rem;
+	padding: 0 0.15rem;
+}
+
+.org-emp-list-meta {
+	font-size: 12px;
+}
+
 /* Bouton +/- / compteur : chevauche le bord droit de la carte. */
 .org-toggle-btn {
 	position: absolute;
