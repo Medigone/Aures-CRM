@@ -578,8 +578,14 @@ frappe.ui.form.on('Demande Faisabilite', {
             }).addClass("btn-danger");
         }
 
-        // --- Bouton "Devis" ---
-        if (frm.doc.status === "Finalisée" || frm.doc.status === "Devis Établis" || frm.doc.status === "Partiellement Finalisée") {
+        // --- Bouton "Devis" (Chargé Devis / Responsable Devis) ---
+        const can_create_devis = frappe.user.has_role("Chargé Devis")
+            || frappe.user.has_role("Responsable Devis")
+            || frappe.user.has_role("System Manager");
+        if (
+            can_create_devis
+            && (frm.doc.status === "Finalisée" || frm.doc.status === "Devis Établis" || frm.doc.status === "Partiellement Finalisée")
+        ) {
             frm.add_custom_button('Devis', function() {
                 frappe.confirm(
                     __("Voulez-vous créer un Devis avec les Calculs Devis associés ?"),

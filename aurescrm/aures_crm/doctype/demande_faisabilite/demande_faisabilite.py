@@ -1,6 +1,8 @@
 # Copyright (c) 2025, Medigo and contributors
 # For license information, please see license.txt
 
+from contextlib import contextmanager
+
 import frappe
 from frappe.model.document import Document
 from frappe import _ # Ajout de l'import
@@ -8,6 +10,30 @@ from frappe.utils import now_datetime, add_days, getdate, cint, flt, cstr
 
 
 FAISABILITE_PROCEDES = frozenset({"Offset", "Flexo"})
+DEVIS_CREATION_ROLES = frozenset({"Chargé Devis", "Responsable Devis", "System Manager"})
+
+
+@contextmanager
+def _elevated_privileges():
+	"""Exécute un bloc en tant qu'Administrator.
+
+	Nécessaire pour la création de Quotation : ERPNext vérifie la permission
+	Account via get_party_account, ce que ignore_permissions ne contourne pas.
+	Les rôles Chargé/Responsable Devis n'ont pas la permission Account.
+	"""
+	original_user = frappe.session.user
+	frappe.set_user("Administrator")
+	try:
+		yield original_user
+	finally:
+		frappe.set_user(original_user)
+
+
+def _user_can_create_devis_from_demande():
+	"""Chargé Devis / Responsable Devis (et System Manager)."""
+	if frappe.session.user == "Administrator":
+		return True
+	return bool(DEVIS_CREATION_ROLES.intersection(frappe.get_roles()))
 
 
 @frappe.whitelist()
@@ -1042,7 +1068,15 @@ def create_quotation_with_calculs(docname):
     Articles composés : une ligne de devis par ligne parent éligible dans la demande.
     """
     try:
+        if not _user_can_create_devis_from_demande():
+            frappe.throw(
+                _("Seuls les rôles Chargé Devis et Responsable Devis peuvent créer un devis depuis une demande."),
+                frappe.PermissionError,
+            )
+
         demande = frappe.get_doc("Demande Faisabilite", docname)
+        if not frappe.has_permission("Demande Faisabilite", "read", doc=demande):
+            frappe.throw(_("Permission refusée"), frappe.PermissionError)
 
         quotation_items = _resolve_quotation_articles(docname)
         if not quotation_items:
@@ -1081,38 +1115,46 @@ def create_quotation_with_calculs(docname):
                     "qty": qi["quantite"],
                 })
 
-        quotation.insert(ignore_permissions=True)
+        # Élévation : get_party_account vérifie la permission Account
+        # indépendamment de ignore_permissions sur le Quotation.
+        with _elevated_privileges() as original_user:
+            quotation.insert(ignore_permissions=True)
+            if quotation.owner != original_user:
+                frappe.db.set_value(
+                    "Quotation", quotation.name, "owner", original_user, update_modified=False
+                )
+                quotation.owner = original_user
 
-        needs_save = False
+            needs_save = False
 
-        if not quotation.valid_till:
-            default_validity = cint(frappe.db.get_single_value("CRM Settings", "default_valid_till")) or 30
-            quotation.valid_till = add_days(quotation.transaction_date or getdate(), default_validity)
-            needs_save = True
-
-        if quotation.tc_name and not quotation.terms:
-            terms_content = frappe.db.get_value("Terms and Conditions", quotation.tc_name, "terms")
-            if terms_content:
-                quotation.terms = terms_content
+            if not quotation.valid_till:
+                default_validity = cint(frappe.db.get_single_value("CRM Settings", "default_valid_till")) or 30
+                quotation.valid_till = add_days(quotation.transaction_date or getdate(), default_validity)
                 needs_save = True
 
-        if quotation.taxes_and_charges and not quotation.taxes:
-            from erpnext.controllers.accounts_controller import get_taxes_and_charges
-            taxes = get_taxes_and_charges("Sales Taxes and Charges Template", quotation.taxes_and_charges)
-            for tax in taxes:
-                quotation.append("taxes", tax)
-            quotation.calculate_taxes_and_totals()
-            needs_save = True
+            if quotation.tc_name and not quotation.terms:
+                terms_content = frappe.db.get_value("Terms and Conditions", quotation.tc_name, "terms")
+                if terms_content:
+                    quotation.terms = terms_content
+                    needs_save = True
 
-        if needs_save:
-            quotation.save(ignore_permissions=True)
+            if quotation.taxes_and_charges and not quotation.taxes:
+                from erpnext.controllers.accounts_controller import get_taxes_and_charges
+                taxes = get_taxes_and_charges("Sales Taxes and Charges Template", quotation.taxes_and_charges)
+                for tax in taxes:
+                    quotation.append("taxes", tax)
+                quotation.calculate_taxes_and_totals()
+                needs_save = True
 
-        from aurescrm.aures_crm.doctype.calcul_devis.calcul_devis import generate_calcul_devis_for_quotation
-        calcul_result = generate_calcul_devis_for_quotation(quotation.name)
+            if needs_save:
+                quotation.save(ignore_permissions=True)
 
-        if demande.status in ["Finalisée", "Partiellement Finalisée"]:
-            demande.status = "Devis Établis"
-            demande.save(ignore_permissions=True)
+            from aurescrm.aures_crm.doctype.calcul_devis.calcul_devis import generate_calcul_devis_for_quotation
+            calcul_result = generate_calcul_devis_for_quotation(quotation.name)
+
+            if demande.status in ["Finalisée", "Partiellement Finalisée"]:
+                demande.status = "Devis Établis"
+                demande.save(ignore_permissions=True)
 
         return {
             "quotation_name": quotation.name,

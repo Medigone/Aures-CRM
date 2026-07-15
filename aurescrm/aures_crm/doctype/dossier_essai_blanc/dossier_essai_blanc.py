@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from frappe.utils import add_days, cint, flt, getdate, now_datetime
 
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import (
+	_elevated_privileges,
 	create_maquette_if_not_exists,
 )
 
@@ -381,6 +382,9 @@ def _resolve_quotation_articles(dossier_name):
 def create_quotation_with_calculs(docname):
 	try:
 		dossier = frappe.get_doc("Dossier Essai Blanc", docname)
+		if not frappe.has_permission("Dossier Essai Blanc", "read", doc=dossier):
+			frappe.throw(_("Permission refusée"), frappe.PermissionError)
+
 		quotation_items = _resolve_quotation_articles(docname)
 		if not quotation_items:
 			frappe.throw(_("Aucun article réalisable trouvé dans les études associées."))
@@ -417,18 +421,29 @@ def create_quotation_with_calculs(docname):
 						"qty": row["quantite"],
 					},
 				)
-		quotation.insert(ignore_permissions=True)
-		if not quotation.valid_till:
-			default_validity = cint(frappe.db.get_single_value("CRM Settings", "default_valid_till")) or 30
-			quotation.valid_till = add_days(quotation.transaction_date or getdate(), default_validity)
-			quotation.save(ignore_permissions=True)
 
-		from aurescrm.aures_crm.doctype.calcul_devis.calcul_devis import generate_calcul_devis_for_quotation
+		# Élévation : get_party_account vérifie la permission Account
+		# indépendamment de ignore_permissions sur le Quotation.
+		with _elevated_privileges() as original_user:
+			quotation.insert(ignore_permissions=True)
+			if quotation.owner != original_user:
+				frappe.db.set_value(
+					"Quotation", quotation.name, "owner", original_user, update_modified=False
+				)
+				quotation.owner = original_user
 
-		calcul_result = generate_calcul_devis_for_quotation(quotation.name)
-		if dossier.status in ("Étude finalisée", "Étude partiellement finalisée"):
-			dossier.status = "Devis établi"
-			dossier.save(ignore_permissions=True)
+			if not quotation.valid_till:
+				default_validity = cint(frappe.db.get_single_value("CRM Settings", "default_valid_till")) or 30
+				quotation.valid_till = add_days(quotation.transaction_date or getdate(), default_validity)
+				quotation.save(ignore_permissions=True)
+
+			from aurescrm.aures_crm.doctype.calcul_devis.calcul_devis import generate_calcul_devis_for_quotation
+
+			calcul_result = generate_calcul_devis_for_quotation(quotation.name)
+			if dossier.status in ("Étude finalisée", "Étude partiellement finalisée"):
+				dossier.status = "Devis établi"
+				dossier.save(ignore_permissions=True)
+
 		return {
 			"quotation_name": quotation.name,
 			"calcul_devis_count": calcul_result.get("created", 0),
