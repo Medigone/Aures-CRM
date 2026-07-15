@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "autoname": "EMP-.YYYY.-.#####",
  "creation": "2026-07-09 10:00:00",
  "doctype": "DocType",
@@ -428,7 +429,7 @@
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-09 11:32:01.673728",
+ "modified": "2026-07-15 10:24:11.715503",
  "modified_by": "Administrator",
  "module": "Ressources Humaines",
  "name": "Employe",
