@@ -301,6 +301,23 @@ def _prune_empty_org_nodes(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
 	return result
 
 
+def _maybe_prune_empty_org_nodes(
+	tree: list[dict[str, Any]],
+	employee_counts: dict[str, int],
+) -> list[dict[str, Any]]:
+	"""Élague les nœuds vides seulement s'il existe des effectifs correspondant au filtre.
+
+	Sinon conserve l'arbre complet (ex. départements créés avant rattachement d'employés,
+	ou aucun employé du statut sélectionné) pour ne pas afficher un organigramme vide.
+	"""
+	if not tree:
+		return tree
+	if not any(int(v or 0) > 0 for v in (employee_counts or {}).values()):
+		return tree
+	pruned = _prune_empty_org_nodes(tree)
+	return pruned if pruned else tree
+
+
 def _count_tree_nodes(nodes: list[dict[str, Any]]) -> int:
 	"""Nombre total de nœuds dans un arbre."""
 	total = 0
@@ -606,7 +623,10 @@ def get_organigramme(
 			):
 				responsable_labels[r.name] = r.nom_complet or r.name
 
-		tree = _prune_empty_org_nodes(_build_site_tree(sites, employee_counts, responsable_labels))
+		tree = _maybe_prune_empty_org_nodes(
+			_build_site_tree(sites, employee_counts, responsable_labels),
+			employee_counts,
+		)
 		return {
 			"mode": mode,
 			"tree": tree,
@@ -651,13 +671,14 @@ def get_organigramme(
 			):
 				responsable_labels[r.name] = r.nom_complet or r.name
 
-		tree = _prune_empty_org_nodes(
+		tree = _maybe_prune_empty_org_nodes(
 			_build_department_tree(
 				departments,
 				employee_counts,
 				responsable_labels,
 				focus_id=departement,
-			)
+			),
+			employee_counts,
 		)
 		payload = {
 			"mode": mode,
