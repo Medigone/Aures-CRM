@@ -1,7 +1,8 @@
 /* Planning Production — pivot table */
 
-/* Barre de filtres au-dessus du tableau sticky (évite que « Date » masque les listes Link). */
-.page-form {
+/* Barre de filtres au-dessus du tableau sticky (évite que « Date » masque les listes Link).
+   Scopé à cette page : un .page-form global cassait le menu Desk (z-index) sur toutes les listes. */
+#page-planning-production .page-form {
 	position: relative;
 	z-index: 10;
 }
