@@ -284,40 +284,6 @@ def _build_department_tree(
 	return roots
 
 
-def _prune_empty_org_nodes(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
-	"""Retire les nœuds sans employé (direct) ni descendant peuplé après élagage."""
-	result: list[dict[str, Any]] = []
-	for node in nodes or []:
-		pruned = dict(node)
-		kids = _prune_empty_org_nodes(pruned.get("children") or [])
-		pruned["children"] = kids
-		pruned["child_count"] = len(kids)
-		direct = int(pruned.get("employee_count") or 0)
-		pruned["total_employee_count"] = direct + sum(
-			int(k.get("total_employee_count") or 0) for k in kids
-		)
-		if direct > 0 or kids:
-			result.append(pruned)
-	return result
-
-
-def _maybe_prune_empty_org_nodes(
-	tree: list[dict[str, Any]],
-	employee_counts: dict[str, int],
-) -> list[dict[str, Any]]:
-	"""Élague les nœuds vides seulement s'il existe des effectifs correspondant au filtre.
-
-	Sinon conserve l'arbre complet (ex. départements créés avant rattachement d'employés,
-	ou aucun employé du statut sélectionné) pour ne pas afficher un organigramme vide.
-	"""
-	if not tree:
-		return tree
-	if not any(int(v or 0) > 0 for v in (employee_counts or {}).values()):
-		return tree
-	pruned = _prune_empty_org_nodes(tree)
-	return pruned if pruned else tree
-
-
 def _count_tree_nodes(nodes: list[dict[str, Any]]) -> int:
 	"""Nombre total de nœuds dans un arbre."""
 	total = 0
@@ -623,10 +589,7 @@ def get_organigramme(
 			):
 				responsable_labels[r.name] = r.nom_complet or r.name
 
-		tree = _maybe_prune_empty_org_nodes(
-			_build_site_tree(sites, employee_counts, responsable_labels),
-			employee_counts,
-		)
+		tree = _build_site_tree(sites, employee_counts, responsable_labels)
 		return {
 			"mode": mode,
 			"tree": tree,
@@ -671,14 +634,11 @@ def get_organigramme(
 			):
 				responsable_labels[r.name] = r.nom_complet or r.name
 
-		tree = _maybe_prune_empty_org_nodes(
-			_build_department_tree(
-				departments,
-				employee_counts,
-				responsable_labels,
-				focus_id=departement,
-			),
+		tree = _build_department_tree(
+			departments,
 			employee_counts,
+			responsable_labels,
+			focus_id=departement,
 		)
 		payload = {
 			"mode": mode,
