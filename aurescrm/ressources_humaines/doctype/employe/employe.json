@@ -15,9 +15,11 @@
   "photo",
   "telephone",
   "email_personnel",
+  "informations_personnelles_tab",
   "section_break_ntcf",
   "date_naissance",
   "lieu_naissance",
+  "groupage",
   "column_break_yheo",
   "nationalite",
   "sexe",
@@ -28,14 +30,13 @@
   "column_break_fyzy",
   "adresse",
   "statut_rh_tab",
-  "section_statut_rh",
   "statut",
+  "section_statut_rh",
   "date_entree",
   "column_break_statut",
   "date_sortie",
   "motif_sortie",
   "observation_sortie",
-  "affectation_tab",
   "section_affectation",
   "departement",
   "poste",
@@ -52,6 +53,7 @@
   "column_break_administratif",
   "numero_cnas",
   "numero_compte_bancaire",
+  "section_break_akyn",
   "notes_administratives",
   "documents_tab",
   "section_documents",
@@ -59,15 +61,12 @@
   "donn\u00e9es_syst\u00e8me_tab",
   "section_systeme",
   "est_utilisateur_erp",
-  "utilisateur_erp",
   "column_break_systeme",
+  "utilisateur_erp",
+  "section_break_hgai",
   "actif_pour_operations",
-  "notes_internes",
-  "lft",
-  "rgt",
-  "is_group",
-  "old_parent",
-  "parent_employe"
+  "section_break_vlwx",
+  "notes_internes"
  ],
  "fields": [
   {
@@ -178,7 +177,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Pr\u00e9-int\u00e9gr\u00e9\nActif\nInactif\nSorti",
+   "options": "\nPr\u00e9-int\u00e9gr\u00e9\nActif\nInactif\nSorti",
    "reqd": 1
   },
   {
@@ -214,7 +213,8 @@
   },
   {
    "fieldname": "section_affectation",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Affectation"
   },
   {
    "fieldname": "departement",
@@ -352,12 +352,7 @@
   {
    "fieldname": "statut_rh_tab",
    "fieldtype": "Tab Break",
-   "label": "Statut RH"
-  },
-  {
-   "fieldname": "affectation_tab",
-   "fieldtype": "Tab Break",
-   "label": "Affectation"
+   "label": "Statut & Affectation"
   },
   {
    "fieldname": "informations_administratives_tab",
@@ -384,52 +379,41 @@
   },
   {
    "fieldname": "section_break_wojg",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Adresse"
   },
   {
    "fieldname": "column_break_fyzy",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "lft",
-   "fieldtype": "Int",
-   "hidden": 1,
-   "label": "Left",
-   "no_copy": 1,
-   "read_only": 1
+   "fieldname": "groupage",
+   "fieldtype": "Select",
+   "label": "Groupe sanguin",
+   "options": "\nA+\nA-\nB+\nB-\nAB+\nAB-\nO+\n0-"
   },
   {
-   "fieldname": "rgt",
-   "fieldtype": "Int",
-   "hidden": 1,
-   "label": "Right",
-   "no_copy": 1,
-   "read_only": 1
+   "fieldname": "informations_personnelles_tab",
+   "fieldtype": "Tab Break",
+   "label": "Informations personnelles"
   },
   {
-   "default": "0",
-   "fieldname": "is_group",
-   "fieldtype": "Check",
-   "label": "Is Group"
+   "fieldname": "section_break_akyn",
+   "fieldtype": "Section Break"
   },
   {
-   "fieldname": "old_parent",
-   "fieldtype": "Link",
-   "label": "Old Parent",
-   "options": "Employe"
+   "fieldname": "section_break_hgai",
+   "fieldtype": "Section Break"
   },
   {
-   "fieldname": "parent_employe",
-   "fieldtype": "Link",
-   "ignore_user_permissions": 1,
-   "label": "Parent Employe",
-   "options": "Employe"
+   "fieldname": "section_break_vlwx",
+   "fieldtype": "Section Break"
   }
  ],
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-15 10:24:11.715503",
+ "modified": "2026-07-15 10:36:33.502975",
  "modified_by": "Administrator",
  "module": "Ressources Humaines",
  "name": "Employe",
