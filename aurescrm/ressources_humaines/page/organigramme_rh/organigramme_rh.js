@@ -93,7 +93,25 @@ class OrganigrammeRHPage {
 			change: () => this.refresh(),
 		});
 
+		// Le bouton × des Link ne déclenche pas change : forcer l'actualisation.
+		[this.df_employe, this.df_departement, this.df_site].forEach((field) => {
+			this.bind_link_filter_clear(field);
+		});
+
 		this.sync_filter_visibility();
+	}
+
+	bind_link_filter_clear(field) {
+		if (!field || !field.$link_clear) return;
+		field.$link_clear.off("click.org_refresh").on("click.org_refresh", () => {
+			// Après le handler natif (val("").focus()), synchroniser et recharger.
+			setTimeout(() => {
+				field.value = "";
+				field.last_value = "";
+				if (field.label !== undefined) field.label = "";
+				this.refresh();
+			}, 0);
+		});
 	}
 
 	get_mode() {
@@ -106,6 +124,7 @@ class OrganigrammeRHPage {
 	sync_filter_visibility() {
 		const mode = this.get_mode();
 		const is_hierarchie = mode === "hierarchie";
+		const is_departements = mode === "departements";
 		const is_sites = mode === "sites";
 
 		if (this.df_employe && this.df_employe.$wrapper) {
@@ -114,12 +133,18 @@ class OrganigrammeRHPage {
 		if (this.df_departement && this.df_departement.$wrapper) {
 			this.df_departement.$wrapper.toggle(!is_sites);
 		}
+		if (this.df_site && this.df_site.$wrapper) {
+			this.df_site.$wrapper.toggle(!is_departements);
+		}
 
 		if (!is_hierarchie && this.df_employe.get_value()) {
 			this.df_employe.set_value("");
 		}
 		if (is_sites && this.df_departement.get_value()) {
 			this.df_departement.set_value("");
+		}
+		if (is_departements && this.df_site.get_value()) {
+			this.df_site.set_value("");
 		}
 	}
 
@@ -129,7 +154,7 @@ class OrganigrammeRHPage {
 			mode,
 			statut: this.df_statut.get_value() || "",
 			departement: this.df_departement.get_value() || "",
-			site: this.df_site.get_value() || "",
+			site: mode === "departements" ? "" : this.df_site.get_value() || "",
 		};
 		if (mode === "hierarchie") {
 			filters.employe = this.df_employe.get_value() || "";
@@ -148,12 +173,16 @@ class OrganigrammeRHPage {
 			args: filters,
 			callback: (r) => {
 				this.last_data = r.message || { tree: [], meta: {} };
-				const focus = this.last_data.focus_employee || (this.last_data.meta || {}).focus_employee;
+				const focus =
+					this.last_data.focus_employee ||
+					(this.last_data.meta || {}).focus_employee ||
+					this.last_data.focus_department ||
+					(this.last_data.meta || {}).focus_department;
 				if (preserve_expanded) {
 					this.expanded = preserve_expanded;
 					(this.last_data.tree || []).forEach((n) => this.expanded.add(n.id));
 				} else if (focus) {
-					// Chaîne filtrée : ouvrir tous les nœuds pour voir le chemin jusqu'au PDG.
+					// Chaîne filtrée : ouvrir tous les nœuds pour voir le chemin jusqu'à la racine.
 					this.expanded = new Set();
 					const walk = (nodes) => {
 						(nodes || []).forEach((n) => {
@@ -741,9 +770,9 @@ class OrganigrammeRHPage {
 								<td>${frappe.utils.escape_html(emp.matricule || "")}</td>
 								<td class="org-emp-name">${frappe.utils.escape_html(emp.nom_complet || emp.name || "")}</td>
 								<td>${frappe.utils.escape_html(emp.poste || "")}</td>
-								<td>${frappe.utils.escape_html(emp.statut || "")}</td>
-								<td>${frappe.utils.escape_html(emp.departement || "")}</td>
-								<td>${frappe.utils.escape_html(emp.site || "")}</td>
+								<td>${this.render_statut_badge(emp.statut)}</td>
+								<td>${this.render_color_badge(emp.departement, emp.departement_couleur)}</td>
+								<td>${this.render_color_badge(emp.site, emp.site_couleur)}</td>
 							</tr>`;
 						})
 						.join("")
@@ -1184,6 +1213,7 @@ class OrganigrammeRHPage {
 
 	build_department_card(node, has_children) {
 		const is_open = this.expanded.has(node.id);
+		const is_focus = !!node.is_focus;
 		const color = node.couleur || "#667085";
 		const direct = node.employee_count || 0;
 		const total = node.total_employee_count || direct;
@@ -1194,16 +1224,23 @@ class OrganigrammeRHPage {
 					: __("{0} employé(s) · {1} direct(s)", [total, direct])
 				: __("Aucun employé");
 		const sub_label = node.child_count ? __("{0} sous-département(s)", [node.child_count]) : "";
+		const card_classes = ["org-card", "org-card-dept", "org-open-departement", is_focus ? "org-card-focus" : ""]
+			.filter(Boolean)
+			.join(" ");
 
 		return $(`
-			<div class="org-card org-card-dept org-open-departement" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0" style="border-left-color: ${frappe.utils.escape_html(color)}">
+			<div class="${card_classes}" data-name="${frappe.utils.escape_html(node.id)}" role="button" tabindex="0" style="border-left-color: ${frappe.utils.escape_html(color)}">
 				${this.build_card_actions("Departement RH", node.id, node.label || node.id)}
 				<div class="org-card-top">
 					<div class="org-avatar org-avatar-dept" style="background: ${frappe.utils.escape_html(color)}">
 						<span class="org-avatar-initials">${frappe.utils.escape_html(this.get_initials(node.label))}</span>
 					</div>
 					<div class="org-info">
-						<div class="org-name">${frappe.utils.escape_html(node.label || node.id)}</div>
+						<div class="org-name">${frappe.utils.escape_html(node.label || node.id)}${
+							is_focus
+								? `<span class="org-focus-tag" title="${__("Département sélectionné")}">${__("Sélectionné")}</span>`
+								: ""
+						}</div>
 						${node.responsable_label ? `<div class="org-poste">${__("Resp.")}: ${frappe.utils.escape_html(node.responsable_label)}</div>` : ""}
 						<div class="org-matricule">${frappe.utils.escape_html(emp_label)}</div>
 					</div>
@@ -1261,6 +1298,36 @@ class OrganigrammeRHPage {
 			return "";
 		}
 		return `<span class="org-niveau">${frappe.utils.escape_html(value)}</span>`;
+	}
+
+	render_statut_badge(statut) {
+		const value = String(statut || "").trim();
+		if (!value) return "";
+		const color_map = {
+			Actif: "green",
+			"Pré-intégré": "blue",
+			Inactif: "gray",
+			Sorti: "red",
+		};
+		const color = color_map[value] || "gray";
+		return `<span class="indicator-pill ${color} org-statut-badge">${frappe.utils.escape_html(
+			value
+		)}</span>`;
+	}
+
+	render_color_badge(label, color) {
+		const value = String(label || "").trim();
+		if (!value) return "";
+		const hex = String(color || "").trim();
+		if (!hex) {
+			return `<span class="org-color-badge org-color-badge--plain">${frappe.utils.escape_html(
+				value
+			)}</span>`;
+		}
+		const safe = frappe.utils.escape_html(hex);
+		return `<span class="org-color-badge" style="color:${safe};background-color:${safe}1a">${frappe.utils.escape_html(
+			value
+		)}</span>`;
 	}
 
 	get_initials(label) {

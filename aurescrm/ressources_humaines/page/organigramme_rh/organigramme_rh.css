@@ -585,6 +585,32 @@
 	color: var(--primary);
 }
 
+.org-emp-list-table .org-statut-badge {
+	font-size: 11px;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.org-emp-list-table .org-color-badge {
+	display: inline-block;
+	max-width: 100%;
+	padding: 0.1rem 0.45rem;
+	border-radius: 999px;
+	border: none;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.4;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: middle;
+}
+
+.org-emp-list-table .org-color-badge--plain {
+	color: var(--text-muted, #667085);
+	background: var(--bg-light-gray, #f5f7fa);
+}
+
 .org-emp-list-footer {
 	display: flex;
 	align-items: center;

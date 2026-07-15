@@ -224,8 +224,10 @@ def _build_department_tree(
 	departments: list[dict],
 	employee_counts: dict[str, int],
 	responsable_labels: dict[str, str],
+	focus_id: str | None = None,
 ) -> list[dict[str, Any]]:
 	"""Arbre des départements uniquement (pas d'employés mélangés aux sous-départements)."""
+	focus_id = (focus_id or "").strip() or None
 	by_name: dict[str, dict] = {}
 	children: dict[str, list[str]] = defaultdict(list)
 
@@ -239,6 +241,7 @@ def _build_department_tree(
 			"couleur": dept.couleur or "",
 			"responsable": resp,
 			"responsable_label": responsable_labels.get(resp, resp),
+			"is_focus": bool(focus_id and name == focus_id),
 			"children": [],
 			"child_count": 0,
 			"employee_count": int(employee_counts.get(name, 0) or 0),
@@ -281,6 +284,31 @@ def _build_department_tree(
 	return roots
 
 
+def _prune_empty_org_nodes(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+	"""Retire les nœuds sans employé (direct) ni descendant peuplé après élagage."""
+	result: list[dict[str, Any]] = []
+	for node in nodes or []:
+		pruned = dict(node)
+		kids = _prune_empty_org_nodes(pruned.get("children") or [])
+		pruned["children"] = kids
+		pruned["child_count"] = len(kids)
+		direct = int(pruned.get("employee_count") or 0)
+		pruned["total_employee_count"] = direct + sum(
+			int(k.get("total_employee_count") or 0) for k in kids
+		)
+		if direct > 0 or kids:
+			result.append(pruned)
+	return result
+
+
+def _count_tree_nodes(nodes: list[dict[str, Any]]) -> int:
+	"""Nombre total de nœuds dans un arbre."""
+	total = 0
+	for node in nodes or []:
+		total += 1 + _count_tree_nodes(node.get("children") or [])
+	return total
+
+
 def _descendants_via_parent(
 	doctype: str,
 	parent_field: str,
@@ -314,6 +342,52 @@ def _descendants_via_parent(
 def _department_and_descendants(dept_name: str) -> list[str]:
 	"""Retourne le département et tous ses descendants (via departement_parent)."""
 	return _descendants_via_parent("Departement RH", "departement_parent", dept_name)
+
+
+def _ancestors_via_parent(
+	doctype: str,
+	parent_field: str,
+	node_name: str,
+) -> list[str]:
+	"""Remonte la chaîne parent jusqu'à la racine (sans inclure le nœud lui-même)."""
+	node_name = (node_name or "").strip()
+	if not node_name:
+		return []
+
+	parent_by_name = {
+		row.name: (row.get(parent_field) or "").strip()
+		for row in frappe.get_all(doctype, fields=["name", parent_field])
+	}
+
+	ancestors: list[str] = []
+	seen: set[str] = set()
+	current = (parent_by_name.get(node_name) or "").strip()
+	while current and current not in seen:
+		seen.add(current)
+		ancestors.append(current)
+		current = (parent_by_name.get(current) or "").strip()
+		if current == ancestors[-1]:
+			break
+	ancestors.reverse()
+	return ancestors
+
+
+def _department_lineage(dept_name: str) -> list[str]:
+	"""Département sélectionné + parents + sous-départements (hors branches latérales)."""
+	dept_name = (dept_name or "").strip()
+	if not dept_name:
+		return []
+	ancestors = _ancestors_via_parent("Departement RH", "departement_parent", dept_name)
+	descendants = _department_and_descendants(dept_name)
+	# Ancêtres d'abord (racine → …), puis sélection + descendants (déjà inclus).
+	seen: set[str] = set()
+	result: list[str] = []
+	for name in ancestors + descendants:
+		if name in seen:
+			continue
+		seen.add(name)
+		result.append(name)
+	return result
 
 
 def _site_and_descendants(site_name: str) -> list[str]:
@@ -458,11 +532,17 @@ def get_organigramme(
 
 	# Filtre site : inclure le site et tous ses sites enfants.
 	site_scope = _site_and_descendants(site) if site else None
+	# Vue Départements + filtre : parents + sélection + sous-départements.
+	dept_lineage = (
+		_department_lineage(departement) if (mode == "departements" and departement) else None
+	)
 
 	emp_filters: dict[str, Any] = {}
 	if statut:
 		emp_filters["statut"] = statut
-	if departement:
+	if dept_lineage:
+		emp_filters["departement"] = ["in", dept_lineage]
+	elif departement:
 		emp_filters["departement"] = departement
 	if site_scope:
 		emp_filters["site"] = ["in", site_scope]
@@ -526,21 +606,26 @@ def get_organigramme(
 			):
 				responsable_labels[r.name] = r.nom_complet or r.name
 
-		tree = _build_site_tree(sites, employee_counts, responsable_labels)
+		tree = _prune_empty_org_nodes(_build_site_tree(sites, employee_counts, responsable_labels))
 		return {
 			"mode": mode,
 			"tree": tree,
 			"orphan_employees": [],
 			"meta": {
 				"employee_count": len(employees),
-				"site_count": len(sites),
+				"site_count": _count_tree_nodes(tree),
 				"root_count": len(tree),
 				"orphan_count": orphan_count,
 			},
 		}
 
 	if mode == "departements":
+		if departement and not frappe.db.exists("Departement RH", departement):
+			frappe.throw(_("Département introuvable."), frappe.DoesNotExistError)
+
 		dept_filters: dict[str, Any] = {"actif": 1}
+		if dept_lineage:
+			dept_filters["name"] = ["in", dept_lineage]
 		departments = frappe.get_all(
 			"Departement RH",
 			filters=dept_filters,
@@ -566,18 +651,29 @@ def get_organigramme(
 			):
 				responsable_labels[r.name] = r.nom_complet or r.name
 
-		tree = _build_department_tree(departments, employee_counts, responsable_labels)
-		return {
+		tree = _prune_empty_org_nodes(
+			_build_department_tree(
+				departments,
+				employee_counts,
+				responsable_labels,
+				focus_id=departement,
+			)
+		)
+		payload = {
 			"mode": mode,
 			"tree": tree,
 			"orphan_employees": [],
 			"meta": {
 				"employee_count": len(employees),
-				"department_count": len(departments),
+				"department_count": _count_tree_nodes(tree),
 				"root_count": len(tree),
 				"orphan_count": orphan_count,
 			},
 		}
+		if departement:
+			payload["focus_department"] = departement
+			payload["meta"]["focus_department"] = departement
+		return payload
 
 	responsable_ids = {
 		d.responsable_departement
@@ -664,29 +760,39 @@ def _resolve_employees_for_node_scope(
 
 
 def _enrich_employee_labels(employees: list) -> None:
-	"""Remplace les IDs département/site par leurs libellés (sur la page chargée)."""
+	"""Remplace les IDs département/site par leurs libellés et couleurs."""
 	dept_ids = {e.departement for e in employees if e.departement}
 	site_ids = {e.site for e in employees if e.site}
-	dept_labels: dict[str, str] = {}
-	site_labels: dict[str, str] = {}
+	dept_meta: dict[str, dict[str, str]] = {}
+	site_meta: dict[str, dict[str, str]] = {}
 	if dept_ids:
 		for d in frappe.get_all(
 			"Departement RH",
 			filters={"name": ["in", list(dept_ids)]},
-			fields=["name", "nom_departement"],
+			fields=["name", "nom_departement", "couleur"],
 		):
-			dept_labels[d.name] = d.nom_departement or d.name
+			dept_meta[d.name] = {
+				"label": d.nom_departement or d.name,
+				"couleur": d.couleur or "",
+			}
 	if site_ids:
 		for s in frappe.get_all(
 			"Site RH",
 			filters={"name": ["in", list(site_ids)]},
-			fields=["name", "nom_site"],
+			fields=["name", "nom_site", "couleur"],
 		):
-			site_labels[s.name] = s.nom_site or s.name
+			site_meta[s.name] = {
+				"label": s.nom_site or s.name,
+				"couleur": s.couleur or "",
+			}
 
 	for emp in employees:
-		emp["departement"] = dept_labels.get(emp.departement, emp.departement or "")
-		emp["site"] = site_labels.get(emp.site, emp.site or "")
+		dept = dept_meta.get(emp.departement or "")
+		site = site_meta.get(emp.site or "")
+		emp["departement_couleur"] = (dept or {}).get("couleur", "")
+		emp["site_couleur"] = (site or {}).get("couleur", "")
+		emp["departement"] = (dept or {}).get("label", emp.departement or "")
+		emp["site"] = (site or {}).get("label", emp.site or "")
 
 
 def _fetch_employees_page(
