@@ -108,6 +108,27 @@ GUIDES = [
 		"file": "GUIDE_UTILISATEUR_MEETING_INTERNE.md",
 		"description": "Gestion des meetings internes",
 	},
+	{
+		"id": "bareme-cout-fixe",
+		"title": "Bareme Cout Fixe",
+		"category": "Commercial",
+		"file": "GUIDE_UTILISATEUR_BAREME_COUT_FIXE.md",
+		"description": "Bibliothèque de coûts standards pour le chiffrage",
+	},
+	{
+		"id": "calcul-devis",
+		"title": "Calcul Devis",
+		"category": "Commercial",
+		"file": "GUIDE_UTILISATEUR_CALCUL_DEVIS.md",
+		"description": "Chiffrage d'une ligne de devis : papier, postes de production et marge",
+	},
+	{
+		"id": "methode-calcul-devis",
+		"title": "Méthode fonctionnelle de calcul du devis",
+		"category": "Commercial",
+		"file": "METHODE_CALCUL_DEVIS.md",
+		"description": "Formules et règles de calcul des montants du Calcul Devis",
+	},
 ]
 
 

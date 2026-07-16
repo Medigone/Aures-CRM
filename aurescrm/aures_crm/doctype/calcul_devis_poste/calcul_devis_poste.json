@@ -1,0 +1,93 @@
+{
+ "actions": [],
+ "creation": "2026-07-16 10:29:33.979162",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "libelle",
+  "machine",
+  "column_break_1",
+  "nombre_passages",
+  "cout_fixe",
+  "column_break_2",
+  "unite_calcul",
+  "cout_variable_unitaire",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "libelle",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Libell\u00e9",
+   "reqd": 1
+  },
+  {
+   "description": "Tra\u00e7abilit\u00e9 uniquement \u2014 aucun calcul automatique d\u00e9clench\u00e9 par ce lien.",
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Machine (info)",
+   "options": "Machine"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "nombre_passages",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Nombre de passages",
+   "non_negative": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_fixe",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Co\u00fbt fixe (calage/lancement)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Forfait",
+   "fieldname": "unite_calcul",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Unit\u00e9 de calcul",
+   "options": "Par feuille\nPar 1000 unit\u00e9s\nForfait"
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_variable_unitaire",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Co\u00fbt variable unitaire",
+   "precision": "2"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-16 11:03:33.214297",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Calcul Devis Poste",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

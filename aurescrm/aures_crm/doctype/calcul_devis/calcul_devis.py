@@ -16,13 +16,11 @@ class CalculDevis(Document):
     def validate(self):
         self.calculate_surface()
         self.calculate_support_cost()
-        self.calculate_finitions_cost()
         self.calculate_costs()
 
     def before_save(self):
         self.calculate_surface()
         self.calculate_support_cost()
-        self.calculate_finitions_cost()
         self.calculate_costs()
 
     def calculate_surface(self):
@@ -69,64 +67,19 @@ class CalculDevis(Document):
             # Convertir le poids en kg (diviser par 1000) puis multiplier par le coût/kg
             self.cout_support_feuille = (poids_feuille / 1000) * cout_support_kg
 
-    def calculate_finitions_cost(self):
-        """
-        Calcule le coût total des finitions par feuille.
-        Pour chaque finition active, coût = surface (m²) × coût/m²
-        """
-        surface = flt(self.surface_feuille or 0)
-        total_finitions = 0
-        
-        # Liste des finitions avec leur champ check et leur champ coût
-        finitions = [
-            # Finitions de type Select (non vide et différent de "Sans")
-            ('fin_pelliculage', 'cout_pelliculage_m2', 'select'),
-            ('fin_marquage_chaud', 'cout_marquage_chaud_m2', 'select'),
-            # Finitions de type Check (booléen)
-            ('fin_acrylique', 'cout_acrylique_m2', 'check'),
-            ('fin_uv', 'cout_uv_m2', 'check'),
-            ('fin_selectif', 'cout_selectif_m2', 'check'),
-            ('fin_drip_off', 'cout_drip_off_m2', 'check'),
-            ('fin_mat_gras', 'cout_mat_gras_m2', 'check'),
-            ('fin_blister', 'cout_blister_m2', 'check'),
-            ('fin_recto_verso', 'cout_recto_verso_m2', 'check'),
-            ('fin_fenetre', 'cout_fenetre_m2', 'check'),
-            ('fin_braille', 'cout_braille_m2', 'check'),
-            ('fin_gaufrage', 'cout_gaufrage_m2', 'check'),
-            ('fin_massicot', 'cout_massicot_m2', 'check'),
-            ('fin_collerette', 'cout_collerette_m2', 'check'),
-            ('fin_blanc_couvrant', 'cout_blanc_couvrant_m2', 'check'),
-        ]
-        
-        for fin_field, cout_field, field_type in finitions:
-            fin_value = self.get(fin_field)
-            cout_m2 = flt(self.get(cout_field) or 0)
-            
-            # Vérifier si la finition est active
-            is_active = False
-            if field_type == 'select':
-                # Pour les champs Select: actif si non vide et différent de "Sans"
-                is_active = fin_value and str(fin_value).strip().lower() != 'sans'
-            else:
-                # Pour les champs Check: actif si = 1
-                is_active = cint(fin_value) == 1
-            
-            if is_active and cout_m2 > 0 and surface > 0:
-                total_finitions += surface * cout_m2
-        
-        self.total_cout_finitions_feuille = total_finitions
-
     def calculate_costs(self):
         """
-        Calcule les coûts selon l'approche par feuille:
+        Calcule le support et les coûts des postes de production.
         
         1. Quantité Feuilles = Quantité commandée ÷ Nombre de poses
         2. Feuilles avec Gâche = Feuilles × (1 + Taux Gâche%)
-        3. Total Coûts Fixes = Σ(coûts fixes)
-        4. Total Coûts Variables = Σ(coûts par feuille) × Feuilles avec gâche
-        5. Coût Total = Fixes + Variables
-        6. Coût Unitaire = Coût Total ÷ Quantité commandée
-        7. Prix Unitaire = Coût Unitaire × (1 + Marge%)
+        3. Coût Support Total = Coût Support/Feuille × Feuilles avec gâche
+        4. Total Coûts Fixes = Σ(coût fixe × passages)
+        5. Total Coûts Variables = Σ(coût unitaire × passages × quantité de référence)
+        6. Coût Total = Support + Fixes + Variables
+        7. Coût Unitaire = Coût Total ÷ Quantité commandée
+        8. Prix Unitaire = Coût Unitaire × (1 + Marge%)
+        9. Prix Total = Prix Unitaire × Quantité commandée
         """
         
         # 1. Quantité de feuilles nécessaires = Quantité ÷ Nombre de poses
@@ -137,41 +90,53 @@ class CalculDevis(Document):
         # 2. Feuilles avec gâche de tirage
         taux_gache = flt(self.taux_gache_tirage or 0) / 100
         self.quantite_feuilles_gache = math.ceil(flt(self.quantite_feuilles) * (1 + taux_gache))
-        
-        # 3. Total des coûts fixes
-        self.total_couts_fixes = (
-            flt(self.cout_calage or 0) +
-            flt(self.cout_plaques_cliches or 0) +
-            flt(self.cout_forme_decoupe or 0) +
-            flt(self.cout_prepresse or 0) +
-            flt(self.cout_autres_fixes or 0)
+
+        # 3. Coût total du support pour les feuilles avec gâche
+        self.cout_support_total = flt(self.cout_support_feuille or 0) * flt(
+            self.quantite_feuilles_gache
+        )
+
+        # 4 et 5. Totaux issus des postes saisis manuellement
+        total_fixes = 0
+        total_variables = 0
+
+        for poste in self.postes or []:
+            passages = cint(poste.nombre_passages) or 1
+            total_fixes += flt(poste.cout_fixe or 0) * passages
+
+            if poste.unite_calcul == "Par feuille":
+                quantite_reference = flt(self.quantite_feuilles_gache)
+            elif poste.unite_calcul == "Par 1000 unités":
+                quantite_reference = quantite / 1000
+            else:
+                # Un forfait est appliqué une fois par passage.
+                quantite_reference = 1
+
+            total_variables += (
+                flt(poste.cout_variable_unitaire or 0) * passages * quantite_reference
+            )
+
+        self.total_couts_fixes = total_fixes
+        self.total_couts_variables = total_variables
+
+        # 6. Coût total = support + coûts fixes + coûts variables
+        self.cout_total = (
+            flt(self.cout_support_total)
+            + flt(self.total_couts_fixes)
+            + flt(self.total_couts_variables)
         )
         
-        # 4. Total des coûts variables = (coûts par feuille) × (feuilles avec gâche)
-        # Inclut: support + finitions + encres + MO + autres
-        cout_par_feuille = (
-            flt(self.cout_support_feuille or 0) +
-            flt(self.total_cout_finitions_feuille or 0) +
-            flt(self.cout_encres_feuille or 0) +
-            flt(self.cout_mo_feuille or 0) +
-            flt(self.cout_autres_feuille or 0)
-        )
-        self.total_couts_variables = cout_par_feuille * flt(self.quantite_feuilles_gache)
-        
-        # 5. Coût total = Fixes + Variables
-        self.cout_total = flt(self.total_couts_fixes) + flt(self.total_couts_variables)
-        
-        # 6. Coût unitaire = Coût total / Quantité commandée
+        # 7. Coût unitaire = Coût total / Quantité commandée
         if quantite > 0:
             self.cout_unitaire = flt(self.cout_total) / quantite
         else:
             self.cout_unitaire = 0
         
-        # 7. Prix unitaire proposé = Coût unitaire × (1 + Marge%)
+        # 8. Prix unitaire proposé = Coût unitaire × (1 + Marge%)
         marge_multiplier = 1 + (flt(self.marge_percent or 0) / 100)
         self.prix_unitaire_propose = flt(self.cout_unitaire) * marge_multiplier
         
-        # 8. Prix total proposé = Prix unitaire × Quantité
+        # 9. Prix total proposé = Prix unitaire × Quantité
         self.prix_total_propose = flt(self.prix_unitaire_propose) * quantite
 
 

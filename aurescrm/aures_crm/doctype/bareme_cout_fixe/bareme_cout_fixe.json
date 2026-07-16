@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BAR-{libelle}-{#####}",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "libelle",
+  "categorie",
+  "machine",
+  "column_break_1",
+  "cout_fixe",
+  "unite_calcul",
+  "cout_variable_unitaire",
+  "is_active",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "libelle",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Libell\u00e9",
+   "reqd": 1
+  },
+  {
+   "fieldname": "categorie",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cat\u00e9gorie",
+   "options": "Impression\nVernis / Finition\nPelliculage\nD\u00e9coupe forme\nPr\u00e9presse\nAutre"
+  },
+  {
+   "fieldname": "machine",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Machine (r\u00e9f\u00e9rence)",
+   "options": "Machine"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_fixe",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Co\u00fbt fixe",
+   "precision": "2"
+  },
+  {
+   "default": "Par feuille",
+   "fieldname": "unite_calcul",
+   "fieldtype": "Select",
+   "label": "Unit\u00e9 de calcul",
+   "options": "Par feuille\nPar 1000 unit\u00e9s\nForfait"
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_variable_unitaire",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Co\u00fbt variable unitaire",
+   "precision": "2"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Actif"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "module": "Aures CRM",
+ "name": "Bareme Cout Fixe",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Charg\u00e9 Devis",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Responsable Devis",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "libelle",
+ "track_changes": 1
+}

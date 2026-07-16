@@ -11,9 +11,6 @@ frappe.ui.form.on("Calcul Devis", {
                 }
             };
         });
-        
-        // Rafraîchir l'affichage conditionnel des champs de coûts finitions
-        toggle_finition_costs(frm);
     },
 
     // === Données Techniques ===
@@ -53,116 +50,6 @@ frappe.ui.form.on("Calcul Devis", {
         calculate_all(frm);
     },
 
-    // === Coûts Fixes ===
-    cout_calage: function(frm) {
-        calculate_all(frm);
-    },
-    
-    cout_plaques_cliches: function(frm) {
-        calculate_all(frm);
-    },
-    
-    cout_forme_decoupe: function(frm) {
-        calculate_all(frm);
-    },
-    
-    cout_prepresse: function(frm) {
-        calculate_all(frm);
-    },
-    
-    cout_autres_fixes: function(frm) {
-        calculate_all(frm);
-    },
-
-    // === Coûts Finitions (par m²) ===
-    cout_pelliculage_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_marquage_chaud_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_acrylique_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_uv_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_selectif_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_drip_off_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_mat_gras_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_blister_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_recto_verso_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_fenetre_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_braille_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_gaufrage_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_massicot_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_collerette_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    cout_blanc_couvrant_m2: function(frm) {
-        calculate_finitions_cost(frm);
-        calculate_all(frm);
-    },
-
-    // === Autres Coûts Variables (par Feuille) ===
-    cout_encres_feuille: function(frm) {
-        calculate_all(frm);
-    },
-    
-    cout_mo_feuille: function(frm) {
-        calculate_all(frm);
-    },
-    
-    cout_autres_feuille: function(frm) {
-        calculate_all(frm);
-    },
-
     // === Gâche ===
     taux_gache_tirage: function(frm) {
         calculate_all(frm);
@@ -173,7 +60,7 @@ frappe.ui.form.on("Calcul Devis", {
         calculate_all(frm);
     },
 
-    // === Changement d'article - recharger les finitions ===
+    // === Changement d'article ===
     article: function(frm) {
         frm.set_value("imposition", "");
         frm.set_value("nbr_poses", 0);
@@ -181,12 +68,6 @@ frappe.ui.form.on("Calcul Devis", {
         frm.set_value("format_imp", "");
         frm.set_value("surface_feuille", 0);
         frm.set_value("poids_feuille", 0);
-        
-        // Les finitions seront rechargées via fetch_from
-        // Attendre que les valeurs soient récupérées puis actualiser l'affichage
-        setTimeout(() => {
-            toggle_finition_costs(frm);
-        }, 500);
     },
 
     // === Changement de devis ===
@@ -198,53 +79,32 @@ frappe.ui.form.on("Calcul Devis", {
                 }
             });
         }
+    }
+});
+
+frappe.ui.form.on("Calcul Devis Poste", {
+    postes_add: function(frm) {
+        calculate_all(frm);
     },
 
-    // === Événements de changement des finitions (pour affichage conditionnel) ===
-    fin_pelliculage: function(frm) {
-        toggle_finition_costs(frm);
+    postes_remove: function(frm) {
+        calculate_all(frm);
     },
-    fin_marquage_chaud: function(frm) {
-        toggle_finition_costs(frm);
+
+    nombre_passages: function(frm) {
+        calculate_all(frm);
     },
-    fin_acrylique: function(frm) {
-        toggle_finition_costs(frm);
+
+    cout_fixe: function(frm) {
+        calculate_all(frm);
     },
-    fin_uv: function(frm) {
-        toggle_finition_costs(frm);
+
+    unite_calcul: function(frm) {
+        calculate_all(frm);
     },
-    fin_selectif: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_drip_off: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_mat_gras: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_blister: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_recto_verso: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_fenetre: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_braille: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_gaufrage: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_massicot: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_collerette: function(frm) {
-        toggle_finition_costs(frm);
-    },
-    fin_blanc_couvrant: function(frm) {
-        toggle_finition_costs(frm);
+
+    cout_variable_unitaire: function(frm) {
+        calculate_all(frm);
     }
 });
 
@@ -303,103 +163,6 @@ function calculate_support_cost(frm) {
 }
 
 /**
- * Calcule le coût total des finitions par feuille
- */
-function calculate_finitions_cost(frm) {
-    let surface = flt(frm.doc.surface_feuille) || 0;
-    let total_finitions = 0;
-    
-    // Finitions de type Select
-    const select_finitions = [
-        { check: 'fin_pelliculage', cost: 'cout_pelliculage_m2' },
-        { check: 'fin_marquage_chaud', cost: 'cout_marquage_chaud_m2' }
-    ];
-    
-    // Finitions de type Check
-    const check_finitions = [
-        { check: 'fin_acrylique', cost: 'cout_acrylique_m2' },
-        { check: 'fin_uv', cost: 'cout_uv_m2' },
-        { check: 'fin_selectif', cost: 'cout_selectif_m2' },
-        { check: 'fin_drip_off', cost: 'cout_drip_off_m2' },
-        { check: 'fin_mat_gras', cost: 'cout_mat_gras_m2' },
-        { check: 'fin_blister', cost: 'cout_blister_m2' },
-        { check: 'fin_recto_verso', cost: 'cout_recto_verso_m2' },
-        { check: 'fin_fenetre', cost: 'cout_fenetre_m2' },
-        { check: 'fin_braille', cost: 'cout_braille_m2' },
-        { check: 'fin_gaufrage', cost: 'cout_gaufrage_m2' },
-        { check: 'fin_massicot', cost: 'cout_massicot_m2' },
-        { check: 'fin_collerette', cost: 'cout_collerette_m2' },
-        { check: 'fin_blanc_couvrant', cost: 'cout_blanc_couvrant_m2' }
-    ];
-    
-    // Calculer pour finitions Select
-    select_finitions.forEach(fin => {
-        let fin_value = frm.doc[fin.check];
-        let cout_m2 = flt(frm.doc[fin.cost]) || 0;
-        
-        // Actif si non vide et différent de "Sans"
-        let is_active = fin_value && String(fin_value).trim().toLowerCase() !== 'sans';
-        
-        if (is_active && cout_m2 > 0 && surface > 0) {
-            total_finitions += surface * cout_m2;
-        }
-    });
-    
-    // Calculer pour finitions Check
-    check_finitions.forEach(fin => {
-        let fin_value = cint(frm.doc[fin.check]) || 0;
-        let cout_m2 = flt(frm.doc[fin.cost]) || 0;
-        
-        if (fin_value === 1 && cout_m2 > 0 && surface > 0) {
-            total_finitions += surface * cout_m2;
-        }
-    });
-    
-    frm.set_value("total_cout_finitions_feuille", total_finitions);
-}
-
-/**
- * Gère l'affichage/masquage des champs de coûts finitions
- */
-function toggle_finition_costs(frm) {
-    // Finitions de type Select
-    const select_finitions = [
-        { check: 'fin_pelliculage', cost: 'cout_pelliculage_m2' },
-        { check: 'fin_marquage_chaud', cost: 'cout_marquage_chaud_m2' }
-    ];
-    
-    // Finitions de type Check
-    const check_finitions = [
-        { check: 'fin_acrylique', cost: 'cout_acrylique_m2' },
-        { check: 'fin_uv', cost: 'cout_uv_m2' },
-        { check: 'fin_selectif', cost: 'cout_selectif_m2' },
-        { check: 'fin_drip_off', cost: 'cout_drip_off_m2' },
-        { check: 'fin_mat_gras', cost: 'cout_mat_gras_m2' },
-        { check: 'fin_blister', cost: 'cout_blister_m2' },
-        { check: 'fin_recto_verso', cost: 'cout_recto_verso_m2' },
-        { check: 'fin_fenetre', cost: 'cout_fenetre_m2' },
-        { check: 'fin_braille', cost: 'cout_braille_m2' },
-        { check: 'fin_gaufrage', cost: 'cout_gaufrage_m2' },
-        { check: 'fin_massicot', cost: 'cout_massicot_m2' },
-        { check: 'fin_collerette', cost: 'cout_collerette_m2' },
-        { check: 'fin_blanc_couvrant', cost: 'cout_blanc_couvrant_m2' }
-    ];
-    
-    // Gérer finitions Select
-    select_finitions.forEach(fin => {
-        let fin_value = frm.doc[fin.check];
-        let is_active = fin_value && String(fin_value).trim().toLowerCase() !== 'sans';
-        frm.toggle_display(fin.cost, is_active);
-    });
-    
-    // Gérer finitions Check
-    check_finitions.forEach(fin => {
-        let fin_value = cint(frm.doc[fin.check]) || 0;
-        frm.toggle_display(fin.cost, fin_value === 1);
-    });
-}
-
-/**
  * Fonction principale de calcul de tous les coûts
  */
 function calculate_all(frm) {
@@ -413,42 +176,51 @@ function calculate_all(frm) {
     let taux_gache = flt(frm.doc.taux_gache_tirage) / 100;
     let feuilles_avec_gache = Math.ceil(quantite_feuilles * (1 + taux_gache));
     frm.set_value("quantite_feuilles_gache", feuilles_avec_gache);
-    
-    // 3. Total coûts fixes
-    let total_fixes = flt(frm.doc.cout_calage) +
-                      flt(frm.doc.cout_plaques_cliches) +
-                      flt(frm.doc.cout_forme_decoupe) +
-                      flt(frm.doc.cout_prepresse) +
-                      flt(frm.doc.cout_autres_fixes);
+
+    // 3. Coût total du support
+    let cout_support_total = flt(frm.doc.cout_support_feuille) * feuilles_avec_gache;
+    frm.set_value("cout_support_total", cout_support_total);
+
+    // 4 et 5. Totaux des postes saisis manuellement
+    let total_fixes = 0;
+    let total_variables = 0;
+
+    (frm.doc.postes || []).forEach(poste => {
+        let passages = cint(poste.nombre_passages) || 1;
+        total_fixes += flt(poste.cout_fixe) * passages;
+
+        let quantite_reference = 1;
+        if (poste.unite_calcul === "Par feuille") {
+            quantite_reference = feuilles_avec_gache;
+        } else if (poste.unite_calcul === "Par 1000 unités") {
+            quantite_reference = quantite / 1000;
+        }
+
+        total_variables += flt(poste.cout_variable_unitaire) *
+                           passages *
+                           quantite_reference;
+    });
+
     frm.set_value("total_couts_fixes", total_fixes);
-    
-    // 4. Total coûts variables = (coûts par feuille) × (feuilles avec gâche)
-    // Inclut: support + finitions + encres + MO + autres
-    let cout_par_feuille = flt(frm.doc.cout_support_feuille) +
-                           flt(frm.doc.total_cout_finitions_feuille) +
-                           flt(frm.doc.cout_encres_feuille) +
-                           flt(frm.doc.cout_mo_feuille) +
-                           flt(frm.doc.cout_autres_feuille);
-    let total_variables = cout_par_feuille * feuilles_avec_gache;
     frm.set_value("total_couts_variables", total_variables);
-    
-    // 5. Coût total = Fixes + Variables
-    let cout_total = total_fixes + total_variables;
+
+    // 6. Coût total = Support + Fixes + Variables
+    let cout_total = cout_support_total + total_fixes + total_variables;
     frm.set_value("cout_total", cout_total);
     
-    // 6. Coût unitaire = Coût total / Quantité commandée
+    // 7. Coût unitaire = Coût total / Quantité commandée
     let cout_unitaire = 0;
     if (quantite > 0) {
         cout_unitaire = cout_total / quantite;
     }
     frm.set_value("cout_unitaire", cout_unitaire);
     
-    // 7. Prix unitaire proposé = Coût unitaire × (1 + Marge%)
+    // 8. Prix unitaire proposé = Coût unitaire × (1 + Marge%)
     let marge_multiplier = 1 + (flt(frm.doc.marge_percent) / 100);
     let prix_unitaire = cout_unitaire * marge_multiplier;
     frm.set_value("prix_unitaire_propose", prix_unitaire);
     
-    // 8. Prix total proposé = Prix unitaire × Quantité
+    // 9. Prix total proposé = Prix unitaire × Quantité
     let prix_total = prix_unitaire * quantite;
     frm.set_value("prix_total_propose", prix_total);
 }
