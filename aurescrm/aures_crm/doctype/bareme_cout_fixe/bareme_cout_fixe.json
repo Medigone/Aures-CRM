@@ -2,9 +2,10 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "format:BAR-{libelle}-{#####}",
+ "creation": "2026-07-16 10:29:34.216723",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": [
+  "field_order": [
   "libelle",
   "categorie",
   "machine",
@@ -12,6 +13,7 @@
   "cout_fixe",
   "unite_calcul",
   "cout_variable_unitaire",
+  "gache_feuilles",
   "is_active",
   "notes"
  ],
@@ -66,6 +68,14 @@
    "precision": "2"
   },
   {
+   "default": "0",
+   "description": "G\u00e2che de calage typique pour cette \u00e9tape, en nombre de feuilles. Pr\u00e9remplit le poste dans Calcul Devis.",
+   "fieldname": "gache_feuilles",
+   "fieldtype": "Int",
+   "label": "G\u00e2che (feuilles)",
+   "non_negative": 1
+  },
+  {
    "default": "1",
    "fieldname": "is_active",
    "fieldtype": "Check",
@@ -80,8 +90,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
+ "modified": "2026-07-20 16:12:22.430764",
+ "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Bareme Cout Fixe",
+ "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
@@ -105,6 +118,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "search_fields": "categorie,unite_calcul,machine",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",

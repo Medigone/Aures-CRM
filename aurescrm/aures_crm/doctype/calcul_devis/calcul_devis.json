@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_hvhl",
   "date_calcul",
   "column_break_bdcs",
   "devis",
@@ -15,10 +16,8 @@
   "column_break_info",
   "article",
   "item_name",
-  "section_gache",
-  "taux_gache_tirage",
-  "column_break_gache",
-  "quantite_feuilles_gache",
+  "section_resume",
+  "html_resume",
   "section_calculs",
   "cout_support_total",
   "total_couts_fixes",
@@ -31,7 +30,19 @@
   "column_break_prix",
   "prix_unitaire_propose",
   "prix_total_propose",
+  "section_prix_final",
+  "prix_propose_final",
+  "column_break_prix_final",
+  "prix_total_final",
+  "marge_commerciale_cout",
+  "marge_commerciale_prix",
   "tab_2_tab",
+  "html_fiche",
+  "section_gache",
+  "total_gache_feuilles",
+  "column_break_gache",
+  "quantite_feuilles_gache",
+  "taux_gache_tirage",
   "section_donnees_techniques",
   "imposition",
   "format_imp",
@@ -51,6 +62,7 @@
   "poids_feuille",
   "surface_feuille",
   "tab_4_tab",
+  "html_postes",
   "postes"
  ],
  "fields": [
@@ -220,14 +232,15 @@
   {
    "fieldname": "section_gache",
    "fieldtype": "Section Break",
-   "label": "G\u00e2che de Tirage"
+   "label": "G\u00e2che"
   },
   {
    "default": "0",
-   "fieldname": "taux_gache_tirage",
-   "fieldtype": "Percent",
-   "label": "Taux de G\u00e2che Tirage (%)",
-   "precision": "2"
+   "description": "Somme des g\u00e2ches (feuilles) des postes de production.",
+   "fieldname": "total_gache_feuilles",
+   "fieldtype": "Int",
+   "label": "Total G\u00e2che (feuilles)",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_gache",
@@ -235,10 +248,20 @@
   },
   {
    "default": "0",
+   "description": "Feuilles n\u00e9cessaires + total g\u00e2che des postes.",
    "fieldname": "quantite_feuilles_gache",
    "fieldtype": "Int",
    "label": "Feuilles avec G\u00e2che",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "D\u00e9pr\u00e9ci\u00e9 : la g\u00e2che est d\u00e9sormais saisie par poste de production.",
+   "fieldname": "taux_gache_tirage",
+   "fieldtype": "Percent",
+   "hidden": 1,
+   "label": "Taux de G\u00e2che Tirage (%)",
+   "precision": "2"
   },
   {
    "fieldname": "section_calculs",
@@ -312,7 +335,7 @@
    "fieldname": "prix_unitaire_propose",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Prix Unitaire Propos\u00e9",
+   "label": "Prix unitaire propos\u00e9 (r\u00e9f.)",
    "precision": "4",
    "read_only": 1
   },
@@ -323,6 +346,55 @@
    "label": "Prix Total Propos\u00e9",
    "precision": "2",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_prix_final",
+   "fieldtype": "Section Break",
+   "label": "Prix Final"
+  },
+  {
+   "default": "0",
+   "fieldname": "prix_propose_final",
+   "fieldtype": "Currency",
+   "label": "Prix propos\u00e9 final",
+   "precision": "4"
+  },
+  {
+   "fieldname": "column_break_prix_final",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "prix_total_final",
+   "fieldtype": "Currency",
+   "label": "Prix total final",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "marge_commerciale_cout",
+   "fieldtype": "Percent",
+   "label": "Marge commerciale sur co\u00fbt (%)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "marge_commerciale_prix",
+   "fieldtype": "Percent",
+   "label": "Marge commerciale sur prix (%)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_resume",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "html_resume",
+   "fieldtype": "HTML",
+   "label": "R\u00e9sum\u00e9"
   },
   {
    "fieldname": "column_break_bdcs",
@@ -354,8 +426,14 @@
    "label": "Postes de Production"
   },
   {
+   "fieldname": "html_postes",
+   "fieldtype": "HTML",
+   "label": "Postes"
+  },
+  {
    "fieldname": "postes",
    "fieldtype": "Table",
+   "hidden": 1,
    "label": "Postes de Production",
    "options": "Calcul Devis Poste"
   },
@@ -372,12 +450,20 @@
    "fieldtype": "Data",
    "label": "D\u00e9signation Support",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_hvhl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "html_fiche",
+   "fieldtype": "HTML"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-13 08:22:08.261129",
+ "modified": "2026-07-21 09:42:38.440230",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Devis",

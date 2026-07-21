@@ -72,14 +72,18 @@ class CalculDevis(Document):
         Calcule le support et les coûts des postes de production.
         
         1. Quantité Feuilles = Quantité commandée ÷ Nombre de poses
-        2. Feuilles avec Gâche = Feuilles × (1 + Taux Gâche%)
-        3. Coût Support Total = Coût Support/Feuille × Feuilles avec gâche
-        4. Total Coûts Fixes = Σ(coût fixe × passages)
-        5. Total Coûts Variables = Σ(coût unitaire × passages × quantité de référence)
-        6. Coût Total = Support + Fixes + Variables
-        7. Coût Unitaire = Coût Total ÷ Quantité commandée
-        8. Prix Unitaire = Coût Unitaire × (1 + Marge%)
-        9. Prix Total = Prix Unitaire × Quantité commandée
+        2. Total Gâche = Σ gache_feuilles des postes
+        3. Feuilles avec Gâche = Feuilles + Total Gâche
+        4. Coût Support Total = Coût Support/Feuille × Feuilles avec gâche
+        5. Total Coûts Fixes = Σ(coût fixe × passages)
+        6. Total Coûts Variables = Σ(coût unitaire × passages × quantité de référence)
+        7. Coût Total = Support + Fixes + Variables
+        8. Coût Unitaire = Coût Total ÷ Quantité commandée
+        9. Prix Unitaire = Coût Unitaire × (1 + Marge%)
+        10. Prix Total = Prix Unitaire × Quantité commandée
+        11. Prix Total Final = Prix proposé final × Quantité
+            (saisie manuelle ; réaligné sur le PU proposé si marge_percent change)
+        12. Marges commerciales dérivées du prix final
         """
         
         # 1. Quantité de feuilles nécessaires = Quantité ÷ Nombre de poses
@@ -87,16 +91,19 @@ class CalculDevis(Document):
         quantite = flt(self.quantite or 0)
         self.quantite_feuilles = math.ceil(quantite / nbr_poses) if nbr_poses > 0 else 0
         
-        # 2. Feuilles avec gâche de tirage
-        taux_gache = flt(self.taux_gache_tirage or 0) / 100
-        self.quantite_feuilles_gache = math.ceil(flt(self.quantite_feuilles) * (1 + taux_gache))
+        # 2–3. Gâche additive par postes (feuilles absolues, sans × passages)
+        total_gache = 0
+        for poste in self.postes or []:
+            total_gache += cint(poste.gache_feuilles) or 0
+        self.total_gache_feuilles = total_gache
+        self.quantite_feuilles_gache = cint(self.quantite_feuilles) + total_gache
 
-        # 3. Coût total du support pour les feuilles avec gâche
+        # 4. Coût total du support pour les feuilles avec gâche
         self.cout_support_total = flt(self.cout_support_feuille or 0) * flt(
             self.quantite_feuilles_gache
         )
 
-        # 4 et 5. Totaux issus des postes saisis manuellement
+        # 5 et 6. Totaux issus des postes saisis manuellement
         total_fixes = 0
         total_variables = 0
 
@@ -119,25 +126,54 @@ class CalculDevis(Document):
         self.total_couts_fixes = total_fixes
         self.total_couts_variables = total_variables
 
-        # 6. Coût total = support + coûts fixes + coûts variables
+        # 7. Coût total = support + coûts fixes + coûts variables
         self.cout_total = (
             flt(self.cout_support_total)
             + flt(self.total_couts_fixes)
             + flt(self.total_couts_variables)
         )
         
-        # 7. Coût unitaire = Coût total / Quantité commandée
+        # 8. Coût unitaire = Coût total / Quantité commandée
         if quantite > 0:
             self.cout_unitaire = flt(self.cout_total) / quantite
         else:
             self.cout_unitaire = 0
         
-        # 8. Prix unitaire proposé = Coût unitaire × (1 + Marge%)
+        # 9. Prix unitaire proposé = Coût unitaire × (1 + Marge%)
         marge_multiplier = 1 + (flt(self.marge_percent or 0) / 100)
         self.prix_unitaire_propose = flt(self.cout_unitaire) * marge_multiplier
+
+        # Si la marge a été modifiée sur un document existant, réaligner le PU final
+        previous = self.get_doc_before_save()
+        if previous and self.has_value_changed("marge_percent"):
+            self.prix_propose_final = self.prix_unitaire_propose
         
-        # 9. Prix total proposé = Prix unitaire × Quantité
+        # 10. Prix total proposé = Prix unitaire × Quantité
         self.prix_total_propose = flt(self.prix_unitaire_propose) * quantite
+
+        # 11–12. Total et marges basés sur le prix final (saisi ou réaligné sur la marge)
+        self._calculate_prix_final(quantite)
+
+    def _calculate_prix_final(self, quantite=None):
+        """
+        Dérive prix_total_final et les marges commerciales depuis prix_propose_final.
+        Ne modifie jamais prix_propose_final ici (saisie manuelle, ou réalignement
+        dans calculate_costs si marge_percent a changé).
+        """
+        if quantite is None:
+            quantite = flt(self.quantite or 0)
+
+        prix_final = flt(self.prix_propose_final or 0)
+        cout_unitaire = flt(self.cout_unitaire or 0)
+
+        self.prix_total_final = prix_final * quantite
+
+        if prix_final > 0 and cout_unitaire > 0:
+            self.marge_commerciale_cout = ((prix_final - cout_unitaire) / cout_unitaire) * 100
+            self.marge_commerciale_prix = ((prix_final - cout_unitaire) / prix_final) * 100
+        else:
+            self.marge_commerciale_cout = 0
+            self.marge_commerciale_prix = 0
 
 
 @frappe.whitelist()
@@ -192,8 +228,6 @@ def generate_calcul_devis_for_quotation(quotation_name):
         )
         if imposition:
             calcul_devis.imposition = imposition
-
-        calcul_devis.taux_gache_tirage = 3
 
         calcul_devis.insert(ignore_permissions=True)
         created_docs.append(calcul_devis.name)

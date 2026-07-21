@@ -13,7 +13,7 @@ Il permet :
 Cette méthode repose sur quatre éléments :
 
 1. la quantité commandée et l'imposition ;
-2. la gâche de tirage ;
+2. la gâche par poste de production ;
 3. le coût du papier ;
 4. les postes de production saisis manuellement.
 
@@ -51,31 +51,33 @@ Quantité feuilles retenue = 251 feuilles
 Si le nombre de poses est vide ou égal à zéro, le calcul utilise une pose afin d'éviter une division impossible.
 
 ### Feuilles avec gâche
-Le taux de gâche de tirage est ajouté à la quantité de feuilles nécessaires.
+La gâche est saisie **par poste de production**, en nombre de feuilles (calage typique de l'étape). Elle n'est pas multipliée par le nombre de passages.
 
 ```text
-Feuilles avec gâche =
-  Quantité feuilles × (1 + Taux de gâche tirage ÷ 100)
-```
+Total gâche (feuilles) =
+  Σ Gâche (feuilles) de chaque poste
 
-Le résultat est également arrondi à la feuille entière supérieure.
+Feuilles avec gâche =
+  Quantité feuilles + Total gâche
+```
 
 Exemple :
 
 ```text
-251 feuilles avec 10 % de gâche
-= 251 × 1,10
-= 276,10
-= 277 feuilles retenues
+250 feuilles nettes
++ 50 (impression) + 20 (vernis) + 30 (découpe)
+= 350 feuilles avec gâche
 ```
 
-### Différence entre les deux taux affichés
+La valeur de référence peut être préremplie depuis le `Bareme Cout Fixe` (`Gâche (feuilles)`), puis ajustée sur la ligne poste.
+
+### Différence avec le taux de chutes
 Le Calcul Devis peut afficher :
 
-- `Taux de Chutes (Imposition)` : information provenant de l'imposition ;
-- `Taux de Gâche Tirage (%)` : taux utilisé dans le calcul du nombre de feuilles à chiffrer.
+- `Taux de Chutes (Imposition)` : information provenant de l'imposition (non utilisée dans le coût) ;
+- `Total Gâche (feuilles)` / `Feuilles avec Gâche` : résultats du calcul issus des postes.
 
-Dans la méthode actuelle, seul le `Taux de Gâche Tirage (%)` intervient directement dans le coût du devis.
+Seul le total des gâches des postes intervient dans le coût du devis.
 
 ## 2. Calcul du coût du support
 
@@ -260,12 +262,42 @@ Prix total proposé =
   Prix unitaire proposé × Quantité commandée
 ```
 
+Le prix unitaire et le prix total proposés sont une **référence calculée**. Ils ne sont pas modifiés manuellement.
+
+## 6 bis. Prix proposé final et marges commerciales
+
+Le chargé de devis peut saisir un `Prix proposé final` indépendant de la référence.
+
+### Prix total final
+
+```text
+Prix total final =
+  Prix proposé final × Quantité commandée
+```
+
+### Marge commerciale sur coût (%)
+
+```text
+Marge commerciale sur coût =
+  (Prix proposé final − Coût unitaire) ÷ Coût unitaire × 100
+```
+
+### Marge commerciale sur prix (%)
+
+```text
+Marge commerciale sur prix =
+  (Prix proposé final − Coût unitaire) ÷ Prix proposé final × 100
+```
+
+Si le prix proposé final est vide ou nul, ou si le coût unitaire est nul, les deux marges restent à zéro.
+
+Le recalcul des coûts ou de la marge de référence ne remplit ni n'écrase jamais le `Prix proposé final`.
+
 ## 7. Exemple complet
 
 ### Données de départ
 - Quantité commandée : `1 000`
 - Nombre de poses : `4`
-- Taux de gâche tirage : `10 %`
 - Format d'impression : `500 × 400 mm`
 - Grammage : `100 g/m²`
 - Coût support : `2 par kg`
@@ -277,20 +309,23 @@ Prix total proposé =
 
 - Nombre de passages : `2`
 - Coût fixe : `100`
+- Gâche : `50` feuilles
 - Unité : `Par feuille`
 - Coût variable unitaire : `0,05`
 
-**Pelliculage**
+**Vernis sérigraphique**
 
 - Nombre de passages : `1`
 - Coût fixe : `50`
+- Gâche : `20` feuilles
 - Unité : `Par 1000 unités`
 - Coût variable unitaire : `30`
 
-**Prépresse**
+**Découpe**
 
 - Nombre de passages : `3`
 - Coût fixe : `0`
+- Gâche : `30` feuilles
 - Unité : `Forfait`
 - Coût variable unitaire : `25`
 
@@ -298,7 +333,8 @@ Prix total proposé =
 
 ```text
 Quantité feuilles = 1 000 ÷ 4 = 250
-Feuilles avec gâche = 250 × 1,10 = 275
+Total gâche = 50 + 20 + 30 = 100
+Feuilles avec gâche = 250 + 100 = 350
 ```
 
 ### Étape 2 - Support
@@ -307,15 +343,15 @@ Feuilles avec gâche = 250 × 1,10 = 275
 Surface feuille = 500 × 400 ÷ 1 000 000 = 0,20 m²
 Poids feuille = 0,20 × 100 = 20 g
 Coût par feuille = 20 ÷ 1 000 × 2 = 0,04
-Coût support total = 0,04 × 275 = 11
+Coût support total = 0,04 × 350 = 14
 ```
 
 ### Étape 3 - Coûts fixes
 
 ```text
 Impression = 100 × 2 = 200
-Pelliculage = 50 × 1 = 50
-Prépresse = 0
+Vernis = 50 × 1 = 50
+Découpe = 0
 
 Total coûts fixes = 250
 ```
@@ -323,24 +359,25 @@ Total coûts fixes = 250
 ### Étape 4 - Coûts variables
 
 ```text
-Impression = 0,05 × 2 × 275 = 27,50
-Pelliculage = 30 × 1 × (1 000 ÷ 1 000) = 30
-Prépresse = 25 × 3 = 75
+Impression = 0,05 × 2 × 350 = 35
+Vernis = 30 × 1 × (1 000 ÷ 1 000) = 30
+Découpe = 25 × 3 = 75
 
-Total coûts variables = 132,50
+Total coûts variables = 140
 ```
 
 ### Étape 5 - Totaux
 
 ```text
-Coût total = 11 + 250 + 132,50 = 393,50
-Coût unitaire = 393,50 ÷ 1 000 = 0,3935
-Prix unitaire proposé = 0,3935 × 1,20 = 0,4722
-Prix total proposé = 0,4722 × 1 000 = 472,20
+Coût total = 14 + 250 + 140 = 404
+Coût unitaire = 404 ÷ 1 000 = 0,404
+Prix unitaire proposé = 0,404 × 1,20 = 0,4848
+Prix total proposé = 0,4848 × 1 000 = 484,80
 ```
 
 ## 8. Règles d'arrondi
-- Les quantités de feuilles sont toujours arrondies à l'entier supérieur.
+- Les quantités de feuilles nettes sont toujours arrondies à l'entier supérieur.
+- La gâche par poste est un nombre entier de feuilles (sans arrondi supplémentaire sur le total).
 - Les coûts sont calculés avec leur précision disponible.
 - L'affichage monétaire peut présenter moins de décimales que le calcul unitaire.
 
@@ -350,19 +387,19 @@ Pour contrôler un écart de quelques centimes, vérifiez le coût unitaire dét
 La méthode actuelle ne réalise pas automatiquement les actions suivantes :
 
 - choisir les étapes selon les finitions de l'article ;
-- recopier un `Bareme Cout Fixe` dans le devis ;
+- synchroniser un devis existant après modification d'un barème ;
 - récupérer un tarif depuis la machine sélectionnée ;
 - calculer le nombre de passages à partir de la machine ;
-- synchroniser un devis existant après modification d'un barème.
+- appliquer une cascade de gâche par ordre d'étapes (la gâche est additive et globale).
 
-Ces décisions restent sous la responsabilité du chargé de devis.
+Le dialogue d'ajout de poste préremplit les coûts et la gâche depuis le `Bareme Cout Fixe` sélectionné ; les valeurs restent ensuite figées sur la ligne.
 
 ## 10. Contrôle fonctionnel avant validation
 Avant de soumettre le Calcul Devis, vérifiez :
 
 1. la quantité commandée ;
 2. le nombre de poses ;
-3. le taux de gâche tirage ;
+3. la gâche (feuilles) de chaque poste et le total ;
 4. le format et le grammage ;
 5. le coût support au kilogramme ;
 6. la présence de toutes les étapes de production ;

@@ -57,15 +57,22 @@ L'imposition idéale de l'article est reprise lors de la génération lorsqu'ell
 
 Le nombre de poses sert à convertir la quantité commandée en quantité de feuilles. Si l'imposition ou le nombre de poses est incorrect, le coût du papier et les postes calculés par feuille seront également incorrects.
 
-### 3. Renseigner la gâche de tirage
-Dans la section `Gâche de Tirage`, renseignez le `Taux de Gâche Tirage (%)`.
+### 3. Renseigner la gâche par poste
+La gâche n'est plus un taux unique : elle se saisit **par poste de production**, en nombre de feuilles.
 
-Le champ `Feuilles avec Gâche` est calculé automatiquement. C'est cette quantité qui est utilisée pour :
+Lors de l'ajout d'un poste depuis un `Bareme Cout Fixe`, le champ `Gâche (feuilles)` est prérempli. Vous pouvez l'ajuster sur la ligne.
+
+Les champs calculés dans la section `Gâche` :
+
+- `Total Gâche (feuilles)` : somme des gâches des postes ;
+- `Feuilles avec Gâche` : feuilles nettes + total gâche.
+
+C'est cette dernière quantité qui est utilisée pour :
 
 - le coût total du papier ;
 - les postes dont l'unité est `Par feuille`.
 
-Le `Taux de Chutes (Imposition)` est une information provenant de l'imposition. Il ne remplace pas le `Taux de Gâche Tirage (%)`.
+Le `Taux de Chutes (Imposition)` reste une information provenant de l'imposition. Il ne remplace pas la gâche des postes.
 
 ### 4. Renseigner le papier
 Dans l'onglet `Papier` :
@@ -100,6 +107,7 @@ Pour chaque ligne, renseignez :
 - `Machine (info)` : machine envisagée, facultative ;
 - `Nombre de passages` : nombre de fois où le poste doit être réalisé ;
 - `Coût fixe (calage/lancement)` : coût indépendant du volume pour un passage ;
+- `Gâche (feuilles)` : gâche de calage de l'étape (non multipliée par les passages) ;
 - `Unité de calcul` : `Par feuille`, `Par 1000 unités` ou `Forfait` ;
 - `Coût variable unitaire` : montant correspondant à l'unité choisie ;
 - `Description` : précision utile pour le chiffrage.
@@ -157,10 +165,23 @@ Saisissez la `Marge (%)`.
 
 Le système calcule :
 
-- le `Prix Unitaire Proposé` ;
+- le `Prix unitaire proposé (réf.)` ;
 - le `Prix Total Proposé`.
 
 La marge est appliquée sur le coût unitaire. Par exemple, une marge de 20 % transforme un coût unitaire de 10 en un prix unitaire proposé de 12.
+
+Ces montants restent une référence. Ils ne sont pas écrasés si vous ajustez ensuite le prix final.
+
+### 8 bis. Ajuster le prix proposé final
+Saisissez manuellement le `Prix proposé final` si vous souhaitez proposer un montant différent de la référence.
+
+Le système calcule alors :
+
+- le `Prix total final` ;
+- la `Marge commerciale sur coût (%)` ;
+- la `Marge commerciale sur prix (%)`.
+
+Le prix final n'est jamais prérempli ni modifié automatiquement lors d'un recalcul.
 
 ### 9. Sauvegarder et valider
 Enregistrez le document pour conserver les postes et recalculer les totaux.
@@ -176,8 +197,12 @@ Avant validation, vérifiez :
 - `Coût Total`
 - `Coût Unitaire`
 - `Marge (%)`
-- `Prix Unitaire Proposé`
+- `Prix unitaire proposé (réf.)`
 - `Prix Total Proposé`
+- `Prix proposé final`
+- `Prix total final`
+- `Marge commerciale sur coût (%)`
+- `Marge commerciale sur prix (%)`
 
 ## Bonnes pratiques
 - Utilisez un libellé compréhensible pour chaque poste.
@@ -193,7 +218,7 @@ Contrôlez dans cet ordre :
 
 1. la quantité commandée ;
 2. le nombre de poses ;
-3. le taux de gâche tirage ;
+3. la gâche (feuilles) de chaque poste ;
 4. le grammage, le format et le coût du support au kg ;
 5. le nombre de passages de chaque poste ;
 6. l'unité de calcul de chaque poste ;

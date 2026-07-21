@@ -96,6 +96,11 @@ Montant associé à l'unité de calcul choisie.
 
 Il peut rester à zéro si la référence ne comporte qu'un coût fixe.
 
+### Gâche (feuilles)
+Nombre de feuilles de gâche de calage typique pour cette étape.
+
+Cette valeur préremplit le champ `Gâche (feuilles)` du poste dans Calcul Devis. Elle n'est pas multipliée par le nombre de passages. Le chargé de devis peut l'ajuster sur chaque devis.
+
 ### Actif
 Une référence active est disponible pour les chiffrages courants.
 

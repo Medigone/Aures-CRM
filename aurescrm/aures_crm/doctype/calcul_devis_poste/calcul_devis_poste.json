@@ -4,18 +4,27 @@
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
- "field_order": [
+  "field_order": [
+  "bareme",
   "libelle",
   "machine",
   "column_break_1",
   "nombre_passages",
   "cout_fixe",
+  "gache_feuilles",
   "column_break_2",
   "unite_calcul",
   "cout_variable_unitaire",
   "description"
  ],
  "fields": [
+  {
+   "fieldname": "bareme",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Bar\u00e8me Co\u00fbt Fixe",
+   "options": "Bareme Cout Fixe"
+  },
   {
    "fieldname": "libelle",
    "fieldtype": "Data",
@@ -50,6 +59,15 @@
    "in_list_view": 1,
    "label": "Co\u00fbt fixe (calage/lancement)",
    "precision": "2"
+  },
+  {
+   "default": "0",
+   "description": "G\u00e2che de cette \u00e9tape en nombre de feuilles (non multipli\u00e9e par les passages).",
+   "fieldname": "gache_feuilles",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "G\u00e2che (feuilles)",
+   "non_negative": 1
   },
   {
    "fieldname": "column_break_2",

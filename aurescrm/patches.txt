@@ -35,3 +35,4 @@ aurescrm.patches.rename_departement_rh_to_series
 aurescrm.patches.setup_guides_workflow
 aurescrm.patches.import_guides_from_docs
 aurescrm.patches.import_guides_chiffrage_devis
+aurescrm.patches.update_guides_prix_propose_final
