@@ -1,0 +1,16 @@
+You changed the value of {0},Vous avez modifié la valeur de {0}
+You changed the value of {0} {1},Vous avez modifié la valeur de {0} {1}
+{0} changed the value of {1},{0} a modifié la valeur de {1}
+{0} changed the value of {1} {2},{0} a modifié la valeur de {1} {2}
+You changed the values for {0},Vous avez modifié les valeurs de {0}
+You changed the values for {0} {1},Vous avez modifié les valeurs de {0} {1}
+{0} changed the values for {1},{0} a modifié les valeurs de {1}
+{0} changed the values for {1} {2},{0} a modifié les valeurs de {1} {2}
+{0} from {1} to {2},{0} de {1} à {2}
+{0} from {1} to {2} in row #{3},{0} de {1} à {2} dans la ligne n°{3}
+added rows for {0},a ajouté des lignes pour {0}
+removed rows for {0},a retiré des lignes pour {0}
+You changed {0} to {1},Vous avez modifié {0} en {1},Form timeline
+{0} changed {1} to {2},{0} a modifié {1} en {2},Form timeline
+Type a reply / comment,Écrire une réponse / un commentaire
+Search or type a command ({0}),Rechercher/saisir commande ({0})

@@ -13,6 +13,7 @@
   "date_modification",
   "section_description",
   "description",
+  "postes_production_tab",
   "section_postes",
   "html_postes",
   "postes"
@@ -85,11 +86,16 @@
    "hidden": 1,
    "label": "Postes",
    "options": "Modele Poste Devis"
+  },
+  {
+   "fieldname": "postes_production_tab",
+   "fieldtype": "Tab Break",
+   "label": "Postes Production"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-22 10:25:27.109520",
+ "modified": "2026-07-22 11:56:27.548402",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Modele Postes Devis",

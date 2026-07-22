@@ -273,7 +273,7 @@ function get_postes_production_styles() {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  overflow: hidden;
+  overflow: visible;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 .pp-header {
@@ -282,6 +282,8 @@ function get_postes_production_styles() {
   justify-content: space-between;
   padding: 18px 22px;
   border-bottom: 1px solid #ebebec;
+  border-radius: 12px 12px 0 0;
+  background: #ffffff;
 }
 .pp-title {
   font-size: 15px;
@@ -295,7 +297,8 @@ function get_postes_production_styles() {
   flex-wrap: wrap;
 }
 .pp-add-btn,
-.pp-model-btn {
+.pp-model-btn,
+.pp-clear-btn {
   border: none;
   font-size: 13px;
   font-weight: 600;
@@ -314,75 +317,137 @@ function get_postes_production_styles() {
   border: 1px solid #d4d4d8;
 }
 .pp-model-btn:hover { background: #f4f4f5; }
-.pp-list {
-  display: flex;
-  flex-direction: column;
+.pp-clear-btn {
+  background: #ffffff;
+  color: #b3411f;
+  border: 1px solid #f5d9d4;
 }
-.pp-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 22px;
+.pp-clear-btn:hover { background: #fdf0ef; }
+.pp-table-wrap {
+  overflow-x: auto;
+  border-radius: 0 0 12px 12px;
+}
+.pp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  table-layout: auto;
+}
+.pp-table th,
+.pp-table td {
+  padding: 12px 14px;
+  text-align: left;
   border-bottom: 1px solid #f0f0f1;
-}
-.pp-row:last-child { border-bottom: none; }
-.pp-row-main {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.pp-row-title {
-  font-size: 14px;
-  font-weight: 700;
+  vertical-align: middle;
+  font-size: 13px;
   color: #3f3f46;
 }
-.pp-row-meta {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-.pp-meta-item {
-  font-size: 13px;
-  color: #71717a;
-}
-.pp-meta-value {
-  color: #52525b;
+.pp-table th {
+  background: #fafafa;
   font-weight: 600;
+  color: #71717a;
+  white-space: nowrap;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
-.pp-num {
+.pp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.pp-table tbody tr:hover td {
+  background: #fafafa;
+}
+.pp-table .pp-col-libelle {
+  font-weight: 600;
+  min-width: 140px;
+}
+.pp-table .pp-num {
+  text-align: right;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
-.pp-row-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+.pp-table th.pp-num {
+  text-align: right;
 }
-.pp-btn-edit {
+.pp-table .pp-col-actions {
+  text-align: right;
+  width: 48px;
+  padding-right: 16px;
+  position: relative;
+}
+.pp-menu {
+  display: inline-flex;
+  justify-content: flex-end;
+  position: relative;
+}
+.pp-menu-toggle {
   background: none;
   border: none;
   color: #71717a;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 20px;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   cursor: pointer;
-  padding: 8px 10px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.pp-btn-edit:hover { color: #3f3f46; }
-.pp-btn-delete {
+.pp-menu-toggle:hover,
+.pp-menu.open .pp-menu-toggle {
+  background: #f4f4f5;
+  color: #3f3f46;
+}
+.pp-menu-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+  padding: 4px;
+  min-width: 0;
+  gap: 2px;
+}
+.pp-menu.open .pp-menu-dropdown {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.pp-menu-action {
+  background: none;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #52525b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.pp-menu-action:hover {
+  background: #f4f4f5;
+  color: #3f3f46;
+}
+.pp-menu-action.pp-btn-delete:hover {
   background: #fdf0ef;
   color: #b3411f;
-  border: 1px solid #f5d9d4;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 8px 14px;
-  border-radius: 7px;
-  cursor: pointer;
 }
-.pp-btn-delete:hover { background: #fbe3e0; }
+.pp-menu-action .fa {
+  font-size: 13px;
+}
 .pp-empty {
-  padding: 16px 22px;
+  padding: 28px 22px;
   font-size: 13px;
   color: #71717a;
+  text-align: center;
 }
 </style>`;
 }
@@ -402,43 +467,61 @@ function render_postes_html(frm) {
 	html += `<div class="pp-title">${__("Postes de Production")}</div>`;
 	if (editable) {
 		html += `<div class="pp-header-actions">`;
+		if (postes.length) {
+			html += `<button type="button" class="pp-clear-btn">${__("Tout Supprimer")}</button>`;
+		}
 		html += `<button type="button" class="pp-model-btn">${__("Ajouter depuis un modèle")}</button>`;
 		html += `<button type="button" class="pp-add-btn">+ ${__("Ajouter un poste")}</button>`;
 		html += `</div>`;
 	}
 	html += `</div>`;
-	html += `<div class="pp-list">`;
 
 	if (!postes.length) {
 		html += `<div class="pp-empty">${__("Aucun poste. Ajoutez un poste depuis le barème de coût fixe.")}</div>`;
 	} else {
+		html += `<div class="pp-table-wrap"><table class="pp-table">`;
+		html += `<thead><tr>
+			<th class="pp-col-libelle">${__("Libellé")}</th>
+			<th>${__("Machine")}</th>
+			<th class="pp-num">${__("Passages")}</th>
+			<th class="pp-num">${__("Gâche")}</th>
+			<th class="pp-num">${__("Coût fixe")}</th>
+			<th>${__("Unité")}</th>
+			<th class="pp-num">${__("Coût variable")}</th>
+			${editable ? `<th class="pp-col-actions"></th>` : ""}
+		</tr></thead><tbody>`;
+
 		postes.forEach((poste, idx) => {
-			html += `
-    <div class="pp-row">
-      <div class="pp-row-main">
-        <div class="pp-row-title">${escape_html(poste.libelle || __("Sans libellé"))}</div>
-        <div class="pp-row-meta">
-          <span class="pp-meta-item">${__("Machine")}: <span class="pp-meta-value">${escape_html(poste.machine || "—")}</span></span>
-          <span class="pp-meta-item">${__("Passages")}: <span class="pp-meta-value">${cint(poste.nombre_passages) || 1}</span></span>
-          <span class="pp-meta-item">${__("Gâche")}: <span class="pp-meta-value pp-num">${cint(poste.gache_feuilles) || 0}</span></span>
-          <span class="pp-meta-item">${__("Coût fixe")}: <span class="pp-meta-value pp-num">${format_money(poste.cout_fixe)}</span></span>
-          <span class="pp-meta-item">${__("Unité")}: <span class="pp-meta-value">${escape_html(poste.unite_calcul || "—")}</span></span>
-          <span class="pp-meta-item">${__("Coût variable")}: <span class="pp-meta-value pp-num">${format_money(poste.cout_variable_unitaire)}</span></span>
-        </div>
-      </div>
-      ${
-			editable
-				? `<div class="pp-row-actions">
-        <button type="button" class="pp-btn-edit" data-idx="${idx}">${__("Modifier")}</button>
-        <button type="button" class="pp-btn-delete" data-idx="${idx}">${__("Supprimer")}</button>
-      </div>`
-				: ""
-		}
-    </div>`;
+			html += `<tr>
+				<td class="pp-col-libelle">${escape_html(poste.libelle || __("Sans libellé"))}</td>
+				<td>${escape_html(poste.machine || "—")}</td>
+				<td class="pp-num">${cint(poste.nombre_passages) || 1}</td>
+				<td class="pp-num">${cint(poste.gache_feuilles) || 0}</td>
+				<td class="pp-num">${format_money(poste.cout_fixe)}</td>
+				<td>${escape_html(poste.unite_calcul || "—")}</td>
+				<td class="pp-num">${format_money(poste.cout_variable_unitaire)}</td>`;
+			if (editable) {
+				html += `<td class="pp-col-actions">
+					<div class="pp-menu">
+						<button type="button" class="pp-menu-toggle" title="${__("Actions")}" aria-label="${__("Actions")}">⋯</button>
+						<div class="pp-menu-dropdown">
+							<button type="button" class="pp-menu-action pp-btn-edit" data-idx="${idx}" title="${__("Modifier")}" aria-label="${__("Modifier")}">
+								<i class="fa fa-pencil"></i>
+							</button>
+							<button type="button" class="pp-menu-action pp-btn-delete" data-idx="${idx}" title="${__("Supprimer")}" aria-label="${__("Supprimer")}">
+								<i class="fa fa-trash"></i>
+							</button>
+						</div>
+					</div>
+				</td>`;
+			}
+			html += `</tr>`;
 		});
+
+		html += `</tbody></table></div>`;
 	}
 
-	html += `</div></div>`;
+	html += `</div>`;
 	field.$wrapper.html(html);
 	bind_postes_actions(frm);
 }
@@ -451,17 +534,39 @@ function bind_postes_actions(frm) {
 	wrapper.find(".pp-model-btn").off("click").on("click", function () {
 		open_modele_postes_dialog(frm);
 	});
-	wrapper.find(".pp-btn-edit").off("click").on("click", function () {
+	wrapper.find(".pp-clear-btn").off("click").on("click", function () {
+		remove_all_postes(frm);
+	});
+	wrapper.find(".pp-menu-toggle").off("click").on("click", function (e) {
+		e.preventDefault();
+		e.stopPropagation();
+		const $menu = $(this).closest(".pp-menu");
+		const was_open = $menu.hasClass("open");
+		wrapper.find(".pp-menu").removeClass("open");
+		if (!was_open) {
+			$menu.addClass("open");
+		}
+	});
+	wrapper.find(".pp-btn-edit").off("click").on("click", function (e) {
+		e.stopPropagation();
+		wrapper.find(".pp-menu").removeClass("open");
 		const idx = cint($(this).data("idx"));
 		const poste = (frm.doc.postes || [])[idx];
 		if (poste) {
 			open_poste_dialog(frm, poste, idx);
 		}
 	});
-	wrapper.find(".pp-btn-delete").off("click").on("click", function () {
+	wrapper.find(".pp-btn-delete").off("click").on("click", function (e) {
+		e.stopPropagation();
+		wrapper.find(".pp-menu").removeClass("open");
 		const idx = cint($(this).data("idx"));
 		remove_poste(frm, idx);
 	});
+	$(document)
+		.off("click.pp_postes_menu")
+		.on("click.pp_postes_menu", function () {
+			wrapper.find(".pp-menu").removeClass("open");
+		});
 }
 
 function open_modele_postes_dialog(frm) {
@@ -472,6 +577,7 @@ function open_modele_postes_dialog(frm) {
 
 	const d = new frappe.ui.Dialog({
 		title: __("Ajouter depuis un modèle"),
+		size: "extra-large",
 		fields: [
 			{
 				fieldname: "modele",
@@ -482,6 +588,13 @@ function open_modele_postes_dialog(frm) {
 				get_query: function () {
 					return { filters: { is_active: 1 } };
 				},
+				onchange: function () {
+					refresh_modele_postes_recap(d, this.get_value());
+				},
+			},
+			{
+				fieldname: "modele_recap",
+				fieldtype: "HTML",
 			},
 		],
 		primary_action_label: __("Appliquer"),
@@ -494,7 +607,193 @@ function open_modele_postes_dialog(frm) {
 			apply_modele_postes(frm, values.modele);
 		},
 	});
+	d.$wrapper.find(".form-section").css("overflow", "visible");
+	set_modele_recap_html(
+		d,
+		`<div class="mp-recap-placeholder">${__("Sélectionnez un modèle pour afficher le récapitulatif.")}</div>`
+	);
 	d.show();
+}
+
+function set_modele_recap_html(dialog, html) {
+	const field = dialog.get_field("modele_recap");
+	if (!field || !field.$wrapper) {
+		return;
+	}
+	field.$wrapper.html(`
+<style>
+.mp-recap {
+  margin-top: 4px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  background: #fafafa;
+  overflow: hidden;
+}
+.mp-recap-placeholder,
+.mp-recap-loading,
+.mp-recap-error {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #71717a;
+}
+.mp-recap-error { color: #b3411f; }
+.mp-recap-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ebebec;
+  background: #fff;
+}
+.mp-recap-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3f3f46;
+}
+.mp-recap-desc {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #71717a;
+}
+.mp-recap-meta {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.mp-recap-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid #e4e4e7;
+  background: #fff;
+  font-size: 12px;
+  color: #52525b;
+}
+.mp-recap-chip strong { color: #3f3f46; }
+.mp-recap-table-wrap {
+  max-height: 240px;
+  overflow: auto;
+}
+.mp-recap-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  background: #fff;
+}
+.mp-recap-table th,
+.mp-recap-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f1;
+  font-size: 12px;
+  color: #3f3f46;
+  white-space: nowrap;
+}
+.mp-recap-table th {
+  background: #f4f4f5;
+  font-weight: 600;
+  color: #71717a;
+  position: sticky;
+  top: 0;
+}
+.mp-recap-table tr:last-child td { border-bottom: none; }
+.mp-recap-table .mp-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+</style>
+${html}`);
+}
+
+function refresh_modele_postes_recap(dialog, modele_name) {
+	if (!modele_name) {
+		set_modele_recap_html(
+			dialog,
+			`<div class="mp-recap-placeholder">${__("Sélectionnez un modèle pour afficher le récapitulatif.")}</div>`
+		);
+		return;
+	}
+
+	set_modele_recap_html(
+		dialog,
+		`<div class="mp-recap-loading">${__("Chargement du récapitulatif...")}</div>`
+	);
+
+	frappe.call({
+		method:
+			"aurescrm.aures_crm.doctype.modele_postes_devis.modele_postes_devis.get_postes_from_modele",
+		args: { modele_name: modele_name },
+		callback: function (r) {
+			if (!r.message) {
+				set_modele_recap_html(
+					dialog,
+					`<div class="mp-recap-error">${__("Impossible de charger le modèle.")}</div>`
+				);
+				return;
+			}
+			set_modele_recap_html(dialog, build_modele_recap_html(r.message));
+		},
+		error: function () {
+			set_modele_recap_html(
+				dialog,
+				`<div class="mp-recap-error">${__("Impossible de charger le modèle sélectionné.")}</div>`
+			);
+		},
+	});
+}
+
+function build_modele_recap_html(data) {
+	const postes = data.postes || [];
+	const counts = {};
+	postes.forEach((poste) => {
+		const cat = (poste.categorie || "").trim() || __("Sans catégorie");
+		counts[cat] = (counts[cat] || 0) + 1;
+	});
+	const chips = Object.keys(counts)
+		.sort((a, b) => a.localeCompare(b, "fr"))
+		.map(
+			(cat) =>
+				`<span class="mp-recap-chip">${escape_html(cat)} <strong>${counts[cat]}</strong></span>`
+		)
+		.join("");
+
+	let html = `<div class="mp-recap"><div class="mp-recap-head">`;
+	html += `<div class="mp-recap-title">${escape_html(data.libelle || data.modele)} — ${__(
+		"{0} poste(s)",
+		[postes.length]
+	)}</div>`;
+	if (data.description) {
+		html += `<div class="mp-recap-desc">${escape_html(data.description)}</div>`;
+	}
+	if (chips) {
+		html += `<div class="mp-recap-meta">${chips}</div>`;
+	}
+	html += `</div>`;
+
+	if (!postes.length) {
+		html += `<div class="mp-recap-placeholder">${__("Aucun poste dans ce modèle.")}</div>`;
+	} else {
+		html += `<div class="mp-recap-table-wrap"><table class="mp-recap-table"><thead><tr>
+			<th>${__("Ordre")}</th>
+			<th>${__("Libellé")}</th>
+			<th>${__("Catégorie")}</th>
+			<th class="mp-num">${__("Passages")}</th>
+			<th class="mp-num">${__("Coût fixe")}</th>
+		</tr></thead><tbody>`;
+		postes.forEach((poste) => {
+			html += `<tr>
+				<td class="mp-num">${cint(poste.ordre) || 0}</td>
+				<td>${escape_html(poste.libelle || "—")}</td>
+				<td>${escape_html(poste.categorie || "—")}</td>
+				<td class="mp-num">${cint(poste.nombre_passages) || 1}</td>
+				<td class="mp-num">${format_money(poste.cout_fixe)}</td>
+			</tr>`;
+		});
+		html += `</tbody></table></div>`;
+	}
+
+	html += `</div>`;
+	return html;
 }
 
 function apply_modele_postes(frm, modele_name) {
@@ -794,6 +1093,29 @@ function remove_poste(frm, idx) {
 				frm.doc.postes.splice(idx, 1);
 				frm.refresh_field("postes");
 			}
+			frm.dirty();
+			calculate_all(frm);
+			autosave_calcul_devis(frm);
+		}
+	);
+}
+
+function remove_all_postes(frm) {
+	if (frm.doc.docstatus !== 0) {
+		return;
+	}
+	const count = (frm.doc.postes || []).length;
+	if (!count) {
+		return;
+	}
+	frappe.confirm(
+		__(
+			"Attention : vous allez supprimer les {0} poste(s) de production. Cette action est irréversible. Continuer ?",
+			[count]
+		),
+		function () {
+			frm.clear_table("postes");
+			frm.refresh_field("postes");
 			frm.dirty();
 			calculate_all(frm);
 			autosave_calcul_devis(frm);

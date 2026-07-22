@@ -74,6 +74,7 @@ def get_postes_from_modele(modele_name):
 				"ordre": cint(row.ordre) or 0,
 				"bareme": bareme.name,
 				"libelle": bareme.libelle,
+				"categorie": bareme.categorie or row.categorie or "",
 				"machine": bareme.machine or "",
 				"nombre_passages": cint(row.nombre_passages) or 1,
 				"cout_fixe": bareme.cout_fixe or 0,
@@ -84,4 +85,9 @@ def get_postes_from_modele(modele_name):
 			}
 		)
 
-	return {"modele": modele.name, "libelle": modele.libelle, "postes": result}
+	return {
+		"modele": modele.name,
+		"libelle": modele.libelle,
+		"description": modele.description or "",
+		"postes": result,
+	}
