@@ -387,12 +387,14 @@ Pour contrôler un écart de quelques centimes, vérifiez le coût unitaire dét
 La méthode actuelle ne réalise pas automatiquement les actions suivantes :
 
 - choisir les étapes selon les finitions de l'article ;
-- synchroniser un devis existant après modification d'un barème ;
+- synchroniser un devis existant après modification d'un barème ou d'un modèle ;
 - récupérer un tarif depuis la machine sélectionnée ;
 - calculer le nombre de passages à partir de la machine ;
 - appliquer une cascade de gâche par ordre d'étapes (la gâche est additive et globale).
 
 Le dialogue d'ajout de poste préremplit les coûts et la gâche depuis le `Bareme Cout Fixe` sélectionné ; les valeurs restent ensuite figées sur la ligne.
+
+Le bouton `Ajouter depuis un modèle` applique un `Modele Postes Devis` choisi manuellement. Il ajoute uniquement les barèmes manquants et conserve les postes déjà saisis. Les montants copiés restent figés sur le Calcul Devis.
 
 ## 10. Contrôle fonctionnel avant validation
 Avant de soumettre le Calcul Devis, vérifiez :

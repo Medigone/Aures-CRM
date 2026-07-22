@@ -248,6 +248,23 @@ function format_pct(value) {
 	return flt(value, 2).toFixed(2) + " %";
 }
 
+/**
+ * Couleur de la marge / prix selon les seuils métier :
+ * ≤ 25 % rouge, > 25 % et ≤ 60 % orange, > 60 % vert.
+ * @param {number} marge_prix
+ * @returns {string}
+ */
+function get_marge_prix_color(marge_prix) {
+	const value = flt(marge_prix);
+	if (value <= 25) {
+		return "#dc2626";
+	}
+	if (value <= 60) {
+		return "#ea580c";
+	}
+	return "#1b8a5a";
+}
+
 function get_postes_production_styles() {
 	return `
 <style>
@@ -271,9 +288,14 @@ function get_postes_production_styles() {
   font-weight: 700;
   color: #3f3f46;
 }
-.pp-add-btn {
-  background: #3f3f46;
-  color: #ffffff;
+.pp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pp-add-btn,
+.pp-model-btn {
   border: none;
   font-size: 13px;
   font-weight: 600;
@@ -281,7 +303,17 @@ function get_postes_production_styles() {
   border-radius: 7px;
   cursor: pointer;
 }
+.pp-add-btn {
+  background: #3f3f46;
+  color: #ffffff;
+}
 .pp-add-btn:hover { background: #27272a; }
+.pp-model-btn {
+  background: #ffffff;
+  color: #3f3f46;
+  border: 1px solid #d4d4d8;
+}
+.pp-model-btn:hover { background: #f4f4f5; }
 .pp-list {
   display: flex;
   flex-direction: column;
@@ -369,7 +401,10 @@ function render_postes_html(frm) {
 	html += `<div class="pp-header">`;
 	html += `<div class="pp-title">${__("Postes de Production")}</div>`;
 	if (editable) {
+		html += `<div class="pp-header-actions">`;
+		html += `<button type="button" class="pp-model-btn">${__("Ajouter depuis un modèle")}</button>`;
 		html += `<button type="button" class="pp-add-btn">+ ${__("Ajouter un poste")}</button>`;
+		html += `</div>`;
 	}
 	html += `</div>`;
 	html += `<div class="pp-list">`;
@@ -413,6 +448,9 @@ function bind_postes_actions(frm) {
 	wrapper.find(".pp-add-btn").off("click").on("click", function () {
 		open_poste_dialog(frm, null);
 	});
+	wrapper.find(".pp-model-btn").off("click").on("click", function () {
+		open_modele_postes_dialog(frm);
+	});
 	wrapper.find(".pp-btn-edit").off("click").on("click", function () {
 		const idx = cint($(this).data("idx"));
 		const poste = (frm.doc.postes || [])[idx];
@@ -423,6 +461,119 @@ function bind_postes_actions(frm) {
 	wrapper.find(".pp-btn-delete").off("click").on("click", function () {
 		const idx = cint($(this).data("idx"));
 		remove_poste(frm, idx);
+	});
+}
+
+function open_modele_postes_dialog(frm) {
+	if (frm.doc.docstatus !== 0) {
+		frappe.msgprint(__("Les postes ne peuvent être ajoutés que sur un brouillon."));
+		return;
+	}
+
+	const d = new frappe.ui.Dialog({
+		title: __("Ajouter depuis un modèle"),
+		fields: [
+			{
+				fieldname: "modele",
+				fieldtype: "Link",
+				label: __("Modèle de postes"),
+				options: "Modele Postes Devis",
+				reqd: 1,
+				get_query: function () {
+					return { filters: { is_active: 1 } };
+				},
+			},
+		],
+		primary_action_label: __("Appliquer"),
+		primary_action(values) {
+			if (!values.modele) {
+				frappe.msgprint(__("Sélectionnez un modèle de postes."));
+				return;
+			}
+			d.hide();
+			apply_modele_postes(frm, values.modele);
+		},
+	});
+	d.show();
+}
+
+function apply_modele_postes(frm, modele_name) {
+	frappe.call({
+		method:
+			"aurescrm.aures_crm.doctype.modele_postes_devis.modele_postes_devis.get_postes_from_modele",
+		args: { modele_name: modele_name },
+		freeze: true,
+		freeze_message: __("Application du modèle..."),
+		callback: function (r) {
+			if (!r.message || !r.message.postes) {
+				return;
+			}
+
+			const existing = frm.doc.postes || [];
+			const existing_baremes = new Set(
+				existing.filter((p) => p.bareme).map((p) => p.bareme)
+			);
+			const existing_libelles = new Set(
+				existing
+					.filter((p) => p.libelle)
+					.map((p) => String(p.libelle).trim().toLowerCase())
+			);
+
+			let added = 0;
+			let skipped = 0;
+
+			(r.message.postes || []).forEach((poste) => {
+				const libelle_key = String(poste.libelle || "")
+					.trim()
+					.toLowerCase();
+				const already_present =
+					(poste.bareme && existing_baremes.has(poste.bareme)) ||
+					(libelle_key && existing_libelles.has(libelle_key));
+
+				if (already_present) {
+					skipped += 1;
+					return;
+				}
+
+				const row = frm.add_child("postes");
+				Object.assign(row, {
+					bareme: poste.bareme || "",
+					libelle: poste.libelle,
+					machine: poste.machine || "",
+					nombre_passages: cint(poste.nombre_passages) || 1,
+					cout_fixe: flt(poste.cout_fixe) || 0,
+					gache_feuilles: cint(poste.gache_feuilles) || 0,
+					unite_calcul: poste.unite_calcul || "Forfait",
+					cout_variable_unitaire: flt(poste.cout_variable_unitaire) || 0,
+					description: poste.description || "",
+				});
+
+				if (poste.bareme) {
+					existing_baremes.add(poste.bareme);
+				}
+				if (libelle_key) {
+					existing_libelles.add(libelle_key);
+				}
+				added += 1;
+			});
+
+			frm.refresh_field("postes");
+			frm.dirty();
+			calculate_all(frm);
+
+			if (added > 0) {
+				autosave_calcul_devis(frm);
+			}
+
+			frappe.msgprint({
+				title: __("Modèle appliqué"),
+				message: __(
+					"{0} poste(s) ajouté(s), {1} déjà présent(s) ignoré(s).",
+					[added, skipped]
+				),
+				indicator: added > 0 ? "green" : "blue",
+			});
+		},
 	});
 }
 
@@ -656,10 +807,21 @@ function render_resume_html(frm) {
 		return;
 	}
 
-	const marge_cout = flt(frm.doc.marge_commerciale_cout);
-	const marge_prix = flt(frm.doc.marge_commerciale_prix);
-	const marge_saisie = flt(frm.doc.marge_percent);
-	const marge_color = "#1b8a5a";
+	const cout_unitaire = flt(frm.doc.cout_unitaire);
+	const prix_ref = flt(frm.doc.prix_unitaire_propose);
+
+	let marge_cout_ref = 0;
+	let marge_prix_ref = 0;
+	if (prix_ref > 0 && cout_unitaire > 0) {
+		marge_cout_ref = ((prix_ref - cout_unitaire) / cout_unitaire) * 100;
+		marge_prix_ref = ((prix_ref - cout_unitaire) / prix_ref) * 100;
+	}
+
+	const marge_cout_final = flt(frm.doc.marge_commerciale_cout);
+	const marge_prix_final = flt(frm.doc.marge_commerciale_prix);
+	const marge_cout_color = "#3f3f46";
+	const marge_prix_ref_color = get_marge_prix_color(marge_prix_ref);
+	const marge_prix_final_color = get_marge_prix_color(marge_prix_final);
 
 	const html = `
 <div style="width:100%; background:white; border-radius:12px; padding:22px; box-shadow:0 1px 3px rgba(0,0,0,0.08); display:flex; flex-direction:column; gap:18px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
@@ -675,11 +837,11 @@ function render_resume_html(frm) {
     </div>
     <div style="flex:1; background:#f4f4f5; border-radius:8px; padding:14px 16px;">
       <div style="font-size:11px; color:#71717a; margin-bottom:6px;">${__("Marge / coût")}</div>
-      <div style="font-size:20px; font-weight:700; color:${marge_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_cout)}</div>
+      <div style="font-size:20px; font-weight:700; color:${marge_cout_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_cout_final)}</div>
     </div>
     <div style="flex:1; background:#f4f4f5; border-radius:8px; padding:14px 16px;">
       <div style="font-size:11px; color:#71717a; margin-bottom:6px;">${__("Marge / prix")}</div>
-      <div style="font-size:20px; font-weight:700; color:${marge_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_prix)}</div>
+      <div style="font-size:20px; font-weight:700; color:${marge_prix_final_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_prix_final)}</div>
     </div>
   </div>
 
@@ -688,25 +850,25 @@ function render_resume_html(frm) {
     <div style="display:flex; flex-direction:column; gap:8px;">
       <div style="font-size:11px; font-weight:700; letter-spacing:0.06em; color:#3f3f46; padding-bottom:6px; border-bottom:2px solid #3f3f46; margin-bottom:2px;">${__("COÛTS")}</div>
       <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px;">
+        <span style="font-size:13px; color:#52525b;">${__("Coût unitaire")}</span>
+        <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.cout_unitaire)}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px; background:#f4f4f5;">
         <span style="font-size:13px; color:#52525b;">${__("Support/Papier")}</span>
         <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.cout_support_total)}</span>
       </div>
-      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px; background:#f4f4f5;">
+      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px;">
         <span style="font-size:13px; color:#52525b;">${__("Fixes")}</span>
         <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.total_couts_fixes)}</span>
       </div>
-      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px;">
+      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px; background:#f4f4f5;">
         <span style="font-size:13px; color:#52525b;">${__("Variables")}</span>
         <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.total_couts_variables)}</span>
-      </div>
-      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px; background:#f4f4f5;">
-        <span style="font-size:13px; color:#52525b;">${__("Coût unitaire")}</span>
-        <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.cout_unitaire)}</span>
       </div>
     </div>
 
     <div style="display:flex; flex-direction:column; gap:8px;">
-      <div style="font-size:11px; font-weight:700; letter-spacing:0.06em; color:#3454ba; padding-bottom:6px; border-bottom:2px solid #3454ba; margin-bottom:2px;">${__("PRIX")}</div>
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.06em; color:#3454ba; padding-bottom:6px; border-bottom:2px solid #3454ba; margin-bottom:2px;">${__("PRIX RÉF.")}</div>
       <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px;">
         <span style="font-size:13px; color:#52525b;">${__("PU réf.")}</span>
         <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.prix_unitaire_propose)}</span>
@@ -716,24 +878,32 @@ function render_resume_html(frm) {
         <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.prix_total_propose)}</span>
       </div>
       <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px;">
-        <span style="font-size:13px; color:#52525b;">${__("PU final")}</span>
-        <span style="font-size:13px; font-weight:700; font-variant-numeric: tabular-nums;">${format_money(frm.doc.prix_propose_final)}</span>
+        <span style="font-size:13px; color:#52525b;">${__("Marge / coût")}</span>
+        <span style="font-size:13px; font-weight:600; color:${marge_cout_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_cout_ref)}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px; background:#f4f4f5;">
+        <span style="font-size:13px; color:#52525b;">${__("Marge / prix")}</span>
+        <span style="font-size:13px; font-weight:600; color:${marge_prix_ref_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_prix_ref)}</span>
       </div>
     </div>
 
     <div style="display:flex; flex-direction:column; gap:8px;">
-      <div style="font-size:11px; font-weight:700; letter-spacing:0.06em; color:#1b8a5a; padding-bottom:6px; border-bottom:2px solid #1b8a5a; margin-bottom:2px;">${__("MARGES")}</div>
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.06em; color:#1b8a5a; padding-bottom:6px; border-bottom:2px solid #1b8a5a; margin-bottom:2px;">${__("PRIX FINAL")}</div>
       <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px;">
-        <span style="font-size:13px; color:#52525b;">${__("Marge saisie")}</span>
-        <span style="font-size:13px; font-weight:600; color:${marge_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_saisie)}</span>
+        <span style="font-size:13px; color:#52525b;">${__("PU final")}</span>
+        <span style="font-size:13px; font-weight:700; font-variant-numeric: tabular-nums;">${format_money(frm.doc.prix_propose_final)}</span>
       </div>
       <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px; background:#f4f4f5;">
-        <span style="font-size:13px; color:#52525b;">${__("Sur coût")}</span>
-        <span style="font-size:13px; font-weight:600; color:${marge_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_cout)}</span>
+        <span style="font-size:13px; color:#52525b;">${__("Total final")}</span>
+        <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.prix_total_final)}</span>
       </div>
       <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px;">
-        <span style="font-size:13px; color:#52525b;">${__("Sur prix")}</span>
-        <span style="font-size:13px; font-weight:600; color:${marge_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_prix)}</span>
+        <span style="font-size:13px; color:#52525b;">${__("Marge / coût")}</span>
+        <span style="font-size:13px; font-weight:600; color:${marge_cout_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_cout_final)}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px; background:#f4f4f5;">
+        <span style="font-size:13px; color:#52525b;">${__("Marge / prix")}</span>
+        <span style="font-size:13px; font-weight:600; color:${marge_prix_final_color}; font-variant-numeric: tabular-nums;">${format_pct(marge_prix_final)}</span>
       </div>
     </div>
 

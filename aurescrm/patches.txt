@@ -36,3 +36,7 @@ aurescrm.patches.setup_guides_workflow
 aurescrm.patches.import_guides_from_docs
 aurescrm.patches.import_guides_chiffrage_devis
 aurescrm.patches.update_guides_prix_propose_final
+aurescrm.patches.seed_bareme_cout_fixe_offset
+aurescrm.patches.seed_modele_postes_etui_pharma
+aurescrm.patches.rename_modele_postes_devis_to_series
+aurescrm.patches.backfill_modele_postes_devis_status_dates

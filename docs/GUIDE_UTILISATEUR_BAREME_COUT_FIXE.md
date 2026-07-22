@@ -5,11 +5,15 @@ Le `Bareme Cout Fixe` est une bibliothèque de coûts standards utilisée comme 
 
 Il permet de conserver des références habituelles pour :
 
-- l'impression ;
-- les vernis et finitions ;
-- le pelliculage ;
-- la découpe forme ;
 - le prépresse ;
+- l'impression ;
+- l'ennoblissement ;
+- la découpe ;
+- le pliage ;
+- l'assemblage et la reliure ;
+- le collage et le montage ;
+- le contrôle ;
+- le conditionnement ;
 - les autres opérations récurrentes.
 
 Le barème évite de rechercher ou de ressaisir de mémoire les mêmes montants à chaque nouveau devis.
@@ -60,14 +64,18 @@ Exemples :
 Le libellé doit permettre de comprendre rapidement à quoi correspond le tarif.
 
 ### Catégorie
-Permet de classer et de filtrer les références :
+Permet de classer et de filtrer les références selon la chaîne de production offset :
 
-- `Impression`
-- `Vernis / Finition`
-- `Pelliculage`
-- `Découpe forme`
-- `Prépresse`
-- `Autre`
+- `Prépresse` : préparation du fichier jusqu'aux plaques ;
+- `Impression` : calage et passages sur presse offset ;
+- `Ennoblissement` : vernis, pelliculage, dorure, gaufrage et effets de surface ;
+- `Découpe` : coupe droite, découpe à la forme, rainage, perforation et éjection ;
+- `Pliage` : transformation des feuilles en dépliants ou cahiers ;
+- `Assemblage / Reliure` : encartage, assemblage, piqûre et reliures ;
+- `Collage / Montage` : pliage-collage, contrecollage, pose d'accessoires et montage PLV ;
+- `Contrôle` : contrôles et tris spécifiques valorisés séparément ;
+- `Conditionnement` : mise en paquets, sous film, carton, palette et préparation logistique ;
+- `Autre` : recours exceptionnel pour une opération ne relevant d'aucune famille.
 
 ### Machine (référence)
 Machine habituellement concernée par ce coût.
@@ -145,7 +153,7 @@ Dans le Calcul Devis, un poste avec deux passages produira un coût fixe total d
 
 ### Référence avec coût par feuille
 - Libellé : `Pelliculage mat standard`
-- Catégorie : `Pelliculage`
+- Catégorie : `Ennoblissement`
 - Coût fixe : `80`
 - Unité : `Par feuille`
 - Coût variable unitaire : `0,04`
@@ -154,7 +162,7 @@ Le coût fixe couvre le lancement. Le coût variable dépend du nombre de feuill
 
 ### Référence avec coût par 1000 unités
 - Libellé : `Conditionnement au mille`
-- Catégorie : `Autre`
+- Catégorie : `Conditionnement`
 - Coût fixe : `0`
 - Unité : `Par 1000 unités`
 - Coût variable unitaire : `25`
@@ -163,7 +171,7 @@ Pour une commande de 5 000 unités et un passage, le coût variable sera `25 × 
 
 ### Référence forfaitaire
 - Libellé : `Contrôle qualité complémentaire`
-- Catégorie : `Autre`
+- Catégorie : `Contrôle`
 - Coût fixe : `0`
 - Unité : `Forfait`
 - Coût variable unitaire : `50`

@@ -357,7 +357,7 @@
    "fieldname": "prix_propose_final",
    "fieldtype": "Currency",
    "label": "Prix propos\u00e9 final",
-   "precision": "4"
+   "precision": "2"
   },
   {
    "fieldname": "column_break_prix_final",
@@ -463,7 +463,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-21 09:42:38.440230",
+ "modified": "2026-07-22 08:44:40.758269",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Devis",

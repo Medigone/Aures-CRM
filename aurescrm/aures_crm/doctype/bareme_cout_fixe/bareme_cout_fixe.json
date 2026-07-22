@@ -5,16 +5,19 @@
  "creation": "2026-07-16 10:29:34.216723",
  "doctype": "DocType",
  "engine": "InnoDB",
-  "field_order": [
+ "field_order": [
   "libelle",
   "categorie",
-  "machine",
-  "column_break_1",
-  "cout_fixe",
-  "unite_calcul",
-  "cout_variable_unitaire",
-  "gache_feuilles",
   "is_active",
+  "column_break_1",
+  "machine",
+  "section_break_pbzz",
+  "unite_calcul",
+  "cout_fixe",
+  "cout_variable_unitaire",
+  "column_break_avvm",
+  "gache_feuilles",
+  "section_break_ivgb",
   "notes"
  ],
  "fields": [
@@ -31,7 +34,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Cat\u00e9gorie",
-   "options": "Impression\nVernis / Finition\nPelliculage\nD\u00e9coupe forme\nPr\u00e9presse\nAutre"
+   "options": "Pr\u00e9presse\nImpression\nEnnoblissement\nD\u00e9coupe\nPliage\nAssemblage / Reliure\nCollage / Montage\nContr\u00f4le\nConditionnement\nAutre"
   },
   {
    "fieldname": "machine",
@@ -86,11 +89,23 @@
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "label": "Notes"
+  },
+  {
+   "fieldname": "section_break_pbzz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_avvm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ivgb",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-20 16:12:22.430764",
+ "modified": "2026-07-21 16:28:39.479350",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Bareme Cout Fixe",

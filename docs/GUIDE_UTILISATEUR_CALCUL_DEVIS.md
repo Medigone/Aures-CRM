@@ -99,7 +99,20 @@ Dans l'onglet `Postes de Production`, ajoutez une ligne pour chaque étape néce
 - prépresse ;
 - contrôle ou autre opération facturable.
 
-Le système n'ajoute aucune étape automatiquement à partir des finitions de l'article. Le chargé de devis doit construire la liste des postes manuellement.
+Le système n'ajoute aucune étape automatiquement à partir des finitions de l'article. Le chargé de devis construit la liste des postes manuellement, ou l'initialise via un modèle.
+
+### 5 bis. Ajouter les postes depuis un modèle
+Le `Modele Postes Devis` regroupe une liste ordonnée de barèmes pour un type de produit courant (exemple : `Étui Pharma`).
+
+Pour l'utiliser :
+
+1. Dans l'onglet `Postes de Production`, cliquez sur `Ajouter depuis un modèle`.
+2. Sélectionnez un modèle actif.
+3. Cliquez sur `Appliquer`.
+
+Le système copie les valeurs courantes de chaque barème (libellé, machine, coûts, gâche, unité) dans de nouvelles lignes de postes. Les postes déjà présents sont conservés. Un barème déjà saisi (même lien ou même libellé) n'est pas ajouté une seconde fois.
+
+Après application, les montants restent figés sur le Calcul Devis. Modifier le modèle ou un barème n'a aucun effet rétroactif.
 
 Pour chaque ligne, renseignez :
 

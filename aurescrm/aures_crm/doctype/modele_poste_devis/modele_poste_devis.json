@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "creation": "2026-07-22 09:40:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ordre",
+  "bareme",
+  "libelle",
+  "categorie",
+  "nombre_passages"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "ordre",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Ordre",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "bareme",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Bar\u00e8me Co\u00fbt Fixe",
+   "options": "Bareme Cout Fixe",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "bareme.libelle",
+   "fieldname": "libelle",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Libell\u00e9",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "bareme.categorie",
+   "fieldname": "categorie",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cat\u00e9gorie",
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "nombre_passages",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Nombre de passages",
+   "non_negative": 1,
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-22 09:40:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Modele Poste Devis",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
