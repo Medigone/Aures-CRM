@@ -62,6 +62,7 @@ CATALOGUE = [
 	# Collage / Montage
 	("Calage plieuse-colleuse", "Collage / Montage"),
 	("Pliage-collage d'étuis", "Collage / Montage"),
+	("Collage notice pliée", "Collage / Montage"),
 	("Pose de fenêtre", "Collage / Montage"),
 	("Contrecollage sur carton", "Collage / Montage"),
 	("Collage manuel / montage", "Collage / Montage"),

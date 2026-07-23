@@ -67,6 +67,53 @@ function escape_html(text) {
 	return frappe.utils.escape_html(String(text));
 }
 
+/** Ordre des catégories Bareme Cout Fixe (chaîne de production). */
+const CATEGORIES_BAREME_ORDER = [
+	"Prépresse",
+	"Impression",
+	"Ennoblissement",
+	"Découpe",
+	"Pliage",
+	"Assemblage / Reliure",
+	"Collage / Montage",
+	"Contrôle",
+	"Conditionnement",
+	"Autre",
+];
+
+/** Couleurs `indicator-pill` Frappe (fonds clairs) par catégorie. */
+const CATEGORIES_BAREME_COLORS = {
+	Prépresse: "light-blue",
+	Impression: "blue",
+	Ennoblissement: "purple",
+	Découpe: "orange",
+	Pliage: "yellow",
+	"Assemblage / Reliure": "green",
+	"Collage / Montage": "pink",
+	Contrôle: "cyan",
+	Conditionnement: "gray",
+	Autre: "darkgrey",
+};
+
+function sort_categories_by_ordre_bareme(a, b) {
+	const ia = CATEGORIES_BAREME_ORDER.indexOf(a);
+	const ib = CATEGORIES_BAREME_ORDER.indexOf(b);
+	if (ia === -1 && ib === -1) {
+		return a.localeCompare(b, "fr");
+	}
+	if (ia === -1) {
+		return 1;
+	}
+	if (ib === -1) {
+		return -1;
+	}
+	return ia - ib;
+}
+
+function get_categorie_indicator_color(categorie) {
+	return CATEGORIES_BAREME_COLORS[categorie] || "gray";
+}
+
 function count_postes_by_categorie(postes) {
 	const counts = {};
 	(postes || []).forEach((poste) => {
@@ -74,7 +121,7 @@ function count_postes_by_categorie(postes) {
 		counts[cat] = (counts[cat] || 0) + 1;
 	});
 	return Object.keys(counts)
-		.sort((a, b) => a.localeCompare(b, "fr"))
+		.sort(sort_categories_by_ordre_bareme)
 		.map((categorie) => ({ categorie, count: counts[categorie] }));
 }
 
@@ -96,20 +143,15 @@ function get_modele_postes_styles() {
   border-bottom: 1px solid var(--border-color);
   background: var(--subtle-fg, #f8f8f9);
 }
-.mpod-recap-chip {
-  display: inline-flex;
-  align-items: center;
+.mpod-recap-chip.indicator-pill {
+  height: auto;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border-color);
-  background: #fff;
-  font-size: 12px;
-  color: var(--text-color);
+  border: none;
 }
-.mpod-recap-chip strong {
+.mpod-recap-chip.indicator-pill strong {
   font-weight: 700;
-  color: var(--text-color);
+  opacity: 0.9;
 }
 .mpod-recap-empty {
   font-size: 12px;
@@ -200,7 +242,10 @@ function render_categorie_recap(postes) {
 		html += `<span class="mpod-recap-empty">${__("Aucun poste — récapitulatif par catégorie indisponible.")}</span>`;
 	} else {
 		counts.forEach(({ categorie, count }) => {
-			html += `<span class="mpod-recap-chip">${escape_html(categorie)} <strong>${count}</strong></span>`;
+			const color = get_categorie_indicator_color(categorie);
+			html += `<span class="indicator-pill no-indicator-dot ${color} mpod-recap-chip">${escape_html(
+				categorie
+			)} <strong>${count}</strong></span>`;
 		});
 	}
 	html += `</div>`;

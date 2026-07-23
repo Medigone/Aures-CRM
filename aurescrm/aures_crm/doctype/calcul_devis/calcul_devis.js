@@ -658,31 +658,31 @@ function set_modele_recap_html(dialog, html) {
   flex-wrap: wrap;
   gap: 6px;
 }
-.mp-recap-chip {
-  display: inline-flex;
-  align-items: center;
+.mp-recap-chip.indicator-pill {
+  height: auto;
   gap: 6px;
   padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid #e4e4e7;
-  background: #fff;
-  font-size: 12px;
-  color: #52525b;
+  border: none;
 }
-.mp-recap-chip strong { color: #3f3f46; }
+.mp-recap-chip.indicator-pill strong {
+  font-weight: 700;
+  opacity: 0.9;
+}
 .mp-recap-table-wrap {
   max-height: 240px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .mp-recap-table {
   width: 100%;
   border-collapse: collapse;
   margin: 0;
   background: #fff;
+  table-layout: fixed;
 }
 .mp-recap-table th,
 .mp-recap-table td {
-  padding: 8px 12px;
+  padding: 8px 6px;
   text-align: left;
   border-bottom: 1px solid #f0f0f1;
   font-size: 12px;
@@ -695,11 +695,32 @@ function set_modele_recap_html(dialog, html) {
   color: #71717a;
   position: sticky;
   top: 0;
+  overflow: visible;
+}
+.mp-recap-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .mp-recap-table tr:last-child td { border-bottom: none; }
 .mp-recap-table .mp-num {
+  width: 78px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.mp-recap-table .mp-ordre {
+  width: 58px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.mp-recap-table .mp-libelle { width: 30%; }
+.mp-recap-table .mp-categorie { width: 118px; }
+.mp-recap-table .mp-money {
+  width: 108px;
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+.mp-recap-table .mp-money-var {
+  width: 118px;
 }
 </style>
 ${html}`);
@@ -742,6 +763,53 @@ function refresh_modele_postes_recap(dialog, modele_name) {
 	});
 }
 
+/** Ordre des catégories Bareme Cout Fixe (chaîne de production). */
+const CATEGORIES_BAREME_ORDER = [
+	"Prépresse",
+	"Impression",
+	"Ennoblissement",
+	"Découpe",
+	"Pliage",
+	"Assemblage / Reliure",
+	"Collage / Montage",
+	"Contrôle",
+	"Conditionnement",
+	"Autre",
+];
+
+/** Couleurs `indicator-pill` Frappe (fonds clairs) par catégorie. */
+const CATEGORIES_BAREME_COLORS = {
+	Prépresse: "light-blue",
+	Impression: "blue",
+	Ennoblissement: "purple",
+	Découpe: "orange",
+	Pliage: "yellow",
+	"Assemblage / Reliure": "green",
+	"Collage / Montage": "pink",
+	Contrôle: "cyan",
+	Conditionnement: "gray",
+	Autre: "darkgrey",
+};
+
+function sort_categories_by_ordre_bareme(a, b) {
+	const ia = CATEGORIES_BAREME_ORDER.indexOf(a);
+	const ib = CATEGORIES_BAREME_ORDER.indexOf(b);
+	if (ia === -1 && ib === -1) {
+		return a.localeCompare(b, "fr");
+	}
+	if (ia === -1) {
+		return 1;
+	}
+	if (ib === -1) {
+		return -1;
+	}
+	return ia - ib;
+}
+
+function get_categorie_indicator_color(categorie) {
+	return CATEGORIES_BAREME_COLORS[categorie] || "gray";
+}
+
 function build_modele_recap_html(data) {
 	const postes = data.postes || [];
 	const counts = {};
@@ -750,11 +818,13 @@ function build_modele_recap_html(data) {
 		counts[cat] = (counts[cat] || 0) + 1;
 	});
 	const chips = Object.keys(counts)
-		.sort((a, b) => a.localeCompare(b, "fr"))
-		.map(
-			(cat) =>
-				`<span class="mp-recap-chip">${escape_html(cat)} <strong>${counts[cat]}</strong></span>`
-		)
+		.sort(sort_categories_by_ordre_bareme)
+		.map((cat) => {
+			const color = get_categorie_indicator_color(cat);
+			return `<span class="indicator-pill no-indicator-dot ${color} mp-recap-chip">${escape_html(
+				cat
+			)} <strong>${counts[cat]}</strong></span>`;
+		})
 		.join("");
 
 	let html = `<div class="mp-recap"><div class="mp-recap-head">`;
@@ -774,19 +844,21 @@ function build_modele_recap_html(data) {
 		html += `<div class="mp-recap-placeholder">${__("Aucun poste dans ce modèle.")}</div>`;
 	} else {
 		html += `<div class="mp-recap-table-wrap"><table class="mp-recap-table"><thead><tr>
-			<th>${__("Ordre")}</th>
-			<th>${__("Libellé")}</th>
-			<th>${__("Catégorie")}</th>
+			<th class="mp-ordre">${__("Ordre")}</th>
+			<th class="mp-libelle">${__("Libellé")}</th>
+			<th class="mp-categorie">${__("Catégorie")}</th>
 			<th class="mp-num">${__("Passages")}</th>
-			<th class="mp-num">${__("Coût fixe")}</th>
+			<th class="mp-money">${__("Coût fixe")}</th>
+			<th class="mp-money mp-money-var">${__("Coût variable")}</th>
 		</tr></thead><tbody>`;
 		postes.forEach((poste) => {
 			html += `<tr>
-				<td class="mp-num">${cint(poste.ordre) || 0}</td>
-				<td>${escape_html(poste.libelle || "—")}</td>
-				<td>${escape_html(poste.categorie || "—")}</td>
+				<td class="mp-ordre">${cint(poste.ordre) || 0}</td>
+				<td class="mp-libelle" title="${escape_html(poste.libelle || "—")}">${escape_html(poste.libelle || "—")}</td>
+				<td class="mp-categorie" title="${escape_html(poste.categorie || "—")}">${escape_html(poste.categorie || "—")}</td>
 				<td class="mp-num">${cint(poste.nombre_passages) || 1}</td>
-				<td class="mp-num">${format_money(poste.cout_fixe)}</td>
+				<td class="mp-money">${format_money(poste.cout_fixe)}</td>
+				<td class="mp-money mp-money-var">${format_money(poste.cout_variable_unitaire)}</td>
 			</tr>`;
 		});
 		html += `</tbody></table></div>`;

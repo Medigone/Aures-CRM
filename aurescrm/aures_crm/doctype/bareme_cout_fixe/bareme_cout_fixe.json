@@ -1,16 +1,18 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:BAR-{libelle}-{#####}",
+ "autoname": "BAR-.#####",
  "creation": "2026-07-16 10:29:34.216723",
  "doctype": "DocType",
  "engine": "InnoDB",
+ "naming_rule": "Expression (old style)",
  "field_order": [
   "libelle",
   "categorie",
   "status",
   "is_active",
   "column_break_1",
+  "mode_execution",
   "machine",
   "gache_feuilles",
   "section_break_pbzz",
@@ -57,10 +59,21 @@
    "label": "Actif"
   },
   {
+   "description": "Indique si l'\u00e9tape se r\u00e9alise \u00e0 la machine, manuellement, ou les deux. Informatif uniquement.",
+   "fieldname": "mode_execution",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Mode d'ex\u00e9cution",
+   "options": "Machine\nManuel\nLes deux"
+  },
+  {
+   "depends_on": "eval:doc.mode_execution==\"Machine\" || doc.mode_execution==\"Les deux\"",
+   "description": "R\u00e9f\u00e9rence",
    "fieldname": "machine",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Machine (r\u00e9f\u00e9rence)",
+   "label": "Machine",
    "options": "Machine"
   },
   {
@@ -71,7 +84,6 @@
    "default": "0",
    "fieldname": "cout_fixe",
    "fieldtype": "Currency",
-   "in_list_view": 1,
    "label": "Co\u00fbt fixe",
    "precision": "2"
   },
@@ -86,7 +98,6 @@
    "default": "0",
    "fieldname": "cout_variable_unitaire",
    "fieldtype": "Currency",
-   "in_list_view": 1,
    "label": "Co\u00fbt variable unitaire",
    "precision": "2"
   },
@@ -95,7 +106,7 @@
    "description": "G\u00e2che de calage typique pour cette \u00e9tape, en nombre de feuilles. Pr\u00e9remplit le poste dans Calcul Devis.",
    "fieldname": "gache_feuilles",
    "fieldtype": "Int",
-   "label": "G\u00e2che (feuilles)",
+   "label": "G\u00e2che",
    "non_negative": 1
   },
   {
@@ -118,7 +129,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-22 13:21:45.808952",
+ "modified": "2026-07-22 14:39:50.152696",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Bareme Cout Fixe",
@@ -146,7 +157,7 @@
   }
  ],
  "row_format": "Dynamic",
- "search_fields": "categorie,unite_calcul,machine,status",
+ "search_fields": "libelle,categorie,mode_execution,unite_calcul,machine,status",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",

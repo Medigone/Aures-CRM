@@ -42,12 +42,13 @@ Vous pouvez ouvrir `Bareme Cout Fixe` :
 2. Cliquez sur `Nouveau`.
 3. Renseignez un libellé clair.
 4. Choisissez une catégorie.
-5. Indiquez éventuellement une machine de référence.
-6. Renseignez le coût fixe et, si nécessaire, le coût variable.
-7. Vérifiez l'unité de calcul.
-8. Ajoutez une note si le tarif dépend de conditions particulières.
-9. Laissez la référence `Actif` si elle peut être utilisée.
-10. Sauvegardez.
+5. Indiquez le mode d'exécution (`Machine`, `Manuel` ou `Les deux`).
+6. Indiquez éventuellement une machine de référence (si le mode n'est pas `Manuel`).
+7. Renseignez le coût fixe et, si nécessaire, le coût variable.
+8. Vérifiez l'unité de calcul.
+9. Ajoutez une note si le tarif dépend de conditions particulières.
+10. Laissez la référence `Actif` si elle peut être utilisée.
+11. Sauvegardez.
 
 ## Les champs importants
 
@@ -76,6 +77,17 @@ Permet de classer et de filtrer les références selon la chaîne de production 
 - `Contrôle` : contrôles et tris spécifiques valorisés séparément ;
 - `Conditionnement` : mise en paquets, sous film, carton, palette et préparation logistique ;
 - `Autre` : recours exceptionnel pour une opération ne relevant d'aucune famille.
+
+### Mode d'exécution
+Indique comment l'étape de fabrication est réalisée :
+
+- `Machine` : l'étape se fait sur un équipement ;
+- `Manuel` : l'étape se fait à la main ;
+- `Les deux` : l'étape peut être réalisée indifféremment à la machine ou manuellement (ex. éjection / décorticage).
+
+Ce champ est informatif. Il ne double pas les coûts et n'influence aucun calcul. Une seule grille de tarifs reste associée à la fiche.
+
+Le lien `Machine` n'est affiché que lorsque le mode est `Machine` ou `Les deux`. Il est masqué (et vidé) pour `Manuel` ou si aucun mode n'est renseigné.
 
 ### Machine (référence)
 Machine habituellement concernée par ce coût.
@@ -194,6 +206,7 @@ Modifier un barème n'a aucun effet rétroactif sur les Calculs Devis déjà cr�
 ## Bonnes pratiques
 - Utilisez un libellé unique et précis.
 - Évitez plusieurs références actives portant le même nom avec des montants différents.
+- Renseignez le mode d'exécution pour clarifier machine vs manuel.
 - Indiquez la machine seulement lorsqu'elle aide réellement à choisir le tarif.
 - Vérifiez que l'unité correspond bien au montant saisi.
 - Ne saisissez pas deux fois le même forfait dans `Coût fixe` et `Coût variable unitaire`.

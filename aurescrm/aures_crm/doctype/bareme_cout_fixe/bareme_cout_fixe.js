@@ -5,6 +5,7 @@ frappe.ui.form.on("Bareme Cout Fixe", {
 	refresh: function (frm) {
 		frm.clear_custom_buttons();
 		setup_active_button(frm);
+		toggle_machine_field(frm);
 
 		if (!frm.is_new() && !frm.doc.is_active) {
 			frm.dashboard.set_headline_alert(
@@ -19,7 +20,22 @@ frappe.ui.form.on("Bareme Cout Fixe", {
 	is_active: function (frm) {
 		frm.set_value("status", cint(frm.doc.is_active) ? "Actif" : "Inactif");
 	},
+
+	mode_execution: function (frm) {
+		toggle_machine_field(frm);
+	},
 });
+
+function toggle_machine_field(frm) {
+	const show_machine =
+		frm.doc.mode_execution === "Machine" || frm.doc.mode_execution === "Les deux";
+
+	frm.toggle_display("machine", show_machine);
+
+	if (!show_machine && frm.doc.machine) {
+		frm.set_value("machine", "");
+	}
+}
 
 function setup_active_button(frm) {
 	if (frm.is_new()) {
