@@ -8,6 +8,7 @@ Il regroupe :
 - les informations du devis, du client et de l'article ;
 - les données d'imposition et la quantité de feuilles ;
 - le coût du papier ;
+- les matières premières (encre, vernis, colle, etc.) ;
 - les différentes étapes de production ;
 - la marge et le prix proposé.
 
@@ -70,6 +71,7 @@ Les champs calculés dans la section `Gâche` :
 C'est cette dernière quantité qui est utilisée pour :
 
 - le coût total du papier ;
+- les matières dont l'unité est `Par feuille` ;
 - les postes dont l'unité est `Par feuille`.
 
 Le `Taux de Chutes (Imposition)` reste une information provenant de l'imposition. Il ne remplace pas la gâche des postes.
@@ -88,6 +90,27 @@ Le système calcule automatiquement :
 - le `Coût Support Total`.
 
 Si le grammage ou le format d'impression est vide ou incorrect, le coût support ne pourra pas être calculé correctement.
+
+### 4 bis. Ajouter les matières premières
+Dans l'onglet `Matières`, ajoutez une ligne pour chaque consommable hors papier :
+
+- encre ;
+- vernis ;
+- colle ;
+- autre matière facturable au devis.
+
+Pour chaque ligne, renseignez :
+
+- `Libellé` : nom de la matière ;
+- `Article` : lien optionnel vers un `Item` ;
+- `Catégorie` : `Encre`, `Vernis`, `Colle` ou `Autre` ;
+- `Unité de calcul` : `Par feuille`, `Par 1000 unités` ou `Forfait` ;
+- `Coût unitaire` : montant correspondant à l'unité ;
+- `Facteur` : multiplicateur (ex. 2 couches de vernis) ; défaut `1`.
+
+Le système calcule le `Coût ligne` et le `Total Coûts Matières`. Les matières `Par feuille` utilisent les feuilles avec gâche. Il n'y a pas de gâche propre aux matières.
+
+Ne saisissez pas les matières dans les postes de production : les postes servent aux étapes (calage, machine, gâche), les matières aux consommables.
 
 ### 5. Ajouter les postes de production
 Dans l'onglet `Postes de Production`, ajoutez une ligne pour chaque étape nécessaire :
@@ -138,9 +161,10 @@ Le champ `Machine (info)` sert uniquement à la traçabilité. Choisir une machi
 
 Exemples :
 
-- encre par feuille ;
 - pelliculage par feuille ;
 - opération répétée sur chaque feuille.
+
+Les consommables (encre, vernis, colle) se saisissent dans l'onglet `Matières`, pas dans les postes.
 
 #### Par 1000 unités
 À utiliser lorsqu'un tarif est exprimé pour 1 000 produits commandés.

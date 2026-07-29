@@ -1,0 +1,93 @@
+{
+ "actions": [],
+ "creation": "2026-07-28 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "libelle",
+  "article",
+  "categorie",
+  "column_break_1",
+  "unite_calcul",
+  "cout_unitaire",
+  "facteur",
+  "cout_ligne"
+ ],
+ "fields": [
+  {
+   "fieldname": "libelle",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Libell\u00e9",
+   "reqd": 1
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "default": "Autre",
+   "fieldname": "categorie",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Cat\u00e9gorie",
+   "options": "Encre\nVernis\nColle\nAutre"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Par feuille",
+   "fieldname": "unite_calcul",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Unit\u00e9 de calcul",
+   "options": "Par feuille\nPar 1000 unit\u00e9s\nForfait"
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_unitaire",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Co\u00fbt unitaire",
+   "precision": "2"
+  },
+  {
+   "default": "1",
+   "description": "Multiplicateur (ex. nombre de couches).",
+   "fieldname": "facteur",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Facteur",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fieldname": "cout_ligne",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Co\u00fbt ligne",
+   "precision": "2",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-28 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Calcul Devis Matiere",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

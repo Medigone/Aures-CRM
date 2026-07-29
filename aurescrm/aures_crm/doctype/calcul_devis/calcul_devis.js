@@ -105,6 +105,40 @@ frappe.ui.form.on("Calcul Devis Poste", {
 	},
 });
 
+frappe.ui.form.on("Calcul Devis Matiere", {
+	matieres_add: function (frm) {
+		calculate_all(frm);
+	},
+
+	matieres_remove: function (frm) {
+		calculate_all(frm);
+	},
+
+	unite_calcul: function (frm) {
+		calculate_all(frm);
+	},
+
+	cout_unitaire: function (frm) {
+		calculate_all(frm);
+	},
+
+	facteur: function (frm) {
+		calculate_all(frm);
+	},
+
+	article: function (frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+		if (!row.article) {
+			return;
+		}
+		frappe.db.get_value("Item", row.article, "item_name", (r) => {
+			if (r && r.item_name && !row.libelle) {
+				frappe.model.set_value(cdt, cdn, "libelle", r.item_name);
+			}
+		});
+	},
+});
+
 function calculate_surface(frm) {
 	let surface_feuille = 0;
 	let poids_feuille = 0;
@@ -167,6 +201,26 @@ function calculate_all(frm, opts) {
 	let cout_support_total = flt(frm.doc.cout_support_feuille) * feuilles_avec_gache;
 	frm.set_value("cout_support_total", cout_support_total);
 
+	let total_matieres = 0;
+	(frm.doc.matieres || []).forEach((matiere) => {
+		let facteur = flt(matiere.facteur);
+		if (facteur <= 0) {
+			facteur = 1;
+		}
+
+		let quantite_reference = 1;
+		if (matiere.unite_calcul === "Par feuille") {
+			quantite_reference = feuilles_avec_gache;
+		} else if (matiere.unite_calcul === "Par 1000 unités") {
+			quantite_reference = quantite / 1000;
+		}
+
+		let cout_ligne = flt(matiere.cout_unitaire) * facteur * quantite_reference;
+		matiere.cout_ligne = cout_ligne;
+		total_matieres += cout_ligne;
+	});
+	frm.set_value("total_couts_matieres", total_matieres);
+
 	let total_fixes = 0;
 	let total_variables = 0;
 
@@ -188,7 +242,7 @@ function calculate_all(frm, opts) {
 	frm.set_value("total_couts_fixes", total_fixes);
 	frm.set_value("total_couts_variables", total_variables);
 
-	let cout_total = cout_support_total + total_fixes + total_variables;
+	let cout_total = cout_support_total + total_matieres + total_fixes + total_variables;
 	frm.set_value("cout_total", cout_total);
 
 	let cout_unitaire = 0;
@@ -210,6 +264,7 @@ function calculate_all(frm, opts) {
 	frm.set_value("prix_total_propose", prix_total);
 
 	calculate_prix_final(frm);
+	frm.refresh_field("matieres");
 	render_postes_html(frm);
 	render_resume_html(frm);
 }
@@ -1252,10 +1307,14 @@ function render_resume_html(frm) {
         <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.cout_support_total)}</span>
       </div>
       <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px;">
+        <span style="font-size:13px; color:#52525b;">${__("Matières")}</span>
+        <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.total_couts_matieres)}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px; background:#f4f4f5;">
         <span style="font-size:13px; color:#52525b;">${__("Fixes")}</span>
         <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.total_couts_fixes)}</span>
       </div>
-      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px; background:#f4f4f5;">
+      <div style="display:flex; justify-content:space-between; padding:4px 6px; border-radius:5px;">
         <span style="font-size:13px; color:#52525b;">${__("Variables")}</span>
         <span style="font-size:13px; font-weight:600; font-variant-numeric: tabular-nums;">${format_money(frm.doc.total_couts_variables)}</span>
       </div>

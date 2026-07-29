@@ -61,6 +61,7 @@ class TestCalculDevis(FrappeTestCase):
 		self.assertAlmostEqual(calcul.total_couts_fixes, 250)
 		# vars: 0.05×2×350 + 30×1×1 + 25×3×1 = 35 + 30 + 75 = 140
 		self.assertAlmostEqual(calcul.total_couts_variables, 140)
+		self.assertAlmostEqual(calcul.total_couts_matieres or 0, 0)
 		self.assertAlmostEqual(calcul.cout_total, 404)
 		self.assertAlmostEqual(calcul.cout_unitaire, 0.404)
 		self.assertAlmostEqual(calcul.prix_unitaire_propose, 0.4848)
@@ -69,6 +70,58 @@ class TestCalculDevis(FrappeTestCase):
 		self.assertAlmostEqual(calcul.prix_total_final or 0, 0)
 		self.assertAlmostEqual(calcul.marge_commerciale_cout or 0, 0)
 		self.assertAlmostEqual(calcul.marge_commerciale_prix or 0, 0)
+
+	def test_calculate_costs_with_matieres(self):
+		calcul = frappe.get_doc(
+			self._make_doc_payload(
+				matieres=[
+					{
+						"libelle": "Encre CMJN",
+						"categorie": "Encre",
+						"unite_calcul": "Par feuille",
+						"cout_unitaire": 0.02,
+						"facteur": 1,
+					},
+					{
+						"libelle": "Vernis UV",
+						"categorie": "Vernis",
+						"unite_calcul": "Par feuille",
+						"cout_unitaire": 0.05,
+						"facteur": 2,
+					},
+					{
+						"libelle": "Colle",
+						"categorie": "Colle",
+						"unite_calcul": "Par 1000 unités",
+						"cout_unitaire": 10,
+						"facteur": 1,
+					},
+					{
+						"libelle": "Kit préparation",
+						"categorie": "Autre",
+						"unite_calcul": "Forfait",
+						"cout_unitaire": 40,
+						"facteur": 1,
+					},
+				]
+			)
+		)
+
+		calcul.calculate_surface()
+		calcul.calculate_support_cost()
+		calcul.calculate_costs()
+
+		# 350 feuilles avec gâche (inchangé)
+		self.assertEqual(calcul.quantite_feuilles_gache, 350)
+		# matières: 0.02×1×350 + 0.05×2×350 + 10×1×1 + 40×1 = 7 + 35 + 10 + 40 = 92
+		self.assertAlmostEqual(calcul.matieres[0].cout_ligne, 7)
+		self.assertAlmostEqual(calcul.matieres[1].cout_ligne, 35)
+		self.assertAlmostEqual(calcul.matieres[2].cout_ligne, 10)
+		self.assertAlmostEqual(calcul.matieres[3].cout_ligne, 40)
+		self.assertAlmostEqual(calcul.total_couts_matieres, 92)
+		# 14 + 92 + 250 + 140 = 496
+		self.assertAlmostEqual(calcul.cout_total, 496)
+		self.assertAlmostEqual(calcul.cout_unitaire, 0.496)
 
 	def test_prix_propose_final_and_marges(self):
 		calcul = frappe.get_doc(self._make_doc_payload(prix_propose_final=0.45))

@@ -10,12 +10,13 @@ Il permet :
 - de choisir la bonne unité pour un poste de production ;
 - d'identifier l'origine d'un écart.
 
-Cette méthode repose sur quatre éléments :
+Cette méthode repose sur cinq éléments :
 
 1. la quantité commandée et l'imposition ;
 2. la gâche par poste de production ;
 3. le coût du papier ;
-4. les postes de production saisis manuellement.
+4. les matières premières (hors support) saisies manuellement ;
+5. les postes de production saisis manuellement.
 
 ## Vue d'ensemble
 Le coût total est composé de :
@@ -23,6 +24,7 @@ Le coût total est composé de :
 ```text
 Coût total =
   Coût support total
+  + Total coûts matières
   + Total coûts fixes
   + Total coûts variables
 ```
@@ -135,7 +137,41 @@ Coût support total =
 
 Le coût du support n'est pas multiplié par le nombre de passages des postes de production.
 
-## 3. Calcul des postes de production
+## 3. Calcul des matières premières
+Les matières (encre, vernis, colle, etc.) sont saisies dans l'onglet `Matières`, distinctes du papier et des postes de production.
+
+Chaque ligne comporte :
+
+- un coût unitaire ;
+- un facteur (multiplicateur, ex. nombre de couches ; défaut 1) ;
+- une unité de calcul : `Par feuille`, `Par 1000 unités` ou `Forfait`.
+
+Il n'y a pas de gâche propre aux matières : les lignes `Par feuille` utilisent déjà les feuilles avec gâche calculées à partir des postes.
+
+### Coût d'une ligne matière
+
+```text
+Par feuille :
+  Coût ligne = Coût unitaire × Facteur × Feuilles avec gâche
+
+Par 1000 unités :
+  Coût ligne = Coût unitaire × Facteur × (Quantité commandée ÷ 1 000)
+
+Forfait :
+  Coût ligne = Coût unitaire × Facteur
+```
+
+Exemple :
+
+```text
+Vernis UV à 0,05 par feuille, facteur 2, 350 feuilles avec gâche
+= 0,05 × 2 × 350
+= 35
+```
+
+Le `Total Coûts Matières` est la somme des coûts ligne de toutes les matières.
+
+## 4. Calcul des postes de production
 Chaque ligne de `Postes de Production` peut comporter :
 
 - un coût fixe ;
@@ -161,7 +197,7 @@ Calage à 150 avec 2 passages
 
 Le `Total Coûts Fixes` est la somme des coûts fixes de tous les postes.
 
-## 4. Calcul du coût variable selon l'unité
+## 4 bis. Calcul du coût variable selon l'unité
 
 ### Unité « Par feuille »
 Le coût est appliqué à toutes les feuilles avec gâche et à tous les passages.
@@ -223,6 +259,7 @@ Le `Total Coûts Variables` est la somme des coûts variables de tous les postes
 ```text
 Coût total =
   Coût support total
+  + Total coûts matières
   + Total coûts fixes
   + Total coûts variables
 ```
@@ -369,7 +406,7 @@ Total coûts variables = 140
 ### Étape 5 - Totaux
 
 ```text
-Coût total = 14 + 250 + 140 = 404
+Coût total = 14 (support) + 0 (matières) + 250 + 140 = 404
 Coût unitaire = 404 ÷ 1 000 = 0,404
 Prix unitaire proposé = 0,404 × 1,20 = 0,4848
 Prix total proposé = 0,4848 × 1 000 = 484,80
@@ -404,11 +441,12 @@ Avant de soumettre le Calcul Devis, vérifiez :
 3. la gâche (feuilles) de chaque poste et le total ;
 4. le format et le grammage ;
 5. le coût support au kilogramme ;
-6. la présence de toutes les étapes de production ;
-7. le nombre de passages par étape ;
-8. l'unité de chaque coût variable ;
-9. l'absence de double comptage entre coût fixe et forfait ;
-10. la marge appliquée.
+6. les matières (encre, vernis, colle…) et leurs unités ;
+7. la présence de toutes les étapes de production ;
+8. le nombre de passages par étape ;
+9. l'unité de chaque coût variable ;
+10. l'absence de double comptage entre coût fixe et forfait ;
+11. la marge appliquée.
 
 Pour le mode opératoire, consultez :
 

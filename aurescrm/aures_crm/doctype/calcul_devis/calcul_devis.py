@@ -69,21 +69,22 @@ class CalculDevis(Document):
 
     def calculate_costs(self):
         """
-        Calcule le support et les coûts des postes de production.
+        Calcule le support, les matières et les coûts des postes de production.
         
         1. Quantité Feuilles = Quantité commandée ÷ Nombre de poses
         2. Total Gâche = Σ gache_feuilles des postes
         3. Feuilles avec Gâche = Feuilles + Total Gâche
         4. Coût Support Total = Coût Support/Feuille × Feuilles avec gâche
-        5. Total Coûts Fixes = Σ(coût fixe × passages)
-        6. Total Coûts Variables = Σ(coût unitaire × passages × quantité de référence)
-        7. Coût Total = Support + Fixes + Variables
-        8. Coût Unitaire = Coût Total ÷ Quantité commandée
-        9. Prix Unitaire = Coût Unitaire × (1 + Marge%)
-        10. Prix Total = Prix Unitaire × Quantité commandée
-        11. Prix Total Final = Prix proposé final × Quantité
+        5. Total Coûts Matières = Σ(coût unitaire × facteur × quantité de référence)
+        6. Total Coûts Fixes = Σ(coût fixe × passages)
+        7. Total Coûts Variables = Σ(coût unitaire × passages × quantité de référence)
+        8. Coût Total = Support + Matières + Fixes + Variables
+        9. Coût Unitaire = Coût Total ÷ Quantité commandée
+        10. Prix Unitaire = Coût Unitaire × (1 + Marge%)
+        11. Prix Total = Prix Unitaire × Quantité commandée
+        12. Prix Total Final = Prix proposé final × Quantité
             (saisie manuelle ; réaligné sur le PU proposé si marge_percent change)
-        12. Marges commerciales dérivées du prix final
+        13. Marges commerciales dérivées du prix final
         """
         
         # 1. Quantité de feuilles nécessaires = Quantité ÷ Nombre de poses
@@ -103,7 +104,27 @@ class CalculDevis(Document):
             self.quantite_feuilles_gache
         )
 
-        # 5 et 6. Totaux issus des postes saisis manuellement
+        # 5. Total matières (consommables hors support)
+        total_matieres = 0
+        for matiere in self.matieres or []:
+            facteur = flt(matiere.facteur)
+            if facteur <= 0:
+                facteur = 1
+
+            if matiere.unite_calcul == "Par feuille":
+                quantite_reference = flt(self.quantite_feuilles_gache)
+            elif matiere.unite_calcul == "Par 1000 unités":
+                quantite_reference = quantite / 1000
+            else:
+                quantite_reference = 1
+
+            cout_ligne = flt(matiere.cout_unitaire or 0) * facteur * quantite_reference
+            matiere.cout_ligne = cout_ligne
+            total_matieres += cout_ligne
+
+        self.total_couts_matieres = total_matieres
+
+        # 6 et 7. Totaux issus des postes saisis manuellement
         total_fixes = 0
         total_variables = 0
 
@@ -126,20 +147,21 @@ class CalculDevis(Document):
         self.total_couts_fixes = total_fixes
         self.total_couts_variables = total_variables
 
-        # 7. Coût total = support + coûts fixes + coûts variables
+        # 8. Coût total = support + matières + coûts fixes + coûts variables
         self.cout_total = (
             flt(self.cout_support_total)
+            + flt(self.total_couts_matieres)
             + flt(self.total_couts_fixes)
             + flt(self.total_couts_variables)
         )
         
-        # 8. Coût unitaire = Coût total / Quantité commandée
+        # 9. Coût unitaire = Coût total / Quantité commandée
         if quantite > 0:
             self.cout_unitaire = flt(self.cout_total) / quantite
         else:
             self.cout_unitaire = 0
         
-        # 9. Prix unitaire proposé = Coût unitaire × (1 + Marge%)
+        # 10. Prix unitaire proposé = Coût unitaire × (1 + Marge%)
         marge_multiplier = 1 + (flt(self.marge_percent or 0) / 100)
         self.prix_unitaire_propose = flt(self.cout_unitaire) * marge_multiplier
 
@@ -148,10 +170,10 @@ class CalculDevis(Document):
         if previous and self.has_value_changed("marge_percent"):
             self.prix_propose_final = self.prix_unitaire_propose
         
-        # 10. Prix total proposé = Prix unitaire × Quantité
+        # 11. Prix total proposé = Prix unitaire × Quantité
         self.prix_total_propose = flt(self.prix_unitaire_propose) * quantite
 
-        # 11–12. Total et marges basés sur le prix final (saisi ou réaligné sur la marge)
+        # 12–13. Total et marges basés sur le prix final (saisi ou réaligné sur la marge)
         self._calculate_prix_final(quantite)
 
     def _calculate_prix_final(self, quantite=None):

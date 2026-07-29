@@ -20,6 +20,7 @@
   "html_resume",
   "section_calculs",
   "cout_support_total",
+  "total_couts_matieres",
   "total_couts_fixes",
   "total_couts_variables",
   "column_break_totaux",
@@ -61,6 +62,8 @@
   "grammage",
   "poids_feuille",
   "surface_feuille",
+  "tab_matieres_tab",
+  "matieres",
   "tab_4_tab",
   "html_postes",
   "postes"
@@ -278,6 +281,14 @@
   },
   {
    "default": "0",
+   "fieldname": "total_couts_matieres",
+   "fieldtype": "Currency",
+   "label": "Total Co\u00fbts Mati\u00e8res",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
    "fieldname": "total_couts_fixes",
    "fieldtype": "Currency",
    "label": "Total Co\u00fbts Fixes",
@@ -419,6 +430,17 @@
    "fieldname": "tab_3_tab",
    "fieldtype": "Tab Break",
    "label": "Papier"
+  },
+  {
+   "fieldname": "tab_matieres_tab",
+   "fieldtype": "Tab Break",
+   "label": "Mati\u00e8res"
+  },
+  {
+   "fieldname": "matieres",
+   "fieldtype": "Table",
+   "label": "Mati\u00e8res",
+   "options": "Calcul Devis Matiere"
   },
   {
    "fieldname": "tab_4_tab",
