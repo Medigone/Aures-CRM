@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-13 10:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "laize",
+  "depl",
+  "commentaire"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "laize",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Laize (mm)",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "depl",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "D\u00e9placement (mm)",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "columns": 5,
+   "fieldname": "commentaire",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Commentaire"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-13 10:00:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Format Feuille Support",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -29,6 +29,23 @@
   "format_laize",
   "column_break_dims",
   "format_developpement",
+  "moteur_section",
+  "origine_calcul",
+  "scenario_retenu",
+  "machine_impression",
+  "machine_decoupe",
+  "column_break_moteur",
+  "n_col",
+  "n_rang",
+  "rotation",
+  "surface_par_pose",
+  "grille_section",
+  "pas_laize",
+  "pas_depl",
+  "pont",
+  "column_break_grille",
+  "trait_commun_laize",
+  "trait_commun_depl",
   "section_break_xfpk",
   "an_num_fd",
   "column_break_mkej",
@@ -69,6 +86,103 @@
    "options": "Trace",
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "moteur_section",
+   "fieldtype": "Section Break",
+   "label": "Imposition calcul\u00e9e"
+  },
+  {
+   "default": "Manuel",
+   "fieldname": "origine_calcul",
+   "fieldtype": "Select",
+   "label": "Origine du calcul",
+   "options": "Manuel\nMoteur v1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scenario_retenu",
+   "fieldtype": "Data",
+   "label": "Sc\u00e9nario retenu",
+   "read_only": 1
+  },
+  {
+   "fieldname": "machine_impression",
+   "fieldtype": "Link",
+   "label": "Machine impression",
+   "options": "Machine"
+  },
+  {
+   "fieldname": "machine_decoupe",
+   "fieldtype": "Link",
+   "label": "Machine d\u00e9coupe",
+   "options": "Machine"
+  },
+  {
+   "fieldname": "column_break_moteur",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "n_col",
+   "fieldtype": "Int",
+   "label": "Colonnes",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "n_rang",
+   "fieldtype": "Int",
+   "label": "Rangs",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "rotation",
+   "fieldtype": "Int",
+   "label": "Rotation de la pose (\u00b0)"
+  },
+  {
+   "fieldname": "surface_par_pose",
+   "fieldtype": "Float",
+   "label": "Surface par pose (cm\u00b2)",
+   "precision": "1"
+  },
+  {
+   "fieldname": "grille_section",
+   "fieldtype": "Section Break",
+   "label": "Pas et trait commun"
+  },
+  {
+   "fieldname": "pas_laize",
+   "fieldtype": "Float",
+   "label": "Pas laize (mm)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "pas_depl",
+   "fieldtype": "Float",
+   "label": "Pas d\u00e9placement (mm)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "pont",
+   "fieldtype": "Float",
+   "label": "Pont (mm)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_grille",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "trait_commun_laize",
+   "fieldtype": "Check",
+   "label": "Trait commun en laize"
+  },
+  {
+   "default": "0",
+   "fieldname": "trait_commun_depl",
+   "fieldtype": "Check",
+   "label": "Trait commun en d\u00e9placement"
   },
   {
    "fieldname": "section_break_xfpk",
@@ -210,7 +324,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-24 11:42:46.108420",
+ "modified": "2026-09-13 10:00:00",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Imposition",

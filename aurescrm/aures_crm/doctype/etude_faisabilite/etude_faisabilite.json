@@ -53,6 +53,21 @@
   "column_break_gbek",
   "imposition",
   "fichier_imp",
+  "imposition_auto_section",
+  "machine_decoupe",
+  "pont",
+  "trait_commun_autorise",
+  "sens_fibre",
+  "column_break_imposition_auto",
+  "developpe_calcule_l",
+  "developpe_calcule_d",
+  "surface_utile",
+  "remplissage_bbox",
+  "statut_calcul",
+  "scenarios_section",
+  "scenarios",
+  "log_section",
+  "log_calcul",
   "section_break_edky",
   "observations",
   "amended_from"
@@ -167,6 +182,117 @@
   {
    "fieldname": "section_break_uigs",
    "fieldtype": "Section Break"
+  },
+  {
+   "collapsible": 1,
+   "description": "Le moteur propose, l'ing\u00e9nieur d\u00e9cide : aucun sc\u00e9nario n'est appliqu\u00e9 sans validation.",
+   "fieldname": "imposition_auto_section",
+   "fieldtype": "Section Break",
+   "label": "Imposition automatique (Moteur v1)"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "La contrainte bloquante est presque toujours la platine de d\u00e9coupe, pas la presse.",
+   "fieldname": "machine_decoupe",
+   "fieldtype": "Link",
+   "label": "Machine d\u00e9coupe",
+   "options": "Machine"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Jeu minimal entre deux poses. Pr\u00e9-rempli depuis le support technique de l'article.",
+   "fieldname": "pont",
+   "fieldtype": "Float",
+   "label": "Pont mini (mm)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "trait_commun_autorise",
+   "fieldtype": "Check",
+   "label": "Trait commun autoris\u00e9"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Libre",
+   "description": "Contrainte bloquante : un sens impos\u00e9 \u00e9limine la moiti\u00e9 des orientations.",
+   "fieldname": "sens_fibre",
+   "fieldtype": "Select",
+   "label": "Sens fibre",
+   "options": "Libre\n0\u00b0\n90\u00b0"
+  },
+  {
+   "fieldname": "column_break_imposition_auto",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "developpe_calcule_l",
+   "fieldtype": "Float",
+   "label": "D\u00e9velopp\u00e9 calcul\u00e9 \u2014 laize (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "developpe_calcule_d",
+   "fieldtype": "Float",
+   "label": "D\u00e9velopp\u00e9 calcul\u00e9 \u2014 d\u00e9placement (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "surface_utile",
+   "fieldtype": "Float",
+   "label": "Surface utile (cm\u00b2)",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Sous 75 % il y a du potentiel d'embo\u00eetement ; au-del\u00e0 de 85 % la forme est quasi rectangulaire.",
+   "fieldname": "remplissage_bbox",
+   "fieldtype": "Percent",
+   "label": "Remplissage bbox",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Non lanc\u00e9",
+   "fieldname": "statut_calcul",
+   "fieldtype": "Select",
+   "label": "Statut du calcul",
+   "options": "Non lanc\u00e9\nEn cours\nTermin\u00e9\n\u00c9chec",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scenarios_section",
+   "fieldtype": "Section Break",
+   "label": "Sc\u00e9narios propos\u00e9s"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "scenarios",
+   "fieldtype": "Table",
+   "label": "Sc\u00e9narios",
+   "options": "Scenario Imposition"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "log_section",
+   "fieldtype": "Section Break",
+   "label": "Journal de calcul"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "log_calcul",
+   "fieldtype": "Code",
+   "label": "Journal de calcul",
+   "options": "Text",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_edky",
@@ -430,7 +556,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-14 13:44:53.198171",
+ "modified": "2026-09-13 10:00:00",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",

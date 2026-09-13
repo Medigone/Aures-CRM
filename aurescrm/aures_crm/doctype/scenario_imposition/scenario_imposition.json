@@ -1,0 +1,226 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-13 10:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "retenu",
+  "libelle",
+  "laize",
+  "depl",
+  "nb_poses",
+  "taux_chutes",
+  "column_break_grille",
+  "n_col",
+  "n_rang",
+  "rotation",
+  "format_en_stock",
+  "section_break_pas",
+  "pas_laize",
+  "pas_depl",
+  "trait_commun_laize",
+  "column_break_pas",
+  "trait_commun_depl",
+  "reste_laize",
+  "reste_depl",
+  "section_break_chiffrage",
+  "surface_par_pose",
+  "nb_feuilles",
+  "column_break_chiffrage",
+  "tonnage",
+  "cout_matiere",
+  "section_break_alerte",
+  "alerte"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "fieldname": "retenu",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Retenu"
+  },
+  {
+   "columns": 2,
+   "fieldname": "libelle",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sc\u00e9nario",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "laize",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Laize (mm)",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "depl",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "D\u00e9placement (mm)",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "nb_poses",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Poses",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "taux_chutes",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Taux de chutes",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_grille",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "n_col",
+   "fieldtype": "Int",
+   "label": "Colonnes",
+   "read_only": 1
+  },
+  {
+   "fieldname": "n_rang",
+   "fieldtype": "Int",
+   "label": "Rangs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rotation",
+   "fieldtype": "Int",
+   "label": "Rotation de la pose (\u00b0)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "format_en_stock",
+   "fieldtype": "Check",
+   "label": "Format en stock",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_pas",
+   "fieldtype": "Section Break",
+   "label": "Pas et trait commun"
+  },
+  {
+   "fieldname": "pas_laize",
+   "fieldtype": "Float",
+   "label": "Pas laize (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pas_depl",
+   "fieldtype": "Float",
+   "label": "Pas d\u00e9placement (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "trait_commun_laize",
+   "fieldtype": "Check",
+   "label": "Trait commun en laize",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_pas",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "trait_commun_depl",
+   "fieldtype": "Check",
+   "label": "Trait commun en d\u00e9placement",
+   "read_only": 1
+  },
+  {
+   "description": "Marge inutilis\u00e9e restante. Sous 1 mm, la disposition est sensible au pont.",
+   "fieldname": "reste_laize",
+   "fieldtype": "Float",
+   "label": "Reste laize (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reste_depl",
+   "fieldtype": "Float",
+   "label": "Reste d\u00e9placement (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_chiffrage",
+   "fieldtype": "Section Break",
+   "label": "Chiffrage mati\u00e8re"
+  },
+  {
+   "fieldname": "surface_par_pose",
+   "fieldtype": "Float",
+   "label": "Surface par pose (cm\u00b2)",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nb_feuilles",
+   "fieldtype": "Int",
+   "label": "Nombre de feuilles",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_chiffrage",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tonnage",
+   "fieldtype": "Float",
+   "label": "Tonnage (t)",
+   "precision": "3",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cout_matiere",
+   "fieldtype": "Currency",
+   "label": "Co\u00fbt mati\u00e8re",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_alerte",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "alerte",
+   "fieldtype": "Small Text",
+   "label": "Contraintes et alertes",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-13 10:00:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Scenario Imposition",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

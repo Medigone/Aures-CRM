@@ -22,13 +22,42 @@ class EtudeFaisabilite(Document):
 		self.set_format_machine()
 		self.set_statut_machine_prevue()
 		self.set_passages()
+		self.set_pont_depuis_support()
 
 	def before_update_after_submit(self):
 		# machine_prevue est modifiable après soumission : garder passages/charge cohérents.
 		self.set_passages()
+		self.valider_scenario_unique()
 
 	def validate(self):
 		self.set_nbr_feuilles()
+		self.valider_scenario_unique()
+
+	def valider_scenario_unique(self):
+		"""Un seul scénario d'imposition peut être retenu : l'ingénieur tranche."""
+		retenus = [s.libelle or f"ligne {s.idx}" for s in (self.scenarios or []) if s.retenu]
+		if len(retenus) > 1:
+			frappe.throw(
+				"Un seul scénario d'imposition peut être retenu à la fois "
+				f"({', '.join(retenus)})."
+			)
+
+	def set_pont_depuis_support(self):
+		"""Pont mini pré-rempli depuis le support technique de l'article (jamais écrasé)."""
+		if flt(self.pont) or not self.article:
+			return
+		from aurescrm.aures_crm.doctype.support_technique.support_technique import (
+			get_support_technique,
+		)
+
+		item = frappe.db.get_value(
+			"Item", self.article, ["custom_support", "custom_grammage"], as_dict=True
+		)
+		if not item:
+			return
+		support = get_support_technique(item.custom_support, item.custom_grammage)
+		if support and flt(support.pont_mini):
+			self.pont = flt(support.pont_mini)
 
 	def set_passages(self):
 		from aurescrm.passages import get_nb_passages

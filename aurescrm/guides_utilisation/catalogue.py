@@ -60,6 +60,13 @@ GUIDES = [
 		"description": "Fiches machines et paramètres de production",
 	},
 	{
+		"id": "imposition-automatique",
+		"title": "Imposition automatique (Moteur v1)",
+		"category": "Production",
+		"file": "GUIDE_UTILISATEUR_IMPOSITION_AUTOMATIQUE.md",
+		"description": "Calcul des scénarios d'imposition depuis l'Étude de Faisabilité",
+	},
+	{
 		"id": "bat",
 		"title": "BAT (Bon À Tirer)",
 		"category": "Prépresse / BAT / Maquette",

@@ -59,6 +59,8 @@
   "grammage_max",
   "column_break_support",
   "marge_pince",
+  "marge_arriere",
+  "lisiere_min",
   "observations_tab",
   "observations_section",
   "observations"
@@ -424,6 +426,22 @@
    "precision": "1"
   },
   {
+   "description": "Marge arri\u00e8re inexploitable sur la feuille. D\u00e9faut 15 mm.",
+   "fieldname": "marge_arriere",
+   "fieldtype": "Float",
+   "label": "Marge arri\u00e8re (mm)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "description": "Marge lat\u00e9rale minimale de chaque c\u00f4t\u00e9 de la feuille. D\u00e9faut 15,6 mm.",
+   "fieldname": "lisiere_min",
+   "fieldtype": "Float",
+   "label": "Lisi\u00e8re mini (mm)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
    "fieldname": "observations_tab",
    "fieldtype": "Tab Break",
    "label": "Observations"
@@ -441,7 +459,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-14 10:40:00.000000",
+ "modified": "2026-09-13 10:00:00",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Machine",
