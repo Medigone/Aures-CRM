@@ -1,96 +1,91 @@
-# Guide d'utilisation - Imposition automatique (Moteur v1)
+# Guide d'utilisation — Atelier d'imposition
 
 ## Objectif
 
-Depuis l'Étude de Faisabilité, le moteur lit le PDF de découpe porté par le Tracé, calcule
-toutes les dispositions possibles sous contraintes machine, et propose **quatre lignes de
-décision**. Sur choix de l'ingénieur, il crée l'enregistrement `Imposition` et génère le PDF
-d'imposition à l'échelle 1:1.
+L'atelier d'imposition est une **page Desk autonome**. On y dépose un PDF de tracé Esko, on
+coche les formats de feuille à comparer, et le moteur évalue chaque format (plus, si demandé,
+les formats sur mesure optimaux). **Aucun gagnant n'est désigné** : le tableau est trié, affiche
+les écarts, l'ingénieur tranche.
 
-**L'outil propose, l'ingénieur décide.** Aucun scénario n'est appliqué sans validation humaine.
+L'Étude de Faisabilité reste un point d'entrée parmi d'autres : le bouton *Atelier d'imposition*
+ouvre la page avec le contexte pré-rempli. Le résultat remonte sur l'Étude uniquement lorsqu'une
+Imposition est créée depuis un calcul lié.
 
 ## Prérequis
 
-1. Un **Tracé** lié à l'Étude, portant le PDF Esko (`Fichier Tracé`).
-   Convention de couleurs obligatoire : **noir = coupe**, **rouge = rainage**, **bleu = cotation**
-   (le bleu est ignoré).
-2. Une **Machine impression** (`Machine prévue` sur l'Étude) et, de préférence, une
-   **Machine découpe**. Sur chaque machine doivent être renseignés : format mini/maxi laize et
-   développement, `Marge de pince`, `Marge arrière`, `Lisière mini`.
-   > La contrainte bloquante est presque toujours la platine de découpe, pas la presse :
-   > le moteur retient l'**intersection** des deux jeux de contraintes.
-3. Un **Support Technique** pour le couple support / grammage de l'article
-   (`Item.custom_support` + `Item.custom_grammage`). Il fournit le `Pont mini`, le
-   `Prix à la tonne` et les `Formats de feuilles` en stock.
+1. Un **PDF Esko** (déposé directement, ou porté par un Tracé existant).
+   Convention : **noir = coupe**, **rouge = rainage**, **bleu = cotation** (ignoré).
+2. Une **machine impression** et, de préférence, une **machine découpe**, avec l'onglet
+   **Format feuille** renseigné (mini/maxi laize et développement, pince, marge arrière, lisière).
+   La contrainte bloquante est presque toujours la platine de découpe : le moteur retient
+   l'**intersection** des deux jeux de bornes.
+3. Un **Support Technique** (couple support / grammage de l'article) pour le pont mini, le prix
+   à la tonne et les formats en stock. Sans support, on peut quand même calculer — les formats
+   viennent alors des impositions existantes et du maxi machine.
 
-## Lancer un calcul
+## Ouvrir l'atelier
 
-1. Ouvrez l'Étude de Faisabilité, bouton **Imposition → Calculer l'imposition**.
-2. Le dialogue est pré-rempli : machine impression, machine découpe, pont mini, trait commun
-   autorisé (coché), sens fibre (`Libre`), quantité, et le **format de référence**
-   (dernière Imposition connue pour cet article).
-3. `Lancer le calcul` : le traitement part en tâche de fond (2 à 10 s selon la forme).
-   Le `Statut du calcul` passe à `En cours`, puis la fiche se rafraîchit toute seule.
+- Menu **Prépresse → Atelier d'imposition**
+- ou depuis une Étude de Faisabilité, bouton **Imposition → Atelier d'imposition**
+- ou l'URL `/app/atelier-imposition/<nom-du-calcul>` (partageable)
 
-## Lire le résultat
+## Déroulement
 
-La section **Imposition automatique** affiche d'abord le contrôle visuel :
+1. **Déposer le PDF** (ou choisir un Tracé). Article et client sont optionnels pour étudier ;
+   ils deviennent obligatoires pour **créer l'Imposition**.
+2. Renseigner machines, pont, sens fibre, trait commun, quantité (barre du haut).
+3. **Cocher les formats** à étudier, groupés par origine (stock, impositions existantes, maxi
+   machine). Laisser cochée l'option *formats sur mesure optimaux* pour comparer aussi les
+   formats calculés pile pour la forme.
+4. **Calculer**. Le traitement part en tâche de fond (quelques secondes). On peut quitter la
+   page : au retour, le calcul en cours est repris.
+5. Lire le **tableau comparatif** : poses, grille, pas, chutes, feuilles, tonnage, **coût pour
+   1 000**. Cliquer un en-tête pour trier. Les écarts en % se lisent par rapport à la première
+   ligne (ou à la ligne retenue).
+6. L'**aperçu SVG** reprend les vraies lignes de coupe (noir) et de rainage (rouge), posées
+   comme le PDF 1:1 (`lisière + i × pas`, `pince + j × pas`). Molette pour zoomer.
+7. **Simulation** : tester un format ou une grille sans relancer le calcul (< 50 ms).
+   *Garder ce scénario* l'ajoute au tableau. Changer le pont, le sens fibre ou le trait commun
+   demande un **recalcul** (les pas changent). Changer la quantité se recale par simulation.
+8. Retenir **une** ligne, puis **Créer l'Imposition** (article + client requis). Une nouvelle
+   fiche Imposition est créée, jamais une existante n'est écrasée. Un avertissement s'affiche
+   si cette fiche peut devenir l'Idéale reprise par les Calculs Devis.
 
-- `Développé calculé` laize x déplacement — à recouper avec le Tracé ;
-- `Surface utile` (cm²) ;
-- `Remplissage bbox` : **sous 75 %, il y a du potentiel d'emboîtement ; au-delà de 85 %, la
-  forme est quasi rectangulaire et le moteur n'a presque rien à gagner.**
+## Lecture du tableau
 
-Puis la table **Scénarios**, qui répond à quatre logiques différentes — et non aux quatre
-meilleurs taux de chutes :
-
-| Scénario | Critère |
+| Origine | Signification |
 |---|---|
-| **A — Matière minimale** | surface de feuille par pose la plus faible |
-| **B — Charge machine minimale** | nombre de feuilles le plus faible, puis matière |
-| **C — Format en stock** | meilleure matière parmi les formats du support, sans refente |
-| **RÉFÉRENCE** | le format habituellement utilisé, pour comparaison |
+| Format étudié / Stock / Imposition existante / Maxi machine | un format que vous avez coché |
+| Sur mesure | A matière minimale, B charge machine minimale, C format en stock |
+| Simulation | une évaluation faite après coup, conservée si vous l'avez gardée |
 
-> Sur un dossier à fort volume, le nombre de feuilles pèse souvent plus lourd que la matière :
-> sur un cas réel de 1 M d'étuis, une solution gagnant 3,1 % de carton imposait +19 % de
-> passages presse et platine — donc mauvaise en coût complet. C'est le rôle du scénario B.
+Le **remplissage bbox** du développé : sous 75 %, il y a du potentiel d'emboîtement ; au-delà
+de 85 %, la forme est quasi rectangulaire.
 
-Chaque ligne affiche son pas, son trait commun, ses restes de marge et ses contraintes en clair
-dans la colonne `Contraintes et alertes` (« format absent du stock — nécessite une refente en
-772,5 mm », « reste 0,30 mm en déplacement — une rangée peut être perdue, sensible au pont »).
+Sur un dossier à fort volume, le nombre de feuilles pèse souvent plus lourd que la matière.
+C'est le rôle du scénario B et de la colonne *feuilles* / *coût pour 1 000*.
 
-Le **Journal de calcul** (section repliée) trace la lecture du tracé, le recoupement du
-développé, les bornes machine retenues et le diagnostic du trait commun.
+## Historique
 
-## Créer l'Imposition
+Chaque clic sur **Calculer** crée un enregistrement `Calcul Imposition`. L'historique en bas
+de page liste les calculs de l'article (ou du tracé). Cliquer une ligne recharge l'écran **et**
+remet les filtres aux valeurs de ce calcul.
 
-1. Cochez **une seule** ligne `Retenu`.
-2. Bouton **Imposition → Créer l'Imposition**.
-3. Le moteur crée un **nouvel** enregistrement `Imposition` (il ne modifie jamais une imposition
-   existante, en particulier pas une imposition saisie manuellement), y attache le PDF
-   d'imposition 1:1, puis remonte le taux de chutes et le nombre de feuilles dans l'Étude.
-4. Le choix est tracé dans le fil de discussion de l'Étude : qui, quand, quel scénario retenu,
-   quels scénarios écartés.
+## Quand le moteur refuse
 
-L'Imposition créée porte `Origine du calcul = Moteur v1` et le libellé du scénario retenu.
+Il s'arrête et explique, plutôt que de proposer un résultat approximatif :
 
-## Quand le moteur refuse de répondre
+- PDF illisible, non vectoriel, ou sans chemin noir/rouge ;
+- développé calculé incohérent avec les deux cotes du Tracé (écart > 0,5 mm) ;
+- aucun format coché et sur mesure décoché ;
+- format hors bornes machine (écarté **avec mention** dans le journal) ;
+- aucune pose ne tient.
 
-Un moteur qui se trompe silencieusement est abandonné en trois semaines. Celui-ci s'arrête et
-explique :
+Les couleurs hors convention (autre que noir/rouge/bleu) sont signalées en avertissement :
+une découpe peut manquer.
 
-- **Développé incohérent** avec les dimensions saisies sur le Tracé (écart > 0,5 mm) : aucun
-  scénario n'est proposé.
-- **Contour non refermable** : message rappelant la convention de couleurs.
-- **Couleur inattendue** dans le PDF : avertissement dans le journal de calcul — un élément de
-  découpe est probablement absent de la couche noire.
-- **Aucune disposition admissible** : le journal indique quelle contrainte bloque (laize,
-  déplacement ou sens fibre), jamais un tableau vide.
-- **Poses hors feuille** à la génération du PDF : exception, pas de fichier faux.
+## Permissions
 
-## Limites de la v1
-
-Hors périmètre : croix de repérage, gammes de contrôle, marques de coupe, cartouche de dossier,
-export CF2 / DXF, impositions groupées multi-références, découpes intérieures multiples.
-Le tête-bêche n'est pas proposé : la disposition est toujours un réseau régulier, condition de
-fabricabilité en découpe forme (filets droits et continus, éjection).
+Chargé / Responsable Étude Faisabilité et System Manager : lecture, écriture, création.
+Technicien et Responsable Prepresse : lecture. La suppression des calculs est réservée aux
+responsables et au System Manager.

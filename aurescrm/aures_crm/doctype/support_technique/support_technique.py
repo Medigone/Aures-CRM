@@ -8,8 +8,8 @@ from frappe.model.document import Document
 class SupportTechnique(Document):
 	"""Caractéristiques techniques d'un couple support / grammage.
 
-	Alimente le moteur d'imposition : pont mini, prix à la tonne et formats de
-	feuilles disponibles sans refente.
+	Alimente le moteur d'imposition : pont mini, prix à la tonne et formats
+	palette / bobine disponibles sans refente.
 	"""
 
 	def validate(self):

@@ -9,8 +9,7 @@ frappe.ui.form.on('Etude Faisabilite', {
         load_trace_imposition_links(frm);
         refresh_attached_files(frm);
         load_machine_panel(frm, true);
-        boutons_imposition_auto(frm);
-        ecouter_fin_calcul_imposition(frm);
+        boutons_atelier_imposition(frm);
     },
 
     client: function(frm) {
@@ -77,25 +76,6 @@ frappe.ui.form.on('Etude Faisabilite', {
 
     status: function(frm) {
         load_trace_imposition_links(frm);
-    },
-
-    scenarios_on_form_rendered: function(frm) {
-        boutons_imposition_auto(frm);
-    }
-});
-
-frappe.ui.form.on('Scenario Imposition', {
-    // Un seul scénario retenu à la fois : l'outil propose, l'ingénieur décide.
-    retenu: function(frm, cdt, cdn) {
-        var ligne = locals[cdt][cdn];
-        if (ligne.retenu) {
-            (frm.doc.scenarios || []).forEach(function(autre) {
-                if (autre.name !== cdn && autre.retenu) {
-                    frappe.model.set_value(autre.doctype, autre.name, 'retenu', 0);
-                }
-            });
-        }
-        boutons_imposition_auto(frm);
     }
 });
 
@@ -2692,219 +2672,17 @@ if (!window.showItemTechnicalSpecs) {
     };
 }
 /* ------------------------------------------------------------------------- */
-/* Moteur d'imposition v1                                                     */
-/* L'outil propose, l'ingénieur décide : rien n'est appliqué sans validation.  */
+/* Atelier d'imposition                                                        */
 /* ------------------------------------------------------------------------- */
 
-function scenario_retenu(frm) {
-    return (frm.doc.scenarios || []).filter(function (s) {
-        return s.retenu;
-    });
-}
-
-function boutons_imposition_auto(frm) {
+function boutons_atelier_imposition(frm) {
     if (frm.is_new()) {
         return;
     }
-    var groupe = __('Imposition');
-    var a_un_trace = !!(frm.doc.trace || frm.doc.fichier_trace);
-
-    // Idempotent : la fonction est rappelée à chaque coche de scénario.
-    frm.remove_custom_button(__("Calculer l'imposition"), groupe);
-    frm.remove_custom_button(__("Créer l'Imposition"), groupe);
-
-    if (a_un_trace && frm.doc.statut_calcul !== 'En cours') {
-        frm.add_custom_button(__("Calculer l'imposition"), function () {
-            dialogue_calcul_imposition(frm);
-        }, groupe);
-    }
-    if (scenario_retenu(frm).length === 1) {
-        frm.add_custom_button(__("Créer l'Imposition"), function () {
-            creer_imposition_depuis_scenario(frm);
-        }, groupe);
-    }
-    if (frm.doc.statut_calcul === 'En cours') {
-        frm.set_intro(__('Calcul d\'imposition en cours — le résultat s\'affichera automatiquement.'), 'orange');
-    }
-}
-
-/** Le calcul tourne en tâche de fond : on recharge la fiche à son retour. */
-function ecouter_fin_calcul_imposition(frm) {
-    if (frm.__imposition_realtime) {
-        return;
-    }
-    frm.__imposition_realtime = true;
-    frappe.realtime.on('imposition_calcul_termine', function (data) {
-        if (!data || data.etude !== frm.doc.name) {
-            return;
-        }
-        frappe.show_alert({
-            message:
-                data.statut_calcul === 'Terminé'
-                    ? __('Calcul d\'imposition terminé.')
-                    : __('Le calcul d\'imposition a échoué — voir le journal de calcul.'),
-            indicator: data.statut_calcul === 'Terminé' ? 'green' : 'red'
-        }, 7);
-        frm.reload_doc();
-    });
-}
-
-function dialogue_calcul_imposition(frm) {
-    frappe.call({
-        method: 'aurescrm.imposition.api.get_parametres_defaut',
-        args: { etude: frm.doc.name },
-        freeze: true,
-        freeze_message: __('Lecture des paramètres…'),
-        callback: function (r) {
-            var d = r.message || {};
-            if (!d.fichier_trace) {
-                frappe.msgprint({
-                    title: __('Tracé manquant'),
-                    message: __("Aucun PDF de découpe n'est attaché au Tracé lié."),
-                    indicator: 'red'
-                });
-                return;
-            }
-            var dialog = new frappe.ui.Dialog({
-                title: __("Calculer l'imposition"),
-                size: 'large',
-                fields: [
-                    {
-                        fieldtype: 'Link',
-                        fieldname: 'machine_impression',
-                        label: __('Machine impression'),
-                        options: 'Machine',
-                        reqd: 1,
-                        default: d.machine_impression,
-                        get_query: function () {
-                            return { filters: { status: ['!=', 'Désactivé'], type_equipement: 'Presse Offset' } };
-                        }
-                    },
-                    {
-                        fieldtype: 'Link',
-                        fieldname: 'machine_decoupe',
-                        label: __('Machine découpe'),
-                        options: 'Machine',
-                        default: d.machine_decoupe,
-                        description: __('La platine de découpe borne le format plus souvent que la presse.'),
-                        get_query: function () {
-                            return { filters: { status: ['!=', 'Désactivé'], type_equipement: 'Machine Découpe' } };
-                        }
-                    },
-                    {
-                        fieldtype: 'Float',
-                        fieldname: 'pont',
-                        label: __('Pont mini (mm)'),
-                        reqd: 1,
-                        precision: 2,
-                        default: d.pont,
-                        description: d.support_technique
-                            ? __('Pré-rempli depuis le support {0}.', [d.support_technique])
-                            : __('Aucun support technique trouvé pour cet article — valeur par défaut.')
-                    },
-                    { fieldtype: 'Column Break' },
-                    {
-                        fieldtype: 'Check',
-                        fieldname: 'trait_commun_autorise',
-                        label: __('Trait commun autorisé'),
-                        default: d.trait_commun_autorise
-                    },
-                    {
-                        fieldtype: 'Select',
-                        fieldname: 'sens_fibre',
-                        label: __('Sens fibre'),
-                        options: ['Libre', '0°', '90°'],
-                        default: d.sens_fibre || 'Libre',
-                        description: __('Contrainte bloquante : un sens imposé élimine la moitié des orientations.')
-                    },
-                    {
-                        fieldtype: 'Int',
-                        fieldname: 'quantite',
-                        label: __('Quantité'),
-                        default: d.quantite
-                    },
-                    {
-                        fieldtype: 'Section Break',
-                        label: __('Format de référence'),
-                        description: __('Format habituellement utilisé pour cet article : sert de point de comparaison.')
-                    },
-                    {
-                        fieldtype: 'Float',
-                        fieldname: 'format_reference_laize',
-                        label: __('Laize (mm)'),
-                        precision: 1,
-                        default: d.format_reference_laize
-                    },
-                    { fieldtype: 'Column Break' },
-                    {
-                        fieldtype: 'Float',
-                        fieldname: 'format_reference_depl',
-                        label: __('Déplacement (mm)'),
-                        precision: 1,
-                        default: d.format_reference_depl
-                    }
-                ],
-                primary_action_label: __('Lancer le calcul'),
-                primary_action: function (valeurs) {
-                    dialog.hide();
-                    frappe.call({
-                        method: 'aurescrm.imposition.api.lancer_calcul',
-                        args: Object.assign({ etude: frm.doc.name }, valeurs),
-                        freeze: true,
-                        freeze_message: __('Mise en file du calcul…'),
-                        callback: function () {
-                            frappe.show_alert({
-                                message: __('Calcul lancé — 2 à 10 secondes selon la forme.'),
-                                indicator: 'blue'
-                            }, 7);
-                            frm.reload_doc();
-                        }
-                    });
-                }
-            });
-            dialog.show();
-        }
-    });
-}
-
-function creer_imposition_depuis_scenario(frm) {
-    var retenus = scenario_retenu(frm);
-    if (retenus.length !== 1) {
-        frappe.msgprint({
-            title: __('Action impossible'),
-            message: __('Cocher exactement un scénario « Retenu ».'),
-            indicator: 'orange'
-        });
-        return;
-    }
-    var s = retenus[0];
-    frappe.confirm(
-        __('Créer une Imposition pour le scénario « {0} » : {1} poses sur {2} x {3} mm, {4} % de chutes ?', [
-            s.libelle, s.nb_poses, s.laize, s.depl, s.taux_chutes
-        ]),
-        function () {
-            // Le serveur relit le scénario retenu en base : la coche doit être enregistrée.
-            var enregistre = frm.is_dirty()
-                ? frm.save(frm.doc.docstatus === 1 ? 'Update' : 'Save')
-                : Promise.resolve();
-            Promise.resolve(enregistre).then(function () {
-                frappe.call({
-                    method: 'aurescrm.imposition.api.creer_imposition',
-                    args: { etude: frm.doc.name },
-                    freeze: true,
-                    freeze_message: __("Création de l'Imposition et génération du PDF…"),
-                    callback: function (r) {
-                        if (!r.message) {
-                            return;
-                        }
-                        frappe.show_alert({
-                            message: __('Imposition {0} créée.', [r.message.imposition]),
-                            indicator: 'green'
-                        }, 7);
-                        frm.reload_doc();
-                    }
-                });
-            });
-        }
-    );
+    var groupe = __("Imposition");
+    frm.remove_custom_button(__("Atelier d'imposition"), groupe);
+    frm.add_custom_button(__("Atelier d'imposition"), function () {
+        frappe.route_options = { etude: frm.doc.name };
+        frappe.set_route("atelier-imposition");
+    }, groupe);
 }

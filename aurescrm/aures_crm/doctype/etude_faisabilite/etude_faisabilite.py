@@ -27,20 +27,9 @@ class EtudeFaisabilite(Document):
 	def before_update_after_submit(self):
 		# machine_prevue est modifiable après soumission : garder passages/charge cohérents.
 		self.set_passages()
-		self.valider_scenario_unique()
 
 	def validate(self):
 		self.set_nbr_feuilles()
-		self.valider_scenario_unique()
-
-	def valider_scenario_unique(self):
-		"""Un seul scénario d'imposition peut être retenu : l'ingénieur tranche."""
-		retenus = [s.libelle or f"ligne {s.idx}" for s in (self.scenarios or []) if s.retenu]
-		if len(retenus) > 1:
-			frappe.throw(
-				"Un seul scénario d'imposition peut être retenu à la fois "
-				f"({', '.join(retenus)})."
-			)
 
 	def set_pont_depuis_support(self):
 		"""Pont mini pré-rempli depuis le support technique de l'article (jamais écrasé)."""

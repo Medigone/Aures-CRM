@@ -48,6 +48,7 @@
   "column_break_offset1",
   "gache_calage",
   "taux_gache_production",
+  "format_tab",
   "format_section",
   "format_max_laize",
   "format_max_developpement",
@@ -347,13 +348,19 @@
    "non_negative": 1
   },
   {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
-   "fieldname": "format_section",
-   "fieldtype": "Section Break",
-   "label": "Format d'impression"
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
+   "fieldname": "format_tab",
+   "fieldtype": "Tab Break",
+   "label": "Format feuille"
   },
   {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
+   "fieldname": "format_section",
+   "fieldtype": "Section Break",
+   "label": "Format feuille (laize \u00d7 d\u00e9veloppement)"
+  },
+  {
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
    "description": "Dimension exprim\u00e9e en millim\u00e8tres. Laize = largeur transversale.",
    "fieldname": "format_max_laize",
    "fieldtype": "Float",
@@ -362,7 +369,7 @@
    "precision": "1"
   },
   {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
    "description": "Dimension exprim\u00e9e en millim\u00e8tres. D\u00e9veloppement = sens de passage machine.",
    "fieldname": "format_max_developpement",
    "fieldtype": "Float",
@@ -375,7 +382,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
    "description": "Dimension exprim\u00e9e en millim\u00e8tres.",
    "fieldname": "format_min_laize",
    "fieldtype": "Float",
@@ -384,7 +391,7 @@
    "precision": "1"
   },
   {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
    "description": "Dimension exprim\u00e9e en millim\u00e8tres.",
    "fieldname": "format_min_developpement",
    "fieldtype": "Float",
@@ -393,20 +400,20 @@
    "precision": "1"
   },
   {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
    "fieldname": "compatibilite_support_section",
    "fieldtype": "Section Break",
    "label": "Compatibilit\u00e9 support"
   },
   {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
    "fieldname": "grammage_min",
    "fieldtype": "Float",
    "label": "Grammage minimum (g/m\u00b2)",
    "non_negative": 1
   },
   {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
    "fieldname": "grammage_max",
    "fieldtype": "Float",
    "label": "Grammage maximum (g/m\u00b2)",
@@ -417,7 +424,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.type_equipement==\"Presse Offset\"",
+   "depends_on": "eval:doc.type_equipement==\"Presse Offset\" || doc.type_equipement==\"Machine D\u00e9coupe\"",
    "description": "Zone non imprimable en amont (pince). Dimension en millim\u00e8tres.",
    "fieldname": "marge_pince",
    "fieldtype": "Float",
@@ -459,7 +466,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-13 10:00:00",
+ "modified": "2026-09-13 17:50:00",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Machine",

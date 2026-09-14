@@ -32,6 +32,7 @@
   "moteur_section",
   "origine_calcul",
   "scenario_retenu",
+  "calcul_imposition",
   "machine_impression",
   "machine_decoupe",
   "column_break_moteur",
@@ -104,6 +105,13 @@
    "fieldname": "scenario_retenu",
    "fieldtype": "Data",
    "label": "Sc\u00e9nario retenu",
+   "read_only": 1
+  },
+  {
+   "fieldname": "calcul_imposition",
+   "fieldtype": "Link",
+   "label": "Calcul d'imposition",
+   "options": "Calcul Imposition",
    "read_only": 1
   },
   {

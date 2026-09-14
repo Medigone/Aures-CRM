@@ -1,0 +1,33 @@
+{
+ "creation": "2026-09-13 20:00:00",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-th-large",
+ "idx": 0,
+ "modified": "2026-09-13 20:00:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "atelier-imposition",
+ "owner": "Administrator",
+ "page_name": "atelier-imposition",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "role": "Responsable \u00c9tude Faisabilit\u00e9"
+  },
+  {
+   "role": "Technicien Prepresse"
+  },
+  {
+   "role": "Responsable Prepresse"
+  }
+ ],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "Atelier d'imposition"
+}

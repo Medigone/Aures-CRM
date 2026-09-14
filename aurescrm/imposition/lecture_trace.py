@@ -25,6 +25,21 @@ C_COUPE = (0.0, 0.0, 0.0)
 C_RAINAGE = (1.0, 0.0, 0.0)
 C_COTATION = (0.0, 0.0, 1.0)
 COULEURS_CONNUES = (C_COUPE, C_RAINAGE, C_COTATION)
+TOLERANCE_COULEUR = 0.02
+
+
+def _couleur_connue(col, tolerance=TOLERANCE_COULEUR):
+	"""Mappe une couleur PDF vers la convention Esko, avec la même tolérance partout.
+
+	Un trait quasi noir (0.01, 0, 0) doit être lu comme une coupe — pas ignoré
+	par la lecture exacte puis absous par le garde-fou des couleurs inattendues.
+	"""
+	if not col or len(col) < 3:
+		return None
+	for connue in COULEURS_CONNUES:
+		if all(abs(c - k) <= tolerance for c, k in zip(col[:3], connue)):
+			return connue
+	return None
 
 
 def _bezier(a, b, c, d, n=24):
@@ -39,45 +54,44 @@ def _bezier(a, b, c, d, n=24):
 
 def lire_trace(chemin):
 	"""Retourne (segments_coupe, segments_rainage) en mm, repère Y vers le haut."""
-	doc = pymupdf.open(chemin)
-	page = doc[0]
-	H = page.rect.height
 	out = {C_COUPE: [], C_RAINAGE: []}
-	for it in page.get_drawings():
-		if it["color"] not in out:
-			continue
-		for op in it["items"]:
-			if op[0] == "l":
-				out[it["color"]].append([(op[1].x, op[1].y), (op[2].x, op[2].y)])
-			elif op[0] == "c":
-				pts = [(op[1].x, op[1].y)] + _bezier(op[1], op[2], op[3], op[4])
-				out[it["color"]] += [[a, b] for a, b in zip(pts, pts[1:])]
-			elif op[0] == "re":
-				r = op[1]
-				c = [(r.x0, r.y0), (r.x1, r.y0), (r.x1, r.y1), (r.x0, r.y1), (r.x0, r.y0)]
-				out[it["color"]] += [[a, b] for a, b in zip(c, c[1:])]
-	conv = lambda s: [  # noqa: E731
-		[(x0 / PT, (H - y0) / PT), (x1 / PT, (H - y1) / PT)] for (x0, y0), (x1, y1) in s
-	]
-	return conv(out[C_COUPE]), conv(out[C_RAINAGE])
+	with pymupdf.open(chemin) as doc:
+		page = doc[0]
+		H = page.rect.height
+		for it in page.get_drawings():
+			connue = _couleur_connue(it["color"])
+			if connue not in out:
+				continue
+			for op in it["items"]:
+				if op[0] == "l":
+					out[connue].append([(op[1].x, op[1].y), (op[2].x, op[2].y)])
+				elif op[0] == "c":
+					pts = [(op[1].x, op[1].y)] + _bezier(op[1], op[2], op[3], op[4])
+					out[connue] += [[a, b] for a, b in zip(pts, pts[1:])]
+				elif op[0] == "re":
+					r = op[1]
+					c = [(r.x0, r.y0), (r.x1, r.y0), (r.x1, r.y1), (r.x0, r.y1), (r.x0, r.y0)]
+					out[connue] += [[a, b] for a, b in zip(c, c[1:])]
+		conv = lambda s: [  # noqa: E731
+			[(x0 / PT, (H - y0) / PT), (x1 / PT, (H - y1) / PT)] for (x0, y0), (x1, y1) in s
+		]
+		return conv(out[C_COUPE]), conv(out[C_RAINAGE])
 
 
-def couleurs_inattendues(chemin, tolerance=0.02):
+def couleurs_inattendues(chemin, tolerance=TOLERANCE_COULEUR):
 	"""Couleurs de tracé hors convention (garde-fou n°3).
 
 	Cas réel rencontré : une ouverture ovale cotée 81 x 146 mm absente de la couche
 	noire, donc absente de l'imposition générée. Le moteur doit le signaler.
 	"""
-	doc = pymupdf.open(chemin)
 	trouvees = {}
-	for it in doc[0].get_drawings():
-		col = it["color"]
-		if col is None:
-			continue
-		if any(all(abs(c - k) <= tolerance for c, k in zip(col, connue)) for connue in COULEURS_CONNUES):
-			continue
-		cle = tuple(round(c, 3) for c in col)
-		trouvees[cle] = trouvees.get(cle, 0) + len(it["items"])
+	with pymupdf.open(chemin) as doc:
+		for it in doc[0].get_drawings():
+			col = it["color"]
+			if col is None or _couleur_connue(col, tolerance):
+				continue
+			cle = tuple(round(c, 3) for c in col[:3])
+			trouvees[cle] = trouvees.get(cle, 0) + len(it["items"])
 	return sorted(trouvees.items(), key=lambda kv: -kv[1])
 
 

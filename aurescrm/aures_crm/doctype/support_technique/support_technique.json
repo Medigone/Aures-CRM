@@ -81,19 +81,19 @@
   {
    "fieldname": "formats_section",
    "fieldtype": "Section Break",
-   "label": "Formats de feuilles en stock"
+   "label": "Formats en stock (palette ou bobine)"
   },
   {
-   "description": "Formats disponibles sans refente. Utilis\u00e9s par le sc\u00e9nario \u00ab C \u2014 Format en stock \u00bb.",
+   "description": "Palette : format achet\u00e9 d\u00e9j\u00e0 d\u00e9coup\u00e9. Bobine : laize fixe ; d\u00e9placement vide = coupe au besoin, sinon longueur max de coupe.",
    "fieldname": "formats_feuilles",
    "fieldtype": "Table",
-   "label": "Formats de feuilles",
+   "label": "Formats en stock",
    "options": "Format Feuille Support"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-13 10:00:00",
+ "modified": "2026-09-14 14:38:00",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Support Technique",

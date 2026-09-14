@@ -63,11 +63,7 @@
   "developpe_calcule_d",
   "surface_utile",
   "remplissage_bbox",
-  "statut_calcul",
-  "scenarios_section",
-  "scenarios",
-  "log_section",
-  "log_calcul",
+  "calcul_imposition",
   "section_break_edky",
   "observations",
   "amended_from"
@@ -261,37 +257,10 @@
   },
   {
    "allow_on_submit": 1,
-   "default": "Non lanc\u00e9",
-   "fieldname": "statut_calcul",
-   "fieldtype": "Select",
-   "label": "Statut du calcul",
-   "options": "Non lanc\u00e9\nEn cours\nTermin\u00e9\n\u00c9chec",
-   "read_only": 1
-  },
-  {
-   "fieldname": "scenarios_section",
-   "fieldtype": "Section Break",
-   "label": "Sc\u00e9narios propos\u00e9s"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "scenarios",
-   "fieldtype": "Table",
-   "label": "Sc\u00e9narios",
-   "options": "Scenario Imposition"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "log_section",
-   "fieldtype": "Section Break",
-   "label": "Journal de calcul"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "log_calcul",
-   "fieldtype": "Code",
-   "label": "Journal de calcul",
-   "options": "Text",
+   "fieldname": "calcul_imposition",
+   "fieldtype": "Link",
+   "label": "Calcul d'imposition",
+   "options": "Calcul Imposition",
    "read_only": 1
   },
   {
@@ -305,6 +274,7 @@
    "label": "Observations"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "taux_chutes",
    "fieldtype": "Float",
    "label": "Taux de chutes",
@@ -367,6 +337,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "imposition",
    "fieldtype": "Link",
    "label": "Imposition",
@@ -431,7 +402,7 @@
   },
   {
    "fetch_from": "trace.fichier_trace",
-   "fetch_if_empty": 1,
+   "fetch_if_empty": 0,
    "fieldname": "fichier_trace",
    "fieldtype": "Attach",
    "hidden": 1,
@@ -440,6 +411,7 @@
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "fetch_from": "imposition.fichier_imp",
    "fetch_if_empty": 1,
    "fieldname": "fichier_imp",

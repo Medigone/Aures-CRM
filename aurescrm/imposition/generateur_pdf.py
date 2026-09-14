@@ -3,8 +3,8 @@
 
 """Génération du PDF d'imposition à l'échelle 1:1.
 
-Hors périmètre v1 : croix de repérage, gammes de contrôle, marques de coupe,
-cartouche de dossier, export CF2/DXF.
+Export CAD carton : voir `generateur_cf2` (CFF2 pour ArtiosCAD).
+Hors périmètre : croix de repérage, gammes de contrôle, marques de coupe, DXF.
 """
 
 import pymupdf
@@ -37,15 +37,8 @@ def _poses_normalisees(segments, poly, rotation):
 	return out, tourne
 
 
-def generer_pdf(chemin_sortie, segments_coupe, segments_rainage, poly, disposition, parametres, titre=""):
-	"""Écrit le PDF d'imposition et retourne son chemin.
-
-	`poly` doit être la silhouette NON translatée (même repère que les segments).
-	"""
+def _controler_debord(disposition, parametres, tourne):
 	d, p = disposition, parametres
-	coupe, tourne = _poses_normalisees(segments_coupe, poly, d.rotation)
-	rain, _ = _poses_normalisees(segments_rainage, poly, d.rotation)
-
 	bx0, by0, bx1, by1 = tourne.bounds
 	bw, bh = bx1 - bx0, by1 - by0
 	max_x = p.lisiere + (d.n_col - 1) * d.pas_laize + bw
@@ -56,21 +49,34 @@ def generer_pdf(chemin_sortie, segments_coupe, segments_rainage, poly, dispositi
 			f"({max_x:.2f} x {max_y:.2f} mm pour une feuille de {d.laize} x {d.depl} mm)"
 		)
 
-	doc = pymupdf.open()
-	page = doc.new_page(width=d.laize * PT, height=d.depl * PT)
-	hauteur = d.depl
-	to_pt = lambda x, y: pymupdf.Point(x * PT, (hauteur - y) * PT)  # noqa: E731
 
-	page.draw_rect(pymupdf.Rect(0, 0, d.laize * PT, d.depl * PT), color=C_FEUILLE, width=0.5)
+def segments_imposes(segments_coupe, segments_rainage, poly, disposition, parametres):
+	"""Segments coupe/rainage placés sur la feuille, en mm, origine coin bas-gauche."""
+	d, p = disposition, parametres
+	coupe, tourne = _poses_normalisees(segments_coupe, poly, d.rotation)
+	rain, _ = _poses_normalisees(segments_rainage, poly, d.rotation)
+	_controler_debord(d, p, tourne)
+	places_coupe, places_rain = [], []
 	for i in range(d.n_col):
 		for j in range(d.n_rang):
 			dx = p.lisiere + i * d.pas_laize
 			dy = p.pince + j * d.pas_depl
-			for segs, couleur, largeur in ((coupe, C_COUPE, 0.36), (rain, C_RAINAGE, 0.54)):
-				for (ax, ay), (bx, by) in segs:
-					page.draw_line(
-						to_pt(ax + dx, ay + dy), to_pt(bx + dx, by + dy), color=couleur, width=largeur
-					)
+			for (ax, ay), (bx, by) in coupe:
+				places_coupe.append(((ax + dx, ay + dy), (bx + dx, by + dy)))
+			for (ax, ay), (bx, by) in rain:
+				places_rain.append(((ax + dx, ay + dy), (bx + dx, by + dy)))
+	return places_coupe, places_rain
+
+
+def _ajouter_page(doc, coupe, rain, disposition, parametres, titre=""):
+	d, p = disposition, parametres
+	page = doc.new_page(width=d.laize * PT, height=d.depl * PT)
+	hauteur = d.depl
+	to_pt = lambda x, y: pymupdf.Point(x * PT, (hauteur - y) * PT)  # noqa: E731
+	page.draw_rect(pymupdf.Rect(0, 0, d.laize * PT, d.depl * PT), color=C_FEUILLE, width=0.5)
+	for segs, couleur, largeur in ((coupe, C_COUPE, 0.36), (rain, C_RAINAGE, 0.54)):
+		for (ax, ay), (bx, by) in segs:
+			page.draw_line(to_pt(ax, ay), to_pt(bx, by), color=couleur, width=largeur)
 	page.insert_text(
 		pymupdf.Point(8 * PT, 10 * PT),
 		f"{titre} | {d.laize} x {d.depl} mm | {d.poses} poses ({d.n_col}x{d.n_rang}) | "
@@ -78,5 +84,32 @@ def generer_pdf(chemin_sortie, segments_coupe, segments_rainage, poly, dispositi
 		fontsize=7,
 		color=(0.4, 0.4, 0.4),
 	)
+
+
+def generer_pdf_pages(chemin_sortie, segments_coupe, segments_rainage, poly, pages, parametres):
+	"""Une page PDF par couple (disposition, titre). Retourne le chemin."""
+	if not pages:
+		raise ValueError("Aucune disposition à exporter.")
+	doc = pymupdf.open()
+	for disposition, titre in pages:
+		coupe, rain = segments_imposes(
+			segments_coupe, segments_rainage, poly, disposition, parametres
+		)
+		_ajouter_page(doc, coupe, rain, disposition, parametres, titre or "")
 	doc.save(chemin_sortie)
 	return chemin_sortie
+
+
+def generer_pdf(chemin_sortie, segments_coupe, segments_rainage, poly, disposition, parametres, titre=""):
+	"""Écrit le PDF d'imposition et retourne son chemin.
+
+	`poly` doit être la silhouette NON translatée (même repère que les segments).
+	"""
+	return generer_pdf_pages(
+		chemin_sortie,
+		segments_coupe,
+		segments_rainage,
+		poly,
+		[(disposition, titre)],
+		parametres,
+	)

@@ -1,0 +1,204 @@
+/* Atelier d'imposition */
+
+.atelier-imposition {
+	padding: 0 8px 24px;
+}
+
+.atelier-source,
+.atelier-formats,
+.atelier-entete,
+.atelier-corps,
+.atelier-pied,
+.atelier-simulation {
+	background: var(--card-bg, #fff);
+	border: 1px solid var(--border-color, #d1d8dd);
+	border-radius: 8px;
+	padding: 12px 16px;
+	margin-bottom: 12px;
+}
+
+.atelier-source-actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.atelier-fichier-nom {
+	font-weight: 600;
+}
+
+.atelier-formats-groupe {
+	margin-bottom: 8px;
+}
+
+.atelier-formats-groupe h6 {
+	margin: 8px 0 4px;
+	text-transform: uppercase;
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	color: var(--text-muted);
+}
+
+.atelier-format-ligne {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 2px 0;
+}
+
+.atelier-entete-mesures {
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
+	align-items: flex-end;
+}
+
+.atelier-jauge {
+	flex: 1;
+	min-width: 180px;
+}
+
+.atelier-jauge-barre {
+	height: 8px;
+	background: var(--bg-color, #f4f5f6);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.atelier-jauge-plein {
+	height: 100%;
+	background: var(--primary);
+}
+
+.atelier-badge-recalcul {
+	display: none;
+	margin-left: 8px;
+}
+
+.atelier-badge-recalcul.visible {
+	display: inline-block;
+}
+
+.atelier-scenarios table {
+	width: 100%;
+	font-size: 12px;
+}
+
+.atelier-scenarios th {
+	cursor: pointer;
+	white-space: nowrap;
+	user-select: none;
+}
+
+.atelier-scenarios tr.retenu td {
+	background: var(--bg-light-gray, #f7fafc);
+	font-weight: 600;
+}
+
+.atelier-delta-pos { color: var(--green-500, #2490ef); }
+.atelier-delta-neg { color: var(--red-500, #e03636); }
+
+.atelier-apercus {
+	margin-top: 12px;
+}
+
+.atelier-apercu-onglets {
+	display: flex;
+	gap: 6px;
+	padding-bottom: 8px;
+	margin-bottom: 8px;
+	align-items: center;
+}
+
+.atelier-apercu-pastilles {
+	display: flex;
+	gap: 6px;
+	overflow-x: auto;
+	flex: 1;
+	min-width: 0;
+}
+
+.atelier-apercu-telecharger {
+	margin-left: auto;
+	flex: 0 0 auto;
+}
+
+.atelier-apercu-onglet {
+	flex: 0 0 auto;
+	border: 1px solid var(--border-color, #d1d8dd);
+	background: var(--bg-color, #f4f5f6);
+	border-radius: 999px;
+	padding: 4px 12px;
+	font-size: 12px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.atelier-apercu-onglet.actif {
+	border-color: var(--primary);
+	background: var(--card-bg, #fff);
+	font-weight: 600;
+	box-shadow: inset 0 -2px 0 var(--primary);
+}
+
+.atelier-apercu-panneau {
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	padding: 8px;
+	background: #fafafa;
+}
+
+.atelier-apercu-panneau svg {
+	display: block;
+	width: 100%;
+	height: auto;
+	max-height: min(70vh, 640px);
+	overflow: visible;
+	background: #fff;
+	border-radius: 4px;
+	cursor: grab;
+}
+
+.atelier-hint-quantite {
+	display: none;
+	margin-left: 8px;
+}
+
+.atelier-hint-quantite.visible {
+	display: inline-block;
+}
+
+.atelier-apercu-bandeau {
+	font-size: 11px;
+	color: var(--text-muted);
+	margin-top: 4px;
+}
+
+.atelier-sim-champs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	align-items: flex-end;
+}
+
+.atelier-historique table {
+	width: 100%;
+	font-size: 12px;
+}
+
+.atelier-historique tr {
+	cursor: pointer;
+}
+
+.atelier-historique tr:hover td {
+	background: var(--bg-color);
+}
+
+.page-form .atelier-param-cache {
+	display: none !important;
+}
+
+.atelier-source.sans-pdf {
+	border-style: dashed;
+}

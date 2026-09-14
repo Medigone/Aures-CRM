@@ -1,0 +1,368 @@
+{
+ "actions": [],
+ "autoname": "format:CI-{YY}{MM}-{#####}",
+ "creation": "2026-09-13 20:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_entrees",
+  "fichier_trace",
+  "trace",
+  "column_break_source",
+  "article",
+  "client",
+  "etude_faisabilite",
+  "support_technique",
+  "section_technique",
+  "machine_impression",
+  "machine_decoupe",
+  "pont",
+  "column_break_tech",
+  "trait_commun_autorise",
+  "sens_fibre",
+  "lisiere",
+  "pince",
+  "marge_arriere",
+  "ignorer_contraintes_machine",
+  "quantite",
+  "inclure_sur_mesure",
+  "section_formats",
+  "formats_etudies",
+  "section_resultats",
+  "statut_calcul",
+  "developpe_l",
+  "developpe_d",
+  "column_break_mesures",
+  "surface_utile",
+  "surface_utile_mm2",
+  "remplissage_bbox",
+  "duree_calcul",
+  "section_scenarios",
+  "scenarios",
+  "section_choix",
+  "scenario_retenu",
+  "imposition_creee",
+  "section_log",
+  "log_calcul",
+  "section_cache",
+  "empreinte_trace",
+  "variantes_json",
+  "bornes_json",
+  "silhouette_svg"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_entrees",
+   "fieldtype": "Section Break",
+   "label": "Source"
+  },
+  {
+   "fieldname": "fichier_trace",
+   "fieldtype": "Attach",
+   "label": "Fichier trac\u00e9",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "label": "Trac\u00e9",
+   "options": "Trace"
+  },
+  {
+   "fieldname": "column_break_source",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Article",
+   "options": "Item"
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "etude_faisabilite",
+   "fieldtype": "Link",
+   "label": "\u00c9tude de faisabilit\u00e9",
+   "options": "Etude Faisabilite",
+   "search_index": 1
+  },
+  {
+   "fieldname": "support_technique",
+   "fieldtype": "Link",
+   "label": "Support technique",
+   "options": "Support Technique"
+  },
+  {
+   "fieldname": "section_technique",
+   "fieldtype": "Section Break",
+   "label": "Param\u00e8tres techniques"
+  },
+  {
+   "fieldname": "machine_impression",
+   "fieldtype": "Link",
+   "label": "Machine impression",
+   "options": "Machine"
+  },
+  {
+   "fieldname": "machine_decoupe",
+   "fieldtype": "Link",
+   "label": "Machine d\u00e9coupe",
+   "options": "Machine"
+  },
+  {
+   "fieldname": "pont",
+   "fieldtype": "Float",
+   "label": "Pont mini (mm)",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_tech",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "trait_commun_autorise",
+   "fieldtype": "Check",
+   "label": "Trait commun autoris\u00e9"
+  },
+  {
+   "default": "Libre",
+   "fieldname": "sens_fibre",
+   "fieldtype": "Select",
+   "label": "Sens fibre",
+   "options": "Libre\n0\u00b0\n90\u00b0"
+  },
+  {
+   "default": "15.6",
+   "fieldname": "lisiere",
+   "fieldtype": "Float",
+   "label": "Lisi\u00e8re (mm)",
+   "precision": "2"
+  },
+  {
+   "default": "10",
+   "fieldname": "pince",
+   "fieldtype": "Float",
+   "label": "Pince (mm)",
+   "precision": "2"
+  },
+  {
+   "default": "15",
+   "fieldname": "marge_arriere",
+   "fieldtype": "Float",
+   "label": "Marge arri\u00e8re (mm)",
+   "precision": "2"
+  },
+  {
+   "default": "0",
+   "fieldname": "ignorer_contraintes_machine",
+   "fieldtype": "Check",
+   "label": "Ignorer min/max machine"
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9"
+  },
+  {
+   "default": "1",
+   "fieldname": "inclure_sur_mesure",
+   "fieldtype": "Check",
+   "label": "Inclure les formats sur mesure"
+  },
+  {
+   "fieldname": "section_formats",
+   "fieldtype": "Section Break",
+   "label": "Formats \u00e0 \u00e9tudier"
+  },
+  {
+   "fieldname": "formats_etudies",
+   "fieldtype": "Table",
+   "label": "Formats \u00e9tudi\u00e9s",
+   "options": "Format Candidat Imposition"
+  },
+  {
+   "fieldname": "section_resultats",
+   "fieldtype": "Section Break",
+   "label": "R\u00e9sultat"
+  },
+  {
+   "default": "Non lanc\u00e9",
+   "fieldname": "statut_calcul",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Statut du calcul",
+   "options": "Non lanc\u00e9\nEn cours\nTermin\u00e9\n\u00c9chec",
+   "read_only": 1
+  },
+  {
+   "fieldname": "developpe_l",
+   "fieldtype": "Float",
+   "label": "D\u00e9velopp\u00e9 laize (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "developpe_d",
+   "fieldtype": "Float",
+   "label": "D\u00e9velopp\u00e9 d\u00e9placement (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_mesures",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "surface_utile",
+   "fieldtype": "Float",
+   "label": "Surface utile (cm\u00b2)",
+   "precision": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "surface_utile_mm2",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Surface utile (mm\u00b2)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remplissage_bbox",
+   "fieldtype": "Percent",
+   "label": "Remplissage bbox",
+   "read_only": 1
+  },
+  {
+   "fieldname": "duree_calcul",
+   "fieldtype": "Float",
+   "label": "Dur\u00e9e du calcul (s)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_scenarios",
+   "fieldtype": "Section Break",
+   "label": "Sc\u00e9narios"
+  },
+  {
+   "fieldname": "scenarios",
+   "fieldtype": "Table",
+   "label": "Sc\u00e9narios",
+   "options": "Scenario Imposition",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_choix",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "scenario_retenu",
+   "fieldtype": "Data",
+   "label": "Sc\u00e9nario retenu",
+   "read_only": 1
+  },
+  {
+   "fieldname": "imposition_creee",
+   "fieldtype": "Link",
+   "label": "Imposition cr\u00e9\u00e9e",
+   "options": "Imposition",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_log",
+   "fieldtype": "Section Break",
+   "label": "Journal de calcul"
+  },
+  {
+   "fieldname": "log_calcul",
+   "fieldtype": "Code",
+   "label": "Journal",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_cache",
+   "fieldtype": "Section Break",
+   "label": "Cache (ne pas \u00e9diter)"
+  },
+  {
+   "fieldname": "empreinte_trace",
+   "fieldtype": "Data",
+   "label": "Empreinte SHA1 du PDF",
+   "read_only": 1
+  },
+  {
+   "fieldname": "variantes_json",
+   "fieldtype": "Long Text",
+   "label": "Variantes (JSON)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bornes_json",
+   "fieldtype": "Long Text",
+   "label": "Param\u00e8tres fig\u00e9s (JSON)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "silhouette_svg",
+   "fieldtype": "Long Text",
+   "label": "Silhouette SVG (JSON)",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 0,
+ "links": [],
+ "modified": "2026-09-14 00:55:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Calcul Imposition",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Responsable \u00c9tude Faisabilit\u00e9",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Technicien Prepresse"
+  },
+  {
+   "read": 1,
+   "role": "Responsable Prepresse"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

@@ -6,11 +6,21 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "bobine",
   "laize",
   "depl",
   "commentaire"
  ],
  "fields": [
+  {
+   "columns": 1,
+   "default": "0",
+   "description": "Laize fixe. D\u00e9placement vide = coupe au besoin ; sinon longueur max de coupe.",
+   "fieldname": "bobine",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Bobine"
+  },
   {
    "columns": 2,
    "fieldname": "laize",
@@ -23,13 +33,14 @@
   },
   {
    "columns": 2,
+   "description": "Palette : format achet\u00e9 (obligatoire). Bobine : longueur max de coupe, vide = coupe au besoin.",
    "fieldname": "depl",
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "D\u00e9placement (mm)",
+   "mandatory_depends_on": "eval:!doc.bobine",
    "non_negative": 1,
-   "precision": "1",
-   "reqd": 1
+   "precision": "1"
   },
   {
    "columns": 5,
@@ -42,7 +53,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-13 10:00:00",
+ "modified": "2026-09-14 14:38:00",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Format Feuille Support",

@@ -21,17 +21,22 @@ import unittest
 
 from shapely.geometry import Polygon
 
-from aurescrm.imposition.generateur_pdf import generer_pdf
+from aurescrm.imposition.generateur_cf2 import generer_cff2
+from aurescrm.imposition.generateur_pdf import generer_pdf, generer_pdf_pages
 from aurescrm.imposition.geometrie import contact_droit, pas_minimal, pas_retenus
 from aurescrm.imposition.lecture_trace import (
+	couleurs_inattendues,
 	lire_trace,
 	metriques_developpe,
 	silhouette,
+	PT,
 )
 from aurescrm.imposition.optimiseur import (
 	Parametres,
+	alertes,
 	chiffrer,
 	dispositions,
+	evaluer_bobine,
 	evaluer_format,
 	trois_scenarios,
 )
@@ -82,6 +87,56 @@ class TestGeometrie(unittest.TestCase):
 		d = evaluer_format(carre, p, 100.0, 100.0)
 		self.assertIsNotNone(d)
 		self.assertEqual((d.n_col, d.n_rang, d.poses), (1, 1, 1))
+
+	def test_coupe_quasi_noire_lue_et_verte_signalee(self):
+		"""Un trait quasi noir est une coupe ; une couleur hors convention est signalée."""
+		import pymupdf
+
+		doc = pymupdf.open()
+		page = doc.new_page(width=100 * PT, height=100 * PT)
+		page.draw_line(
+			pymupdf.Point(10 * PT, 10 * PT),
+			pymupdf.Point(90 * PT, 10 * PT),
+			color=(0.01, 0.0, 0.0),
+			width=0.4,
+		)
+		page.draw_line(
+			pymupdf.Point(10 * PT, 40 * PT),
+			pymupdf.Point(90 * PT, 40 * PT),
+			color=(0.0, 0.8, 0.0),
+			width=0.4,
+		)
+		with tempfile.TemporaryDirectory() as rep:
+			chemin = os.path.join(rep, "couleurs.pdf")
+			doc.save(chemin)
+			doc.close()
+			coupe, rainage = lire_trace(chemin)
+			self.assertTrue(coupe, "le trait quasi noir doit être lu comme une coupe")
+			self.assertFalse(rainage)
+			inattendues = dict(couleurs_inattendues(chemin))
+			self.assertTrue(inattendues, "le trait vert doit être signalé")
+			for col in inattendues:
+				self.assertGreater(
+					max(abs(c - k) for c, k in zip(col, (0.0, 0.0, 0.0))),
+					0.02,
+					"le quasi-noir ne doit pas apparaître dans les couleurs inattendues",
+				)
+
+
+	def test_pdf_esko_physiophormine_reel_si_present(self):
+		"""Le PDF Esko de production (pas la fixture reconstruite) doit donner coupe + rainage."""
+		chemin = (
+			"/home/wezri/frappe-bench/sites/aurescrm.intrapro.net/private/files/"
+			"TRA-26-09-4044 Etui Physiophormine 850mg90 cpm 72x46.5x107mm.pdf"
+		)
+		if not os.path.exists(chemin):
+			self.skipTest("PDF de production absent de ce site")
+		coupe, rainage = lire_trace(chemin)
+		self.assertGreater(len(coupe), 0)
+		self.assertGreater(len(rainage), 0)
+		mesures = metriques_developpe(silhouette(coupe, rainage))
+		self.assertAlmostEqual(mesures["developpe_l"], 247.2, delta=0.3)
+		self.assertAlmostEqual(mesures["developpe_d"], 230.1, delta=0.3)
 
 
 class TestEtuiPhysiophormine(unittest.TestCase):
@@ -149,6 +204,45 @@ class TestEtuiPhysiophormine(unittest.TestCase):
 			page = pymupdf.open(sortie)[0]
 			self.assertAlmostEqual(page.rect.width / (72 / 25.4), 1020.0, delta=0.1)
 			self.assertAlmostEqual(page.rect.height / (72 / 25.4), 600.0, delta=0.1)
+
+	def test_generation_pdf_multipages(self):
+		d1 = evaluer_format(self.poly, self.params, 1020.0, 600.0)
+		d2 = evaluer_format(self.poly, self.params, 1020.0, 700.0)
+		with tempfile.TemporaryDirectory() as rep:
+			sortie = generer_pdf_pages(
+				os.path.join(rep, "simulations.pdf"),
+				self.coupe,
+				self.rainage,
+				self.poly,
+				[(d1, "1020 × 600"), (d2, "1020 × 700")],
+				self.params,
+			)
+			import pymupdf
+
+			doc = pymupdf.open(sortie)
+			self.assertEqual(len(doc), 2)
+			self.assertAlmostEqual(doc[0].rect.width / (72 / 25.4), 1020.0, delta=0.1)
+			self.assertAlmostEqual(doc[0].rect.height / (72 / 25.4), 600.0, delta=0.1)
+			self.assertAlmostEqual(doc[1].rect.width / (72 / 25.4), 1020.0, delta=0.1)
+			self.assertAlmostEqual(doc[1].rect.height / (72 / 25.4), 700.0, delta=0.1)
+
+	def test_generation_cff2(self):
+		d = evaluer_format(self.poly, self.params, 1020.0, 600.0)
+		with tempfile.TemporaryDirectory() as rep:
+			sortie = generer_cff2(
+				os.path.join(rep, "1020x600_4x3.cf2"),
+				self.coupe,
+				self.rainage,
+				self.poly,
+				d,
+				self.params,
+			)
+			texte = open(sortie, encoding="ascii").read()
+			self.assertIn("$BOF", texte)
+			self.assertIn("CUT", texte)
+			self.assertIn("CREASE", texte)
+			self.assertIn("L,1,", texte)
+			self.assertIn("L,2,", texte)
 
 	def test_controle_geometrique_post_generation(self):
 		"""Une grille trop grande pour la feuille doit lever, pas produire un PDF faux."""
@@ -222,6 +316,183 @@ class TestBoiteMouchoir(unittest.TestCase):
 		self.assertAlmostEqual(d.surface_par_pose / 100.0, 1836.0, delta=2.0)
 		chiffrage = chiffrer(d, self.params, self.mesures["surface_utile_mm2"])
 		self.assertAlmostEqual(chiffrage["taux_chutes"], 36.5, delta=0.3)
+
+
+class TestSaisieIngenieur(unittest.TestCase):
+	"""Lisière / pince / marge saisies, et simulation sans min/max machine."""
+
+	def test_lisiere_reduite_rapproche_la_feuille_ingenieur(self):
+		"""2×2 avec lisière 8 mm : ~782 × 699, pas 797 avec 15,6 mm machine."""
+		rect = Polygon([(0, 0), (382, 0), (382, 336), (0, 336)])
+		p = Parametres(
+			pince=10.0,
+			marge_arriere=15.0,
+			lisiere=8.0,
+			pont=2.0,
+			trait_commun=False,
+			laize_min=360,
+			laize_max=1020,
+			depl_min=400,
+			depl_max=720,
+		)
+		dispos = dispositions(rect, p)
+		d22 = next(d for d in dispos if d.n_col == 2 and d.n_rang == 2 and d.rotation == 0)
+		self.assertAlmostEqual(d22.laize, 382 + 384 + 16, delta=0.2)
+		self.assertAlmostEqual(d22.depl, 336 + 338 + 10 + 15, delta=0.2)
+
+	def test_sans_plafond_machine_les_dispositions_existent(self):
+		rect = Polygon([(0, 0), (100, 0), (100, 80), (0, 80)])
+		p = Parametres(
+			pince=0,
+			marge_arriere=0,
+			lisiere=0,
+			pont=0,
+			trait_commun=False,
+			laize_min=0,
+			laize_max=0,
+			depl_min=0,
+			depl_max=0,
+		)
+		dispos = dispositions(rect, p)
+		self.assertTrue(dispos)
+		self.assertTrue(any(d.n_col == 2 and d.n_rang == 2 for d in dispos))
+
+	def test_saisie_vers_bornes_annule_min_max(self):
+		from aurescrm.imposition.service import saisie_vers_bornes
+
+		b = saisie_vers_bornes(
+			{"laize_max": 1020, "depl_max": 720, "lisiere": 15.6, "pince": 10},
+			lisiere=8,
+			ignorer=True,
+		)
+		self.assertEqual(b["laize_max"], 0)
+		self.assertEqual(b["depl_max"], 0)
+		self.assertEqual(b["lisiere"], 8)
+
+	def test_alerte_sans_maxi_ne_signale_pas_un_depassement(self):
+		p = Parametres(laize_max=0, depl_max=0, lisiere=0, pince=0, marge_arriere=0)
+		d = evaluer_format(
+			Polygon([(0, 0), (100, 0), (100, 80), (0, 80)]), p, 2000.0, 1500.0
+		)
+		self.assertIsNotNone(d)
+		msgs = alertes(d, p)
+		self.assertFalse(any("dépasse le format maxi" in m for m in msgs))
+
+
+class TestBobine(unittest.TestCase):
+	"""Palette = format imposé ; bobine = coupe calculée sous un max."""
+
+	def setUp(self):
+		self.rect = Polygon([(0, 0), (100, 0), (100, 80), (0, 80)])
+		self.libre = Parametres(
+			pince=0,
+			marge_arriere=0,
+			lisiere=0,
+			pont=0,
+			trait_commun=False,
+			sens_fibre="0°",
+			laize_min=0,
+			laize_max=0,
+			depl_min=0,
+			depl_max=0,
+		)
+
+	def test_palette_impose_laize_et_depl(self):
+		d = evaluer_format(self.rect, self.libre, 250.0, 400.0)
+		self.assertIsNotNone(d)
+		self.assertEqual((d.n_col, d.n_rang), (2, 5))
+		self.assertAlmostEqual(d.laize, 250.0)
+		self.assertAlmostEqual(d.depl, 400.0)
+
+	def test_bobine_max_rangs_sous_plafond(self):
+		"""2 colonnes, 5 rangs (80×5 = 400), coupe = 400."""
+		d = evaluer_bobine(self.rect, self.libre, 250.0, 400.0)
+		self.assertIsNotNone(d)
+		self.assertEqual(d.n_col, 2)
+		self.assertEqual(d.n_rang, 5)
+		self.assertAlmostEqual(d.depl, 400.0)
+		self.assertAlmostEqual(d.laize, 250.0)
+
+	def test_bobine_coupe_plus_courte_que_le_max(self):
+		"""Palette 250×350 : depl imposé 350. Bobine max 350 : coupe 320 (4×80)."""
+		palette = evaluer_format(self.rect, self.libre, 250.0, 350.0)
+		bobine = evaluer_bobine(self.rect, self.libre, 250.0, 350.0)
+		self.assertEqual(palette.n_rang, 4)
+		self.assertAlmostEqual(palette.depl, 350.0)
+		self.assertEqual(bobine.n_rang, 4)
+		self.assertAlmostEqual(bobine.depl, 320.0)
+
+	def test_bobine_un_rang_depasse_le_max(self):
+		p = Parametres(
+			pince=10,
+			marge_arriere=15,
+			lisiere=0,
+			pont=0,
+			trait_commun=False,
+			sens_fibre="0°",
+			laize_max=0,
+			depl_max=0,
+		)
+		self.assertIsNone(evaluer_bobine(self.rect, p, 250.0, 100.0))
+
+	def test_bobine_plus_de_rangs_reduit_les_chutes(self):
+		p = Parametres(
+			pince=10,
+			marge_arriere=15,
+			lisiere=0,
+			pont=0,
+			trait_commun=False,
+			sens_fibre="0°",
+			laize_max=0,
+			depl_max=0,
+		)
+		d = evaluer_bobine(self.rect, p, 250.0, 2000.0)
+		self.assertIsNotNone(d)
+		self.assertEqual(d.n_col, 2)
+		self.assertEqual(d.n_rang, 12)
+
+	def test_bobine_sans_plafond_coupe_au_besoin(self):
+		"""Déplacement vide : 12 rangs, coupe = 80×12."""
+		d = evaluer_bobine(self.rect, self.libre, 250.0, 0)
+		self.assertIsNotNone(d)
+		self.assertEqual((d.n_col, d.n_rang), (2, 12))
+		self.assertAlmostEqual(d.depl, 960.0)
+
+	def test_formats_connus_bobine_sans_max(self):
+		from types import SimpleNamespace
+
+		from aurescrm.imposition.service import formats_connus
+
+		support = SimpleNamespace(
+			support="GC",
+			grammage="270",
+			formats_feuilles=[SimpleNamespace(laize=1020, depl=0, bobine=1)],
+		)
+		proposes = formats_connus(support=support, stock_seul=True)
+		self.assertEqual(len(proposes), 1)
+		self.assertEqual(proposes[0]["bobine"], 1)
+		self.assertIn("Bobine 1020 mm", proposes[0]["libelle"])
+		self.assertNotIn("max", proposes[0]["libelle"])
+
+	def test_formats_connus_palette_et_bobine_coexistent(self):
+		from types import SimpleNamespace
+
+		from aurescrm.imposition.service import formats_connus
+
+		support = SimpleNamespace(
+			support="GC",
+			grammage="270",
+			formats_feuilles=[
+				SimpleNamespace(laize=250, depl=400, bobine=0),
+				SimpleNamespace(laize=250, depl=400, bobine=1),
+			],
+		)
+		proposes = formats_connus(support=support, stock_seul=True)
+		self.assertEqual(len(proposes), 2)
+		palette = next(p for p in proposes if not p["bobine"])
+		bobine = next(p for p in proposes if p["bobine"])
+		self.assertIn("250 × 400", palette["libelle"])
+		self.assertIn("Bobine 250 mm (max 400)", bobine["libelle"])
 
 
 if __name__ == "__main__":
