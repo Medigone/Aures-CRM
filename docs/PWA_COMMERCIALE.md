@@ -35,8 +35,28 @@ Elle reprend l'architecture de MediConnect Field : instantané hors-ligne dans I
 - Une session expirée efface l'instantané mais garde les saisies non envoyées. À la déconnexion, l'application prévient s'il en reste.
 - Visite Commerciale : la date suit désormais le jour du début de visite, et non le jour de la synchro.
 
-## Lots suivants
-3. Tickets commerciaux, suivi devis / commandes / fabrication, BAT hors-ligne, réclamations, créances (consultation).
+## Lot 3 (livré) : processus commercial
+- **Onglet Suivi** : tickets, devis, commandes et réclamations du portefeuille, avec filtre « en cours / tous » et recherche hors-ligne. Les mêmes listes figurent dans l'onglet **Affaires** de la fiche client.
+- **Tickets commerciaux** :
+  - **Création**, même hors-ligne : client, type, priorité, canal, site de production, échéance, description dictée, photos et PDF (6 au plus, 5 Mo chacun).
+  - **Raccourcis** : depuis la fiche article (« Retirage », « Devis », « Ticket », préremplis avec l'article) et depuis la visite.
+  - **Suivi** : statut, prise en charge, statut créance et **cycle** (demandes de faisabilité, études, devis, commandes). Le cycle est chargé en ligne puis gardé sur l'appareil.
+  - **Urgence** : demande U1 à U3 avec motif, et retrait de la demande. Les fonctions whitelistées existantes appliquent les règles. La validation reste à l'Administration des ventes.
+- **Réclamations** :
+  - Le commercial les déclare par un **ticket de type « Réclamation »**, depuis la fiche client ou la visite. La visite d'origine est citée dans la description, et les photos sont jointes au ticket.
+  - Les fiches **Réclamations Clients** de Coordination sont consultables, sans saisie possible.
+- **Devis** : lignes, montant, validité, statut de commande, commandes liées.
+- **Commandes** : BC client, livraison prévue, % livré et facturé, et **avancement de fabrication** (dossier, études techniques, ordres de production avec quantités produites).
+- **Créances** : solde, statut et relance dans l'onglet Affaires. Les mouvements sont consultés en ligne puis gardés sur l'appareil.
+- **Aujourd'hui → À traiter** : urgences validées ou refusées, tickets bloqués pour créance, réclamations en retard, relances de créances dues.
+- **BAT et fichiers hors-ligne** :
+  - Les fichiers sont gardés dans le Cache Storage `commercial-contents` (25 Mo par fichier, 200 Mo au total).
+  - Après chaque synchro, le dernier BAT des articles des clients qui ont une visite ou un RDV cette semaine est préchargé (30 fichiers au plus).
+  - Le bouton « Garder hors-ligne » est disponible sur les BAT, les fiches techniques et les tracés.
+
+API : `aurescrm/api/commercial_affaires.py` fournit les sections `tickets`, `devis`, `commandes`, `reclamations`, `bats`, ainsi que `get_ticket_cycle` et `get_creance_detail`. Les actions `ticket_create`, `ticket_update`, `ticket_urgence_request` et `ticket_urgence_cancel` sont dans `commercial_mutations.py`.
+
+## Lot suivant
 4. Notifications push (VAPID), temps réel, objectifs Pilotage Commercial.
 
 ## Développement et déploiement

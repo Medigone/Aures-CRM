@@ -25,6 +25,37 @@ const TONES: Record<string, string> = {
 	'BAT-E Validé': 'bg-surface-green-2 text-ink-green-3',
 	'BAT-P Validé': 'bg-surface-green-2 text-ink-green-3',
 	Obsolète: 'bg-surface-gray-3 text-ink-gray-7',
+	'BAT en cours': 'bg-surface-blue-2 text-ink-blue-3',
+	// Tickets
+	Pending: 'bg-surface-amber-2 text-ink-amber-3',
+	'Blocage Créance': 'bg-surface-red-2 text-ink-red-3',
+	// Devis et commandes (libellés traduits)
+	Brouillon: 'bg-surface-gray-2 text-ink-gray-7',
+	Ouvert: 'bg-surface-blue-2 text-ink-blue-3',
+	Commandé: 'bg-surface-green-2 text-ink-green-3',
+	'Entièrement commandé': 'bg-surface-green-2 text-ink-green-3',
+	'Partiellement commandé': 'bg-surface-amber-2 text-ink-amber-3',
+	'Non commandé': 'bg-surface-blue-2 text-ink-blue-3',
+	Expiré: 'bg-surface-gray-3 text-ink-gray-7',
+	'À livrer et facturer': 'bg-surface-blue-2 text-ink-blue-3',
+	'À livrer': 'bg-surface-blue-2 text-ink-blue-3',
+	'À facturer': 'bg-surface-amber-2 text-ink-amber-3',
+	Clôturé: 'bg-surface-gray-3 text-ink-gray-7',
+	// Réclamations et fabrication
+	'En Traitement': 'bg-surface-amber-2 text-ink-amber-3',
+	Traité: 'bg-surface-green-2 text-ink-green-3',
+	'Non Traité': 'bg-surface-red-2 text-ink-red-3',
+	'En retard': 'bg-surface-red-2 text-ink-red-3',
+	Planifié: 'bg-surface-blue-2 text-ink-blue-3',
+	'En Production': 'bg-surface-amber-2 text-ink-amber-3',
+	'En Pause': 'bg-surface-amber-2 text-ink-amber-3',
+	Annulée: 'bg-surface-gray-3 text-ink-gray-7',
+	// Créances
+	Ouverte: 'bg-surface-blue-2 text-ink-blue-3',
+	'Partiellement recouvrée': 'bg-surface-amber-2 text-ink-amber-3',
+	Soldée: 'bg-surface-green-2 text-ink-green-3',
+	Litige: 'bg-surface-red-2 text-ink-red-3',
+	Suspendue: 'bg-surface-gray-3 text-ink-gray-7',
 }
 /** Statuts ERPNext (Devis, Commande) affichés en français. */
 const LABELS: Record<string, string> = {

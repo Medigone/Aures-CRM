@@ -13,9 +13,28 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { ApiError, call, isAuthError, loginUrl, logout as apiLogout, mobileApi, PUSH_TIMEOUT_MS, refreshBoot } from '@/lib/api'
 import { idbClear, idbDelete, idbGet, idbSet } from '@/lib/idb'
-import { toServerDateTime, uid } from '@/lib/format'
+import { addDays, toServerDateTime, uid, weekStart } from '@/lib/format'
 import { applyMutation, CREATES, localKey, MAX_ATTEMPTS, retryDelayMs, type Mutation, type MutationType } from '@/lib/mutations'
-import type { Appel, Article, ArticleHistory, Bundle, Client, Contact, Creance, RendezVous, SyncMeta, Visite } from '@/types'
+import { clearContentIndex, prefetchFiles, prefetchPlan } from '@/lib/contentCache'
+import type {
+	Appel,
+	Article,
+	ArticleHistory,
+	Bat,
+	Bundle,
+	Client,
+	Commande,
+	Contact,
+	Creance,
+	CreanceDetail,
+	Devis,
+	Reclamation,
+	RendezVous,
+	SyncMeta,
+	Ticket,
+	TicketCycle,
+	Visite,
+} from '@/types'
 
 export const SYNC_PAGE_LENGTH = 500
 /** Synchro automatique tant que l'application est ouverte. */
@@ -23,7 +42,13 @@ const AUTO_SYNC_MS = 5 * 60 * 1000
 const PUSH_BATCH = 50
 const BUNDLE_KEY = 'bundle'
 const STATE_KEY = 'state'
-const historyKey = (article: string) => `history:${article}`
+/** Consultations en ligne gardées sur l'appareil : historique d'article, cycle de ticket, détail de créance. */
+const ONLINE = {
+	history: { method: 'aurescrm.api.commercial_mobile.get_article_history', param: 'item' },
+	cycle: { method: 'aurescrm.api.commercial_affaires.get_ticket_cycle', param: 'ticket' },
+	creance: { method: 'aurescrm.api.commercial_affaires.get_creance_detail', param: 'creance' },
+} as const
+type OnlineKind = keyof typeof ONLINE
 const PUSH_METHOD = 'aurescrm.api.commercial_mobile.push_mutations'
 
 type PushResult = { id: string; ok: boolean; retry: boolean; result: { doctype?: string; name?: string } | null; error: string | null }
@@ -64,7 +89,27 @@ export async function pullSnapshot(): Promise<Bundle> {
 	const rdv = await pullSection<RendezVous>('rdv', byName)
 	const appels = await pullSection<Appel>('appels', byName)
 	const creances = await pullSection<Creance>('creances', byName)
-	return { ...meta, clients, contacts, articles, visites, rdv, appels, creances, synced_at: toServerDateTime() }
+	const tickets = await pullSection<Ticket>('tickets', byName)
+	const devis = await pullSection<Devis>('devis', byName)
+	const commandes = await pullSection<Commande>('commandes', byName)
+	const reclamations = await pullSection<Reclamation>('reclamations', byName)
+	const bats = await pullSection<Bat>('bats', byName)
+	return {
+		...meta,
+		clients,
+		contacts,
+		articles,
+		visites,
+		rdv,
+		appels,
+		creances,
+		tickets,
+		devis,
+		commandes,
+		reclamations,
+		bats,
+		synced_at: toServerDateTime(),
+	}
 }
 
 function groupBy<T>(rows: T[], keyOf: (row: T) => string | null | undefined) {
@@ -92,7 +137,8 @@ export const useCommercialStore = defineStore('commercial', () => {
 	const storageError = ref(false)
 	/** Saisies d'un autre compte sur cet appareil : elles ne partent pas sous la session actuelle. */
 	const foreignOutbox = ref(false)
-	const histories = ref<Record<string, ArticleHistory>>({})
+	/** Dernières consultations en ligne, par `<sorte>:<nom>`. */
+	const consulted = ref<Record<string, unknown>>({})
 
 	const user = computed(() => server.value?.user ?? null)
 
@@ -128,6 +174,11 @@ export const useCommercialStore = defineStore('commercial', () => {
 	const rdv = computed(() => bundle.value?.rdv ?? [])
 	const appels = computed(() => bundle.value?.appels ?? [])
 	const creances = computed(() => bundle.value?.creances ?? [])
+	const tickets = computed(() => bundle.value?.tickets ?? [])
+	const devis = computed(() => bundle.value?.devis ?? [])
+	const commandes = computed(() => bundle.value?.commandes ?? [])
+	const reclamations = computed(() => bundle.value?.reclamations ?? [])
+	const bats = computed(() => bundle.value?.bats ?? [])
 	const references = computed(() => bundle.value?.references ?? null)
 
 	const clientsByName = computed(() => new Map(clients.value.map((c) => [c.name, c])))
@@ -141,6 +192,15 @@ export const useCommercialStore = defineStore('commercial', () => {
 	const rdvByClient = computed(() => groupBy(rdv.value, (r) => r.client))
 	const appelsByClient = computed(() => groupBy(appels.value, (a) => a.client))
 	const creancesByClient = computed(() => groupBy(creances.value, (c) => c.client))
+	const ticketsByName = computed(() => new Map(tickets.value.map((t) => [t.name, t])))
+	const devisByName = computed(() => new Map(devis.value.map((d) => [d.name, d])))
+	const commandesByName = computed(() => new Map(commandes.value.map((c) => [c.name, c])))
+	const reclamationsByName = computed(() => new Map(reclamations.value.map((r) => [r.name, r])))
+	const ticketsByClient = computed(() => groupBy(tickets.value, (t) => t.client))
+	const devisByClient = computed(() => groupBy(devis.value, (d) => d.client))
+	const commandesByClient = computed(() => groupBy(commandes.value, (c) => c.client))
+	const reclamationsByClient = computed(() => groupBy(reclamations.value, (r) => r.client))
+	const batsByArticle = computed(() => groupBy(bats.value, (b) => b.article))
 	const pendingCount = computed(() => outbox.value.length)
 
 	// -----------------------------------------------------------------------
@@ -284,12 +344,14 @@ export const useCommercialStore = defineStore('commercial', () => {
 			const next = await pullSnapshot()
 			if (server.value && server.value.user.name !== next.user.name) {
 				// Autre compte sur cet appareil : l'ancien instantané et ses historiques sont effacés.
-				histories.value = {}
+				consulted.value = {}
+				clearContentIndex()
 				await idbDelete(BUNDLE_KEY).catch(() => {})
 			}
 			server.value = next
 			await persistServer()
 			syncError.value = null
+			prefetchWeekFiles()
 		} catch (error) {
 			if (isAuthError(error)) return handleAuthError()
 			syncError.value = error instanceof ApiError && error.offline ? null : (error as Error).message
@@ -337,22 +399,44 @@ export const useCommercialStore = defineStore('commercial', () => {
 	}
 
 	// -----------------------------------------------------------------------
-	// Historique d'article (en ligne, gardé après consultation)
+	// Fichiers de la semaine : dernier BAT des articles des clients visités ou rencontrés cette semaine
 	// -----------------------------------------------------------------------
-	async function cachedHistory(article: string) {
-		if (histories.value[article]) return histories.value[article]
-		const saved = await idbGet<ArticleHistory>(historyKey(article)).catch(() => undefined)
-		if (saved) histories.value[article] = saved
+	function weekClients() {
+		const from = weekStart()
+		const to = addDays(from, 7)
+		const clients = new Set<string>()
+		for (const v of visites.value) if (v.date >= from && v.date < to && v.client) clients.add(v.client)
+		for (const r of rdv.value) {
+			const day = (r.date_heure || '').slice(0, 10)
+			if (r.client && day >= from && day < to) clients.add(r.client)
+		}
+		return clients
+	}
+
+	function prefetchWeekFiles() {
+		// En arrière-plan, après la synchro : rien n'attend la fin du téléchargement.
+		setTimeout(() => prefetchFiles(prefetchPlan(bats.value, weekClients())), 2000)
+	}
+
+	// -----------------------------------------------------------------------
+	// Consultations en ligne (gardées après consultation)
+	// -----------------------------------------------------------------------
+	async function cachedOnline<T>(kind: OnlineKind, name: string): Promise<T | null> {
+		const key = `${kind}:${name}`
+		if (consulted.value[key]) return consulted.value[key] as T
+		const saved = await idbGet<T>(key).catch(() => undefined)
+		if (saved) consulted.value[key] = saved
 		return saved ?? null
 	}
 
-	async function fetchHistory(article: string) {
-		const cached = await cachedHistory(article)
+	/** Version à jour (en ligne) ; hors-ligne ou en erreur, la dernière version consultée. */
+	async function fetchOnline<T>(kind: OnlineKind, name: string): Promise<T | null> {
+		const cached = await cachedOnline<T>(kind, name)
 		if (!online.value) return cached
 		try {
-			const fresh = await mobileApi<ArticleHistory>('get_article_history', { item: article })
-			histories.value[article] = fresh
-			idbSet(historyKey(article), fresh).catch(() => {})
+			const fresh = await call<T>(ONLINE[kind].method, { [ONLINE[kind].param]: name })
+			consulted.value[`${kind}:${name}`] = fresh
+			idbSet(`${kind}:${name}`, fresh).catch(() => {})
 			return fresh
 		} catch (error) {
 			if (isAuthError(error)) {
@@ -364,6 +448,13 @@ export const useCommercialStore = defineStore('commercial', () => {
 		}
 	}
 
+	const cachedHistory = (article: string) => cachedOnline<ArticleHistory>('history', article)
+	const fetchHistory = (article: string) => fetchOnline<ArticleHistory>('history', article)
+	const cachedCycle = (ticket: string) => cachedOnline<TicketCycle>('cycle', ticket)
+	const fetchCycle = (ticket: string) => fetchOnline<TicketCycle>('cycle', ticket)
+	const cachedCreance = (creance: string) => cachedOnline<CreanceDetail>('creance', creance)
+	const fetchCreance = (creance: string) => fetchOnline<CreanceDetail>('creance', creance)
+
 	async function logout() {
 		try {
 			await apiLogout()
@@ -371,6 +462,7 @@ export const useCommercialStore = defineStore('commercial', () => {
 			/* hors-ligne : la session expirera côté serveur */
 		}
 		await idbClear().catch(() => {})
+		clearContentIndex()
 		navigator.serviceWorker?.controller?.postMessage('clear-caches')
 		window.location.href = loginUrl()
 	}
@@ -395,6 +487,11 @@ export const useCommercialStore = defineStore('commercial', () => {
 		rdv,
 		appels,
 		creances,
+		tickets,
+		devis,
+		commandes,
+		reclamations,
+		bats,
 		user,
 		references,
 		clientsByName,
@@ -408,6 +505,15 @@ export const useCommercialStore = defineStore('commercial', () => {
 		rdvByClient,
 		appelsByClient,
 		creancesByClient,
+		ticketsByName,
+		devisByName,
+		commandesByName,
+		reclamationsByName,
+		ticketsByClient,
+		devisByClient,
+		commandesByClient,
+		reclamationsByClient,
+		batsByArticle,
 		init,
 		sync,
 		enqueue,
@@ -417,6 +523,10 @@ export const useCommercialStore = defineStore('commercial', () => {
 		discardForeignOutbox,
 		cachedHistory,
 		fetchHistory,
+		cachedCycle,
+		fetchCycle,
+		cachedCreance,
+		fetchCreance,
 		logout,
 	}
 })

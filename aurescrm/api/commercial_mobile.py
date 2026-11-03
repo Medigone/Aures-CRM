@@ -117,16 +117,31 @@ def _references():
 		"statuts_appel": _select_options("Appel Telephonique", "status"),
 		"resultats_recouvrement": _select_options("Visite Commerciale", "resultat_recouvrement"),
 		"types_paiement": _select_options("Visite Commerciale", "type_paiement"),
+		**affaires_references(_select_options),
 	}
+
+
+def affaires_references(select_options):
+	from aurescrm.api.commercial_affaires import affaires_references as references
+
+	return references(select_options)
 
 
 @frappe.whitelist()
 def get_sync_page(section, start=0, page_length=SYNC_PAGE_LENGTH):
 	"""Une page d'une liste de l'instantané ; l'appareil pagine jusqu'à recevoir une page incomplète."""
-	if section not in SYNC_SECTIONS:
+	sections = sync_sections()
+	if section not in sections:
 		frappe.throw(_("Section d'instantané inconnue."))
 	user = require_commercial()
-	return SYNC_SECTIONS[section](user, max(cint(start), 0), min(max(cint(page_length), 1), SYNC_PAGE_MAX))
+	return sections[section](user, max(cint(start), 0), min(max(cint(page_length), 1), SYNC_PAGE_MAX))
+
+
+def sync_sections():
+	"""Sections de base et affaires (tickets, devis, commandes, réclamations, BAT)."""
+	from aurescrm.api.commercial_affaires import AFFAIRES_SECTIONS
+
+	return {**SYNC_SECTIONS, **AFFAIRES_SECTIONS}
 
 
 def _page_clients(user, start, length):

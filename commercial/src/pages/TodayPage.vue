@@ -13,6 +13,8 @@ import { currentPosition, distanceM, pickNearby, pointOf, type GpsPoint } from '
 import { formatTime, parseServerDate } from '@/lib/format'
 import { stripHtml, todayIso } from '@/lib/text'
 import type { Client } from '@/types'
+import { ticketAlerte } from '@/lib/affaires'
+import { formatMoney } from '@/lib/text'
 
 const store = useCommercialStore()
 const today = todayIso()
@@ -33,6 +35,16 @@ const rappels = computed(() =>
 		.filter((a) => a.status === 'À Rappeler' && (!a.date_rappel || a.date_rappel.slice(0, 10) <= today))
 		.sort((a, b) => (a.date_rappel || '').localeCompare(b.date_rappel || '')),
 )
+
+// À traiter : décisions sur ses tickets, réclamations en retard, relances de créances dues.
+const ticketsAlerte = computed(() => store.tickets.map((t) => ({ t, alerte: ticketAlerte(t) })).filter((x) => x.alerte))
+const reclamationsRetard = computed(() => store.reclamations.filter((r) => r.status === 'En retard'))
+const relances = computed(() =>
+	store.creances
+		.filter((c) => c.date_prochaine_relance && c.date_prochaine_relance <= today && (c.solde_restant || 0) > 0)
+		.sort((a, b) => (a.date_prochaine_relance || '').localeCompare(b.date_prochaine_relance || '')),
+)
+const aTraiter = computed(() => ticketsAlerte.value.length + reclamationsRetard.value.length + relances.value.length)
 
 /** Clients actifs sans visite depuis 60 jours (ou jamais), les plus anciens d'abord. */
 const STALE_DAYS = 60
@@ -100,6 +112,24 @@ const distanceTo = (c: Client) => {
 							<p v-if="r.details" class="truncate text-sm text-ink-gray-6">{{ stripHtml(r.details) }}</p>
 						</div>
 						<StatusPill :status="r.status" />
+					</RouterLink>
+				</div>
+			</section>
+
+			<section v-if="aTraiter" class="mb-6">
+				<h2 class="section-title mb-2">À traiter</h2>
+				<div class="space-y-2">
+					<RouterLink v-for="x in ticketsAlerte" :key="x.t.name" :to="{ name: 'Ticket', params: { id: x.t.name } }" class="card-link p-3">
+						<p class="truncate font-medium">{{ x.t.request_type }} · {{ x.t.customer_name || clientName(x.t.client) }}</p>
+						<p class="text-sm font-medium text-ink-amber-3">{{ x.alerte }}</p>
+					</RouterLink>
+					<RouterLink v-for="r in reclamationsRetard" :key="r.name" :to="{ name: 'Reclamation', params: { id: r.name } }" class="card-link p-3">
+						<p class="truncate font-medium">Réclamation · {{ r.nom_client || clientName(r.client) }}</p>
+						<p class="text-sm font-medium text-ink-red-3">En retard (échéance {{ r.date_echeance }})</p>
+					</RouterLink>
+					<RouterLink v-for="c in relances" :key="c.name" :to="{ name: 'Client', params: { id: c.client } }" class="card-link p-3">
+						<p class="truncate font-medium">Relance créance · {{ c.nom_client || clientName(c.client) }}</p>
+						<p class="text-sm text-ink-gray-6">{{ formatMoney(c.solde_restant) }} · prévue le {{ c.date_prochaine_relance }}</p>
 					</RouterLink>
 				</div>
 			</section>

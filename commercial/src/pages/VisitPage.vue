@@ -12,7 +12,7 @@ import { currentPosition } from '@/lib/geo'
 import { formatDay, formatTime, parseServerDate, toServerDateTime } from '@/lib/format'
 import { refTo } from '@/lib/mutations'
 import { compressPhoto } from '@/lib/photo'
-import { fileUrl, formatMoney, gpsText, stripHtml } from '@/lib/text'
+import { fileUrl, formatMoney, gpsText, htmlToText, stripHtml } from '@/lib/text'
 
 const props = defineProps<{ id: string }>()
 const store = useCommercialStore()
@@ -200,7 +200,11 @@ async function onPhoto(event: Event) {
 			</template>
 		</PageHeader>
 
-		<RouterLink v-if="client" :to="{ name: 'Client', params: { id: client.name } }" class="mb-4 block text-sm text-accent">Voir la fiche client</RouterLink>
+		<div v-if="client" class="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+			<RouterLink :to="{ name: 'Client', params: { id: client.name } }" class="text-accent">Voir la fiche client</RouterLink>
+			<RouterLink :to="{ name: 'NewTicket', query: { client: client.name, type: 'Réclamation', visite: visite.name } }" class="text-accent">Déclarer une réclamation</RouterLink>
+			<RouterLink :to="{ name: 'NewTicket', query: { client: client.name, visite: visite.name } }" class="text-accent">Créer un ticket</RouterLink>
+		</div>
 
 		<div v-if="visite.status === 'En Cours'" class="card mb-4 flex items-center justify-between p-3">
 			<span class="text-sm text-ink-gray-6">Commencée à {{ formatTime(visite.debut) }}</span>
@@ -216,7 +220,7 @@ async function onPhoto(event: Event) {
 				<div v-if="visite.resultat_recouvrement" class="flex justify-between px-3 py-2.5"><span class="text-ink-gray-6">Recouvrement</span><span>{{ visite.resultat_recouvrement }}</span></div>
 				<div v-if="visite.montant_encaisse" class="flex justify-between px-3 py-2.5"><span class="text-ink-gray-6">Encaissé</span><span>{{ formatMoney(visite.montant_encaisse) }}</span></div>
 			</section>
-			<p v-if="visite.notes" class="card mb-4 whitespace-pre-line p-3 text-sm">{{ stripHtml(visite.notes) }}</p>
+			<p v-if="visite.notes" class="card mb-4 whitespace-pre-line p-3 text-sm">{{ htmlToText(visite.notes) }}</p>
 			<img v-if="visite.photo_locale || visite.photo_document_paiement" :src="visite.photo_locale || fileUrl(visite.photo_document_paiement) || undefined" alt="Document de paiement" class="mb-4 max-h-64 w-full rounded-xl object-contain" />
 			<button type="button" class="btn-danger w-full" @click="cancel">Annuler la visite</button>
 		</template>

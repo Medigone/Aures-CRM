@@ -109,6 +109,28 @@ describe('file des saisies', () => {
 		expect(store.foreignOutbox).toBe(true)
 	})
 
+	it('envoie un ticket avec photo et sa demande d’urgence dans l’ordre, au retour du réseau', async () => {
+		api.offline = true
+		const store = await freshStore()
+		const id = store.enqueue('ticket_create', {
+			client: 'CL-1',
+			request_type: 'Réclamation',
+			site: 'Flexo',
+			description: '<p>Défaut</p>',
+			attachments: [{ filename: 'defaut.jpg', data: 'data:image/jpeg;base64,AAAA' }],
+		})
+		store.enqueue('ticket_urgence_request', { ticket_ref: id, niveau: 'U1', motif: 'Ligne arrêtée' })
+		await store.sync()
+		expect(store.tickets[0]).toMatchObject({ statut_demande_urgence: 'En attente', _pending: true })
+		api.offline = false
+		await store.sync()
+		expect(api.pushCalls).toHaveLength(1)
+		expect(api.pushCalls[0].map((m: any) => m.type)).toEqual(['ticket_create', 'ticket_urgence_request'])
+		expect(api.pushCalls[0][0].payload.attachments[0].filename).toBe('defaut.jpg')
+		expect(api.pushCalls[0][1].payload.ticket_ref).toBe(id)
+		expect(store.outbox).toHaveLength(0)
+	})
+
 	it('retrouve la file après un rechargement de la page', async () => {
 		api.offline = true
 		const first = await freshStore()

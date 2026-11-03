@@ -56,3 +56,19 @@ export function inputDateTimeIn(minutes = 0, now = new Date()): string {
 export function gpsText(point: { latitude: number; longitude: number } | null): string | null {
 	return point ? `${point.latitude.toFixed(6)}, ${point.longitude.toFixed(6)}` : null
 }
+
+/** Texte d'un champ Text Editor du Desk en gardant ses paragraphes et retours à la ligne (affichage `whitespace-pre-line`). */
+export function htmlToText(value?: string | null): string {
+	if (!value) return ''
+	return value
+		.replace(/<br\s*\/?>/gi, '\n')
+		.replace(/<\/(p|div|li|h\d)>/gi, '\n')
+		.replace(/<[^>]+>/g, '')
+		.replace(/&nbsp;/g, ' ')
+		.replace(/&amp;/g, '&')
+		.replace(/&lt;/g, '<')
+		.replace(/&gt;/g, '>')
+		.replace(/[ \t]+/g, ' ')
+		.replace(/\n{3,}/g, '\n\n')
+		.trim()
+}

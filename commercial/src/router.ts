@@ -11,6 +11,12 @@ import NewVisitPage from './pages/NewVisitPage.vue'
 import RdvPage from './pages/RdvPage.vue'
 import AppelPage from './pages/AppelPage.vue'
 import SyncPage from './pages/SyncPage.vue'
+import SuiviPage from './pages/SuiviPage.vue'
+import TicketPage from './pages/TicketPage.vue'
+import NewTicketPage from './pages/NewTicketPage.vue'
+import DevisPage from './pages/DevisPage.vue'
+import CommandePage from './pages/CommandePage.vue'
+import ReclamationPage from './pages/ReclamationPage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
 
 export const routes = [
@@ -26,6 +32,12 @@ export const routes = [
 	{ path: '/rdv/:id', name: 'Rdv', component: RdvPage, props: true },
 	{ path: '/appels/nouveau', name: 'NewAppel', component: AppelPage },
 	{ path: '/appels/:id', name: 'Appel', component: AppelPage, props: true },
+	{ path: '/suivi', name: 'Suivi', component: SuiviPage },
+	{ path: '/tickets/nouveau', name: 'NewTicket', component: NewTicketPage },
+	{ path: '/tickets/:id', name: 'Ticket', component: TicketPage, props: true },
+	{ path: '/devis/:id', name: 'Devis', component: DevisPage, props: true },
+	{ path: '/commandes/:id', name: 'Commande', component: CommandePage, props: true },
+	{ path: '/reclamations/:id', name: 'Reclamation', component: ReclamationPage, props: true },
 	{ path: '/synchronisation', name: 'Sync', component: SyncPage },
 	{ path: '/parametres', name: 'Settings', component: SettingsPage },
 	{ path: '/:pathMatch(.*)*', redirect: { name: 'Today' } },

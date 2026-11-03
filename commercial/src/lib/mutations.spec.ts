@@ -15,6 +15,11 @@ function bundle(): Bundle {
 		rdv: [],
 		appels: [],
 		creances: [],
+		tickets: [],
+		devis: [],
+		commandes: [],
+		reclamations: [],
+		bats: [],
 		synced_at: '',
 	}
 }
@@ -79,5 +84,30 @@ describe('retryDelayMs', () => {
 		expect(retryDelayMs(1)).toBe(15000)
 		expect(retryDelayMs(2)).toBe(30000)
 		expect(retryDelayMs(20)).toBe(30 * 60 * 1000)
+	})
+})
+
+describe('tickets', () => {
+	it('crée un ticket local avec le niveau d’urgence imposé, puis suit la demande d’urgence', async () => {
+		const { defaultUrgence } = await import('./mutations')
+		let view = applyMutation(
+			bundle(),
+			m('t', 'ticket_create', { client: 'CL-1', request_type: 'Bon de commande', site: 'Offset', description: '<p>Retirage</p>', attachments: [{ filename: 'a.jpg', data: 'data:image/jpeg;base64,AA' }] }),
+			user,
+		)
+		expect(view.tickets[0]).toMatchObject({
+			name: 'local:t',
+			status: 'Nouveau',
+			customer_name: 'SOUMMAM',
+			niveau_urgence: 'U2',
+			statut_creance: 'Non vérifiée',
+			pieces_locales: 1,
+		})
+		view = applyMutation(view, m('u', 'ticket_urgence_request', { ticket_ref: 't', niveau: 'U1', motif: 'Rupture client' }), user)
+		expect(view.tickets[0]).toMatchObject({ statut_demande_urgence: 'En attente', niveau_urgence_demande: 'U1' })
+		view = applyMutation(view, m('c', 'ticket_urgence_cancel', { ticket_ref: 't' }), user)
+		expect(view.tickets[0]).toMatchObject({ statut_demande_urgence: 'Aucune', niveau_urgence: 'U2', niveau_urgence_demande: null })
+		expect(defaultUrgence('Essai Blanc')).toBe('U3')
+		expect(defaultUrgence('Réclamation')).toBe('U0')
 	})
 })

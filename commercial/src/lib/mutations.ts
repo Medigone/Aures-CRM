@@ -5,7 +5,7 @@
  * Un document créé sur l'appareil porte la clé `local:<id de l'action de création>` ; une action qui le
  * vise avant sa création serveur envoie `<champ>_ref` (l'id de cette action), résolu par le journal serveur.
  */
-import type { Appel, Bundle, Client, RendezVous, Visite } from '@/types'
+import type { Appel, Bundle, Client, RendezVous, Ticket, Visite } from '@/types'
 
 export type MutationType =
 	| 'visite_create'
@@ -19,6 +19,10 @@ export type MutationType =
 	| 'appel_update'
 	| 'prospect_create'
 	| 'client_update_gps'
+	| 'ticket_create'
+	| 'ticket_update'
+	| 'ticket_urgence_request'
+	| 'ticket_urgence_cancel'
 
 export type Mutation = {
 	id: string
@@ -50,7 +54,7 @@ export function keyFrom(payload: Record<string, any>, field: string): string | n
 }
 
 /** Action dont la réussite crée un document (son résultat donne le nom serveur de la clé locale). */
-export const CREATES: MutationType[] = ['visite_create', 'rdv_create', 'appel_create', 'prospect_create']
+export const CREATES: MutationType[] = ['visite_create', 'rdv_create', 'appel_create', 'prospect_create', 'ticket_create']
 
 export const MUTATION_LABELS: Record<MutationType, string> = {
 	visite_create: 'Nouvelle visite',
@@ -64,6 +68,17 @@ export const MUTATION_LABELS: Record<MutationType, string> = {
 	appel_update: 'Appel modifié',
 	prospect_create: 'Nouveau prospect',
 	client_update_gps: 'Position du client',
+	ticket_create: 'Nouveau ticket',
+	ticket_update: 'Ticket modifié',
+	ticket_urgence_request: "Demande d'urgence",
+	ticket_urgence_cancel: "Urgence retirée",
+}
+
+/** Niveau d'urgence imposé à la création (même règle que ticket_commercial.default_niveau_urgence_pour_creation). */
+export function defaultUrgence(requestType?: string | null) {
+	if (requestType === 'Bon de commande') return 'U2'
+	if (requestType === 'Essai Blanc') return 'U3'
+	return 'U0'
 }
 
 const VISITE_FIELDS = [
@@ -261,6 +276,64 @@ export function applyMutation(bundle: Bundle, mutation: Mutation, user: { name: 
 			const [lat, lon] = parseLatLon(p.gps)
 			return { ...bundle, clients: replaceRow(bundle.clients, keyFrom(p, 'client'), (c) => ({ ...c, lat, lon, _pending: true })) }
 		}
+		case 'ticket_create': {
+			const client = keyFrom(p, 'client')
+			const ticket: Ticket = {
+				name: localKey(mutation.id),
+				_pending: true,
+				status: 'Nouveau',
+				docstatus: 0,
+				client: client || '',
+				customer_name: clientName(client),
+				request_type: p.request_type ?? null,
+				priority: p.priority || 'Moyenne',
+				channel: p.channel ?? null,
+				description: p.description ?? null,
+				echeance: p.echeance ?? null,
+				site: p.site ?? null,
+				niveau_urgence: defaultUrgence(p.request_type),
+				niveau_urgence_demande: null,
+				statut_demande_urgence: 'Aucune',
+				commentaire_validation_urgence: null,
+				statut_creance: p.request_type === 'Bon de commande' ? 'Non vérifiée' : null,
+				motif_blocage_creance: null,
+				assigne_a_nom: null,
+				commercial: user.name,
+				nom_commercial: user.full_name,
+				creation_date: now.slice(0, 10),
+				creation: now,
+				modified: now,
+				pieces_locales: (p.attachments || []).length,
+			}
+			return { ...bundle, tickets: [ticket, ...(bundle.tickets ?? [])] }
+		}
+		case 'ticket_update':
+			return {
+				...bundle,
+				tickets: replaceRow(bundle.tickets ?? [], keyFrom(p, 'ticket'), (t) => ({ ...t, ...pick(p, ['priority', 'channel', 'description', 'echeance']), _pending: true })),
+			}
+		case 'ticket_urgence_request':
+			return {
+				...bundle,
+				tickets: replaceRow(bundle.tickets ?? [], keyFrom(p, 'ticket'), (t) => ({
+					...t,
+					_pending: true,
+					niveau_urgence_demande: p.niveau ?? null,
+					statut_demande_urgence: 'En attente',
+					commentaire_validation_urgence: null,
+				})),
+			}
+		case 'ticket_urgence_cancel':
+			return {
+				...bundle,
+				tickets: replaceRow(bundle.tickets ?? [], keyFrom(p, 'ticket'), (t) => ({
+					...t,
+					_pending: true,
+					niveau_urgence: defaultUrgence(t.request_type),
+					niveau_urgence_demande: null,
+					statut_demande_urgence: 'Aucune',
+				})),
+			}
 	}
 	return bundle
 }

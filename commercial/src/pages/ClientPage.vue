@@ -17,6 +17,10 @@ import { formatDay, formatTime, normalizeSearch } from '@/lib/format'
 import { formatMoney, gpsText, stripHtml } from '@/lib/text'
 import { currentPosition } from '@/lib/geo'
 import { refTo } from '@/lib/mutations'
+import AffairesTabs from '@/components/AffairesTabs.vue'
+import type { CreanceDetail } from '@/types'
+import LucideTicket from '~icons/lucide/ticket'
+import LucideMessageSquareWarning from '~icons/lucide/message-square-warning'
 
 const props = defineProps<{ id: string }>()
 const store = useCommercialStore()
@@ -28,14 +32,35 @@ watch(key, (next) => {
 })
 const client = computed(() => store.clientsByName.get(key.value) ?? null)
 
-type Tab = 'articles' | 'infos' | 'contacts' | 'historique'
+type Tab = 'articles' | 'affaires' | 'infos' | 'contacts' | 'historique'
 const tab = ref<Tab>('articles')
 const tabs: { key: Tab; label: string }[] = [
 	{ key: 'articles', label: 'Articles' },
+	{ key: 'affaires', label: 'Affaires' },
 	{ key: 'infos', label: 'Infos' },
 	{ key: 'contacts', label: 'Contacts' },
 	{ key: 'historique', label: 'Historique' },
 ]
+
+// Créances du client : solde et relances (instantané) ; mouvements consultés en ligne puis gardés.
+const creances = computed(() => store.creancesByClient.get(key.value) ?? [])
+const openedCreance = ref<string | null>(null)
+const creanceDetail = ref<CreanceDetail | null>(null)
+const creanceError = ref<string | null>(null)
+async function toggleCreance(name: string) {
+	if (openedCreance.value === name) {
+		openedCreance.value = null
+		return
+	}
+	openedCreance.value = name
+	creanceError.value = null
+	creanceDetail.value = await store.cachedCreance(name)
+	try {
+		creanceDetail.value = await store.fetchCreance(name)
+	} catch (error) {
+		creanceError.value = (error as Error).message
+	}
+}
 
 const telephone = computed(() => client.value?.telephone_principal || client.value?.telephone || null)
 const mapsUrl = computed(() => {
@@ -132,17 +157,19 @@ const infos = computed(() => {
 			<RouterLink :to="{ name: 'NewVisit', query: { client: client.name } }" class="quick-action"><LucideClipboardPlus aria-hidden="true" />Visite</RouterLink>
 			<RouterLink :to="{ name: 'NewRdv', query: { client: client.name } }" class="quick-action"><LucideCalendarPlus aria-hidden="true" />Rendez-vous</RouterLink>
 			<RouterLink :to="{ name: 'NewAppel', query: { client: client.name } }" class="quick-action"><LucidePhoneCall aria-hidden="true" />Appel</RouterLink>
+			<RouterLink :to="{ name: 'NewTicket', query: { client: client.name } }" class="quick-action"><LucideTicket aria-hidden="true" />Ticket</RouterLink>
+			<RouterLink :to="{ name: 'NewTicket', query: { client: client.name, type: 'Réclamation' } }" class="quick-action"><LucideMessageSquareWarning aria-hidden="true" />Réclamation</RouterLink>
 		</div>
 
-		<div class="mb-4 grid grid-cols-4 gap-1 rounded-xl bg-surface-gray-2 p-1" role="tablist">
+		<div class="-mx-4 mb-4 flex gap-1 overflow-x-auto px-4" role="tablist" style="scrollbar-width: none">
 			<button
 				v-for="t in tabs"
 				:key="t.key"
 				type="button"
 				role="tab"
 				:aria-selected="tab === t.key"
-				class="min-h-10 rounded-lg text-sm"
-				:class="tab === t.key ? 'bg-surface-white font-medium shadow-sm' : 'text-ink-gray-6'"
+				class="min-h-10 shrink-0 rounded-full px-4 text-sm"
+				:class="tab === t.key ? 'bg-accent font-medium text-white' : 'bg-surface-gray-2 text-ink-gray-7'"
 				@click="tab = t.key"
 			>
 				{{ t.label }}<template v-if="t.key === 'articles'"> ({{ clientArticles.length }})</template>
@@ -163,6 +190,37 @@ const infos = computed(() => {
 			<div class="space-y-2">
 				<ArticleCard v-for="a in articles" :key="a.name" :article="a" />
 			</div>
+		</section>
+
+		<section v-else-if="tab === 'affaires'">
+			<template v-if="creances.length">
+				<h2 class="section-title mb-2">Créances</h2>
+				<div class="mb-5 space-y-2">
+					<div v-for="c in creances" :key="c.name" class="card p-3 text-sm">
+						<button type="button" class="flex w-full items-start justify-between gap-2 text-left" :aria-expanded="openedCreance === c.name" @click="toggleCreance(c.name)">
+							<span>
+								<span class="block text-base font-semibold">{{ formatMoney(c.solde_restant) }}</span>
+								<span class="block text-ink-gray-6">
+									{{ c.name }}<template v-if="c.date_prochaine_relance"> · relance {{ formatDay(c.date_prochaine_relance) }}</template>
+								</span>
+							</span>
+							<StatusPill :status="c.statut" />
+						</button>
+						<div v-if="openedCreance === c.name" class="mt-2 border-t border-outline-gray-1 pt-2">
+							<p v-if="!creanceDetail && !store.online" class="text-ink-gray-6">Mouvements non consultés sur cet appareil.</p>
+							<p v-else-if="creanceError && !creanceDetail" class="text-ink-red-3">{{ creanceError }}</p>
+							<p v-else-if="creanceDetail && !creanceDetail.mouvements.length" class="text-ink-gray-6">Aucun mouvement.</p>
+							<ul v-if="creanceDetail" class="space-y-1">
+								<li v-for="m in creanceDetail.mouvements" :key="m.name" class="flex justify-between gap-2">
+									<span class="text-ink-gray-7">{{ formatDay(m.date_mouvement) }} · {{ m.type_mouvement }}<template v-if="m.type_paiement"> ({{ m.type_paiement }})</template></span>
+									<span class="font-medium tabular-nums" :class="m.sens === 'Crédit' && 'text-ink-green-3'">{{ m.sens === 'Crédit' ? '−' : '' }}{{ formatMoney(m.montant) }}</span>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</template>
+			<AffairesTabs :client="client.name" />
 		</section>
 
 		<section v-else-if="tab === 'infos'">

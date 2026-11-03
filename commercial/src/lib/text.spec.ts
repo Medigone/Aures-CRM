@@ -37,3 +37,10 @@ describe('dates de formulaire', () => {
 		expect(gpsText(null)).toBeNull()
 	})
 })
+
+describe('htmlToText', () => {
+	it('garde les retours à la ligne', async () => {
+		const { htmlToText } = await import('./text')
+		expect(htmlToText('<p>Article : Opercule<br>Teinte claire</p><p>Lot 4411</p>')).toBe('Article : Opercule\nTeinte claire\nLot 4411')
+	})
+})

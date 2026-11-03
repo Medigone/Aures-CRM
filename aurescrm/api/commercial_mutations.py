@@ -26,6 +26,10 @@ from aurescrm.custom_permissions import get_customer_edit_status, is_exempt_user
 
 MAX_MUTATIONS = 100
 MAX_PHOTO_BYTES = 5 * 1024 * 1024
+MAX_ATTACHMENTS = 6
+TICKET = "Ticket Commercial"
+TICKET_FIELDS = {"priority", "channel", "description", "echeance"}
+URGENCE_LEVELS = {"U1", "U2", "U3"}
 JOURNAL = "Mutation Commercial"
 VISITE = "Visite Commerciale"
 RDV = "Rendez Vous Client"
@@ -271,7 +275,7 @@ def visite_finish(user, payload):
 	doc.heure_fin_visite = get_datetime(payload.get("fin")) if payload.get("fin") else now_datetime()
 	photo = payload.get("photo_document_paiement")
 	if photo:
-		doc.photo_document_paiement = _save_photo(doc, "photo_document_paiement", photo)
+		doc.photo_document_paiement = save_file(doc, photo, "photo_document_paiement")
 	doc.save()
 	apply_workflow(doc, "Terminer")
 	return _created(doc)
@@ -289,18 +293,19 @@ def visite_cancel(user, payload):
 	return _created(doc)
 
 
-def _save_photo(doc, fieldname, photo):
-	"""Photo prise sur l'appareil ({filename, data : data URL base64}), jointe en privé au document."""
-	data = cstr(photo.get("data") if isinstance(photo, dict) else photo)
+def save_file(doc, attachment, fieldname=None):
+	"""Fichier pris sur l'appareil ({filename, data : data URL base64}), joint en privé au document."""
+	data = cstr(attachment.get("data") if isinstance(attachment, dict) else attachment)
 	if "," in data:
 		data = data.split(",", 1)[1]
 	try:
 		content = base64.b64decode(data, validate=True)
 	except Exception:
-		raise Refused(_("Photo illisible."))
+		raise Refused(_("Pièce jointe illisible."))
 	if len(content) > MAX_PHOTO_BYTES:
-		raise Refused(_("Photo trop lourde (5 Mo au plus)."))
-	filename = cstr(photo.get("filename") if isinstance(photo, dict) else "") or f"{doc.name}-{fieldname}.jpg"
+		raise Refused(_("Pièce jointe trop lourde (5 Mo au plus)."))
+	default_name = f"{doc.name}-{fieldname or 'piece-jointe'}.jpg"
+	filename = cstr(attachment.get("filename") if isinstance(attachment, dict) else "") or default_name
 	file_doc = frappe.get_doc(
 		{
 			"doctype": "File",
@@ -414,6 +419,80 @@ def client_update_gps(user, payload):
 	return {"doctype": "Customer", "name": client}
 
 
+# ---------------------------------------------------------------------------
+# Tickets commerciaux (workflow piloté par l'Administration des ventes : le commercial crée et suit)
+# ---------------------------------------------------------------------------
+def _ticket(user, payload):
+	doc = frappe.get_doc(TICKET, resolve(user, payload, "ticket", TICKET))
+	own_document(user, doc, "commercial")
+	return doc
+
+
+def ticket_create(user, payload):
+	client = resolve(user, payload, "client", "Customer")
+	assert_client(user, client)
+	for field, label in (("request_type", _("Le type de demande")), ("site", _("Le site de production"))):
+		if not payload.get(field):
+			raise Refused(_("{0} est obligatoire.").format(label))
+	attachments = payload.get("attachments") or []
+	if len(attachments) > MAX_ATTACHMENTS:
+		raise Refused(_("{0} pièces jointes au plus.").format(MAX_ATTACHMENTS))
+	description = cstr(payload.get("description"))
+	# Ticket ouvert depuis une visite (réclamation…) : la visite d'origine est citée, le ticket n'a pas de lien dédié.
+	visite = resolve(user, payload, "visite", VISITE, required=False)
+	if visite:
+		description += "<p>" + _("Visite d'origine : {0}").format(visite) + "</p>"
+	doc = frappe.get_doc(
+		{
+			"doctype": TICKET,
+			"customer": client,
+			"request_type": payload.get("request_type"),
+			"site": payload.get("site"),
+			"priority": payload.get("priority") or "Moyenne",
+			"channel": payload.get("channel"),
+			"echeance": payload.get("echeance") or None,
+			"description": description or None,
+			"commercial": user,
+		}
+	)
+	doc.insert()
+	for attachment in attachments:
+		save_file(doc, attachment)
+	return _created(doc)
+
+
+def ticket_update(user, payload):
+	doc = _ticket(user, payload)
+	if doc.docstatus != 0 or doc.status != "Nouveau":
+		raise Refused(_("Le ticket {0} est déjà pris en charge : modifiez-le avec l'Administration des ventes.").format(doc.name))
+	_set_fields(doc, payload, TICKET_FIELDS)
+	doc.save()
+	return _created(doc)
+
+
+def ticket_urgence_request(user, payload):
+	from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import submit_urgence_request
+
+	doc = _ticket(user, payload)
+	niveau = payload.get("niveau")
+	if niveau not in URGENCE_LEVELS:
+		raise Refused(_("Niveau d'urgence invalide (U1, U2 ou U3)."))
+	motif = cstr(payload.get("motif")).strip()
+	if not motif:
+		raise Refused(_("Le motif de l'urgence est obligatoire."))
+	html = "<p>" + frappe.utils.escape_html(motif).replace("\n", "<br>") + "</p>"
+	submit_urgence_request(doc.name, niveau, html)
+	return _created(doc)
+
+
+def ticket_urgence_cancel(user, payload):
+	from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import cancel_urgence_request
+
+	doc = _ticket(user, payload)
+	cancel_urgence_request(doc.name)
+	return _created(doc)
+
+
 MUTATION_TYPES = {
 	"visite_create": visite_create,
 	"visite_start": visite_start,
@@ -426,4 +505,8 @@ MUTATION_TYPES = {
 	"appel_update": appel_update,
 	"prospect_create": prospect_create,
 	"client_update_gps": client_update_gps,
+	"ticket_create": ticket_create,
+	"ticket_update": ticket_update,
+	"ticket_urgence_request": ticket_urgence_request,
+	"ticket_urgence_cancel": ticket_urgence_cancel,
 }

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import LucideFileText from '~icons/lucide/file-text'
-import LucideScissors from '~icons/lucide/scissors'
+import LucideTicket from '~icons/lucide/ticket'
+import LucideRepeat from '~icons/lucide/repeat'
+import LucideCalculator from '~icons/lucide/calculator'
+import OfflineFile from '@/components/OfflineFile.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusPill from '@/components/StatusPill.vue'
 import { useCommercialStore } from '@/stores/commercial'
@@ -15,6 +17,9 @@ const store = useCommercialStore()
 const article = computed(() => store.articlesByName.get(props.id) ?? null)
 const client = computed(() => (article.value ? store.clientsByName.get(article.value.client) ?? null : null))
 const parent = computed(() => (article.value?.parent ? store.articlesByName.get(article.value.parent) ?? null : null))
+// BAT de l'article (instantané, consultables hors-ligne), du plus récent au plus ancien.
+const bats = computed(() => [...(store.batsByArticle.get(props.id) ?? [])].sort((a, b) => b.modified.localeCompare(a.modified)))
+const ticketQuery = (type?: string) => ({ name: 'NewTicket', query: { client: article.value?.client, article: props.id, ...(type ? { type } : {}) } })
 const sousArticlesLocaux = computed(() => store.articles.filter((a) => a.parent === props.id))
 
 const essentiels = computed(() => {
@@ -77,13 +82,29 @@ watch(() => props.id, loadHistory, { immediate: true })
 			</div>
 		</section>
 
-		<div v-if="article.fiche_technique || article.trace_decoupe" class="mb-4 flex flex-wrap gap-2">
-			<a v-if="article.fiche_technique" :href="fileUrl(article.fiche_technique) || undefined" target="_blank" rel="noopener" class="btn-secondary">
-				<LucideFileText class="h-4 w-4" aria-hidden="true" />Fiche technique
-			</a>
-			<a v-if="article.trace_decoupe" :href="fileUrl(article.trace_decoupe) || undefined" target="_blank" rel="noopener" class="btn-secondary">
-				<LucideScissors class="h-4 w-4" aria-hidden="true" />Tracé forme de découpe
-			</a>
+		<div class="quick-actions mb-4">
+			<RouterLink :to="ticketQuery('Bon de commande')" class="quick-action"><LucideRepeat aria-hidden="true" />Retirage</RouterLink>
+			<RouterLink :to="ticketQuery('Demande de devis')" class="quick-action"><LucideCalculator aria-hidden="true" />Devis</RouterLink>
+			<RouterLink :to="ticketQuery()" class="quick-action"><LucideTicket aria-hidden="true" />Ticket</RouterLink>
+		</div>
+
+		<section v-if="bats.length" class="mb-4">
+			<h2 class="section-title mb-2">BAT</h2>
+			<div class="space-y-2">
+				<div v-for="b in bats" :key="b.name">
+					<p class="mb-1 flex items-center justify-between gap-2 text-sm">
+						<span class="font-medium">{{ b.code_bat_client || b.name }} · {{ formatDay(b.date) }}</span>
+						<StatusPill :status="b.status === 'Nouveau' ? 'BAT en cours' : b.status" />
+					</p>
+					<OfflineFile v-if="b.image" :path="b.image" :label="`Image du BAT ${b.name}`" image />
+					<OfflineFile v-if="b.fichier_valide" :path="b.fichier_valide" :label="`Fichier validé${b.valide_par_nom ? ` (${b.valide_par_nom})` : ''}`" class="mt-2" />
+				</div>
+			</div>
+		</section>
+
+		<div v-if="article.fiche_technique || article.trace_decoupe" class="mb-4 space-y-2">
+			<OfflineFile v-if="article.fiche_technique" :path="article.fiche_technique" label="Fiche technique" />
+			<OfflineFile v-if="article.trace_decoupe" :path="article.trace_decoupe" label="Tracé forme de découpe" />
 		</div>
 
 		<section v-for="section in article.caracteristiques" :key="section.section" class="mb-4">
@@ -118,27 +139,29 @@ watch(() => props.id, loadHistory, { immediate: true })
 				<h3 class="mb-1 mt-3 text-xs font-medium uppercase text-ink-gray-6">Devis</h3>
 				<p v-if="!history.devis.length" class="text-sm text-ink-gray-6">Aucun devis.</p>
 				<div v-for="d in history.devis" :key="d.name" class="card mb-2 p-3 text-sm">
-					<div class="flex justify-between gap-2"><span class="font-medium">{{ d.name }}</span><StatusPill :status="d.statut_commande || d.status" /></div>
+					<div class="flex justify-between gap-2">
+						<RouterLink v-if="store.devisByName.has(d.name)" :to="{ name: 'Devis', params: { id: d.name } }" class="font-medium text-accent">{{ d.name }}</RouterLink>
+						<span v-else class="font-medium">{{ d.name }}</span><StatusPill :status="d.statut_commande || d.status" /></div>
 					<p class="text-ink-gray-6">{{ formatDay(d.date) }} · {{ d.qty }} × {{ formatMoney(d.rate, d.currency) }}</p>
 				</div>
 
 				<h3 class="mb-1 mt-3 text-xs font-medium uppercase text-ink-gray-6">Commandes</h3>
 				<p v-if="!history.commandes.length" class="text-sm text-ink-gray-6">Aucune commande.</p>
 				<div v-for="c in history.commandes" :key="c.name" class="card mb-2 p-3 text-sm">
-					<div class="flex justify-between gap-2"><span class="font-medium">{{ c.name }}</span><StatusPill :status="c.status" /></div>
+					<div class="flex justify-between gap-2">
+						<RouterLink v-if="store.commandesByName.has(c.name)" :to="{ name: 'Commande', params: { id: c.name } }" class="font-medium text-accent">{{ c.name }}</RouterLink>
+						<span v-else class="font-medium">{{ c.name }}</span><StatusPill :status="c.status" /></div>
 					<p class="text-ink-gray-6">
 						{{ formatDay(c.date) }} · {{ c.qty }} × {{ formatMoney(c.rate, c.currency) }}<template v-if="c.bon_commande_client"> · BC {{ c.bon_commande_client }}</template>
 					</p>
 					<p v-if="c.delivery_date" class="text-ink-gray-6">Livraison prévue {{ formatDay(c.delivery_date) }} · livré {{ Math.round(c.per_delivered || 0) }} %</p>
 				</div>
 
-				<h3 class="mb-1 mt-3 text-xs font-medium uppercase text-ink-gray-6">BAT</h3>
+				<h3 class="mb-1 mt-3 text-xs font-medium uppercase text-ink-gray-6">Historique des BAT</h3>
 				<p v-if="!history.bat.length" class="text-sm text-ink-gray-6">Aucun BAT.</p>
 				<div v-for="b in history.bat" :key="b.name" class="card mb-2 p-3 text-sm">
 					<div class="flex justify-between gap-2"><span class="font-medium">{{ b.code_bat_client || b.name }}</span><StatusPill :status="b.status" /></div>
 					<p class="text-ink-gray-6">{{ formatDay(b.date) }}<template v-if="b.valide_par_nom"> · validé par {{ b.valide_par_nom }}</template></p>
-					<img v-if="b.image" :src="fileUrl(b.image) || undefined" :alt="`BAT ${b.name}`" class="mt-2 max-h-56 w-full rounded-lg object-contain" loading="lazy" />
-					<a v-if="b.fichier_valide" :href="fileUrl(b.fichier_valide) || undefined" target="_blank" rel="noopener" class="mt-2 inline-block text-accent">Fichier validé</a>
 				</div>
 
 				<h3 class="mb-1 mt-3 text-xs font-medium uppercase text-ink-gray-6">Maquettes</h3>

@@ -137,6 +137,148 @@ export type References = {
 	statuts_appel?: string[]
 	resultats_recouvrement?: string[]
 	types_paiement?: string[]
+	types_ticket?: string[]
+	priorites_ticket?: string[]
+	canaux_ticket?: string[]
+	sites?: { name: string; title: string | null; procede: string | null }[]
+	types_reclamation?: string[]
+}
+
+export type Ticket = {
+	name: string
+	_pending?: boolean
+	status: string
+	docstatus: number
+	client: string
+	customer_name: string | null
+	request_type: string | null
+	priority: string | null
+	channel: string | null
+	description: string | null
+	echeance: string | null
+	site: string | null
+	niveau_urgence: string | null
+	niveau_urgence_demande: string | null
+	statut_demande_urgence: string | null
+	commentaire_validation_urgence: string | null
+	statut_creance: string | null
+	motif_blocage_creance: string | null
+	assigne_a_nom: string | null
+	commercial: string | null
+	nom_commercial: string | null
+	creation_date: string | null
+	creation: string | null
+	modified: string
+	/** Pièces jointes en attente d'envoi (nombre). */
+	pieces_locales?: number
+}
+
+export type LigneVente = { item_code: string; item_name: string | null; qty: number; rate: number; amount: number; delivery_date?: string | null }
+
+export type Devis = {
+	name: string
+	client: string
+	customer_name: string | null
+	date: string
+	valid_till: string | null
+	status: string
+	docstatus: number
+	statut_commande: string | null
+	grand_total: number
+	currency: string
+	demande_faisabilite: string | null
+	lignes: LigneVente[]
+	modified: string
+}
+
+export type Fabrication = {
+	dossier: { name: string; status: string } | null
+	etudes: { name: string; status: string; article: string | null; nom_article: string | null; date_echeance: string | null }[]
+	ordres: {
+		name: string
+		status: string
+		article: string | null
+		machine: string | null
+		quantite_a_produire: number | null
+		quantite_produite: number | null
+		date_debut_prevue: string | null
+		date_fin_prevue: string | null
+		date_fin_reelle: string | null
+		priorite: string | null
+	}[]
+}
+
+export type Commande = {
+	name: string
+	client: string
+	customer_name: string | null
+	date: string
+	delivery_date: string | null
+	status: string
+	docstatus: number
+	per_delivered: number
+	per_billed: number
+	grand_total: number
+	currency: string
+	bon_commande_client: string | null
+	date_bon_commande: string | null
+	devis: string | null
+	lignes: LigneVente[]
+	fabrication: Fabrication | null
+	modified: string
+}
+
+export type Reclamation = {
+	name: string
+	status: string
+	docstatus: number
+	client: string
+	nom_client: string | null
+	type_reclamation: string | null
+	procede: string | null
+	date_creation: string | null
+	date_echeance: string | null
+	date_resolution: string | null
+	visite: string | null
+	observations: string | null
+	traitement: string | null
+	modified: string
+}
+
+export type Bat = {
+	name: string
+	status: string
+	date: string | null
+	client: string
+	article: string
+	designation_article: string | null
+	image: string | null
+	fichier_valide: string | null
+	code_bat_client: string | null
+	valide_par_nom: string | null
+	modified: string
+}
+
+type CycleSales = { doctype: string; name: string; status?: string | null; docstatus?: number; bon_de_commande_client?: string | null; delivery_date?: string | null }
+type CycleEtude = { doctype?: string; name: string; status?: string | null; article?: string | null }
+
+/** Cycle d'un ticket (get_cycle_documents) : demandes de faisabilité ou dossiers Essai Blanc. */
+export type TicketCycle = {
+	ticket: string
+	fetched_at: string
+	demandes: { name: string; status: string; type: string | null; etudes: CycleEtude[]; sales_documents: CycleSales[] }[]
+	dossiers: { name: string; status: string; etudes: CycleEtude[]; sales_documents: CycleSales[] }[]
+}
+
+export type CreanceDetail = {
+	creance: string
+	fetched_at: string
+	solde_restant: number | null
+	montant_initial: number | null
+	total_recouvre: number | null
+	statut: string
+	observations: string | null
+	mouvements: { name: string; date_mouvement: string | null; type_mouvement: string | null; sens: string | null; montant: number; type_paiement: string | null; source_visite: string | null }[]
 }
 
 export type Creance = {
@@ -165,6 +307,11 @@ export type Bundle = SyncMeta & {
 	rdv: RendezVous[]
 	appels: Appel[]
 	creances: Creance[]
+	tickets: Ticket[]
+	devis: Devis[]
+	commandes: Commande[]
+	reclamations: Reclamation[]
+	bats: Bat[]
 	synced_at: string
 }
 
@@ -181,3 +328,6 @@ export type ArticleHistory = {
 	sous_articles: { name: string; item_name: string | null; description: string | null; quantite: number | null }[]
 	reclamations_client: { name: string; status: string; date_creation: string | null; type_reclamation: string | null; procede: string | null }[]
 }
+
+/** Pièce jointe prise sur l'appareil (data URL), envoyée avec la saisie. */
+export type Attachment = { filename: string; data: string }

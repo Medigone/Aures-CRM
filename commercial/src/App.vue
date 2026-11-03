@@ -4,6 +4,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import LucideCalendarDays from '~icons/lucide/calendar-days'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideCalendarRange from '~icons/lucide/calendar-range'
+import LucideBriefcase from '~icons/lucide/briefcase'
 import LucideSettings from '~icons/lucide/settings'
 import { useCommercialStore } from '@/stores/commercial'
 import { useAppTheme } from '@/lib/theme'
@@ -17,6 +18,7 @@ const tabs = [
 	{ to: { name: 'Today' }, label: "Aujourd'hui", icon: LucideCalendarDays, match: ['Today', 'Visit', 'NewVisit', 'Appel', 'NewAppel'] },
 	{ to: { name: 'Week' }, label: 'Semaine', icon: LucideCalendarRange, match: ['Week', 'Rdv', 'NewRdv'] },
 	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article', 'NewProspect'] },
+	{ to: { name: 'Suivi' }, label: 'Suivi', icon: LucideBriefcase, match: ['Suivi', 'Ticket', 'NewTicket', 'Devis', 'Commande', 'Reclamation'] },
 	{ to: { name: 'Settings' }, label: 'Réglages', icon: LucideSettings, match: ['Settings', 'Sync'], badge: true },
 ]
 </script>
@@ -38,7 +40,7 @@ const tabs = [
 
 		<!-- Navigation : barre du bas sur téléphone, rail à gauche sur tablette. -->
 		<nav
-			class="fixed inset-x-0 bottom-0 z-20 grid h-[calc(var(--bottom-chrome)+env(safe-area-inset-bottom))] grid-cols-4 border-t border-outline-gray-2 bg-surface-white pb-[env(safe-area-inset-bottom)] md:inset-y-0 md:left-0 md:right-auto md:flex md:h-auto md:w-20 md:flex-col md:gap-2 md:border-r md:border-t-0 md:pt-6"
+			class="fixed inset-x-0 bottom-0 z-20 grid h-[calc(var(--bottom-chrome)+env(safe-area-inset-bottom))] grid-cols-5 border-t border-outline-gray-2 bg-surface-white pb-[env(safe-area-inset-bottom)] md:inset-y-0 md:left-0 md:right-auto md:flex md:h-auto md:w-20 md:flex-col md:gap-2 md:border-r md:border-t-0 md:pt-6"
 			aria-label="Navigation principale"
 		>
 			<RouterLink
