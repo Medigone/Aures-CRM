@@ -19,7 +19,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.workflow import apply_workflow
-from frappe.utils import cint, cstr, get_datetime, get_fullname, getdate, now_datetime, strip_html, today
+from frappe.utils import cint, cstr, flt, get_datetime, get_fullname, getdate, now_datetime, strip_html, today
 
 from aurescrm.api.commercial_mobile import customer_scope, parse_gps, require_commercial
 from aurescrm.custom_permissions import get_customer_edit_status, is_exempt_user
@@ -481,6 +481,57 @@ def article_create(user, payload):
 	return _created(doc)
 
 
+def _article_value(field, value):
+	"""Valeur d'un champ de fiche technique reçue de l'appareil, contrôlée selon son type."""
+	if value in (None, ""):
+		return None
+	if field["fieldtype"] == "Check":
+		return 1 if cint(value) else 0
+	if field["fieldtype"] == "Int":
+		return cint(value)
+	if field["fieldtype"] in ("Float", "Percent"):
+		return flt(value)
+	value = cstr(value).strip()
+	if field["fieldtype"] in ("Select", "Link") and value not in field.get("options", []):
+		raise Refused(_("Valeur « {0} » invalide pour {1}.").format(value, field["label"]))
+	return value
+
+
+def article_update(user, payload):
+	from aurescrm.api.commercial_mobile import article_schema
+
+	doc = frappe.get_doc("Item", resolve(user, payload, "article", "Item"))
+	if doc.custom_type_article != "Client" or not doc.custom_client:
+		raise Refused(_("Seuls les articles client se modifient depuis l'application."))
+	assert_client(user, doc.custom_client)
+	if "designation" in payload:
+		designation = cstr(payload.get("designation")).strip()
+		if not designation:
+			raise Refused(_("La désignation est obligatoire."))
+		if designation.upper() != (doc.item_code or "").upper() and frappe.db.exists(
+			"Item", {"custom_client": doc.custom_client, "item_code": designation.upper(), "name": ["!=", doc.name]}
+		):
+			raise Refused(_("Le client a déjà un article « {0} ».").format(designation.upper()))
+		doc.item_code = designation
+	if "procede" in payload:
+		procedes = [o for o in (frappe.get_meta("Item").get_field("custom_procédé").options or "").split("\n") if o]
+		if payload.get("procede") not in procedes:
+			raise Refused(_("Le procédé est obligatoire."))
+		doc.set("custom_procédé", payload.get("procede"))
+	if "code_client" in payload:
+		doc.custom_code_client = cstr(payload.get("code_client")).strip() or None
+	if "consommation_annuelle" in payload:
+		doc.custom_consommation_annuelle = cint(payload.get("consommation_annuelle")) or None
+	# Seuls les champs modifiés partent de l'appareil : une modification faite entre-temps dans le Desk sur un autre champ est gardée.
+	fields = {f["fieldname"]: f for g in article_schema()["groups"] for f in g["fields"]}
+	for fieldname, value in (payload.get("fiche") or {}).items():
+		if fieldname not in fields:
+			raise Refused(_("Le champ {0} ne se modifie pas depuis l'application.").format(fieldname))
+		doc.set(fieldname, _article_value(fields[fieldname], value))
+	doc.save()
+	return _created(doc)
+
+
 # ---------------------------------------------------------------------------
 # Tickets commerciaux (workflow piloté par l'Administration des ventes : le commercial crée et suit)
 # ---------------------------------------------------------------------------
@@ -567,6 +618,7 @@ MUTATION_TYPES = {
 	"appel_update": appel_update,
 	"prospect_create": prospect_create,
 	"article_create": article_create,
+	"article_update": article_update,
 	"client_update_gps": client_update_gps,
 	"ticket_create": ticket_create,
 	"ticket_update": ticket_update,

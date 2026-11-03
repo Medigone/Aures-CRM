@@ -35,14 +35,14 @@ onMounted(() => store.init())
 const tabs = [
 	{ to: { name: 'Today' }, label: "Aujourd'hui", icon: LucideHouse, match: ['Today', 'Visit', 'NewVisit', 'Appel', 'NewAppel', 'Week', 'Rdv', 'NewRdv'] },
 	{ to: { name: 'Suivi' }, label: 'Tickets', icon: LucideTicket, match: ['Suivi', 'Ticket', 'NewTicket', 'Devis', 'Commande', 'Reclamation'] },
-	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article', 'NewArticle', 'NewProspect'] },
+	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article', 'NewArticle', 'EditArticle', 'NewProspect'] },
 	{ to: { name: 'Settings' }, label: 'Plus', icon: LucideLayoutGrid, match: ['Settings', 'Sync', 'Objectifs'], badge: true },
 ]
 const route = useRoute()
 const menuOpen = ref(false)
 watch(() => route.fullPath, () => (menuOpen.value = false))
 // Saisie terrain (visite, nouveau ticket) : plein écran sur téléphone, la barre d'action prend la place de la navigation.
-const focusMode = computed(() => ['Visit', 'NewVisit', 'NewTicket', 'NewArticle'].includes(String(route.name)))
+const focusMode = computed(() => ['Visit', 'NewVisit', 'NewTicket', 'NewArticle', 'EditArticle'].includes(String(route.name)))
 </script>
 
 <template>

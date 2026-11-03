@@ -80,6 +80,14 @@ describe('applyMutation', () => {
 		expect(view.clients[0].nb_articles).toBe(1)
 	})
 
+	it('modifie un article : identité, fiche (valeur vidée retirée) et résumé selon le procédé', () => {
+		let view = applyMutation(bundle(), m('art', 'article_create', { client: 'CL-1', designation: 'Étui', procede: 'Offset' }), user)
+		view = applyMutation(view, m('u', 'article_update', { article_ref: 'art', code_client: 'R1', fiche: { custom_cotations_article: '10x20', custom_uv: 1 } }), user)
+		expect(view.articles[0]).toMatchObject({ code_client: 'R1', dimensions: '10x20', fiche: { custom_cotations_article: '10x20', custom_uv: 1 } })
+		view = applyMutation(view, m('u2', 'article_update', { article_ref: 'art', fiche: { custom_uv: 0 } }), user)
+		expect(view.articles[0].fiche).toEqual({ custom_cotations_article: '10x20' })
+	})
+
 	it('suit un rendez-vous et un appel', () => {
 		let view = applyMutation(bundle(), m('r', 'rdv_create', { client: 'CL-1', date_heure: '2026-11-04 10:00:00' }), user)
 		view = applyMutation(view, m('r2', 'rdv_update', { rdv_ref: 'r', status: 'Confirmé' }), user)

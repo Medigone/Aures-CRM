@@ -32,14 +32,23 @@ COMMERCIAL_ROLES = {
 	"System Manager",
 }
 
-# Champs de fiche article jamais affichés dans les caractéristiques (identité, liens, techniques).
+# Fiche technique d'un article : champs personnalisés de l'Item, hors identité, liens, fichiers et structure.
 ARTICLE_SKIPPED_FIELDS = {
 	"custom_client",
 	"custom_type_article",
+	"custom_procédé",
+	"custom_code_client",
+	"custom_ancien_code",
+	"custom_consommation_annuelle",
 	"custom_article_parent",
+	"custom_article_compose",
+	"custom_sous_article",
+	"custom_quantite_sous_article",
 	"custom_html_liste_sous_articles",
 }
 ARTICLE_VALUE_TYPES = {"Data", "Select", "Int", "Float", "Check", "Link", "Small Text", "Color", "Percent"}
+# Section sans titre qui prolonge une section titrée (le texte des cotations suit les cotations).
+ARTICLE_FIELD_SECTION = {"custom_cotations_article": "custom_cotations"}
 LAYOUT_TYPES = {"Section Break", "Tab Break", "Column Break"}
 
 
@@ -175,6 +184,7 @@ def _references():
 		"types_paiement": _select_options("Visite Commerciale", "type_paiement"),
 		**affaires_references(_select_options),
 		"procedes_article": _select_options("Item", "custom_procédé"),
+		"fiche_article": article_schema(),
 	}
 
 
@@ -247,38 +257,61 @@ def _page_contacts(user, start, length):
 	)
 
 
-def article_characteristics(item, meta=None):
-	"""Caractéristiques non vides d'un article, regroupées par section comme dans le Desk."""
+def article_schema(meta=None):
+	"""Fiche technique d'un article telle que le Desk la présente : groupes (sections titrées) et champs,
+	chacun avec les conditions d'affichage (`depends_on` de l'onglet, de la section, du champ) que l'appareil évalue
+	sur les valeurs de l'article. Ainsi un article Offset n'affiche ni ne modifie les champs Flexo, et inversement."""
 	meta = meta or frappe.get_meta("Item")
-	sections = []
-	current = None
+	groups, by_key, fields = [], {}, []
+	tab_cond = section_cond = None
+	section_key, section_label = None, None
 	for field in meta.fields:
-		if field.fieldtype in ("Section Break", "Tab Break"):
-			current = None
-			if field.label:
-				current = {"section": field.label, "valeurs": []}
-				sections.append(current)
+		if field.fieldtype == "Tab Break":
+			tab_cond, section_cond, section_key, section_label = field.depends_on, None, None, None
+			continue
+		if field.fieldtype == "Section Break":
+			section_cond, section_key, section_label = field.depends_on, field.fieldname, field.label
+			by_key.setdefault(field.fieldname, {"tab": tab_cond, "section": section_cond, "label": field.label})
 			continue
 		if field.fieldtype in LAYOUT_TYPES or field.fieldtype not in ARTICLE_VALUE_TYPES:
 			continue
 		if not field.fieldname.startswith("custom_") or field.fieldname in ARTICLE_SKIPPED_FIELDS or field.hidden:
 			continue
-		value = item.get(field.fieldname)
-		if field.fieldtype == "Check":
-			if not cint(value):
-				continue
-			value = "Oui"
-		elif value in (None, "", 0, 0.0):
+		home = by_key.get(ARTICLE_FIELD_SECTION.get(field.fieldname)) if field.fieldname in ARTICLE_FIELD_SECTION else None
+		label = (home or {}).get("label") or section_label or _("Général")
+		conditions = [c for c in ((home or {}).get("tab", tab_cond), (home or {}).get("section", section_cond), field.depends_on) if c]
+		group = next((g for g in groups if g["label"] == label), None)
+		if not group:
+			group = {"label": label, "fields": []}
+			groups.append(group)
+		entry = {
+			"fieldname": field.fieldname,
+			"label": _(field.label or field.fieldname),
+			"fieldtype": field.fieldtype,
+			"conditions": conditions,
+		}
+		if field.fieldtype == "Select":
+			entry["options"] = [o for o in (field.options or "").split("\n") if o]
+		elif field.fieldtype == "Link":
+			entry["options"] = frappe.get_all(field.options, pluck="name", order_by="name asc", limit=500)
+		group["fields"].append(entry)
+		fields.append(field.fieldname)
+	return {"groups": [g for g in groups if g["fields"]], "fields": fields}
+
+
+def article_fiche(item, fieldnames):
+	"""Valeurs non vides de la fiche technique (brutes : l'appareil filtre et met en forme)."""
+	fiche = {}
+	for fieldname in fieldnames:
+		value = item.get(fieldname)
+		if value in (None, "", 0, 0.0):
 			continue
-		if current is None:
-			current = {"section": _("Général"), "valeurs": []}
-			sections.append(current)
-		current["valeurs"].append({"label": _(field.label or field.fieldname), "valeur": value})
-	return [section for section in sections if section["valeurs"]]
+		fiche[fieldname] = value
+	return fiche
 
 
 def _page_articles(user, start, length):
-	meta = frappe.get_meta("Item")
+	fieldnames = article_schema()["fields"]
 	names = [
 		row.name
 		for row in frappe.db.sql(
@@ -300,6 +333,7 @@ def _page_articles(user, start, length):
 	bats = _latest_bat_status(names)
 	rows = []
 	for item in sorted(items, key=lambda i: (i.custom_client or "", i.name)):
+		offset = item.get("custom_procédé") == "Offset"
 		rows.append(
 			{
 				"name": item.name,
@@ -308,8 +342,9 @@ def _page_articles(user, start, length):
 				"client": item.custom_client,
 				"code_client": item.custom_code_client,
 				"procede": item.get("custom_procédé"),
-				"dimensions": item.custom_dimensions_h_x_l,
-				"support": item.custom_type_support,
+				# Résumé de la carte article : les champs du procédé de l'article (cotations et papier en Offset).
+				"dimensions": item.custom_cotations_article if offset else item.custom_dimensions_h_x_l,
+				"support": item.custom_support if offset else item.custom_type_support,
 				"image": item.image,
 				"groupe": item.item_group,
 				"parent": item.custom_article_parent,
@@ -319,7 +354,7 @@ def _page_articles(user, start, length):
 				"trace_decoupe": item.get("custom_tracé_forme_découpe"),
 				"consommation_annuelle": item.custom_consommation_annuelle,
 				"bat": bats.get(item.name),
-				"caracteristiques": article_characteristics(item, meta),
+				"fiche": article_fiche(item, fieldnames),
 				"modified": item.modified,
 			}
 		)

@@ -19,6 +19,7 @@ export type MutationType =
 	| 'appel_update'
 	| 'prospect_create'
 	| 'article_create'
+	| 'article_update'
 	| 'client_update_gps'
 	| 'ticket_create'
 	| 'ticket_update'
@@ -69,6 +70,7 @@ export const MUTATION_LABELS: Record<MutationType, string> = {
 	appel_update: 'Appel modifié',
 	prospect_create: 'Nouveau prospect',
 	article_create: 'Nouvel article',
+	article_update: 'Article modifié',
 	client_update_gps: 'Position du client',
 	ticket_create: 'Nouveau ticket',
 	ticket_update: 'Ticket modifié',
@@ -302,7 +304,18 @@ export function applyMutation(bundle: Bundle, mutation: Mutation, user: { name: 
 				trace_decoupe: null,
 				consommation_annuelle: Number(p.consommation_annuelle) || null,
 				bat: null,
-				caracteristiques: [],
+				fiche: offset
+					? Object.fromEntries(
+							[
+								['custom_largeur', Number(p.largeur) || null],
+								['custom_hauteur', Number(p.hauteur) || null],
+								['custom_longueur', Number(p.longueur) || null],
+								['custom_cotations_article', cotations || null],
+							].filter(([, v]) => v),
+						)
+					: p.dimensions
+						? { custom_dimensions_h_x_l: p.dimensions }
+						: {},
 				modified: now,
 			}
 			return {
@@ -311,6 +324,28 @@ export function applyMutation(bundle: Bundle, mutation: Mutation, user: { name: 
 				clients: replaceRow(bundle.clients, client, (c) => ({ ...c, nb_articles: (c.nb_articles || 0) + 1 })),
 			}
 		}
+		case 'article_update':
+			return {
+				...bundle,
+				articles: replaceRow(bundle.articles, keyFrom(p, 'article'), (a) => {
+					const fiche: Record<string, string | number> = { ...(a.fiche ?? {}) }
+					for (const [field, value] of Object.entries(p.fiche || {})) {
+						if (value == null || value === '' || value === 0) delete fiche[field]
+						else fiche[field] = value as string | number
+					}
+					return {
+						...a,
+						_pending: true,
+						fiche,
+						...('designation' in p ? { designation: String(p.designation || '').toUpperCase() } : {}),
+						...('procede' in p ? { procede: p.procede } : {}),
+						...('code_client' in p ? { code_client: p.code_client || null } : {}),
+						...('consommation_annuelle' in p ? { consommation_annuelle: Number(p.consommation_annuelle) || null } : {}),
+						dimensions: ((('procede' in p ? p.procede : a.procede) === 'Offset' ? fiche.custom_cotations_article : fiche.custom_dimensions_h_x_l) as string) ?? null,
+						modified: now,
+					}
+				}),
+			}
 		case 'ticket_create': {
 			const client = keyFrom(p, 'client')
 			const ticket: Ticket = {

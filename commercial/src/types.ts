@@ -39,7 +39,6 @@ export type Contact = {
 	principal: number
 }
 
-export type Caracteristiques = { section: string; valeurs: { label: string; valeur: string | number }[] }[]
 
 export type Article = {
 	name: string
@@ -61,7 +60,8 @@ export type Article = {
 	trace_decoupe: string | null
 	consommation_annuelle: number | null
 	bat: { name: string; status: string; date: string | null } | null
-	caracteristiques: Caracteristiques
+	/** Valeurs non vides de la fiche technique (champs de `references.fiche_article`). */
+	fiche?: Record<string, string | number>
 	modified: string
 }
 
@@ -145,7 +145,12 @@ export type References = {
 	sites?: { name: string; title: string | null; procede: string | null }[]
 	types_reclamation?: string[]
 	procedes_article?: string[]
+	fiche_article?: FicheSchema
 }
+
+/** Fiche technique d'un article : groupes et champs du Desk, avec leurs conditions d'affichage (`depends_on`). */
+export type FicheField = { fieldname: string; label: string; fieldtype: string; conditions: string[]; options?: string[] }
+export type FicheSchema = { groups: { label: string; fields: FicheField[] }[]; fields: string[] }
 
 export type Ticket = {
 	name: string
