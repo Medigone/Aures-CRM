@@ -16,6 +16,7 @@ import { idbClear, idbDelete, idbGet, idbSet } from '@/lib/idb'
 import { addDays, toServerDateTime, uid, weekStart } from '@/lib/format'
 import { applyMutation, CREATES, localKey, MAX_ATTEMPTS, retryDelayMs, type Mutation, type MutationType } from '@/lib/mutations'
 import { clearContentIndex, prefetchFiles, prefetchPlan } from '@/lib/contentCache'
+import { connectRealtime, isForeignChange, throttledReload } from '@/lib/realtime'
 import type {
 	Appel,
 	Article,
@@ -385,6 +386,14 @@ export const useCommercialStore = defineStore('commercial', () => {
 		setInterval(() => {
 			if (document.visibilityState === 'visible') sync()
 		}, AUTO_SYNC_MS)
+		// Temps réel : un changement fait ailleurs (Desk, autre appareil) recharge l'instantané, par rafales regroupées.
+		const reload = throttledReload(() => sync())
+		connectRealtime(
+			(event) => {
+				if (isForeignChange(event, server.value?.user.name ?? window.user)) reload()
+			},
+			reload,
+		)
 		// Une action en attente de nouvel essai repart à l'heure prévue, sans attendre la synchro suivante.
 		setInterval(() => {
 			const now = Date.now()

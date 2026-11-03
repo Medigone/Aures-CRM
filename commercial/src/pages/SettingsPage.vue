@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
 import SyncPill from '@/components/SyncPill.vue'
+import PushSettingsCard from '@/components/PushSettingsCard.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { useAppTheme, type ThemePreference } from '@/lib/theme'
 import { formatDay, formatTime } from '@/lib/format'
@@ -61,6 +62,10 @@ function logout() {
 				Saisies : {{ store.pendingCount }} en attente<template v-if="store.failed.length">, {{ store.failed.length }} à corriger</template>
 			</RouterLink>
 		</section>
+
+		<RouterLink :to="{ name: 'Objectifs' }" class="btn-secondary mb-4 w-full">Mes objectifs</RouterLink>
+
+		<PushSettingsCard class="mb-6" />
 
 		<section class="mb-6">
 			<h2 class="section-title mb-2">Thème</h2>

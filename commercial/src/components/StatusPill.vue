@@ -56,6 +56,9 @@ const TONES: Record<string, string> = {
 	Soldée: 'bg-surface-green-2 text-ink-green-3',
 	Litige: 'bg-surface-red-2 text-ink-red-3',
 	Suspendue: 'bg-surface-gray-3 text-ink-gray-7',
+	// Actions de pilotage
+	'En cours': 'bg-surface-amber-2 text-ink-amber-3',
+	Terminée: 'bg-surface-green-2 text-ink-green-3',
 }
 /** Statuts ERPNext (Devis, Commande) affichés en français. */
 const LABELS: Record<string, string> = {

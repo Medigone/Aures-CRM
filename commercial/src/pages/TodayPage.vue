@@ -14,6 +14,7 @@ import { formatTime, parseServerDate } from '@/lib/format'
 import { stripHtml, todayIso } from '@/lib/text'
 import type { Client } from '@/types'
 import { ticketAlerte } from '@/lib/affaires'
+import { METRIC_LABELS, formatMetric } from '@/lib/objectifs'
 import { formatMoney } from '@/lib/text'
 
 const store = useCommercialStore()
@@ -44,6 +45,10 @@ const relances = computed(() =>
 		.filter((c) => c.date_prochaine_relance && c.date_prochaine_relance <= today && (c.solde_restant || 0) > 0)
 		.sort((a, b) => (a.date_prochaine_relance || '').localeCompare(b.date_prochaine_relance || '')),
 )
+// Mes objectifs : la cible principale de la période (CA, sinon la première), en une ligne.
+const objectifs = computed(() => store.bundle?.objectifs ?? null)
+const ciblePrincipale = computed(() => objectifs.value?.cibles.find((c) => c.metric_code === 'revenue') ?? objectifs.value?.cibles[0] ?? null)
+
 const aTraiter = computed(() => ticketsAlerte.value.length + reclamationsRetard.value.length + relances.value.length)
 
 /** Clients actifs sans visite depuis 60 jours (ou jamais), les plus anciens d'abord. */
@@ -115,6 +120,19 @@ const distanceTo = (c: Client) => {
 					</RouterLink>
 				</div>
 			</section>
+
+			<RouterLink v-if="objectifs" :to="{ name: 'Objectifs' }" class="card-link mb-6 p-3">
+				<div class="flex items-baseline justify-between gap-2">
+					<span class="font-medium">Mes objectifs</span>
+					<span class="text-sm font-semibold tabular-nums">{{ Math.round(objectifs.target_achievement_pct || 0) }} %</span>
+				</div>
+				<p v-if="ciblePrincipale" class="text-sm text-ink-gray-6">
+					{{ METRIC_LABELS[ciblePrincipale.metric_code] || ciblePrincipale.metric_code }} : {{ formatMetric(ciblePrincipale.achieved_value, ciblePrincipale.unit) }} / {{ formatMetric(ciblePrincipale.target_value, ciblePrincipale.unit) }}
+				</p>
+				<div class="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-gray-2">
+					<div class="h-full rounded-full bg-accent" :style="{ width: `${Math.min(100, Math.round(objectifs.target_achievement_pct || 0))}%` }" />
+				</div>
+			</RouterLink>
 
 			<section v-if="aTraiter" class="mb-6">
 				<h2 class="section-title mb-2">À traiter</h2>

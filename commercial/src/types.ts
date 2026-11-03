@@ -297,6 +297,42 @@ export type SyncMeta = {
 	user: { name: string; full_name: string; image: string | null; roles: string[]; exempt: boolean }
 	references: References
 	suivi_creances_actif?: boolean
+	objectifs?: Objectifs | null
+}
+
+export type CibleObjectif = {
+	metric_code: 'revenue' | 'visits' | 'new_customers' | 'coverage' | 'conversion' | string
+	period_type: string | null
+	period_start: string | null
+	period_end: string | null
+	target_value: number | null
+	achieved_value: number | null
+	achievement_pct: number | null
+	unit: 'currency' | 'count' | 'percent' | string | null
+}
+
+/** Pilotage Commercial du commercial (lecture seule, recalculé chaque nuit). */
+export type Objectifs = {
+	display_name: string | null
+	commercial_type: string | null
+	sales_zone: string | null
+	monthly_revenue_target: number | null
+	annual_revenue_target: number | null
+	visit_target_current: number | null
+	new_customers_target_current: number | null
+	revenue_achieved: number | null
+	target_achievement_pct: number | null
+	visits_completed: number | null
+	conversion_rate: number | null
+	coverage_rate: number | null
+	portfolio_accounts_count: number | null
+	active_customers_count: number | null
+	priority_level: string | null
+	reclassification_status: string | null
+	next_review_date: string | null
+	stats_last_refresh_at: string | null
+	cibles: CibleObjectif[]
+	actions: { action_title: string; action_type: string | null; priority: string | null; status: string; due_date: string | null; description: string | null }[]
 }
 
 export type Bundle = SyncMeta & {

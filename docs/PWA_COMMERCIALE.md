@@ -56,11 +56,31 @@ Elle reprend l'architecture de MediConnect Field : instantané hors-ligne dans I
 
 API : `aurescrm/api/commercial_affaires.py` fournit les sections `tickets`, `devis`, `commandes`, `reclamations`, `bats`, ainsi que `get_ticket_cycle` et `get_creance_detail`. Les actions `ticket_create`, `ticket_update`, `ticket_urgence_request` et `ticket_urgence_cancel` sont dans `commercial_mutations.py`.
 
-## Lot suivant
-4. Notifications push (VAPID), temps réel, objectifs Pilotage Commercial.
+## Lot 4 (livré) : notifications, temps réel, objectifs
+- **Notifications push** :
+  - **Transport** : Web Push VAPID repris de MediConnect, sans `pywebpush`. Le code est dans `aurescrm/push/`, et les doctypes sont **Parametres Push Commercial** et **Abonnement Push Commercial**.
+  - **Activation** :
+    1. Dans le Desk, ouvrez **Parametres Push Commercial** et cochez « Activer les notifications push ». Les clés VAPID se génèrent au premier usage. Vous pouvez aussi les fixer dans `site_config` (`aures_vapid_private_key`, `aures_vapid_public_key`, `aures_vapid_subject`).
+    2. Chaque commercial active ensuite les notifications dans **Réglages** de l'application. Sur iPhone, l'application doit d'abord être ajoutée à l'écran d'accueil.
+  - **Événements envoyés au commercial concerné**, jamais à l'auteur du changement :
+    - **Tickets** : prise en charge, urgence validée ou refusée, blocage créance, ticket terminé.
+    - **Devis** : devis validé, envoyé aux commerciaux du client.
+    - **BAT** : nouveau BAT, BAT-E ou BAT-P validé.
+    - **Commandes** : commande confirmée, production terminée (ordre de production).
+    - **Réclamations** : réclamation traitée ou non traitée.
+  - Chaque commercial peut couper une catégorie. Rien n'est envoyé pendant que l'application est à l'écran, et un même sujet n'est notifié qu'une fois toutes les 2 minutes.
+- **Temps réel** :
+  - `aurescrm/commercial_events.py`, branché sur `doc_events["*"]` (`on_change`, `on_trash`), publie `aures_commercial_update` aux commerciaux du client (attribution legacy et table d'attributions) et aux utilisateurs du document. L'envoi a lieu après le commit, une fois par document.
+  - L'application recharge son instantané par rafales regroupées : 3 s après l'événement, puis au plus une fois toutes les 10 s. Elle ignore ses propres saisies.
+- **Mes objectifs** (`/objectifs`, et une carte dans Aujourd'hui) : le Pilotage Commercial du commercial, en lecture seule.
+  - Cibles de la période en cours, avec progression.
+  - Indicateurs : CA, visites, conversion, couverture, clients actifs.
+  - Prochaine revue, actions ouvertes du manager.
+  - Visites terminées ce mois-ci sur l'appareil.
+  - Les indicateurs sont recalculés chaque nuit (`refresh_all_pilotage_kpis`).
 
 ## Développement et déploiement
 - Code : `commercial/` (Vue 3 + frappe-ui + Vite). API : `aurescrm/api/commercial_mobile.py`. Entrée : `aurescrm/www/commercial.py`, renderers `aurescrm/www/commercial_page.py` (déclarés dans `hooks.py`).
 - `yarn install` à la racine de l'app, puis `bench build --app aurescrm` (lance `yarn build`) ; le build va dans `aurescrm/public/commercial/` et `aurescrm/www/commercial.html` (non commités).
-- Après mise à jour : `bench migrate` (doctype **Mutation Commercial**).
+- Après mise à jour : `bench migrate` (doctypes **Mutation Commercial**, **Parametres Push Commercial**, **Abonnement Push Commercial**).
 - Dev : `yarn dev:commercial` (proxy vers bench) ; tests : `cd commercial && yarn test && yarn typecheck`.

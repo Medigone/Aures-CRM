@@ -13,7 +13,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, cint, now_datetime, today
+from frappe.utils import add_days, cint, getdate, now_datetime, today
 
 from aurescrm.custom_permissions import build_commercial_permission_query_condition, is_exempt_user
 
@@ -90,6 +90,62 @@ def get_sync_bundle():
 		"user": {"name": user, "full_name": full_name, "image": image, "roles": roles, "exempt": is_exempt_user(user)},
 		"references": _references(),
 		"suivi_creances_actif": _suivi_creances_actif(),
+		"objectifs": objectifs(user),
+	}
+
+
+def objectifs(user):
+	"""Pilotage Commercial du commercial (lecture) : cibles de la période en cours, KPI, actions ouvertes."""
+	if not frappe.db.exists("Pilotage Commercial", user):
+		return None
+	doc = frappe.get_doc("Pilotage Commercial", user)
+	jour = getdate(today())
+	cibles = [
+		{
+			"metric_code": t.metric_code,
+			"period_type": t.period_type,
+			"period_start": t.period_start,
+			"period_end": t.period_end,
+			"target_value": t.target_value,
+			"achieved_value": t.achieved_value,
+			"achievement_pct": t.achievement_pct,
+			"unit": t.unit,
+		}
+		for t in doc.targets
+		if (not t.period_start or getdate(t.period_start) <= jour) and (not t.period_end or getdate(t.period_end) >= jour)
+	]
+	return {
+		"display_name": doc.display_name,
+		"commercial_type": doc.commercial_type,
+		"sales_zone": doc.sales_zone,
+		"monthly_revenue_target": doc.monthly_revenue_target,
+		"annual_revenue_target": doc.annual_revenue_target,
+		"visit_target_current": doc.visit_target_current,
+		"new_customers_target_current": doc.new_customers_target_current,
+		"revenue_achieved": doc.revenue_achieved,
+		"target_achievement_pct": doc.target_achievement_pct,
+		"visits_completed": doc.visits_completed,
+		"conversion_rate": doc.conversion_rate,
+		"coverage_rate": doc.coverage_rate,
+		"portfolio_accounts_count": doc.portfolio_accounts_count,
+		"active_customers_count": doc.active_customers_count,
+		"priority_level": doc.priority_level,
+		"reclassification_status": doc.reclassification_status,
+		"next_review_date": doc.next_review_date,
+		"stats_last_refresh_at": doc.stats_last_refresh_at,
+		"cibles": cibles,
+		"actions": [
+			{
+				"action_title": a.action_title,
+				"action_type": a.action_type,
+				"priority": a.priority,
+				"status": a.status,
+				"due_date": a.due_date,
+				"description": a.description,
+			}
+			for a in doc.actions
+			if a.status in ("Ouverte", "En cours")
+		],
 	}
 
 

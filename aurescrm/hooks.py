@@ -173,6 +173,11 @@ override_doctype_dashboards = {
 # aurescrm/hooks.py
 # dans hooks.py
 doc_events = {
+    # PWA commerciale : temps réel et notifications push (filtrés par aurescrm.commercial_events.WATCHED).
+    "*": {
+        "on_change": "aurescrm.commercial_events.on_change",
+        "on_trash": "aurescrm.commercial_events.on_trash",
+    },
     "Comment": {
         "validate": "aurescrm.customer_timeline.validate_customer_timeline_comment",
     },

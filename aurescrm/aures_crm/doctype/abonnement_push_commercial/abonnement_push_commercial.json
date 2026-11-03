@@ -1,0 +1,136 @@
+{
+ "actions": [],
+ "creation": "2026-11-03 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "description": "Un appareil abonné aux notifications push de la PWA commerciale.",
+ "autoname": "hash",
+ "field_order": [
+  "user",
+  "application",
+  "enabled",
+  "column_break_tete",
+  "last_seen_at",
+  "failure_count",
+  "section_cles",
+  "endpoint_hash",
+  "endpoint",
+  "p256dh",
+  "auth",
+  "section_appareil",
+  "user_agent",
+  "last_error"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Utilisateur",
+   "options": "User",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "application",
+   "fieldtype": "Select",
+   "label": "Application",
+   "options": "commercial",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "default": "commercial"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Actif",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_tete",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "last_seen_at",
+   "fieldtype": "Datetime",
+   "label": "Dernier abonnement"
+  },
+  {
+   "fieldname": "failure_count",
+   "fieldtype": "Int",
+   "label": "Échecs consécutifs",
+   "default": "0"
+  },
+  {
+   "fieldname": "section_cles",
+   "fieldtype": "Section Break",
+   "label": "Abonnement"
+  },
+  {
+   "fieldname": "endpoint_hash",
+   "fieldtype": "Data",
+   "label": "Empreinte de l'endpoint",
+   "unique": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "endpoint",
+   "fieldtype": "Small Text",
+   "label": "Endpoint",
+   "reqd": 1
+  },
+  {
+   "fieldname": "p256dh",
+   "fieldtype": "Data",
+   "label": "Clé p256dh",
+   "reqd": 1
+  },
+  {
+   "fieldname": "auth",
+   "fieldtype": "Data",
+   "label": "Secret auth",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_appareil",
+   "fieldtype": "Section Break",
+   "label": "Appareil"
+  },
+  {
+   "fieldname": "user_agent",
+   "fieldtype": "Small Text",
+   "label": "Navigateur"
+  },
+  {
+   "fieldname": "last_error",
+   "fieldtype": "Small Text",
+   "label": "Dernière erreur"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-03 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Abonnement Push Commercial",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "user",
+ "track_changes": 0
+}

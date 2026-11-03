@@ -11,6 +11,7 @@ import NewVisitPage from './pages/NewVisitPage.vue'
 import RdvPage from './pages/RdvPage.vue'
 import AppelPage from './pages/AppelPage.vue'
 import SyncPage from './pages/SyncPage.vue'
+import ObjectifsPage from './pages/ObjectifsPage.vue'
 import SuiviPage from './pages/SuiviPage.vue'
 import TicketPage from './pages/TicketPage.vue'
 import NewTicketPage from './pages/NewTicketPage.vue'
@@ -38,6 +39,7 @@ export const routes = [
 	{ path: '/devis/:id', name: 'Devis', component: DevisPage, props: true },
 	{ path: '/commandes/:id', name: 'Commande', component: CommandePage, props: true },
 	{ path: '/reclamations/:id', name: 'Reclamation', component: ReclamationPage, props: true },
+	{ path: '/objectifs', name: 'Objectifs', component: ObjectifsPage },
 	{ path: '/synchronisation', name: 'Sync', component: SyncPage },
 	{ path: '/parametres', name: 'Settings', component: SettingsPage },
 	{ path: '/:pathMatch(.*)*', redirect: { name: 'Today' } },
