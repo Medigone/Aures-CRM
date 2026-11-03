@@ -1,19 +1,32 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import LucidePhone from '~icons/lucide/phone'
 import LucideMail from '~icons/lucide/mail'
 import LucideNavigation from '~icons/lucide/navigation'
 import LucideSearch from '~icons/lucide/search'
+import LucideCalendarPlus from '~icons/lucide/calendar-plus'
+import LucideClipboardPlus from '~icons/lucide/clipboard-plus'
+import LucidePhoneCall from '~icons/lucide/phone-call'
+import LucideMapPin from '~icons/lucide/map-pin'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusPill from '@/components/StatusPill.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { formatDay, formatTime, normalizeSearch } from '@/lib/format'
-import { formatMoney, stripHtml } from '@/lib/text'
+import { formatMoney, gpsText, stripHtml } from '@/lib/text'
+import { currentPosition } from '@/lib/geo'
+import { refTo } from '@/lib/mutations'
 
 const props = defineProps<{ id: string }>()
 const store = useCommercialStore()
-const client = computed(() => store.clientsByName.get(props.id) ?? null)
+const router = useRouter()
+// Un prospect créé sur l'appareil change de clé quand le serveur le confirme : la page suit.
+const key = computed(() => store.resolveKey(props.id))
+watch(key, (next) => {
+	if (next !== props.id) router.replace({ name: 'Client', params: { id: next } })
+})
+const client = computed(() => store.clientsByName.get(key.value) ?? null)
 
 type Tab = 'articles' | 'infos' | 'contacts' | 'historique'
 const tab = ref<Tab>('articles')
@@ -36,7 +49,7 @@ const mapsUrl = computed(() => {
 // Articles du client : recherche et filtre par procédé, hors-ligne.
 const articleQuery = ref('')
 const procede = ref<string | null>(null)
-const clientArticles = computed(() => store.articlesByClient.get(props.id) ?? [])
+const clientArticles = computed(() => store.articlesByClient.get(key.value) ?? [])
 const procedes = computed(() => [...new Set(clientArticles.value.map((a) => a.procede).filter(Boolean) as string[])].sort())
 const articles = computed(() => {
 	const q = normalizeSearch(articleQuery.value)
@@ -47,23 +60,39 @@ const articles = computed(() => {
 	})
 })
 
-const contacts = computed(() => store.contactsByClient.get(props.id) ?? [])
+const contacts = computed(() => store.contactsByClient.get(key.value) ?? [])
 
-type Event = { key: string; date: string; kind: string; title: string; detail: string; status: string | null }
+type Event = { key: string; date: string; kind: string; title: string; detail: string; status: string | null; to: object; pending?: boolean }
 const historique = computed<Event[]>(() => {
 	const events: Event[] = []
-	for (const v of store.visitesByClient.get(props.id) ?? []) {
+	for (const v of store.visitesByClient.get(key.value) ?? []) {
 		const recouvrement = v.montant_encaisse ? ` · encaissé ${formatMoney(v.montant_encaisse)}` : ''
-		events.push({ key: v.name, date: v.debut || v.date, kind: 'Visite', title: v.type_visite || 'Visite', detail: stripHtml(v.notes) + recouvrement, status: v.status })
+		events.push({ key: v.name, date: v.debut || v.date, kind: 'Visite', title: v.type_visite || 'Visite', detail: stripHtml(v.notes) + recouvrement, status: v.status, to: { name: 'Visit', params: { id: v.name } }, pending: v._pending })
 	}
-	for (const r of store.rdvByClient.get(props.id) ?? []) {
-		events.push({ key: r.name, date: r.date_heure || '', kind: 'Rendez-vous', title: `RDV ${formatTime(r.date_heure)}`, detail: stripHtml(r.details), status: r.status })
+	for (const r of store.rdvByClient.get(key.value) ?? []) {
+		events.push({ key: r.name, date: r.date_heure || '', kind: 'Rendez-vous', title: `RDV ${formatTime(r.date_heure)}`, detail: stripHtml(r.details), status: r.status, to: { name: 'Rdv', params: { id: r.name } }, pending: r._pending })
 	}
-	for (const a of store.appelsByClient.get(props.id) ?? []) {
-		events.push({ key: a.name, date: a.heure || a.date || '', kind: 'Appel', title: a.type || 'Appel', detail: stripHtml(a.notes), status: a.status })
+	for (const a of store.appelsByClient.get(key.value) ?? []) {
+		events.push({ key: a.name, date: a.heure || a.date || '', kind: 'Appel', title: a.type || 'Appel', detail: stripHtml(a.notes), status: a.status, to: { name: 'Appel', params: { id: a.name } }, pending: a._pending })
 	}
 	return events.sort((a, b) => b.date.localeCompare(a.date))
 })
+
+// Position du client : enregistrée sur place (adresse GPS du Customer).
+const locating = ref(false)
+const gpsMessage = ref<string | null>(null)
+async function saveGps() {
+	if (!client.value) return
+	locating.value = true
+	const position = await currentPosition()
+	locating.value = false
+	if (!position) {
+		gpsMessage.value = 'Position indisponible : autorisez la localisation.'
+		return
+	}
+	store.enqueue('client_update_gps', { ...refTo('client', client.value.name), gps: gpsText(position) }, client.value.name)
+	gpsMessage.value = `Position enregistrée (précision ${position.precision ?? '?'} m).`
+}
 
 const infos = computed(() => {
 	const c = client.value
@@ -99,6 +128,11 @@ const infos = computed(() => {
 			<a v-if="client.email" :href="`mailto:${client.email}`" class="quick-action"><LucideMail aria-hidden="true" />Email</a>
 			<a v-if="mapsUrl" :href="mapsUrl" target="_blank" rel="noopener" class="quick-action"><LucideNavigation aria-hidden="true" />Itinéraire</a>
 		</div>
+		<div class="quick-actions mb-4">
+			<RouterLink :to="{ name: 'NewVisit', query: { client: client.name } }" class="quick-action"><LucideClipboardPlus aria-hidden="true" />Visite</RouterLink>
+			<RouterLink :to="{ name: 'NewRdv', query: { client: client.name } }" class="quick-action"><LucideCalendarPlus aria-hidden="true" />Rendez-vous</RouterLink>
+			<RouterLink :to="{ name: 'NewAppel', query: { client: client.name } }" class="quick-action"><LucidePhoneCall aria-hidden="true" />Appel</RouterLink>
+		</div>
 
 		<div class="mb-4 grid grid-cols-4 gap-1 rounded-xl bg-surface-gray-2 p-1" role="tablist">
 			<button
@@ -131,11 +165,17 @@ const infos = computed(() => {
 			</div>
 		</section>
 
-		<section v-else-if="tab === 'infos'" class="card divide-y divide-outline-gray-1">
-			<div v-for="[label, value] in infos" :key="label" class="flex justify-between gap-4 px-3 py-2.5 text-sm">
-				<span class="text-ink-gray-6">{{ label }}</span>
-				<span class="text-right font-medium">{{ value }}</span>
+		<section v-else-if="tab === 'infos'">
+			<div class="card divide-y divide-outline-gray-1">
+				<div v-for="[label, value] in infos" :key="label" class="flex justify-between gap-4 px-3 py-2.5 text-sm">
+					<span class="text-ink-gray-6">{{ label }}</span>
+					<span class="text-right font-medium">{{ value }}</span>
+				</div>
 			</div>
+			<button type="button" class="btn-secondary mt-3 w-full" :disabled="locating" @click="saveGps">
+				<LucideMapPin class="h-4 w-4" aria-hidden="true" />{{ locating ? 'Localisation…' : client.lat != null ? 'Corriger la position (je suis chez le client)' : 'Enregistrer la position (je suis chez le client)' }}
+			</button>
+			<p v-if="gpsMessage" class="mt-1 text-sm text-ink-gray-6">{{ gpsMessage }}</p>
 		</section>
 
 		<section v-else-if="tab === 'contacts'">
@@ -155,15 +195,20 @@ const infos = computed(() => {
 		<section v-else>
 			<p v-if="!historique.length" class="py-8 text-center text-sm text-ink-gray-6">Aucune visite, aucun rendez-vous ni appel récent.</p>
 			<ol class="space-y-2">
-				<li v-for="e in historique" :key="e.key" class="card p-3">
-					<div class="flex items-start justify-between gap-2">
-						<div class="min-w-0">
-							<p class="text-xs text-ink-gray-6">{{ e.kind }} · {{ formatDay(e.date) }}</p>
-							<p class="font-medium">{{ e.title }}</p>
+				<li v-for="e in historique" :key="e.key">
+					<RouterLink :to="e.to" class="card-link p-3">
+						<div class="flex items-start justify-between gap-2">
+							<div class="min-w-0">
+								<p class="text-xs text-ink-gray-6">{{ e.kind }} · {{ formatDay(e.date) }}</p>
+								<p class="font-medium">{{ e.title }}</p>
+							</div>
+							<span class="flex items-center gap-2">
+								<span v-if="e.pending" class="pending-dot" title="En attente d'envoi" />
+								<StatusPill :status="e.status" />
+							</span>
 						</div>
-						<StatusPill :status="e.status" />
-					</div>
-					<p v-if="e.detail" class="mt-1 line-clamp-3 text-sm text-ink-gray-7">{{ e.detail }}</p>
+						<p v-if="e.detail" class="mt-1 line-clamp-3 text-sm text-ink-gray-7">{{ e.detail }}</p>
+					</RouterLink>
 				</li>
 			</ol>
 		</section>

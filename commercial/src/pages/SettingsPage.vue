@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
 import SyncPill from '@/components/SyncPill.vue'
 import { useCommercialStore } from '@/stores/commercial'
@@ -23,7 +24,11 @@ const counts = computed(() => [
 ])
 
 function logout() {
-	if (window.confirm('Se déconnecter ? Les données de cet appareil seront effacées.')) store.logout()
+	const pending = store.pendingCount + store.failed.length
+	const message = pending
+		? `${pending} saisie(s) ne sont pas encore envoyées et seront perdues. Se déconnecter quand même ?`
+		: 'Se déconnecter ? Les données de cet appareil seront effacées.'
+	if (window.confirm(message)) store.logout()
 }
 </script>
 
@@ -52,6 +57,9 @@ function logout() {
 				</div>
 			</div>
 			<p v-if="store.syncError" class="mt-2 text-sm text-ink-red-3">{{ store.syncError }}</p>
+			<RouterLink :to="{ name: 'Sync' }" class="btn-secondary mt-3 w-full">
+				Saisies : {{ store.pendingCount }} en attente<template v-if="store.failed.length">, {{ store.failed.length }} à corriger</template>
+			</RouterLink>
 		</section>
 
 		<section class="mb-6">

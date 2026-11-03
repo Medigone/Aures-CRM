@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import LucideMapPin from '~icons/lucide/map-pin'
+import LucidePlus from '~icons/lucide/plus'
+import LucidePhone from '~icons/lucide/phone'
 import PageHeader from '@/components/PageHeader.vue'
 import SyncPill from '@/components/SyncPill.vue'
 import StatusPill from '@/components/StatusPill.vue'
@@ -24,7 +26,8 @@ const rdvDuJour = computed(() =>
 		.filter((r) => (r.date_heure || '').slice(0, 10) === today && r.status !== 'Terminé')
 		.sort((a, b) => (a.date_heure || '').localeCompare(b.date_heure || '')),
 )
-const visitesDuJour = computed(() => store.visites.filter((v) => v.date === today))
+// Visites du jour, et celles restées en cours un jour précédent (à terminer).
+const visitesDuJour = computed(() => store.visites.filter((v) => v.date === today || v.status === 'En Cours'))
 const rappels = computed(() =>
 	store.appels
 		.filter((a) => a.status === 'À Rappeler' && (!a.date_rappel || a.date_rappel.slice(0, 10) <= today))
@@ -81,11 +84,16 @@ const distanceTo = (c: Client) => {
 		</div>
 
 		<template v-else>
+			<div class="mb-6 flex gap-2">
+				<RouterLink :to="{ name: 'NewVisit' }" class="btn-primary flex-1"><LucidePlus class="h-4 w-4" aria-hidden="true" />Visite</RouterLink>
+				<RouterLink :to="{ name: 'NewAppel' }" class="btn-secondary flex-1"><LucidePhone class="h-4 w-4" aria-hidden="true" />Noter un appel</RouterLink>
+			</div>
+
 			<section class="mb-6">
 				<h2 class="section-title mb-2">Rendez-vous du jour</h2>
 				<p v-if="!rdvDuJour.length" class="text-sm text-ink-gray-6">Aucun rendez-vous aujourd'hui.</p>
 				<div class="space-y-2">
-					<RouterLink v-for="r in rdvDuJour" :key="r.name" :to="r.client ? { name: 'Client', params: { id: r.client } } : { name: 'Today' }" class="card-link flex items-center gap-3 p-3">
+					<RouterLink v-for="r in rdvDuJour" :key="r.name" :to="{ name: 'Rdv', params: { id: r.name } }" class="card-link flex items-center gap-3 p-3">
 						<span class="w-12 shrink-0 text-lg font-semibold tabular-nums">{{ formatTime(r.date_heure) }}</span>
 						<div class="min-w-0 flex-1">
 							<p class="truncate font-medium">{{ r.raison_sociale || clientName(r.client) }}</p>
@@ -99,11 +107,12 @@ const distanceTo = (c: Client) => {
 			<section v-if="visitesDuJour.length" class="mb-6">
 				<h2 class="section-title mb-2">Visites du jour</h2>
 				<div class="space-y-2">
-					<RouterLink v-for="v in visitesDuJour" :key="v.name" :to="{ name: 'Client', params: { id: v.client } }" class="card-link flex items-center justify-between gap-3 p-3">
+					<RouterLink v-for="v in visitesDuJour" :key="v.name" :to="{ name: 'Visit', params: { id: v.name } }" class="card-link flex items-center justify-between gap-3 p-3">
 						<div class="min-w-0">
 							<p class="truncate font-medium">{{ v.nom_client || clientName(v.client) }}</p>
-							<p class="truncate text-sm text-ink-gray-6">{{ v.type_visite }}</p>
+							<p class="truncate text-sm text-ink-gray-6">{{ v.type_visite }}<template v-if="v.date !== today"> · commencée {{ v.date }}</template></p>
 						</div>
+						<span v-if="v._pending" class="pending-dot" title="En attente d'envoi" />
 						<StatusPill :status="v.status" />
 					</RouterLink>
 				</div>
@@ -112,7 +121,7 @@ const distanceTo = (c: Client) => {
 			<section v-if="rappels.length" class="mb-6">
 				<h2 class="section-title mb-2">Appels à rappeler</h2>
 				<div class="space-y-2">
-					<RouterLink v-for="a in rappels" :key="a.name" :to="a.client ? { name: 'Client', params: { id: a.client } } : { name: 'Today' }" class="card-link p-3">
+					<RouterLink v-for="a in rappels" :key="a.name" :to="{ name: 'Appel', params: { id: a.name } }" class="card-link p-3">
 						<p class="truncate font-medium">{{ clientName(a.client) }}</p>
 						<p class="truncate text-sm text-ink-gray-6">{{ a.type }}<template v-if="a.date_rappel"> · {{ formatTime(a.date_rappel) }}</template></p>
 					</RouterLink>

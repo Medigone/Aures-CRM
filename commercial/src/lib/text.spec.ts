@@ -22,3 +22,18 @@ describe('fileUrl', () => {
 		expect(fileUrl(null)).toBeNull()
 	})
 })
+
+describe('dates de formulaire', () => {
+	it('convertit entre serveur et champ datetime-local', async () => {
+		const { fromInputDateTime, toInputDateTime, inputDateTimeIn } = await import('./text')
+		expect(toInputDateTime('2026-11-03 10:30:00')).toBe('2026-11-03T10:30')
+		expect(fromInputDateTime('2026-11-03T10:30')).toBe('2026-11-03 10:30:00')
+		expect(fromInputDateTime('')).toBeNull()
+		expect(inputDateTimeIn(0, new Date(2026, 10, 3, 9, 7))).toBe('2026-11-03T09:15')
+	})
+	it('formate une position GPS', async () => {
+		const { gpsText } = await import('./text')
+		expect(gpsText({ latitude: 36.75, longitude: 3.05 })).toBe('36.750000, 3.050000')
+		expect(gpsText(null)).toBeNull()
+	})
+})

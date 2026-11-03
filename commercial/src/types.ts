@@ -2,6 +2,8 @@
 
 export type Client = {
 	name: string
+	/** Saisie locale pas encore envoyée au serveur. */
+	_pending?: boolean
 	customer_name: string
 	statut: string | null
 	groupe: string | null
@@ -63,6 +65,8 @@ export type Article = {
 
 export type Visite = {
 	name: string
+	/** Saisie locale pas encore envoyée au serveur. */
+	_pending?: boolean
 	status: string
 	docstatus: number
 	date: string
@@ -81,11 +85,23 @@ export type Visite = {
 	resultat_recouvrement: string | null
 	montant_encaisse: number | null
 	date_prochaine_relance: string | null
+	creance_client?: string | null
+	montant_reclame?: number | null
+	type_paiement?: string | null
+	date_paiement_negociee?: string | null
+	numero_document_paiement?: string | null
+	motif_non_paiement?: string | null
+	gps_visite?: string | null
+	/** Photo du document de paiement prise sur l'appareil, en attente d'envoi. */
+	photo_document_paiement?: string | null
+	photo_locale?: string | null
 	modified: string
 }
 
 export type RendezVous = {
 	name: string
+	/** Saisie locale pas encore envoyée au serveur. */
+	_pending?: boolean
 	status: string
 	date_heure: string | null
 	client: string | null
@@ -99,6 +115,8 @@ export type RendezVous = {
 
 export type Appel = {
 	name: string
+	/** Saisie locale pas encore envoyée au serveur. */
+	_pending?: boolean
 	status: string
 	type: string | null
 	date: string | null
@@ -116,12 +134,27 @@ export type References = {
 	statuts_client: string[]
 	types_appel: string[]
 	statuts_rdv: string[]
+	statuts_appel?: string[]
+	resultats_recouvrement?: string[]
+	types_paiement?: string[]
+}
+
+export type Creance = {
+	name: string
+	client: string
+	nom_client: string | null
+	statut: string
+	solde_restant: number | null
+	date_prochaine_relance: string | null
+	dernier_resultat_recouvrement: string | null
+	modified: string
 }
 
 export type SyncMeta = {
 	server_time: string
 	user: { name: string; full_name: string; image: string | null; roles: string[]; exempt: boolean }
 	references: References
+	suivi_creances_actif?: boolean
 }
 
 export type Bundle = SyncMeta & {
@@ -131,6 +164,7 @@ export type Bundle = SyncMeta & {
 	visites: Visite[]
 	rdv: RendezVous[]
 	appels: Appel[]
+	creances: Creance[]
 	synced_at: string
 }
 

@@ -1,0 +1,129 @@
+{
+ "actions": [],
+ "autoname": "field:mutation_id",
+ "creation": "2026-11-03 10:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "mutation_id",
+  "utilisateur",
+  "type",
+  "statut",
+  "column_break_1",
+  "reference_doctype",
+  "reference_name",
+  "cree_sur_appareil",
+  "section_break_1",
+  "resultat",
+  "erreur"
+ ],
+ "fields": [
+  {
+   "fieldname": "mutation_id",
+   "fieldtype": "Data",
+   "label": "Identifiant de l'action",
+   "read_only": 1,
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "utilisateur",
+   "fieldtype": "Link",
+   "label": "Utilisateur",
+   "read_only": 1,
+   "options": "User",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "label": "Type d'action",
+   "read_only": 1,
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "statut",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "read_only": 1,
+   "options": "Appliquée\nRefusée",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Type de document",
+   "read_only": 1,
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Document",
+   "read_only": 1,
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "cree_sur_appareil",
+   "fieldtype": "Datetime",
+   "label": "Saisie sur l'appareil",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Détail"
+  },
+  {
+   "fieldname": "resultat",
+   "fieldtype": "Long Text",
+   "label": "Résultat (JSON)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "erreur",
+   "fieldtype": "Small Text",
+   "label": "Erreur",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-03 10:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Mutation Commercial",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "report": 1,
+   "export": 1,
+   "delete": 1,
+   "role": "System Manager"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Superviseur CRM"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

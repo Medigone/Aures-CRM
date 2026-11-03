@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import LucideSearch from '~icons/lucide/search'
+import LucidePlus from '~icons/lucide/plus'
 import PageHeader from '@/components/PageHeader.vue'
-import SyncPill from '@/components/SyncPill.vue'
 import ClientCard from '@/components/ClientCard.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { currentPosition, distanceM, pointOf, sortByDistance, type GpsPoint } from '@/lib/geo'
@@ -48,7 +49,9 @@ const distanceTo = (c: Client) => {
 <template>
 	<div>
 		<PageHeader title="Clients" :subtitle="`${store.clients.length} dans votre portefeuille`">
-			<template #actions><SyncPill /></template>
+			<template #actions>
+				<RouterLink :to="{ name: 'NewProspect' }" class="icon-btn" aria-label="Nouveau prospect"><LucidePlus class="h-5 w-5" /></RouterLink>
+			</template>
 		</PageHeader>
 
 		<label class="search-box mb-3">

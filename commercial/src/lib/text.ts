@@ -30,3 +30,29 @@ export function fileUrl(path?: string | null): string | null {
 	if (!path) return null
 	return /^https?:\/\//.test(path) || path.startsWith('/') ? path : `/${path}`
 }
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
+/** « YYYY-MM-DD HH:mm:ss » (serveur) → valeur d'un champ `datetime-local`. */
+export function toInputDateTime(value?: string | null): string {
+	return value ? value.replace(' ', 'T').slice(0, 16) : ''
+}
+
+/** Valeur d'un champ `datetime-local` → « YYYY-MM-DD HH:mm:ss » (serveur), ou null. */
+export function fromInputDateTime(value?: string | null): string | null {
+	if (!value) return null
+	const [day, time = '00:00'] = value.split('T')
+	return `${day} ${time.slice(0, 5)}:00`
+}
+
+/** Maintenant + `minutes`, au format d'un champ `datetime-local` (minutes arrondies au quart d'heure). */
+export function inputDateTimeIn(minutes = 0, now = new Date()): string {
+	const date = new Date(now.getTime() + minutes * 60000)
+	date.setMinutes(Math.ceil(date.getMinutes() / 15) * 15, 0, 0)
+	return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`
+}
+
+/** Position GPS au format du Desk (« lat, lon »). */
+export function gpsText(point: { latitude: number; longitude: number } | null): string | null {
+	return point ? `${point.latitude.toFixed(6)}, ${point.longitude.toFixed(6)}` : null
+}

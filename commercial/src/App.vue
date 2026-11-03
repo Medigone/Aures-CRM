@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import LucideCalendarDays from '~icons/lucide/calendar-days'
 import LucideBuilding2 from '~icons/lucide/building-2'
+import LucideCalendarRange from '~icons/lucide/calendar-range'
 import LucideSettings from '~icons/lucide/settings'
 import { useCommercialStore } from '@/stores/commercial'
 import { useAppTheme } from '@/lib/theme'
@@ -13,9 +14,10 @@ useAppTheme()
 onMounted(() => store.init())
 
 const tabs = [
-	{ to: { name: 'Today' }, label: "Aujourd'hui", icon: LucideCalendarDays, match: ['Today'] },
-	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article'] },
-	{ to: { name: 'Settings' }, label: 'Réglages', icon: LucideSettings, match: ['Settings'] },
+	{ to: { name: 'Today' }, label: "Aujourd'hui", icon: LucideCalendarDays, match: ['Today', 'Visit', 'NewVisit', 'Appel', 'NewAppel'] },
+	{ to: { name: 'Week' }, label: 'Semaine', icon: LucideCalendarRange, match: ['Week', 'Rdv', 'NewRdv'] },
+	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article', 'NewProspect'] },
+	{ to: { name: 'Settings' }, label: 'Réglages', icon: LucideSettings, match: ['Settings', 'Sync'], badge: true },
 ]
 </script>
 
@@ -36,7 +38,7 @@ const tabs = [
 
 		<!-- Navigation : barre du bas sur téléphone, rail à gauche sur tablette. -->
 		<nav
-			class="fixed inset-x-0 bottom-0 z-20 grid h-[calc(var(--bottom-chrome)+env(safe-area-inset-bottom))] grid-cols-3 border-t border-outline-gray-2 bg-surface-white pb-[env(safe-area-inset-bottom)] md:inset-y-0 md:left-0 md:right-auto md:flex md:h-auto md:w-20 md:flex-col md:gap-2 md:border-r md:border-t-0 md:pt-6"
+			class="fixed inset-x-0 bottom-0 z-20 grid h-[calc(var(--bottom-chrome)+env(safe-area-inset-bottom))] grid-cols-4 border-t border-outline-gray-2 bg-surface-white pb-[env(safe-area-inset-bottom)] md:inset-y-0 md:left-0 md:right-auto md:flex md:h-auto md:w-20 md:flex-col md:gap-2 md:border-r md:border-t-0 md:pt-6"
 			aria-label="Navigation principale"
 		>
 			<RouterLink
@@ -46,7 +48,15 @@ const tabs = [
 				class="flex flex-col items-center justify-center gap-1 text-xs md:py-3"
 				:class="tab.match.includes(String($route.name)) ? 'font-medium text-accent' : 'text-ink-gray-6'"
 			>
-				<component :is="tab.icon" class="h-6 w-6" aria-hidden="true" />
+				<span class="relative">
+					<component :is="tab.icon" class="h-6 w-6" aria-hidden="true" />
+					<span
+						v-if="tab.badge && (store.pendingCount || store.failed.length)"
+						class="absolute -right-2 -top-1 min-w-[1.1rem] rounded-full px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white"
+						:class="store.failed.length ? 'bg-red-500' : 'bg-amber-500'"
+						:aria-label="`${store.pendingCount} saisie(s) en attente, ${store.failed.length} à corriger`"
+					>{{ store.failed.length || store.pendingCount }}</span>
+				</span>
 				{{ tab.label }}
 			</RouterLink>
 		</nav>

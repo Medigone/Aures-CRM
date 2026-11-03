@@ -1,7 +1,7 @@
 from frappe.model.document import Document
 import frappe
 from frappe import _
-from frappe.utils import flt, get_datetime, get_fullname, now, today
+from frappe.utils import flt, get_datetime, get_fullname, getdate, now, today
 
 from aurescrm.aures_crm.doctype.creance_client.creance_client import (
 	sync_creance_client_from_movements,
@@ -55,7 +55,6 @@ class VisiteCommerciale(Document):
 		# 2. Définir la date et l'heure de début si le statut est "En Cours"
 		if self.status == "En Cours" and not self.heure_debut_visite:
 			self.heure_debut_visite = now()
-			self.date = today()
 
 		# 3. Si la visite est "Terminée", gérer l'heure de fin et la durée
 		if self.status == "Terminé":
@@ -227,10 +226,13 @@ class VisiteCommerciale(Document):
 
 	def set_date_when_in_progress(self):
 		"""
-		Met à jour la date lorsque le statut est "En Cours".
+		Met à jour la date lorsque le statut est "En Cours" : le jour du début de visite.
+
+		Une visite démarrée hors-ligne (PWA commerciale) et synchronisée plus tard garde
+		le jour où elle a réellement commencé.
 		"""
 		if self.status == "En Cours":
-			self.date = today()
+			self.date = getdate(self.heure_debut_visite) if self.heure_debut_visite else today()
 
 
 @frappe.whitelist()

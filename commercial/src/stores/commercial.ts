@@ -1,23 +1,42 @@
 /**
- * Données de la PWA commerciale : un instantané gardé dans IndexedDB, rechargé page par page
- * depuis `aurescrm.api.commercial_mobile`. L'application s'ouvre et se consulte sans réseau ;
- * la synchro reprend dès que le réseau revient.
+ * Données de la PWA commerciale.
  *
- * Lot 1 : lecture seule (clients, contacts, articles, visites, RDV, appels). La file des saisies
- * hors-ligne (moteur de MediConnect Field) arrive avec la saisie des visites.
+ * - `server` : le dernier instantané reçu (aurescrm.api.commercial_mobile), gardé dans IndexedDB ;
+ * - `outbox` : les saisies faites sur l'appareil, pas encore confirmées par le serveur ;
+ * - `bundle` : ce que l'application affiche, l'instantané avec les saisies en attente rejouées par-dessus.
+ *
+ * La synchro envoie d'abord la file (actions idempotentes, journal serveur `Mutation Commercial`),
+ * puis recharge l'instantané. Une action refusée (validation, droits) ou qui échoue trop souvent passe
+ * dans `failed` : le commercial la réessaie ou l'abandonne depuis la page Synchronisation.
  */
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { ApiError, isAuthError, loginUrl, logout as apiLogout, mobileApi } from '@/lib/api'
-import { idbClear, idbGet, idbSet } from '@/lib/idb'
-import { toServerDateTime } from '@/lib/format'
-import type { Appel, Article, ArticleHistory, Bundle, Client, Contact, RendezVous, SyncMeta, Visite } from '@/types'
+import { ApiError, call, isAuthError, loginUrl, logout as apiLogout, mobileApi, PUSH_TIMEOUT_MS, refreshBoot } from '@/lib/api'
+import { idbClear, idbDelete, idbGet, idbSet } from '@/lib/idb'
+import { toServerDateTime, uid } from '@/lib/format'
+import { applyMutation, CREATES, localKey, MAX_ATTEMPTS, retryDelayMs, type Mutation, type MutationType } from '@/lib/mutations'
+import type { Appel, Article, ArticleHistory, Bundle, Client, Contact, Creance, RendezVous, SyncMeta, Visite } from '@/types'
 
 export const SYNC_PAGE_LENGTH = 500
 /** Synchro automatique tant que l'application est ouverte. */
 const AUTO_SYNC_MS = 5 * 60 * 1000
+const PUSH_BATCH = 50
 const BUNDLE_KEY = 'bundle'
+const STATE_KEY = 'state'
 const historyKey = (article: string) => `history:${article}`
+const PUSH_METHOD = 'aurescrm.api.commercial_mobile.push_mutations'
+
+type PushResult = { id: string; ok: boolean; retry: boolean; result: { doctype?: string; name?: string } | null; error: string | null }
+
+/** État des saisies, gardé à part de l'instantané (petit, réécrit à chaque saisie). */
+type OutboxState = {
+	/** Compte qui a fait les saisies : elles ne partent jamais sous un autre compte. */
+	owner: string | null
+	outbox: Mutation[]
+	failed: Mutation[]
+	/** Clé locale → nom serveur, pour suivre une fiche ouverte avant sa création serveur. */
+	aliases: Record<string, string>
+}
 
 /** Une liste de l'instantané, page après page ; une ligne déplacée entre deux pages n'apparaît qu'une fois. */
 export async function pullSection<T>(section: string, keyOf: (row: T) => string): Promise<T[]> {
@@ -44,7 +63,8 @@ export async function pullSnapshot(): Promise<Bundle> {
 	const visites = await pullSection<Visite>('visites', byName)
 	const rdv = await pullSection<RendezVous>('rdv', byName)
 	const appels = await pullSection<Appel>('appels', byName)
-	return { ...meta, clients, contacts, articles, visites, rdv, appels, synced_at: toServerDateTime() }
+	const creances = await pullSection<Creance>('creances', byName)
+	return { ...meta, clients, contacts, articles, visites, rdv, appels, creances, synced_at: toServerDateTime() }
 }
 
 function groupBy<T>(rows: T[], keyOf: (row: T) => string | null | undefined) {
@@ -60,52 +80,189 @@ function groupBy<T>(rows: T[], keyOf: (row: T) => string | null | undefined) {
 }
 
 export const useCommercialStore = defineStore('commercial', () => {
-	const bundle = ref<Bundle | null>(null)
+	const server = ref<Bundle | null>(null)
+	const outbox = ref<Mutation[]>([])
+	const failed = ref<Mutation[]>([])
+	const owner = ref<string | null>(null)
+	const aliases = ref<Record<string, string>>({})
 	const loaded = ref(false)
 	const online = ref(typeof navigator === 'undefined' ? true : navigator.onLine)
 	const syncing = ref(false)
 	const syncError = ref<string | null>(null)
 	const storageError = ref(false)
+	/** Saisies d'un autre compte sur cet appareil : elles ne partent pas sous la session actuelle. */
+	const foreignOutbox = ref(false)
 	const histories = ref<Record<string, ArticleHistory>>({})
+
+	const user = computed(() => server.value?.user ?? null)
+
+	/**
+	 * Une action qui vise un document créé sur l'appareil (`<champ>_ref`) vise son nom serveur dès que la
+	 * création est confirmée : l'instantané rechargé contient la ligne serveur, plus la ligne locale.
+	 */
+	function withAliases(mutation: Mutation): Mutation {
+		let payload = mutation.payload
+		for (const [field, value] of Object.entries(mutation.payload)) {
+			if (!field.endsWith('_ref') || typeof value !== 'string') continue
+			const alias = aliases.value[localKey(value)]
+			if (!alias) continue
+			const { [field]: _ref, ...rest } = payload
+			payload = { ...rest, [field.slice(0, -4)]: alias }
+		}
+		return payload === mutation.payload ? mutation : { ...mutation, payload }
+	}
+	/** Instantané + saisies en attente (et en échec, tant qu'elles ne sont pas abandonnées). */
+	const bundle = computed<Bundle | null>(() => {
+		if (!server.value) return null
+		const who = { name: owner.value || server.value.user.name, full_name: server.value.user.full_name }
+		let view = server.value
+		for (const mutation of [...failed.value, ...outbox.value].sort((a, b) => a.created_at.localeCompare(b.created_at))) {
+			view = applyMutation(view, withAliases(mutation), who)
+		}
+		return view
+	})
 
 	const clients = computed(() => bundle.value?.clients ?? [])
 	const articles = computed(() => bundle.value?.articles ?? [])
 	const visites = computed(() => bundle.value?.visites ?? [])
 	const rdv = computed(() => bundle.value?.rdv ?? [])
 	const appels = computed(() => bundle.value?.appels ?? [])
-	const user = computed(() => bundle.value?.user ?? null)
+	const creances = computed(() => bundle.value?.creances ?? [])
 	const references = computed(() => bundle.value?.references ?? null)
 
 	const clientsByName = computed(() => new Map(clients.value.map((c) => [c.name, c])))
 	const articlesByName = computed(() => new Map(articles.value.map((a) => [a.name, a])))
+	const visitesByName = computed(() => new Map(visites.value.map((v) => [v.name, v])))
+	const rdvByName = computed(() => new Map(rdv.value.map((r) => [r.name, r])))
+	const appelsByName = computed(() => new Map(appels.value.map((a) => [a.name, a])))
 	const articlesByClient = computed(() => groupBy(articles.value, (a) => a.client))
 	const contactsByClient = computed(() => groupBy(bundle.value?.contacts ?? [], (c) => c.client))
 	const visitesByClient = computed(() => groupBy(visites.value, (v) => v.client))
 	const rdvByClient = computed(() => groupBy(rdv.value, (r) => r.client))
 	const appelsByClient = computed(() => groupBy(appels.value, (a) => a.client))
+	const creancesByClient = computed(() => groupBy(creances.value, (c) => c.client))
+	const pendingCount = computed(() => outbox.value.length)
 
+	// -----------------------------------------------------------------------
+	// Persistance
+	// -----------------------------------------------------------------------
 	async function load() {
 		try {
-			bundle.value = (await idbGet<Bundle>(BUNDLE_KEY)) ?? null
+			server.value = (await idbGet<Bundle>(BUNDLE_KEY)) ?? null
+			const state = await idbGet<OutboxState>(STATE_KEY)
+			if (state) {
+				owner.value = state.owner
+				outbox.value = state.outbox ?? []
+				failed.value = state.failed ?? []
+				aliases.value = state.aliases ?? {}
+			}
 		} catch {
 			storageError.value = true
 		}
 		loaded.value = true
 	}
 
-	async function persist() {
-		if (!bundle.value) return
-		try {
-			await idbSet(BUNDLE_KEY, bundle.value)
-			storageError.value = false
-		} catch {
-			storageError.value = true
-		}
+	let writes: Promise<unknown> = Promise.resolve()
+	/** Écritures sérialisées : une saisie rapide ne réécrit jamais un état plus récent par un plus ancien. */
+	function queueWrite(key: string, value: () => unknown) {
+		writes = writes
+			.then(() => idbSet(key, value()))
+			.then(() => (storageError.value = false))
+			.catch(() => (storageError.value = true))
+		return writes
+	}
+	const persistState = () =>
+		queueWrite(STATE_KEY, () => ({ owner: owner.value, outbox: outbox.value, failed: failed.value, aliases: aliases.value }) satisfies OutboxState)
+	const persistServer = () => queueWrite(BUNDLE_KEY, () => server.value)
+
+	// -----------------------------------------------------------------------
+	// Saisies
+	// -----------------------------------------------------------------------
+	let pushTimer: ReturnType<typeof setTimeout> | null = null
+
+	/** Met une action en file ; elle s'affiche tout de suite et part dès que possible. Renvoie son id. */
+	function enqueue(type: MutationType, payload: Record<string, any>, target = '') {
+		const id = uid()
+		if (!owner.value || (!outbox.value.length && !failed.value.length)) owner.value = server.value?.user.name ?? window.user ?? null
+		outbox.value = [
+			...outbox.value,
+			{ id, type, payload: { ...payload, created_at: toServerDateTime() }, target: target || localKey(id), created_at: toServerDateTime(), attempts: 0, next_at: null },
+		]
+		persistState()
+		if (pushTimer) clearTimeout(pushTimer)
+		pushTimer = setTimeout(() => sync(), 300)
+		return id
 	}
 
+	/** Clé suivie par une fiche : une clé locale devient le nom serveur une fois la création confirmée. */
+	function resolveKey(key: string) {
+		return aliases.value[key] ?? key
+	}
+
+	function retryFailed(id: string) {
+		const mutation = failed.value.find((m) => m.id === id)
+		if (!mutation) return
+		failed.value = failed.value.filter((m) => m.id !== id)
+		outbox.value = [...outbox.value, { ...mutation, attempts: 0, next_at: null, error: null }].sort((a, b) => a.created_at.localeCompare(b.created_at))
+		persistState()
+		sync()
+	}
+
+	function discardFailed(id: string) {
+		failed.value = failed.value.filter((m) => m.id !== id)
+		persistState()
+	}
+
+	/** Envoie les actions dues, dans l'ordre de saisie. Faux si le réseau a lâché. */
+	async function pushOutbox(): Promise<boolean> {
+		const now = Date.now()
+		const due = outbox.value.filter((m) => !m.next_at || m.next_at <= now)
+		for (let i = 0; i < due.length; i += PUSH_BATCH) {
+			const batch = due.slice(i, i + PUSH_BATCH)
+			let results: PushResult[]
+			try {
+				results = await call<PushResult[]>(
+					PUSH_METHOD,
+					{ mutations: batch.map((m) => ({ id: m.id, type: m.type, payload: m.payload })) },
+					true,
+					PUSH_TIMEOUT_MS,
+				)
+			} catch (error) {
+				if (error instanceof ApiError && error.offline) return false
+				throw error
+			}
+			const byId = new Map(results.map((r) => [r.id, r]))
+			const keep: Mutation[] = []
+			const newlyFailed: Mutation[] = []
+			for (const mutation of outbox.value) {
+				const result = byId.get(mutation.id)
+				if (!result) {
+					keep.push(mutation)
+				} else if (result.ok) {
+					if (CREATES.includes(mutation.type) && result.result?.name) {
+						aliases.value = { ...aliases.value, [localKey(mutation.id)]: result.result.name }
+					}
+				} else if (result.retry && mutation.attempts + 1 < MAX_ATTEMPTS) {
+					const attempts = mutation.attempts + 1
+					keep.push({ ...mutation, attempts, next_at: Date.now() + retryDelayMs(attempts), error: result.error })
+				} else {
+					newlyFailed.push({ ...mutation, attempts: mutation.attempts + 1, error: result.error })
+				}
+			}
+			outbox.value = keep
+			failed.value = [...failed.value, ...newlyFailed]
+			await persistState()
+		}
+		return true
+	}
+
+	// -----------------------------------------------------------------------
+	// Synchro
+	// -----------------------------------------------------------------------
 	async function handleAuthError() {
-		// Session terminée ou autre compte : rien d'un commercial ne reste sur l'appareil.
-		await idbClear().catch(() => {})
+		// Session terminée : l'instantané est effacé, les saisies non envoyées restent pour la reconnexion.
+		await idbDelete(BUNDLE_KEY).catch(() => {})
+		if (!outbox.value.length && !failed.value.length) await idbClear().catch(() => {})
 		navigator.serviceWorker?.controller?.postMessage('clear-caches')
 		window.location.href = loginUrl()
 	}
@@ -118,14 +275,20 @@ export const useCommercialStore = defineStore('commercial', () => {
 		}
 		syncing.value = true
 		try {
-			const next = await pullSnapshot()
-			if (bundle.value && bundle.value.user.name !== next.user.name) {
-				// Un autre compte s'est connecté sur cet appareil : on repart d'une base vide.
-				histories.value = {}
-				await idbClear().catch(() => {})
+			if (outbox.value.length) {
+				// Jeton CSRF frais (application ouverte depuis le cache) et compte réellement connecté.
+				const boot = await refreshBoot()
+				foreignOutbox.value = Boolean(owner.value && boot.user && boot.user !== owner.value)
+				if (!foreignOutbox.value && !(await pushOutbox())) return
 			}
-			bundle.value = next
-			await persist()
+			const next = await pullSnapshot()
+			if (server.value && server.value.user.name !== next.user.name) {
+				// Autre compte sur cet appareil : l'ancien instantané et ses historiques sont effacés.
+				histories.value = {}
+				await idbDelete(BUNDLE_KEY).catch(() => {})
+			}
+			server.value = next
+			await persistServer()
 			syncError.value = null
 		} catch (error) {
 			if (isAuthError(error)) return handleAuthError()
@@ -133,6 +296,17 @@ export const useCommercialStore = defineStore('commercial', () => {
 		} finally {
 			syncing.value = false
 		}
+	}
+
+	/** Abandonne les saisies d'un autre compte (après confirmation) pour reprendre l'appareil. */
+	async function discardForeignOutbox() {
+		outbox.value = []
+		failed.value = []
+		aliases.value = {}
+		owner.value = server.value?.user.name ?? null
+		foreignOutbox.value = false
+		await persistState()
+		await sync()
 	}
 
 	let started = false
@@ -149,6 +323,11 @@ export const useCommercialStore = defineStore('commercial', () => {
 		setInterval(() => {
 			if (document.visibilityState === 'visible') sync()
 		}, AUTO_SYNC_MS)
+		// Une action en attente de nouvel essai repart à l'heure prévue, sans attendre la synchro suivante.
+		setInterval(() => {
+			const now = Date.now()
+			if (outbox.value.some((m) => m.next_at && m.next_at <= now)) sync()
+		}, 15000)
 	}
 
 	async function init() {
@@ -157,7 +336,9 @@ export const useCommercialStore = defineStore('commercial', () => {
 		await sync()
 	}
 
-	/** Historique gardé de l'article (dernier consulté), sans appel réseau. */
+	// -----------------------------------------------------------------------
+	// Historique d'article (en ligne, gardé après consultation)
+	// -----------------------------------------------------------------------
 	async function cachedHistory(article: string) {
 		if (histories.value[article]) return histories.value[article]
 		const saved = await idbGet<ArticleHistory>(historyKey(article)).catch(() => undefined)
@@ -165,7 +346,6 @@ export const useCommercialStore = defineStore('commercial', () => {
 		return saved ?? null
 	}
 
-	/** Historique à jour (en ligne) ; hors-ligne, la dernière version consultée. */
 	async function fetchHistory(article: string) {
 		const cached = await cachedHistory(article)
 		if (!online.value) return cached
@@ -196,28 +376,45 @@ export const useCommercialStore = defineStore('commercial', () => {
 	}
 
 	return {
+		server,
 		bundle,
+		outbox,
+		failed,
+		owner,
+		aliases,
 		loaded,
 		online,
 		syncing,
 		syncError,
 		storageError,
+		foreignOutbox,
+		pendingCount,
 		clients,
 		articles,
 		visites,
 		rdv,
 		appels,
+		creances,
 		user,
 		references,
 		clientsByName,
 		articlesByName,
+		visitesByName,
+		rdvByName,
+		appelsByName,
 		articlesByClient,
 		contactsByClient,
 		visitesByClient,
 		rdvByClient,
 		appelsByClient,
+		creancesByClient,
 		init,
 		sync,
+		enqueue,
+		resolveKey,
+		retryFailed,
+		discardFailed,
+		discardForeignOutbox,
 		cachedHistory,
 		fetchHistory,
 		logout,

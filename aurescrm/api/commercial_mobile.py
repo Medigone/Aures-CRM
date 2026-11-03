@@ -89,7 +89,16 @@ def get_sync_bundle():
 		"server_time": now_datetime(),
 		"user": {"name": user, "full_name": full_name, "image": image, "roles": roles, "exempt": is_exempt_user(user)},
 		"references": _references(),
+		"suivi_creances_actif": _suivi_creances_actif(),
 	}
+
+
+def _suivi_creances_actif():
+	from aurescrm.aures_crm.doctype.parametres_suivi_creances.parametres_suivi_creances import (
+		is_suivi_creances_actif,
+	)
+
+	return is_suivi_creances_actif()
 
 
 def _select_options(doctype, fieldname):
@@ -105,6 +114,9 @@ def _references():
 		"statuts_client": _select_options("Customer", "custom_status"),
 		"types_appel": _select_options("Appel Telephonique", "type"),
 		"statuts_rdv": _select_options("Rendez Vous Client", "status"),
+		"statuts_appel": _select_options("Appel Telephonique", "status"),
+		"resultats_recouvrement": _select_options("Visite Commerciale", "resultat_recouvrement"),
+		"types_paiement": _select_options("Visite Commerciale", "type_paiement"),
 	}
 
 
@@ -263,7 +275,9 @@ def _page_visites(user, start, length):
 		select v.name, v.status, v.docstatus, v.date, v.client, v.nom_client, v.type_visite,
 			v.heure_debut_visite as debut, v.heure_fin_visite as fin, v.duree_visite as duree,
 			v.wilaya, v.commune, v.notes, v.date_rdv, v.utilisateur, v.nom_utilisateur,
-			v.resultat_recouvrement, v.montant_encaisse, v.date_prochaine_relance, v.modified
+			v.resultat_recouvrement, v.montant_encaisse, v.date_prochaine_relance, v.creance_client,
+			v.montant_reclame, v.type_paiement, v.date_paiement_negociee, v.numero_document_paiement,
+			v.motif_non_paiement, v.gps_visite, v.photo_document_paiement, v.modified
 		from `tabVisite Commerciale` v
 		where v.docstatus < 2 and v.date >= %(since)s
 			and (v.utilisateur = %(user)s or {customer_scope("v.client", user)})
@@ -307,6 +321,22 @@ def _page_appels(user, start, length):
 	)
 
 
+def _page_creances(user, start, length):
+	"""Créances non soldées du portefeuille : choisies dans une visite de recouvrement."""
+	return frappe.db.sql(
+		f"""
+		select cc.name, cc.client, cc.nom_client, cc.statut, cc.solde_restant, cc.date_prochaine_relance,
+			cc.dernier_resultat_recouvrement, cc.modified
+		from `tabCreance Client` cc
+		where cc.statut != 'Soldée' and {customer_scope("cc.client", user)}
+		order by cc.client asc, cc.name asc
+		limit %(length)s offset %(start)s
+		""",
+		{"start": start, "length": length},
+		as_dict=True,
+	)
+
+
 SYNC_SECTIONS = {
 	"clients": _page_clients,
 	"contacts": _page_contacts,
@@ -314,7 +344,16 @@ SYNC_SECTIONS = {
 	"visites": _page_visites,
 	"rdv": _page_rdv,
 	"appels": _page_appels,
+	"creances": _page_creances,
 }
+
+
+@frappe.whitelist(methods=["POST"])
+def push_mutations(mutations):
+	"""File des saisies hors-ligne (voir `aurescrm.api.commercial_mutations`)."""
+	from aurescrm.api.commercial_mutations import push_mutations as push
+
+	return push(mutations)
 
 
 # ---------------------------------------------------------------------------

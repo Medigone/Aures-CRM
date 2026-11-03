@@ -89,3 +89,23 @@
 		display: none;
 	}
 }
+
+@layer components {
+	.field-label {
+		@apply mb-1 block text-xs font-medium text-ink-gray-6;
+	}
+	.field-input {
+		@apply block min-h-11 w-full rounded-[10px] border border-outline-gray-2 bg-surface-white px-3 py-2.5 text-base text-ink-gray-9 placeholder:text-ink-gray-5 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
+	}
+	.pending-dot {
+		@apply inline-block h-2 w-2 shrink-0 rounded-full bg-amber-500;
+	}
+	/* Barre d'actions collée au-dessus de la navigation du bas. */
+	.action-bar {
+		@apply fixed inset-x-0 z-10 flex gap-2 border-t border-outline-gray-2 bg-surface-white px-4 py-3 md:left-20;
+		bottom: calc(var(--bottom-chrome) + env(safe-area-inset-bottom));
+	}
+	.btn-danger {
+		@apply btn border border-outline-gray-2 bg-surface-white text-ink-red-3;
+	}
+}
