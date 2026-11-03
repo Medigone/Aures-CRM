@@ -5,6 +5,7 @@ import WeekPage from './pages/WeekPage.vue'
 import ClientsPage from './pages/ClientsPage.vue'
 import ClientPage from './pages/ClientPage.vue'
 import NewProspectPage from './pages/NewProspectPage.vue'
+import NewArticlePage from './pages/NewArticlePage.vue'
 import ArticlePage from './pages/ArticlePage.vue'
 import VisitPage from './pages/VisitPage.vue'
 import NewVisitPage from './pages/NewVisitPage.vue'
@@ -26,6 +27,7 @@ export const routes = [
 	{ path: '/clients', name: 'Clients', component: ClientsPage },
 	{ path: '/clients/nouveau', name: 'NewProspect', component: NewProspectPage },
 	{ path: '/clients/:id', name: 'Client', component: ClientPage, props: true },
+	{ path: '/articles/nouveau', name: 'NewArticle', component: NewArticlePage },
 	{ path: '/articles/:id', name: 'Article', component: ArticlePage, props: true },
 	{ path: '/visites/nouvelle', name: 'NewVisit', component: NewVisitPage },
 	{ path: '/visites/:id', name: 'Visit', component: VisitPage, props: true },

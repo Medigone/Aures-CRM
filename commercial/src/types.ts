@@ -43,6 +43,8 @@ export type Caracteristiques = { section: string; valeurs: { label: string; vale
 
 export type Article = {
 	name: string
+	/** Saisie locale pas encore envoyée au serveur. */
+	_pending?: boolean
 	designation: string
 	description: string | null
 	client: string
@@ -142,6 +144,7 @@ export type References = {
 	canaux_ticket?: string[]
 	sites?: { name: string; title: string | null; procede: string | null }[]
 	types_reclamation?: string[]
+	procedes_article?: string[]
 }
 
 export type Ticket = {

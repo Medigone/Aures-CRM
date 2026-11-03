@@ -70,6 +70,16 @@ describe('applyMutation', () => {
 		expect(view.clients.find((c) => c.name === 'CL-1')).toMatchObject({ lat: 35.5, lon: 6.1 })
 	})
 
+	it('ajoute un article client en attente, avec ses cotations Offset', () => {
+		const view = applyMutation(
+			bundle(),
+			m('art', 'article_create', { client: 'CL-1', designation: 'Étiquette 400 g', procede: 'Offset', largeur: 80, hauteur: 120, attachments: [{ filename: 'a.jpg', data: 'data:image/jpeg;base64,xx' }] }),
+			user,
+		)
+		expect(view.articles[0]).toMatchObject({ name: 'local:art', _pending: true, client: 'CL-1', designation: 'ÉTIQUETTE 400 G', dimensions: '80x120', image: 'data:image/jpeg;base64,xx' })
+		expect(view.clients[0].nb_articles).toBe(1)
+	})
+
 	it('suit un rendez-vous et un appel', () => {
 		let view = applyMutation(bundle(), m('r', 'rdv_create', { client: 'CL-1', date_heure: '2026-11-04 10:00:00' }), user)
 		view = applyMutation(view, m('r2', 'rdv_update', { rdv_ref: 'r', status: 'Confirmé' }), user)

@@ -19,7 +19,7 @@ function goBack() {
 			<LucideChevronLeft class="h-6 w-6" aria-hidden="true" />
 		</button>
 		<div class="min-w-0 flex-1 py-1.5">
-			<h1 class="text-xl font-semibold leading-tight">{{ title }}</h1>
+			<h1 class="text-[24px] font-bold leading-tight tracking-tight">{{ title }}</h1>
 			<p v-if="subtitle" class="truncate text-sm text-ink-gray-6">{{ subtitle }}</p>
 		</div>
 		<div v-if="$slots.actions" class="flex shrink-0 items-center gap-2 pt-0.5">

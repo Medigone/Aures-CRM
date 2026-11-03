@@ -6,18 +6,26 @@
 		/* Bleu Aures (refonte), en triplet RGB pour les opacités (`bg-accent/20`). */
 		--accent-rgb: 29 78 216;
 		--accent-fonce-rgb: 21 51 158;
+		/* Action principale : noir (clair) / blanc cassé (sombre) ; le bleu reste à la dictée et aux liens. */
+		--primary-rgb: 24 24 27;
+		--on-primary-rgb: 255 255 255;
 		/* Hauteur réservée à la navigation du bas (barre flottante + marge), relue par les barres d'action. */
-		--bottom-chrome: 5.25rem;
+		--bottom-chrome: 4.75rem;
 	}
 	@media (min-width: 768px) {
 		:root {
 			--bottom-chrome: 0px;
 		}
 	}
+	.focus-mode {
+		--bottom-chrome: 0px;
+	}
 	:root[data-theme='dark'] {
 		color-scheme: dark;
 		--accent-rgb: 94 150 255;
 		--accent-fonce-rgb: 150 180 255;
+		--primary-rgb: 244 244 245;
+		--on-primary-rgb: 24 24 27;
 	}
 	:root[data-theme='dark'] body {
 		@apply bg-surface-white;
@@ -40,22 +48,22 @@
 		@apply inline-flex h-6 items-center whitespace-nowrap rounded-full px-2.5 text-xs;
 	}
 	.card {
-		@apply rounded-2xl border border-outline-gray-2 bg-surface-white shadow-[0_1px_2px_rgba(17,21,28,0.04),0_8px_20px_rgba(17,21,28,0.04)] dark:bg-surface-cards dark:shadow-none;
+		@apply rounded-[20px] bg-surface-white dark:bg-surface-cards;
 	}
 	.card-link {
 		@apply card block transition active:scale-[0.99] active:bg-surface-gray-1;
 	}
 	.btn {
-		@apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100;
+		@apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100;
 	}
 	.btn-primary {
-		@apply btn bg-accent text-white active:bg-accent-fonce;
+		@apply btn bg-primary text-on-primary active:bg-primary/85;
 	}
 	.btn-secondary {
-		@apply btn border border-outline-gray-2 bg-surface-white text-ink-gray-8 active:bg-surface-gray-2;
+		@apply btn border border-outline-gray-2 bg-surface-white font-medium text-ink-gray-8 active:bg-surface-gray-2;
 	}
 	.icon-btn {
-		@apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-outline-gray-2 bg-surface-white text-ink-gray-8 transition active:scale-95 active:bg-surface-gray-2;
+		@apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-outline-gray-2 bg-surface-white text-ink-gray-8 transition active:scale-95 active:bg-surface-gray-2;
 	}
 	.quick-actions {
 		@apply grid auto-cols-fr grid-flow-col gap-1;
@@ -67,19 +75,19 @@
 		@apply box-content h-5 w-5 rounded-full border border-outline-gray-2 bg-surface-white p-2.5 text-ink-gray-8 dark:bg-surface-cards;
 	}
 	.section-title {
-		@apply text-sm font-semibold text-ink-gray-9;
+		@apply text-[17px] font-semibold text-ink-gray-9;
 	}
 	.search-box {
-		@apply flex items-center gap-2 rounded-xl border border-outline-gray-2 bg-surface-white px-3 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20;
+		@apply flex items-center gap-2 rounded-full bg-surface-white px-4 focus-within:ring-2 focus-within:ring-accent/30 dark:bg-surface-cards;
 	}
 	.chip {
 		@apply inline-flex min-h-10 shrink-0 items-center rounded-full border px-3.5 text-sm transition active:scale-[0.97];
 	}
 	.chip-on {
-		@apply chip border-accent bg-accent-fond font-medium text-accent-fonce;
+		@apply chip border-primary bg-primary font-semibold text-on-primary;
 	}
 	.chip-off {
-		@apply chip border-outline-gray-2 bg-surface-white text-ink-gray-7;
+		@apply chip border-outline-gray-2 bg-surface-white font-medium text-ink-gray-7 dark:bg-surface-cards;
 	}
 	.chip-scroller {
 		@apply -mx-4 flex gap-2 overflow-x-auto px-4 pb-1;
@@ -95,17 +103,35 @@
 		@apply mb-1 block text-xs font-medium text-ink-gray-6;
 	}
 	.field-input {
-		@apply block min-h-11 w-full rounded-xl border border-outline-gray-2 bg-surface-white px-3 py-2.5 text-base text-ink-gray-9 placeholder:text-ink-gray-5 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
+		@apply block min-h-12 w-full rounded-2xl border border-outline-gray-2 bg-surface-white px-3 py-2.5 text-base text-ink-gray-9 placeholder:text-ink-gray-5 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
 	}
 	.pending-dot {
 		@apply inline-block h-2 w-2 shrink-0 rounded-full bg-amber-500;
 	}
 	/* Barre d'actions collée au-dessus de la navigation du bas. */
 	.action-bar {
-		@apply fixed inset-x-0 z-10 flex gap-2 border-t border-outline-gray-2 bg-surface-white px-4 py-3 md:left-20;
-		bottom: calc(var(--bottom-chrome) + env(safe-area-inset-bottom));
+		@apply fixed inset-x-0 z-10 flex gap-2 border-t border-outline-gray-1 bg-surface-white px-4 py-3 md:left-20;
+		bottom: var(--bottom-chrome);
+		padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
 	}
 	.btn-danger {
 		@apply btn border border-outline-gray-2 bg-surface-white text-ink-red-3;
+	}
+}
+
+@layer components {
+	/* Ligne de liste groupée dans une carte (réglages, champs secondaires). */
+	.list-row {
+		@apply flex min-h-14 items-center justify-between gap-3 px-4;
+	}
+	/* Sélecteur segmenté (priorité…). */
+	.segmented {
+		@apply grid auto-cols-fr grid-flow-col gap-1 rounded-full bg-surface-gray-3 p-1;
+	}
+	.segmented > button {
+		@apply min-h-10 rounded-full text-sm font-medium text-ink-gray-7 transition;
+	}
+	.segmented > button[aria-checked='true'] {
+		@apply bg-surface-white font-semibold text-ink-gray-9 shadow-sm dark:bg-surface-gray-1;
 	}
 }

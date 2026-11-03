@@ -14,6 +14,8 @@ export default {
 				xl: ['20px', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '400' }],
 			},
 			colors: {
+				primary: 'rgb(var(--primary-rgb) / <alpha-value>)',
+				'on-primary': 'rgb(var(--on-primary-rgb) / <alpha-value>)',
 				accent: {
 					DEFAULT: 'rgb(var(--accent-rgb) / <alpha-value>)',
 					fond: 'rgb(var(--accent-rgb) / 0.1)',

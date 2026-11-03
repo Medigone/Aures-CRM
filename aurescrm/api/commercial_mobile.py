@@ -174,6 +174,7 @@ def _references():
 		"resultats_recouvrement": _select_options("Visite Commerciale", "resultat_recouvrement"),
 		"types_paiement": _select_options("Visite Commerciale", "type_paiement"),
 		**affaires_references(_select_options),
+		"procedes_article": _select_options("Item", "custom_procédé"),
 	}
 
 

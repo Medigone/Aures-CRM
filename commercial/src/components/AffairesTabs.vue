@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import LucideSearch from '~icons/lucide/search'
+import LucidePaperclip from '~icons/lucide/paperclip'
 import StatusPill from './StatusPill.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { commandeEnCours, devisOuvert, fabricationProgress, reclamationOuverte, ticketAlerte, ticketOuvert } from '@/lib/affaires'
@@ -23,7 +24,7 @@ const matches = (...values: (string | null | undefined)[]) => {
 	return !q || normalizeSearch(values.join(' ')).includes(q)
 }
 
-type Row = { key: string; to: object; title: string; subtitle: string; meta: string; status: string; alert?: string | null; pending?: boolean; progress?: number | null }
+type Row = { key: string; to: object; title: string; subtitle: string; meta: string; status: string; alert?: string | null; pending?: boolean; progress?: number | null; files?: number }
 const rows = computed<Row[]>(() => {
 	if (segment.value === 'tickets')
 		return mine(store.tickets)
@@ -34,10 +35,11 @@ const rows = computed<Row[]>(() => {
 				to: { name: 'Ticket', params: { id: t.name } },
 				title: t.request_type || 'Ticket',
 				subtitle: t.customer_name || t.client,
-				meta: `${t.name.startsWith('local:') ? 'À envoyer' : t.name} · ${formatDay(t.creation_date)}${t.niveau_urgence && t.niveau_urgence !== 'U0' ? ` · ${t.niveau_urgence}` : ''}`,
+				meta: `${t.name.startsWith('local:') ? 'Nouveau' : t.name} • ${formatDay(t.creation_date)}${t.niveau_urgence && t.niveau_urgence !== 'U0' ? ` · ${t.niveau_urgence}` : ''}`,
 				status: t.status,
 				alert: ticketAlerte(t),
 				pending: t._pending,
+				files: t.pieces_locales || 0,
 			}))
 	if (segment.value === 'devis')
 		return mine(store.devis)
@@ -93,15 +95,15 @@ const counts = computed(() => ({
 
 <template>
 	<div>
-		<div class="mb-3 grid grid-cols-4 gap-1 rounded-xl bg-surface-gray-2 p-1" role="tablist">
+		<div class="mb-3 grid grid-cols-4 gap-1 rounded-full bg-surface-gray-3 p-1" role="tablist">
 			<button
 				v-for="s in segments"
 				:key="s.key"
 				type="button"
 				role="tab"
 				:aria-selected="segment === s.key"
-				class="min-h-10 rounded-lg text-sm"
-				:class="segment === s.key ? 'bg-surface-white font-medium shadow-sm' : 'text-ink-gray-6'"
+				class="min-h-10 rounded-full text-sm"
+				:class="segment === s.key ? 'bg-surface-white font-semibold shadow-sm dark:bg-surface-gray-1' : 'font-medium text-ink-gray-7'"
 				@click="segment = s.key"
 			>
 				{{ s.label }}<template v-if="counts[s.key]"> ({{ counts[s.key] }})</template>
@@ -110,26 +112,29 @@ const counts = computed(() => ({
 		<div class="mb-3 flex items-center gap-2">
 			<label class="search-box flex-1">
 				<LucideSearch class="h-5 w-5 text-ink-gray-5" aria-hidden="true" />
-				<input v-model="query" type="search" class="min-h-11 w-full border-0 bg-transparent p-0 text-base focus:ring-0" placeholder="Rechercher…" aria-label="Rechercher" />
+				<input v-model="query" type="search" class="min-h-12 w-full border-0 bg-transparent p-0 text-base focus:ring-0" placeholder="Rechercher…" aria-label="Rechercher" />
 			</label>
-			<button type="button" :class="ouverts ? 'chip-on' : 'chip-off'" @click="ouverts = !ouverts">{{ ouverts ? 'En cours' : 'Tous' }}</button>
+			<button type="button" class="min-h-12" :class="ouverts ? 'chip-on' : 'chip-off'" :aria-pressed="ouverts" @click="ouverts = !ouverts">{{ ouverts ? 'En cours' : 'Tous' }}</button>
 		</div>
 		<p v-if="!rows.length" class="py-8 text-center text-sm text-ink-gray-6">{{ ouverts ? 'Rien en cours.' : 'Aucun élément.' }}</p>
 		<div class="space-y-2">
-			<RouterLink v-for="r in rows" :key="r.key" :to="r.to" class="card-link p-3">
-				<div class="flex items-start justify-between gap-2">
-					<div class="min-w-0">
-						<p class="truncate font-medium">{{ r.title }}</p>
-						<p v-if="!client" class="truncate text-sm text-ink-gray-6">{{ r.subtitle }}</p>
-						<p class="truncate text-xs text-ink-gray-6">{{ r.meta }}</p>
-					</div>
-					<span class="flex shrink-0 items-center gap-2">
-						<span v-if="r.pending" class="pending-dot" title="En attente d'envoi" />
-						<StatusPill :status="r.status" />
+			<RouterLink v-for="r in rows" :key="r.key" :to="r.to" class="card-link space-y-2.5 p-4">
+				<div class="flex items-center justify-between gap-2">
+					<StatusPill :status="r.status" />
+					<span class="flex items-center gap-2 text-xs text-ink-gray-6">
+						<span v-if="r.pending" class="inline-flex items-center gap-1"><span class="pending-dot" />À envoyer</span>
+						<span v-if="r.files" class="inline-flex items-center gap-1"><LucidePaperclip class="h-3.5 w-3.5" aria-hidden="true" />{{ r.files }}</span>
 					</span>
 				</div>
-				<p v-if="r.alert" class="mt-1 text-xs font-medium text-ink-amber-3">{{ r.alert }}</p>
-				<div v-if="r.progress != null" class="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-gray-2">
+				<div class="flex items-end justify-between gap-3">
+					<div class="min-w-0">
+						<p class="truncate text-base font-semibold">{{ r.title }}</p>
+						<p class="truncate text-sm text-ink-gray-6">{{ r.meta }}</p>
+					</div>
+					<span v-if="!client" class="max-w-[45%] shrink-0 truncate text-right text-sm text-ink-gray-7">{{ r.subtitle }}</span>
+				</div>
+				<p v-if="r.alert" class="text-xs font-medium text-ink-amber-3">{{ r.alert }}</p>
+				<div v-if="r.progress != null" class="h-1.5 overflow-hidden rounded-full bg-surface-gray-2">
 					<div class="h-full rounded-full bg-accent" :style="{ width: `${r.progress}%` }" />
 				</div>
 			</RouterLink>

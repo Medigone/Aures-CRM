@@ -7,9 +7,9 @@ import AffairesTabs from '@/components/AffairesTabs.vue'
 
 <template>
 	<div>
-		<PageHeader title="Suivi" subtitle="Tickets, devis, commandes et réclamations">
+		<PageHeader title="Tickets" subtitle="et devis, commandes, réclamations">
 			<template #actions>
-				<RouterLink :to="{ name: 'NewTicket' }" class="icon-btn" aria-label="Nouveau ticket"><LucidePlus class="h-5 w-5" /></RouterLink>
+				<RouterLink :to="{ name: 'NewTicket' }" class="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-on-primary" aria-label="Nouveau ticket"><LucidePlus class="h-5 w-5" /></RouterLink>
 			</template>
 		</PageHeader>
 		<AffairesTabs />

@@ -11,6 +11,7 @@ const store = useCommercialStore()
 function subject(m: Mutation) {
 	const p = m.payload
 	if (m.type === 'prospect_create') return p.customer_name
+	if (m.type === 'article_create') return p.designation
 	const ticket = keyFrom(p, 'ticket')
 	if (ticket) {
 		const t = store.ticketsByName.get(store.resolveKey(ticket))

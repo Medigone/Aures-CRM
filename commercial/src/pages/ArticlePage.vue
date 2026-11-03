@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import LucideTicket from '~icons/lucide/ticket'
 import LucideRepeat from '~icons/lucide/repeat'
 import LucideCalculator from '~icons/lucide/calculator'
@@ -10,10 +10,19 @@ import StatusPill from '@/components/StatusPill.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { formatDay, relativeDays } from '@/lib/format'
 import { fileUrl, formatMoney } from '@/lib/text'
+import { isLocal } from '@/lib/mutations'
 import type { ArticleHistory } from '@/types'
 
 const props = defineProps<{ id: string }>()
 const store = useCommercialStore()
+const router = useRouter()
+// Un article créé sur l'appareil prend son code serveur (CLIENT-NNN) à la synchro : la page suit.
+watch(
+	() => store.resolveKey(props.id),
+	(next) => {
+		if (next !== props.id) router.replace({ name: 'Article', params: { id: next } })
+	},
+)
 const article = computed(() => store.articlesByName.get(props.id) ?? null)
 const client = computed(() => (article.value ? store.clientsByName.get(article.value.client) ?? null : null))
 const parent = computed(() => (article.value?.parent ? store.articlesByName.get(article.value.parent) ?? null : null))
@@ -39,6 +48,8 @@ const history = ref<ArticleHistory | null>(null)
 const loadingHistory = ref(false)
 const historyError = ref<string | null>(null)
 async function loadHistory() {
+	// Pas encore créé côté serveur : aucun historique à demander.
+	if (isLocal(props.id)) return
 	loadingHistory.value = true
 	historyError.value = null
 	history.value = await store.cachedHistory(props.id)
@@ -59,7 +70,7 @@ watch(() => props.id, loadHistory, { immediate: true })
 		Cet article n'est pas sur cet appareil.
 	</div>
 	<div v-else>
-		<PageHeader :title="article.designation" :subtitle="article.name" :back="{ name: 'Client', params: { id: article.client } }" />
+		<PageHeader :title="article.designation" :subtitle="isLocal(article.name) ? 'Code attribué à l\'envoi' : article.name" :back="{ name: 'Client', params: { id: article.client } }" />
 
 		<RouterLink v-if="client" :to="{ name: 'Client', params: { id: client.name } }" class="mb-3 block text-sm text-accent">{{ client.customer_name }}</RouterLink>
 

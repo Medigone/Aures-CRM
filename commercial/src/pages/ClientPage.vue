@@ -9,6 +9,7 @@ import LucideCalendarPlus from '~icons/lucide/calendar-plus'
 import LucideClipboardPlus from '~icons/lucide/clipboard-plus'
 import LucidePhoneCall from '~icons/lucide/phone-call'
 import LucideMapPin from '~icons/lucide/map-pin'
+import LucidePackagePlus from '~icons/lucide/package-plus'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusPill from '@/components/StatusPill.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
@@ -177,6 +178,7 @@ const infos = computed(() => {
 		</div>
 
 		<section v-if="tab === 'articles'">
+			<RouterLink :to="{ name: 'NewArticle', query: { client: key } }" class="btn-secondary mb-3 w-full"><LucidePackagePlus class="h-4 w-4" aria-hidden="true" />Nouvel article</RouterLink>
 			<label v-if="clientArticles.length > 5" class="search-box mb-3">
 				<LucideSearch class="h-5 w-5 text-ink-gray-5" aria-hidden="true" />
 				<input v-model="articleQuery" type="search" class="min-h-11 w-full border-0 bg-transparent p-0 text-base focus:ring-0" placeholder="Désignation, code, réf. client…" aria-label="Rechercher un article" />

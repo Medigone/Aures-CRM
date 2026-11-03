@@ -4,6 +4,11 @@ import { RouterLink, useRouter } from 'vue-router'
 import LucidePlay from '~icons/lucide/play'
 import LucideCheck from '~icons/lucide/check'
 import LucideCamera from '~icons/lucide/camera'
+import LucideTicket from '~icons/lucide/ticket'
+import LucideTriangleAlert from '~icons/lucide/triangle-alert'
+import LucideBuilding2 from '~icons/lucide/building-2'
+import LucideMapPin from '~icons/lucide/map-pin'
+import LucidePackagePlus from '~icons/lucide/package-plus'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusPill from '@/components/StatusPill.vue'
 import NotesField from '@/components/NotesField.vue'
@@ -148,6 +153,19 @@ function save() {
 	error.value = null
 }
 
+/** Ticket depuis la visite : le compte rendu est enregistré d'abord, le ticket reprend client et texte. */
+function createTicket(type?: string) {
+	if (!visite.value) return
+	save()
+	router.push({ name: 'NewTicket', query: { client: visite.value.client, visite: visite.value.name, ...(type ? { type } : {}) } })
+}
+
+function newArticle() {
+	if (!visite.value) return
+	save()
+	router.push({ name: 'NewArticle', query: { client: visite.value.client } })
+}
+
 function finish() {
 	if (!visite.value) return
 	if (!form.type_visite) {
@@ -200,15 +218,11 @@ async function onPhoto(event: Event) {
 			</template>
 		</PageHeader>
 
-		<div v-if="client" class="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-			<RouterLink :to="{ name: 'Client', params: { id: client.name } }" class="text-accent">Voir la fiche client</RouterLink>
-			<RouterLink :to="{ name: 'NewTicket', query: { client: client.name, type: 'Réclamation', visite: visite.name } }" class="text-accent">Déclarer une réclamation</RouterLink>
-			<RouterLink :to="{ name: 'NewTicket', query: { client: client.name, visite: visite.name } }" class="text-accent">Créer un ticket</RouterLink>
-		</div>
-
-		<div v-if="visite.status === 'En Cours'" class="card mb-4 flex items-center justify-between p-3">
-			<span class="text-sm text-ink-gray-6">Commencée à {{ formatTime(visite.debut) }}</span>
-			<span class="font-semibold tabular-nums">{{ elapsed }}</span>
+		<div v-if="visite.status === 'En Cours'" class="card mb-4 flex items-center justify-between gap-3 p-4">
+			<span class="inline-flex items-center gap-1.5 rounded-full bg-surface-green-2 px-2.5 py-1 text-xs font-semibold text-ink-green-3">
+				<span class="h-1.5 w-1.5 rounded-full bg-ink-green-3" aria-hidden="true" />Démarrée {{ formatTime(visite.debut) }} · {{ elapsed }}
+			</span>
+			<span v-if="visite.gps_visite" class="inline-flex items-center gap-1 text-xs text-ink-gray-6"><LucideMapPin class="h-3.5 w-3.5" aria-hidden="true" />GPS enregistré</span>
 		</div>
 
 		<!-- Visite terminée : lecture seule. -->
@@ -229,13 +243,44 @@ async function onPhoto(event: Event) {
 		<template v-else>
 			<div class="space-y-4">
 				<div>
-					<span class="field-label">Type de visite</span>
+					<h2 class="mb-2 text-[15px] font-semibold">Type de visite</h2>
 					<div class="chip-scroller">
 						<button v-for="t in types" :key="t" type="button" :class="form.type_visite === t ? 'chip-on' : 'chip-off'" @click="form.type_visite = t">{{ t }}</button>
 					</div>
 				</div>
 
-				<NotesField v-model="form.notes" placeholder="Interlocuteur, besoins, prochaines étapes…" />
+				<NotesField
+					v-model="form.notes"
+					label="Compte rendu"
+					:subtitle="visite.nom_client || client?.customer_name"
+					placeholder="Interlocuteur, besoins, prochaines étapes…"
+					@dictated="save"
+				/>
+
+				<section v-if="client">
+					<h2 class="mb-2.5 text-[15px] font-semibold text-ink-gray-7">Pendant la visite</h2>
+					<div class="grid grid-cols-3 gap-2.5">
+						<button type="button" class="col-span-3 flex items-center gap-3 rounded-[18px] bg-primary p-4 text-left text-on-primary transition active:scale-[0.98]" @click="createTicket()">
+							<LucideTicket class="h-[22px] w-[22px] shrink-0" aria-hidden="true" />
+							<span>
+								<span class="block text-[15px] font-semibold">Créer un ticket</span>
+								<span class="block text-xs opacity-75">Client et compte rendu repris</span>
+							</span>
+						</button>
+						<button type="button" class="card flex flex-col gap-2.5 !rounded-[18px] p-4 text-left transition active:scale-[0.98]" @click="createTicket('Réclamation')">
+							<LucideTriangleAlert class="h-[22px] w-[22px]" aria-hidden="true" />
+							<span class="text-sm font-semibold">Réclamation</span>
+						</button>
+						<button type="button" class="card flex flex-col gap-2.5 !rounded-[18px] p-4 text-left transition active:scale-[0.98]" @click="newArticle">
+							<LucidePackagePlus class="h-[22px] w-[22px]" aria-hidden="true" />
+							<span class="text-sm font-semibold">Nouvel article</span>
+						</button>
+						<RouterLink :to="{ name: 'Client', params: { id: client.name } }" class="card flex flex-col gap-2.5 !rounded-[18px] p-4 transition active:scale-[0.98]">
+							<LucideBuilding2 class="h-[22px] w-[22px]" aria-hidden="true" />
+							<span class="text-sm font-semibold">Fiche client</span>
+						</RouterLink>
+					</div>
+				</section>
 
 				<section v-if="recouvrement" class="card space-y-3 p-3">
 					<h2 class="section-title">Recouvrement</h2>
@@ -297,7 +342,7 @@ async function onPhoto(event: Event) {
 
 				<div class="flex gap-2">
 					<button type="button" class="btn-secondary flex-1" @click="save">Enregistrer</button>
-					<button type="button" class="btn-danger flex-1" @click="cancel">Supprimer</button>
+					<button type="button" class="btn-danger flex-1" @click="cancel">{{ visite.status === 'En Cours' ? 'Annuler la visite' : 'Supprimer' }}</button>
 				</div>
 			</div>
 

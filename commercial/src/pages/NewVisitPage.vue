@@ -61,13 +61,12 @@ async function startNow() {
 				<span class="field-label">Client</span>
 				<ClientPicker v-model="client" />
 			</div>
-			<label class="block">
+			<div>
 				<span class="field-label">Type de visite</span>
-				<select v-model="type" class="field-input">
-					<option value="" disabled>Choisir…</option>
-					<option v-for="t in types" :key="t" :value="t">{{ t }}</option>
-				</select>
-			</label>
+				<div class="flex flex-wrap gap-2" role="radiogroup" aria-label="Type de visite">
+					<button v-for="t in types" :key="t" type="button" role="radio" :aria-checked="type === t" :class="type === t ? 'chip-on' : 'chip-off'" @click="type = t">{{ t }}</button>
+				</div>
+			</div>
 			<label class="block">
 				<span class="field-label">Date</span>
 				<input v-model="date" type="date" class="field-input" />

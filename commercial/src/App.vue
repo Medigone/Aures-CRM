@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { RouterLink, RouterView } from 'vue-router'
-import LucideCalendarDays from '~icons/lucide/calendar-days'
+import { computed, onMounted, ref, watch } from 'vue'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
+import LucideHouse from '~icons/lucide/house'
 import LucideBuilding2 from '~icons/lucide/building-2'
-import LucideCalendarRange from '~icons/lucide/calendar-range'
-import LucideBriefcase from '~icons/lucide/briefcase'
-import LucideSettings from '~icons/lucide/settings'
+import LucideTicket from '~icons/lucide/ticket'
+import LucideLayoutGrid from '~icons/lucide/layout-grid'
+import LucidePlus from '~icons/lucide/plus'
+import CreateMenu from '@/components/CreateMenu.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { useAppTheme } from '@/lib/theme'
 import { applyUpdate, updateReady } from '@/lib/sw'
@@ -30,17 +31,22 @@ async function acceptInvite() {
 useAppTheme()
 onMounted(() => store.init())
 
+// Navigation : le terrain d'abord (journée, tickets), la création au centre, le reste dans « Plus ».
 const tabs = [
-	{ to: { name: 'Today' }, label: "Aujourd'hui", icon: LucideCalendarDays, match: ['Today', 'Visit', 'NewVisit', 'Appel', 'NewAppel'] },
-	{ to: { name: 'Week' }, label: 'Semaine', icon: LucideCalendarRange, match: ['Week', 'Rdv', 'NewRdv'] },
-	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article', 'NewProspect'] },
-	{ to: { name: 'Suivi' }, label: 'Suivi', icon: LucideBriefcase, match: ['Suivi', 'Ticket', 'NewTicket', 'Devis', 'Commande', 'Reclamation'] },
-	{ to: { name: 'Settings' }, label: 'Réglages', icon: LucideSettings, match: ['Settings', 'Sync', 'Objectifs'], badge: true },
+	{ to: { name: 'Today' }, label: "Aujourd'hui", icon: LucideHouse, match: ['Today', 'Visit', 'NewVisit', 'Appel', 'NewAppel', 'Week', 'Rdv', 'NewRdv'] },
+	{ to: { name: 'Suivi' }, label: 'Tickets', icon: LucideTicket, match: ['Suivi', 'Ticket', 'NewTicket', 'Devis', 'Commande', 'Reclamation'] },
+	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article', 'NewArticle', 'NewProspect'] },
+	{ to: { name: 'Settings' }, label: 'Plus', icon: LucideLayoutGrid, match: ['Settings', 'Sync', 'Objectifs'], badge: true },
 ]
+const route = useRoute()
+const menuOpen = ref(false)
+watch(() => route.fullPath, () => (menuOpen.value = false))
+// Saisie terrain (visite, nouveau ticket) : plein écran sur téléphone, la barre d'action prend la place de la navigation.
+const focusMode = computed(() => ['Visit', 'NewVisit', 'NewTicket', 'NewArticle'].includes(String(route.name)))
 </script>
 
 <template>
-	<div class="min-h-screen md:pl-20">
+	<div class="min-h-screen md:pl-20" :class="focusMode && 'focus-mode'">
 		<div v-if="updateReady" class="sticky top-0 z-30 flex items-center justify-between gap-3 bg-accent px-4 py-2 text-sm text-white">
 			<span>Une nouvelle version est disponible.</span>
 			<button type="button" class="rounded-lg bg-white/20 px-3 py-1.5 font-medium" @click="applyUpdate">Mettre à jour</button>
@@ -59,29 +65,43 @@ const tabs = [
 			<RouterView v-else />
 		</main>
 
-		<!-- Navigation : barre flottante arrondie sur téléphone, rail à gauche sur tablette. -->
+		<CreateMenu v-if="menuOpen" @close="menuOpen = false" />
+
+		<!-- Navigation : barre basse avec bouton de création central sur téléphone, rail à gauche sur tablette. -->
 		<nav
-			class="fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 grid h-[4.25rem] grid-cols-5 rounded-[20px] border border-outline-gray-2 bg-surface-white shadow-[0_8px_24px_rgba(17,21,28,0.08)] dark:shadow-none md:inset-x-0 md:inset-y-0 md:bottom-0 md:left-0 md:right-auto md:flex md:h-auto md:w-20 md:flex-col md:gap-2 md:rounded-none md:border-0 md:border-r md:pt-6 md:shadow-none"
+			class="fixed inset-x-0 bottom-0 z-40 grid h-[calc(4.75rem+env(safe-area-inset-bottom))] grid-cols-5 items-start border-t border-outline-gray-1 bg-surface-white px-2 pb-[env(safe-area-inset-bottom)] pt-2 md:inset-y-0 md:right-auto md:flex md:h-auto md:w-20 md:flex-col md:items-center md:gap-2 md:border-r md:border-t-0 md:pt-6"
+			:class="focusMode && 'max-md:hidden'"
 			aria-label="Navigation principale"
 		>
-			<RouterLink
-				v-for="tab in tabs"
-				:key="tab.label"
-				:to="tab.to"
-				class="flex flex-col items-center justify-center gap-1 text-xs md:py-3"
-				:class="tab.match.includes(String($route.name)) ? 'font-medium text-accent' : 'text-ink-gray-6'"
-			>
-				<span class="relative">
-					<component :is="tab.icon" class="h-6 w-6" aria-hidden="true" />
-					<span
-						v-if="tab.badge && (store.pendingCount || store.failed.length)"
-						class="absolute -right-2 -top-1 min-w-[1.1rem] rounded-full px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white"
-						:class="store.failed.length ? 'bg-red-500' : 'bg-amber-500'"
-						:aria-label="`${store.pendingCount} saisie(s) en attente, ${store.failed.length} à corriger`"
-					>{{ store.failed.length || store.pendingCount }}</span>
-				</span>
-				{{ tab.label }}
-			</RouterLink>
+			<template v-for="(tab, i) in tabs" :key="tab.label">
+				<button
+					v-if="i === 2"
+					type="button"
+					class="mx-auto -mt-7 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-on-primary shadow-[0_8px_20px_rgba(24,24,27,0.25)] transition active:scale-95 md:order-first md:mb-4 md:mt-0 md:h-14 md:w-14 md:shadow-none"
+					:aria-label="menuOpen ? 'Fermer le menu de création' : 'Créer'"
+					:aria-expanded="menuOpen"
+					@click="menuOpen = !menuOpen"
+				>
+					<LucidePlus class="h-7 w-7 transition-transform" :class="menuOpen && 'rotate-45'" aria-hidden="true" />
+				</button>
+				<RouterLink
+					:to="tab.to"
+					class="flex flex-col items-center gap-1 pt-1 text-[11px] md:w-full md:py-3"
+					:class="tab.match.includes(String($route.name)) ? 'font-semibold text-ink-gray-9' : 'font-medium text-ink-gray-6'"
+				>
+					<span class="relative">
+						<component :is="tab.icon" class="h-6 w-6" aria-hidden="true" />
+						<span
+							v-if="tab.badge && (store.pendingCount || store.failed.length)"
+							class="absolute -right-2 -top-1 min-w-[1.1rem] rounded-full px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white"
+							:class="store.failed.length ? 'bg-red-500' : 'bg-amber-500'"
+							:aria-label="`${store.pendingCount} saisie(s) en attente, ${store.failed.length} à corriger`"
+						>{{ store.failed.length || store.pendingCount }}</span>
+					</span>
+					{{ tab.label }}
+					<span class="h-0.5 w-4 rounded-full" :class="tab.match.includes(String($route.name)) ? 'bg-ink-gray-9' : 'bg-transparent'" aria-hidden="true" />
+				</RouterLink>
+			</template>
 		</nav>
 	</div>
 </template>

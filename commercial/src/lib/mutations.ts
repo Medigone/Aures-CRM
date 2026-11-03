@@ -5,7 +5,7 @@
  * Un document créé sur l'appareil porte la clé `local:<id de l'action de création>` ; une action qui le
  * vise avant sa création serveur envoie `<champ>_ref` (l'id de cette action), résolu par le journal serveur.
  */
-import type { Appel, Bundle, Client, RendezVous, Ticket, Visite } from '@/types'
+import type { Appel, Article, Bundle, Client, RendezVous, Ticket, Visite } from '@/types'
 
 export type MutationType =
 	| 'visite_create'
@@ -18,6 +18,7 @@ export type MutationType =
 	| 'appel_create'
 	| 'appel_update'
 	| 'prospect_create'
+	| 'article_create'
 	| 'client_update_gps'
 	| 'ticket_create'
 	| 'ticket_update'
@@ -54,7 +55,7 @@ export function keyFrom(payload: Record<string, any>, field: string): string | n
 }
 
 /** Action dont la réussite crée un document (son résultat donne le nom serveur de la clé locale). */
-export const CREATES: MutationType[] = ['visite_create', 'rdv_create', 'appel_create', 'prospect_create', 'ticket_create']
+export const CREATES: MutationType[] = ['visite_create', 'rdv_create', 'appel_create', 'prospect_create', 'article_create', 'ticket_create']
 
 export const MUTATION_LABELS: Record<MutationType, string> = {
 	visite_create: 'Nouvelle visite',
@@ -67,6 +68,7 @@ export const MUTATION_LABELS: Record<MutationType, string> = {
 	appel_create: 'Appel noté',
 	appel_update: 'Appel modifié',
 	prospect_create: 'Nouveau prospect',
+	article_create: 'Nouvel article',
 	client_update_gps: 'Position du client',
 	ticket_create: 'Nouveau ticket',
 	ticket_update: 'Ticket modifié',
@@ -275,6 +277,39 @@ export function applyMutation(bundle: Bundle, mutation: Mutation, user: { name: 
 		case 'client_update_gps': {
 			const [lat, lon] = parseLatLon(p.gps)
 			return { ...bundle, clients: replaceRow(bundle.clients, keyFrom(p, 'client'), (c) => ({ ...c, lat, lon, _pending: true })) }
+		}
+		case 'article_create': {
+			const client = keyFrom(p, 'client')
+			const offset = p.procede === 'Offset'
+			const cotations = offset ? [p.largeur, p.hauteur, p.longueur].filter((v) => Number(v) > 0).join('x') : ''
+			const photo = (p.attachments || []).find((a: { data: string }) => a.data.startsWith('data:image'))
+			const article: Article = {
+				name: localKey(mutation.id),
+				_pending: true,
+				designation: String(p.designation || '').toUpperCase(),
+				description: null,
+				client: client || '',
+				code_client: p.code_client || null,
+				procede: p.procede ?? null,
+				dimensions: offset ? cotations || null : p.dimensions || null,
+				support: null,
+				image: photo?.data ?? null,
+				groupe: null,
+				parent: null,
+				sous_article: 0,
+				compose: 0,
+				fiche_technique: null,
+				trace_decoupe: null,
+				consommation_annuelle: Number(p.consommation_annuelle) || null,
+				bat: null,
+				caracteristiques: [],
+				modified: now,
+			}
+			return {
+				...bundle,
+				articles: [article, ...bundle.articles],
+				clients: replaceRow(bundle.clients, client, (c) => ({ ...c, nb_articles: (c.nb_articles || 0) + 1 })),
+			}
 		}
 		case 'ticket_create': {
 			const client = keyFrom(p, 'client')

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import StatusPill from './StatusPill.vue'
+import { isLocal } from '@/lib/mutations'
 import type { Article } from '@/types'
 
 defineProps<{ article: Article }>()
@@ -12,7 +13,7 @@ defineProps<{ article: Article }>()
 			<div class="min-w-0">
 				<p class="line-clamp-2 font-medium">{{ article.designation }}</p>
 				<p class="truncate text-sm text-ink-gray-6">
-					{{ article.name }}<template v-if="article.code_client"> · réf. client {{ article.code_client }}</template>
+					<template v-if="isLocal(article.name)"><span class="pending-dot mr-1" />À envoyer</template><template v-else>{{ article.name }}</template><template v-if="article.code_client"> · réf. client {{ article.code_client }}</template>
 				</p>
 			</div>
 			<StatusPill v-if="article.bat" :status="article.bat.status === 'Nouveau' ? 'BAT en cours' : article.bat.status" />

@@ -28,7 +28,7 @@ export function todayIso(now = new Date()): string {
 /** URL d'un fichier Frappe (/files, /private/files) ou absolue. */
 export function fileUrl(path?: string | null): string | null {
 	if (!path) return null
-	return /^https?:\/\//.test(path) || path.startsWith('/') ? path : `/${path}`
+	return /^(https?:\/\/|data:)/.test(path) || path.startsWith('/') ? path : `/${path}`
 }
 
 const pad2 = (n: number) => String(n).padStart(2, '0')

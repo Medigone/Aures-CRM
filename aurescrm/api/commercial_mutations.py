@@ -19,7 +19,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.workflow import apply_workflow
-from frappe.utils import cstr, get_datetime, get_fullname, getdate, now_datetime, strip_html, today
+from frappe.utils import cint, cstr, get_datetime, get_fullname, getdate, now_datetime, strip_html, today
 
 from aurescrm.api.commercial_mobile import customer_scope, parse_gps, require_commercial
 from aurescrm.custom_permissions import get_customer_edit_status, is_exempt_user
@@ -420,6 +420,68 @@ def client_update_gps(user, payload):
 
 
 # ---------------------------------------------------------------------------
+# Articles client (codification `<client>-NNN` par aurescrm.utils.custom_item_naming)
+# ---------------------------------------------------------------------------
+ARTICLE_ITEM_GROUP = "Produits"
+ARTICLE_UOM = "Unité"
+
+
+def _article_default(doctype, preferred, settings_field):
+	if frappe.db.exists(doctype, preferred):
+		return preferred
+	return frappe.db.get_single_value("Stock Settings", settings_field) or preferred
+
+
+def article_create(user, payload):
+	client = resolve(user, payload, "client", "Customer")
+	assert_client(user, client)
+	designation = cstr(payload.get("designation")).strip()
+	if not designation:
+		raise Refused(_("La désignation est obligatoire."))
+	procede = payload.get("procede")
+	procedes = [o for o in (frappe.get_meta("Item").get_field("custom_procédé").options or "").split("\n") if o]
+	if procede not in procedes:
+		raise Refused(_("Le procédé est obligatoire."))
+	if frappe.db.exists("Item", {"custom_client": client, "item_code": designation.upper(), "disabled": 0}):
+		raise Refused(_("Le client a déjà un article « {0} ».").format(designation.upper()))
+	attachments = payload.get("attachments") or []
+	if len(attachments) > MAX_ATTACHMENTS:
+		raise Refused(_("{0} pièces jointes au plus.").format(MAX_ATTACHMENTS))
+	doc = frappe.get_doc(
+		{
+			"doctype": "Item",
+			"item_code": designation,
+			"custom_type_article": "Client",
+			"custom_client": client,
+			"custom_procédé": procede,
+			"custom_code_client": cstr(payload.get("code_client")).strip() or None,
+			"custom_consommation_annuelle": cint(payload.get("consommation_annuelle")) or None,
+			"item_group": _article_default("Item Group", ARTICLE_ITEM_GROUP, "item_group"),
+			"stock_uom": _article_default("UOM", ARTICLE_UOM, "stock_uom"),
+			"is_stock_item": 1,
+		}
+	)
+	# Offset : cotations largeur × hauteur × longueur (le texte « Cotations Article » en est déduit) ; sinon H x L libre.
+	if procede == "Offset":
+		for field in ("largeur", "hauteur", "longueur"):
+			doc.set(f"custom_{field}", cint(payload.get(field)) or None)
+	else:
+		doc.custom_dimensions_h_x_l = cstr(payload.get("dimensions")).strip() or None
+	doc.insert()
+	# Première photo : visuel de l'article ; le reste (fiche technique, échantillon…) en pièces jointes.
+	for index, attachment in enumerate(attachments):
+		is_image = cstr(attachment.get("data") if isinstance(attachment, dict) else "").startswith("data:image")
+		if index == 0 and is_image:
+			doc.db_set("image", save_file(doc, attachment, "image"))
+		else:
+			save_file(doc, attachment)
+	notes = cstr(payload.get("notes")).strip()
+	if notes:
+		doc.add_comment("Comment", "<p>" + frappe.utils.escape_html(notes).replace("\n", "<br>") + "</p>")
+	return _created(doc)
+
+
+# ---------------------------------------------------------------------------
 # Tickets commerciaux (workflow piloté par l'Administration des ventes : le commercial crée et suit)
 # ---------------------------------------------------------------------------
 def _ticket(user, payload):
@@ -504,6 +566,7 @@ MUTATION_TYPES = {
 	"appel_create": appel_create,
 	"appel_update": appel_update,
 	"prospect_create": prospect_create,
+	"article_create": article_create,
 	"client_update_gps": client_update_gps,
 	"ticket_create": ticket_create,
 	"ticket_update": ticket_update,
