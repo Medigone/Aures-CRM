@@ -1,0 +1,34 @@
+{
+  "name": "aures-commercial",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --base=/assets/aurescrm/commercial/ && yarn copy-html-entry",
+    "copy-html-entry": "cp ../aurescrm/public/commercial/index.html ../aurescrm/www/commercial.html",
+    "test": "vitest run",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "frappe-ui": "1.0.0-beta.2",
+    "pinia": "^2.2.6",
+    "vue": "^3.5.13",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "autoprefixer": "^10.4.20",
+    "fake-indexeddb": "^6.0.0",
+    "happy-dom": "^15.11.7",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.9",
+    "vue-tsc": "^2.1.10"
+  }
+}

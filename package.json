@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "name": "aurescrm",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "postinstall": "cd commercial && yarn install --check-files --ignore-engines",
+    "dev:commercial": "cd commercial && yarn dev",
+    "build:commercial": "cd commercial && yarn build",
+    "build": "yarn build:commercial"
+  }
+}
