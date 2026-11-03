@@ -113,7 +113,7 @@ self.addEventListener('message', (event) => {
 /* Notifications push : le serveur n'envoie qu'un titre, une phrase courte, l'URL à ouvrir et un `tag`
  * (une seule notification par sujet, la nouvelle remplace l'ancienne). Chaque push doit afficher une
  * notification : le navigateur retire la permission à un service worker qui en reçoit sans rien montrer. */
-const PUSH_ICON = '/assets/aurescrm/images/commercial-icon-192.png'
+const PUSH_ICON = '/assets/aurescrm/images/commercial-icon-192.png?v=2'
 
 self.addEventListener('push', (event) => {
 	let data = {}

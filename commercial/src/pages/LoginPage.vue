@@ -11,7 +11,7 @@ import LucideMail from '~icons/lucide/mail'
 import { ApiError, login, resetPassword, safeRedirect } from '@/lib/api'
 
 // Icône de l'application, servie par Frappe (hors build Vite).
-const APP_ICON = '/assets/aurescrm/images/commercial-icon-192.png'
+const APP_ICON = '/assets/aurescrm/images/commercial-icon-192.png?v=2'
 const route = useRoute()
 const screen = ref<'login' | 'forgot'>('login')
 const usr = ref('')
