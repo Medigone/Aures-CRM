@@ -9,9 +9,8 @@ import LucideCloud from '~icons/lucide/cloud'
 import LucideChevronLeft from '~icons/lucide/chevron-left'
 import LucideMail from '~icons/lucide/mail'
 import { ApiError, login, resetPassword, safeRedirect } from '@/lib/api'
+import BrandMark from '@/components/BrandMark.vue'
 
-// Icône de l'application, servie par Frappe (hors build Vite).
-const APP_ICON = '/assets/aurescrm/images/commercial-icon-192.png?v=2'
 const route = useRoute()
 const screen = ref<'login' | 'forgot'>('login')
 const usr = ref('')
@@ -89,7 +88,7 @@ function goTo(next: 'login' | 'forgot') {
 		<div class="mx-auto flex w-full max-w-sm flex-1 flex-col">
 			<template v-if="screen === 'login'">
 				<header class="flex flex-col items-start gap-5 px-1">
-					<img :src="APP_ICON" alt="" class="h-14 w-14 rounded-2xl" />
+					<BrandMark size="lg" />
 					<div class="flex flex-col gap-1.5">
 						<h1 class="text-[28px] font-bold leading-tight tracking-tight">Bonjour,</h1>
 						<p class="text-ink-gray-7">Connectez-vous pour retrouver votre journée, vos clients et vos affaires.</p>
