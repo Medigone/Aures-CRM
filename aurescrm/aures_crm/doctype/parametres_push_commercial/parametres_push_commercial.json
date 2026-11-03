@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "creation": "2026-11-03 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "description": "Réglages des notifications push (Web Push).",
+ "issingle": 1,
+ "field_order": [
+  "enabled",
+  "vapid_subject",
+  "section_cles",
+  "vapid_public_key",
+  "vapid_private_key"
+ ],
+ "fields": [
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Activer les notifications push",
+   "default": "0",
+   "description": "Les commerciaux peuvent alors activer les notifications sur leur téléphone (PWA /commercial, Réglages)."
+  },
+  {
+   "fieldname": "vapid_subject",
+   "fieldtype": "Data",
+   "label": "Contact VAPID",
+   "description": "mailto: ou URL de contact transmis aux services push. Par défaut : l'URL du site."
+  },
+  {
+   "fieldname": "section_cles",
+   "fieldtype": "Section Break",
+   "label": "Clés VAPID",
+   "description": "Générées au premier usage. Le site_config (aures_vapid_private_key, aures_vapid_public_key) est prioritaire. Ne jamais changer ces clés : tous les appareils abonnés cesseraient de recevoir les notifications."
+  },
+  {
+   "fieldname": "vapid_public_key",
+   "fieldtype": "Small Text",
+   "label": "Clé publique",
+   "read_only": 1
+  },
+  {
+   "fieldname": "vapid_private_key",
+   "fieldtype": "Password",
+   "label": "Clé privée",
+   "read_only": 1,
+   "length": 255
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-03 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Parametres Push Commercial",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

@@ -1,0 +1,111 @@
+@import 'frappe-ui/style.css';
+
+@layer base {
+	:root {
+		color-scheme: light;
+		/* Bleu Aures, en triplet RGB pour les opacités (`bg-accent/20`). */
+		--accent-rgb: 31 78 140;
+		--accent-fonce-rgb: 21 56 104;
+		/* Hauteur de la navigation du bas, relue par les barres d'action. */
+		--bottom-chrome: 4.25rem;
+	}
+	@media (min-width: 768px) {
+		:root {
+			--bottom-chrome: 0px;
+		}
+	}
+	:root[data-theme='dark'] {
+		color-scheme: dark;
+		--accent-rgb: 96 150 220;
+		--accent-fonce-rgb: 140 180 235;
+	}
+	:root[data-theme='dark'] body {
+		@apply bg-surface-white;
+	}
+	html,
+	body {
+		@apply bg-surface-gray-1 text-ink-gray-9;
+		-webkit-tap-highlight-color: transparent;
+		overscroll-behavior-y: none;
+		-webkit-font-smoothing: antialiased;
+	}
+	:focus-visible {
+		outline: 2px solid rgb(var(--accent-rgb));
+		outline-offset: 2px;
+	}
+}
+
+@layer components {
+	.badge {
+		@apply inline-flex h-6 items-center whitespace-nowrap rounded-full px-2.5 text-xs;
+	}
+	.card {
+		@apply rounded-xl border border-outline-gray-2 bg-surface-white dark:bg-surface-cards;
+	}
+	.card-link {
+		@apply card block transition active:scale-[0.99] active:bg-surface-gray-1;
+	}
+	.btn {
+		@apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100;
+	}
+	.btn-primary {
+		@apply btn bg-accent text-white active:bg-accent-fonce;
+	}
+	.btn-secondary {
+		@apply btn border border-outline-gray-2 bg-surface-white text-ink-gray-8 active:bg-surface-gray-2;
+	}
+	.icon-btn {
+		@apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] border border-outline-gray-2 bg-surface-white text-ink-gray-8 transition active:scale-95 active:bg-surface-gray-2;
+	}
+	.quick-actions {
+		@apply grid auto-cols-fr grid-flow-col gap-1;
+	}
+	.quick-action {
+		@apply flex min-h-16 flex-col items-center justify-start gap-1 rounded-xl py-1 text-xs text-ink-gray-7 transition active:scale-95;
+	}
+	.quick-action > svg {
+		@apply box-content h-5 w-5 rounded-full border border-outline-gray-2 bg-surface-white p-2.5 text-ink-gray-8 dark:bg-surface-cards;
+	}
+	.section-title {
+		@apply text-sm font-semibold text-ink-gray-9;
+	}
+	.search-box {
+		@apply flex items-center gap-2 rounded-[10px] border border-outline-gray-2 bg-surface-white px-3 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20;
+	}
+	.chip {
+		@apply inline-flex min-h-10 shrink-0 items-center rounded-full border px-3.5 text-sm transition active:scale-[0.97];
+	}
+	.chip-on {
+		@apply chip border-accent bg-accent-fond font-medium text-accent-fonce;
+	}
+	.chip-off {
+		@apply chip border-outline-gray-2 bg-surface-white text-ink-gray-7;
+	}
+	.chip-scroller {
+		@apply -mx-4 flex gap-2 overflow-x-auto px-4 pb-1;
+		scrollbar-width: none;
+	}
+	.chip-scroller::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+@layer components {
+	.field-label {
+		@apply mb-1 block text-xs font-medium text-ink-gray-6;
+	}
+	.field-input {
+		@apply block min-h-11 w-full rounded-[10px] border border-outline-gray-2 bg-surface-white px-3 py-2.5 text-base text-ink-gray-9 placeholder:text-ink-gray-5 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
+	}
+	.pending-dot {
+		@apply inline-block h-2 w-2 shrink-0 rounded-full bg-amber-500;
+	}
+	/* Barre d'actions collée au-dessus de la navigation du bas. */
+	.action-bar {
+		@apply fixed inset-x-0 z-10 flex gap-2 border-t border-outline-gray-2 bg-surface-white px-4 py-3 md:left-20;
+		bottom: calc(var(--bottom-chrome) + env(safe-area-inset-bottom));
+	}
+	.btn-danger {
+		@apply btn border border-outline-gray-2 bg-surface-white text-ink-red-3;
+	}
+}

@@ -27,6 +27,17 @@ app_license = "mit"
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
 
+# PWA commerciale (/commercial) : SPA Vue construite dans public/commercial (voir /commercial).
+# Le renderer des fichiers PWA (sw.js, manifest) doit précéder celui de la SPA.
+website_route_rules = [
+    {"from_route": "/commercial/<path:app_path>", "to_route": "commercial"},
+]
+
+page_renderer = [
+    "aurescrm.www.commercial_page.CommercialPWAFile",
+    "aurescrm.www.commercial_page.CommercialPage",
+]
+
 # include js in doctype views
 doctype_js = {
     "Customer": [
@@ -162,6 +173,11 @@ override_doctype_dashboards = {
 # aurescrm/hooks.py
 # dans hooks.py
 doc_events = {
+    # PWA commerciale : temps réel et notifications push (filtrés par aurescrm.commercial_events.WATCHED).
+    "*": {
+        "on_change": "aurescrm.commercial_events.on_change",
+        "on_trash": "aurescrm.commercial_events.on_trash",
+    },
     "Comment": {
         "validate": "aurescrm.customer_timeline.validate_customer_timeline_comment",
     },
