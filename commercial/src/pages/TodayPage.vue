@@ -4,7 +4,6 @@ import { RouterLink } from 'vue-router'
 import LucideMapPin from '~icons/lucide/map-pin'
 import LucideMic from '~icons/lucide/mic'
 import LucideBell from '~icons/lucide/bell'
-import PageHeader from '@/components/PageHeader.vue'
 import SyncPill from '@/components/SyncPill.vue'
 import StatusPill from '@/components/StatusPill.vue'
 import { useCommercialStore } from '@/stores/commercial'
@@ -80,15 +79,23 @@ const TICKETS_SHOWN = 8
 
 <template>
 	<div>
-		<PageHeader title="Aujourd'hui" :subtitle="dateLabel">
-			<template #actions>
-				<SyncPill />
-				<RouterLink :to="{ name: 'ATraiter' }" class="relative flex h-11 w-11 items-center justify-center rounded-full bg-surface-white dark:bg-surface-cards" :aria-label="aTraiter ? `À traiter : ${aTraiter}` : 'À traiter'">
-					<LucideBell class="h-5 w-5" aria-hidden="true" />
-					<span v-if="aTraiter" class="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-orange-700 px-1 text-[11px] font-bold text-white">{{ aTraiter }}</span>
-				</RouterLink>
-			</template>
-		</PageHeader>
+		<!-- Ligne de marque : logo et nom à gauche, synchro et « À traiter » à droite ; le titre prend ensuite toute la largeur. -->
+		<div class="mb-3 flex items-center gap-2">
+			<svg viewBox="0 0 100 100" class="h-7 w-7 shrink-0 text-ink-gray-9" aria-hidden="true">
+				<polygon points="50,20 20,80 50,70" fill="currentColor" />
+				<polygon points="50,20 50,70 80,80" fill="currentColor" fill-opacity="0.55" />
+			</svg>
+			<p class="min-w-0 flex-1 truncate text-sm font-bold tracking-tight">Aures <span class="font-medium text-ink-gray-6">Emballages</span></p>
+			<SyncPill />
+			<RouterLink :to="{ name: 'ATraiter' }" class="relative flex h-11 w-11 items-center justify-center rounded-full bg-surface-white dark:bg-surface-cards" :aria-label="aTraiter ? `À traiter : ${aTraiter}` : 'À traiter'">
+				<LucideBell class="h-5 w-5" aria-hidden="true" />
+				<span v-if="aTraiter" class="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-orange-700 px-1 text-[11px] font-bold text-white">{{ aTraiter }}</span>
+			</RouterLink>
+		</div>
+		<div class="mb-4">
+			<h1 class="text-[28px] font-bold leading-tight tracking-tight">Aujourd'hui</h1>
+			<p class="text-sm text-ink-gray-6">{{ dateLabel }}</p>
+		</div>
 
 		<div v-if="!store.bundle && store.syncing" class="card p-6 text-center text-ink-gray-6">Premier chargement de votre portefeuille…</div>
 		<div v-else-if="!store.bundle" class="card p-6 text-center text-ink-gray-6">
