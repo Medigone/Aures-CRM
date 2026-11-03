@@ -7,8 +7,12 @@ import PushSettingsCard from '@/components/PushSettingsCard.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { useAppTheme, type ThemePreference } from '@/lib/theme'
 import { formatDay, formatTime } from '@/lib/format'
+import { METRIC_LABELS, formatMetric } from '@/lib/objectifs'
 
 const store = useCommercialStore()
+// Mes objectifs : la cible principale de la période (CA, sinon la première), en une ligne.
+const objectifs = computed(() => store.bundle?.objectifs ?? null)
+const ciblePrincipale = computed(() => objectifs.value?.cibles.find((c) => c.metric_code === 'revenue') ?? objectifs.value?.cibles[0] ?? null)
 const { preference, setPreference } = useAppTheme()
 const themes: { value: ThemePreference; label: string }[] = [
 	{ value: 'system', label: 'Téléphone' },
@@ -63,7 +67,20 @@ function logout() {
 			</RouterLink>
 		</section>
 
-		<RouterLink :to="{ name: 'Objectifs' }" class="btn-secondary mb-4 w-full">Mes objectifs</RouterLink>
+		<RouterLink v-if="objectifs" :to="{ name: 'Objectifs' }" class="mb-4 block rounded-[20px] bg-accent-fonce p-4 text-white transition active:scale-[0.99]">
+			<div class="flex items-baseline justify-between gap-2">
+				<span class="text-sm font-medium text-white/70">Mes objectifs</span>
+				<span class="text-sm font-semibold tabular-nums text-white">{{ Math.round(objectifs.target_achievement_pct || 0) }} %</span>
+			</div>
+			<p v-if="ciblePrincipale" class="mt-1 text-lg font-semibold">
+				{{ formatMetric(ciblePrincipale.achieved_value, ciblePrincipale.unit) }}
+				<span class="text-sm font-normal text-white/70">/ {{ formatMetric(ciblePrincipale.target_value, ciblePrincipale.unit) }} {{ METRIC_LABELS[ciblePrincipale.metric_code] || ciblePrincipale.metric_code }}</span>
+			</p>
+			<div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/20">
+				<div class="h-full rounded-full bg-white" :style="{ width: `${Math.min(100, Math.round(objectifs.target_achievement_pct || 0))}%` }" />
+			</div>
+		</RouterLink>
+		<RouterLink v-else :to="{ name: 'Objectifs' }" class="btn-secondary mb-4 w-full">Mes objectifs</RouterLink>
 
 		<PushSettingsCard class="mb-6" />
 

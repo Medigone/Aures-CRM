@@ -62,6 +62,8 @@ type OutboxState = {
 	failed: Mutation[]
 	/** Clé locale → nom serveur, pour suivre une fiche ouverte avant sa création serveur. */
 	aliases: Record<string, string>
+	/** Actions acceptées par le serveur mais pas encore dans l'instantané (rechargé juste après). */
+	applied?: Mutation[]
 }
 
 /** Une liste de l'instantané, page après page ; une ligne déplacée entre deux pages n'apparaît qu'une fois. */
@@ -113,6 +115,22 @@ export async function pullSnapshot(): Promise<Bundle> {
 	}
 }
 
+/** Un document créé sur l'appareil, accepté par le serveur, prend son nom serveur (et ses liens `client` suivent). */
+function renameLocal(view: Bundle, local: string, name: string): Bundle {
+	const next: Record<string, unknown> = { ...view }
+	for (const [key, value] of Object.entries(view)) {
+		if (!Array.isArray(value)) continue
+		const rows = value as { name?: string; client?: string }[]
+		if (!rows.some((row) => row && (row.name === local || row.client === local))) continue
+		next[key] = rows.map((row) =>
+			row && (row.name === local || row.client === local)
+				? { ...row, ...(row.name === local ? { name } : {}), ...(row.client === local ? { client: name } : {}) }
+				: row,
+		)
+	}
+	return next as Bundle
+}
+
 function groupBy<T>(rows: T[], keyOf: (row: T) => string | null | undefined) {
 	const groups = new Map<string, T[]>()
 	for (const row of rows) {
@@ -131,6 +149,7 @@ export const useCommercialStore = defineStore('commercial', () => {
 	const failed = ref<Mutation[]>([])
 	const owner = ref<string | null>(null)
 	const aliases = ref<Record<string, string>>({})
+	const applied = ref<Mutation[]>([])
 	const loaded = ref(false)
 	const online = ref(typeof navigator === 'undefined' ? true : navigator.onLine)
 	const syncing = ref(false)
@@ -158,13 +177,20 @@ export const useCommercialStore = defineStore('commercial', () => {
 		}
 		return payload === mutation.payload ? mutation : { ...mutation, payload }
 	}
-	/** Instantané + saisies en attente (et en échec, tant qu'elles ne sont pas abandonnées). */
+	/**
+	 * Instantané + saisies en attente (et en échec, tant qu'elles ne sont pas abandonnées) + saisies acceptées
+	 * que l'instantané ne contient pas encore : sans elles, un document créé disparaîtrait entre l'envoi et le
+	 * rechargement (page vide). Une création acceptée prend aussitôt son nom serveur.
+	 */
 	const bundle = computed<Bundle | null>(() => {
 		if (!server.value) return null
 		const who = { name: owner.value || server.value.user.name, full_name: server.value.user.full_name }
 		let view = server.value
-		for (const mutation of [...failed.value, ...outbox.value].sort((a, b) => a.created_at.localeCompare(b.created_at))) {
+		const pending = [...applied.value, ...failed.value, ...outbox.value].sort((a, b) => a.created_at.localeCompare(b.created_at))
+		for (const mutation of pending) {
 			view = applyMutation(view, withAliases(mutation), who)
+			const alias = CREATES.includes(mutation.type) ? aliases.value[localKey(mutation.id)] : undefined
+			if (alias) view = renameLocal(view, localKey(mutation.id), alias)
 		}
 		return view
 	})
@@ -216,6 +242,7 @@ export const useCommercialStore = defineStore('commercial', () => {
 				outbox.value = state.outbox ?? []
 				failed.value = state.failed ?? []
 				aliases.value = state.aliases ?? {}
+				applied.value = state.applied ?? []
 			}
 		} catch {
 			storageError.value = true
@@ -233,7 +260,7 @@ export const useCommercialStore = defineStore('commercial', () => {
 		return writes
 	}
 	const persistState = () =>
-		queueWrite(STATE_KEY, () => ({ owner: owner.value, outbox: outbox.value, failed: failed.value, aliases: aliases.value }) satisfies OutboxState)
+		queueWrite(STATE_KEY, () => ({ owner: owner.value, outbox: outbox.value, failed: failed.value, aliases: aliases.value, applied: applied.value }) satisfies OutboxState)
 	const persistServer = () => queueWrite(BUNDLE_KEY, () => server.value)
 
 	// -----------------------------------------------------------------------
@@ -312,6 +339,7 @@ export const useCommercialStore = defineStore('commercial', () => {
 			}
 			outbox.value = keep
 			failed.value = [...failed.value, ...newlyFailed]
+			applied.value = [...applied.value, ...batch.filter((m) => byId.get(m.id)?.ok)]
 			await persistState()
 		}
 		return true
@@ -350,7 +378,10 @@ export const useCommercialStore = defineStore('commercial', () => {
 				await idbDelete(BUNDLE_KEY).catch(() => {})
 			}
 			server.value = next
+			// L'instantané contient désormais tout ce qui a été accepté avant son chargement.
+			applied.value = []
 			await persistServer()
+			await persistState()
 			syncError.value = null
 			prefetchWeekFiles()
 		} catch (error) {
@@ -366,6 +397,7 @@ export const useCommercialStore = defineStore('commercial', () => {
 		outbox.value = []
 		failed.value = []
 		aliases.value = {}
+		applied.value = []
 		owner.value = server.value?.user.name ?? null
 		foreignOutbox.value = false
 		await persistState()

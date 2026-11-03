@@ -1,109 +1,93 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import LucideMapPin from '~icons/lucide/map-pin'
 import LucideMic from '~icons/lucide/mic'
-import LucideCalendarRange from '~icons/lucide/calendar-range'
+import LucideBell from '~icons/lucide/bell'
 import PageHeader from '@/components/PageHeader.vue'
 import SyncPill from '@/components/SyncPill.vue'
 import StatusPill from '@/components/StatusPill.vue'
-import ClientCard from '@/components/ClientCard.vue'
 import { useCommercialStore } from '@/stores/commercial'
-import { currentPosition, distanceM, pickNearby, pointOf, type GpsPoint } from '@/lib/geo'
-import { formatTime, parseServerDate } from '@/lib/format'
+import { useATraiter } from '@/lib/aTraiter'
+import { ticketOuvert } from '@/lib/affaires'
+import { formatDay, formatTime } from '@/lib/format'
 import { stripHtml, todayIso } from '@/lib/text'
-import type { Client } from '@/types'
-import { ticketAlerte, ticketOuvert } from '@/lib/affaires'
-import { METRIC_LABELS, formatMetric } from '@/lib/objectifs'
-import { formatMoney } from '@/lib/text'
 
+/** Accueil : la journée du commercial, visites (et rendez-vous) d'un côté, tickets ouverts de l'autre. */
 const store = useCommercialStore()
 const today = todayIso()
 const dateLabel = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
-
 const clientName = (name?: string | null) => (name && store.clientsByName.get(name)?.customer_name) || name || '—'
+const { total: aTraiter } = useATraiter()
 
-const rdvDuJour = computed(() =>
-	store.rdv
-		.filter((r) => (r.date_heure || '').slice(0, 10) === today && r.status !== 'Terminé')
-		.sort((a, b) => (a.date_heure || '').localeCompare(b.date_heure || '')),
-)
+type Onglet = 'visites' | 'tickets'
+const TAB_KEY = 'aures-accueil-onglet'
+const tab = ref<Onglet>('visites')
+try {
+	if (localStorage.getItem(TAB_KEY) === 'tickets') tab.value = 'tickets'
+} catch {
+	/* stockage indisponible : onglet Visites */
+}
+watch(tab, (value) => {
+	try {
+		localStorage.setItem(TAB_KEY, value)
+	} catch {
+		/* préférence non gardée */
+	}
+})
+
 // Visites du jour, et celles restées en cours un jour précédent (à terminer).
-const visitesDuJour = computed(() =>
-	store.visites
-		.filter((v) => v.date === today || v.status === 'En Cours')
-		.sort((a, b) => (a.debut || a.date || '').localeCompare(b.debut || b.date || '')),
-)
-const visiteEnCours = computed(() => store.visites.find((v) => v.status === 'En Cours') ?? null)
+const visitesDuJour = computed(() => store.visites.filter((v) => v.date === today || v.status === 'En Cours'))
+const visiteEnCours = computed(() => visitesDuJour.value.find((v) => v.status === 'En Cours') ?? null)
+// Carte mise en avant : la visite en cours, sinon la première à faire aujourd'hui.
+const aLaUne = computed(() => visiteEnCours.value ?? visitesDuJour.value.find((v) => v.status === 'Nouveau') ?? null)
 const visitesFaites = computed(() => visitesDuJour.value.filter((v) => v.status === 'Terminé').length)
-const mesTickets = computed(() =>
-	store.tickets
-		.filter(ticketOuvert)
-		.sort((a, b) => (b.creation || b.modified || '').localeCompare(a.creation || a.modified || ''))
-		.slice(0, 3),
+const rdvDuJour = computed(() => store.rdv.filter((r) => (r.date_heure || '').slice(0, 10) === today && r.status !== 'Terminé'))
+
+/** Agenda du jour : visites et rendez-vous mêlés, dans l'ordre de l'heure (les visites non démarrées à la fin). */
+const agenda = computed(() =>
+	[
+		...visitesDuJour.value
+			.filter((v) => v.name !== aLaUne.value?.name)
+			.map((v) => ({
+				key: v.name,
+				to: { name: 'Visit', params: { id: v.name } },
+				at: v.debut || `${v.date} 99`,
+				time: v.debut ? formatTime(v.debut) : '—',
+				title: v.nom_client || clientName(v.client),
+				sub: `${v.type_visite || 'Visite'}${v.date !== today ? ` · commencée le ${formatDay(v.date)}` : ''}`,
+				status: v.status,
+				pending: v._pending,
+			})),
+		...rdvDuJour.value.map((r) => ({
+			key: r.name,
+			to: { name: 'Rdv', params: { id: r.name } },
+			at: r.date_heure || '',
+			time: formatTime(r.date_heure),
+			title: r.raison_sociale || clientName(r.client),
+			sub: r.details ? `Rendez-vous · ${stripHtml(r.details)}` : 'Rendez-vous',
+			status: r.status,
+			pending: r._pending,
+		})),
+	].sort((a, b) => a.at.localeCompare(b.at)),
 )
-const rappels = computed(() =>
-	store.appels
-		.filter((a) => a.status === 'À Rappeler' && (!a.date_rappel || a.date_rappel.slice(0, 10) <= today))
-		.sort((a, b) => (a.date_rappel || '').localeCompare(b.date_rappel || '')),
+
+const ticketsOuverts = computed(() =>
+	store.tickets.filter(ticketOuvert).sort((a, b) => (b.creation || b.modified || '').localeCompare(a.creation || a.modified || '')),
 )
-
-// À traiter : décisions sur ses tickets, réclamations en retard, relances de créances dues.
-const ticketsAlerte = computed(() => store.tickets.map((t) => ({ t, alerte: ticketAlerte(t) })).filter((x) => x.alerte))
-const reclamationsRetard = computed(() => store.reclamations.filter((r) => r.status === 'En retard'))
-const relances = computed(() =>
-	store.creances
-		.filter((c) => c.date_prochaine_relance && c.date_prochaine_relance <= today && (c.solde_restant || 0) > 0)
-		.sort((a, b) => (a.date_prochaine_relance || '').localeCompare(b.date_prochaine_relance || '')),
-)
-// Mes objectifs : la cible principale de la période (CA, sinon la première), en une ligne.
-const objectifs = computed(() => store.bundle?.objectifs ?? null)
-const ciblePrincipale = computed(() => objectifs.value?.cibles.find((c) => c.metric_code === 'revenue') ?? objectifs.value?.cibles[0] ?? null)
-
-const aTraiter = computed(() => ticketsAlerte.value.length + reclamationsRetard.value.length + relances.value.length)
-
-/** Clients actifs sans visite depuis 60 jours (ou jamais), les plus anciens d'abord. */
-const STALE_DAYS = 60
-const aRevoir = computed(() => {
-	const limit = Date.now() - STALE_DAYS * 86400000
-	return store.clients
-		.filter((c) => c.statut === 'Actif')
-		.filter((c) => {
-			const seen = parseServerDate(c.derniere_visite ? `${c.derniere_visite} 00:00:00` : null)
-			return !seen || seen.getTime() < limit
-		})
-		.sort((a, b) => (a.derniere_visite || '').localeCompare(b.derniere_visite || ''))
-		.slice(0, 8)
-})
-
-const position = ref<GpsPoint | null>(null)
-const locating = ref(false)
-const locateError = ref(false)
-async function locate() {
-	locating.value = true
-	locateError.value = false
-	position.value = await currentPosition()
-	locateError.value = !position.value
-	locating.value = false
-}
-const placeOf = (c: Client) => pointOf(c.lat, c.lon)
-const proches = computed(() => {
-	if (!position.value) return []
-	return pickNearby(store.clients, position.value, placeOf, (c) => parseServerDate(c.derniere_visite ? `${c.derniere_visite} 00:00:00` : null), {
-		radiusM: 5000,
-		staleDays: 30,
-	}).slice(0, 8)
-})
-const distanceTo = (c: Client) => {
-	const at = placeOf(c)
-	return position.value && at ? distanceM(position.value, at) : null
-}
+const TICKETS_SHOWN = 8
 </script>
 
 <template>
 	<div>
 		<PageHeader title="Aujourd'hui" :subtitle="dateLabel">
-			<template #actions><SyncPill /></template>
+			<template #actions>
+				<SyncPill />
+				<RouterLink :to="{ name: 'ATraiter' }" class="relative flex h-11 w-11 items-center justify-center rounded-full bg-surface-white dark:bg-surface-cards" :aria-label="aTraiter ? `À traiter : ${aTraiter}` : 'À traiter'">
+					<LucideBell class="h-5 w-5" aria-hidden="true" />
+					<span v-if="aTraiter" class="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-orange-700 px-1 text-[11px] font-bold text-white">{{ aTraiter }}</span>
+				</RouterLink>
+			</template>
 		</PageHeader>
 
 		<div v-if="!store.bundle && store.syncing" class="card p-6 text-center text-ink-gray-6">Premier chargement de votre portefeuille…</div>
@@ -113,10 +97,10 @@ const distanceTo = (c: Client) => {
 
 		<template v-else>
 			<!-- Les deux gestes du terrain : la visite (ou la reprendre) et le ticket dicté. -->
-			<div class="mb-6 grid grid-cols-2 gap-3">
+			<div class="mb-5 grid grid-cols-2 gap-3">
 				<RouterLink
 					:to="visiteEnCours ? { name: 'Visit', params: { id: visiteEnCours.name } } : { name: 'NewVisit' }"
-					class="flex min-h-[8.25rem] flex-col justify-between gap-6 rounded-[22px] bg-primary p-4 text-on-primary transition active:scale-[0.98]"
+					class="flex min-h-[7.5rem] flex-col justify-between gap-5 rounded-[22px] bg-primary p-4 text-on-primary transition active:scale-[0.98]"
 				>
 					<span class="flex h-10 w-10 items-center justify-center rounded-full bg-on-primary/15"><LucideMapPin class="h-5 w-5" aria-hidden="true" /></span>
 					<span>
@@ -124,7 +108,7 @@ const distanceTo = (c: Client) => {
 						<span class="block truncate text-xs opacity-75">{{ visiteEnCours ? visiteEnCours.nom_client || clientName(visiteEnCours.client) : 'GPS + dictée prête' }}</span>
 					</span>
 				</RouterLink>
-				<RouterLink :to="{ name: 'NewTicket', query: { dictee: '1' } }" class="card flex min-h-[8.25rem] flex-col justify-between gap-6 !rounded-[22px] p-4 transition active:scale-[0.98]">
+				<RouterLink :to="{ name: 'NewTicket', query: { dictee: '1' } }" class="card flex min-h-[7.5rem] flex-col justify-between gap-5 !rounded-[22px] p-4 transition active:scale-[0.98]">
 					<span class="flex h-10 w-10 items-center justify-center rounded-full bg-surface-gray-2"><LucideMic class="h-5 w-5" aria-hidden="true" /></span>
 					<span>
 						<span class="block text-base font-semibold">Dicter un ticket</span>
@@ -133,121 +117,75 @@ const distanceTo = (c: Client) => {
 				</RouterLink>
 			</div>
 
-			<section v-if="aTraiter" class="mb-6">
-				<h2 class="section-title mb-2.5">À traiter</h2>
-				<div class="space-y-2">
-					<RouterLink v-for="x in ticketsAlerte" :key="x.t.name" :to="{ name: 'Ticket', params: { id: x.t.name } }" class="card-link p-4">
-						<p class="truncate font-semibold">{{ x.t.request_type }} · {{ x.t.customer_name || clientName(x.t.client) }}</p>
-						<p class="text-sm font-medium text-ink-amber-3">{{ x.alerte }}</p>
-					</RouterLink>
-					<RouterLink v-for="r in reclamationsRetard" :key="r.name" :to="{ name: 'Reclamation', params: { id: r.name } }" class="card-link p-4">
-						<p class="truncate font-semibold">Réclamation · {{ r.nom_client || clientName(r.client) }}</p>
-						<p class="text-sm font-medium text-ink-red-3">En retard (échéance {{ r.date_echeance }})</p>
-					</RouterLink>
-					<RouterLink v-for="c in relances" :key="c.name" :to="{ name: 'Client', params: { id: c.client } }" class="card-link p-4">
-						<p class="truncate font-semibold">Relance créance · {{ c.nom_client || clientName(c.client) }}</p>
-						<p class="text-sm text-ink-gray-6">{{ formatMoney(c.solde_restant) }} · prévue le {{ c.date_prochaine_relance }}</p>
-					</RouterLink>
-				</div>
-			</section>
+			<div class="mb-4 grid grid-cols-2 gap-1 rounded-full bg-surface-gray-3 p-1" role="tablist" aria-label="Visites ou tickets">
+				<button
+					type="button"
+					role="tab"
+					:aria-selected="tab === 'visites'"
+					class="min-h-[42px] rounded-full text-sm transition"
+					:class="tab === 'visites' ? 'bg-surface-white font-semibold shadow-sm dark:bg-surface-gray-1' : 'font-medium text-ink-gray-7'"
+					@click="tab = 'visites'"
+				>
+					Visites<template v-if="visitesDuJour.length"> · {{ visitesFaites }}/{{ visitesDuJour.length }}</template>
+				</button>
+				<button
+					type="button"
+					role="tab"
+					:aria-selected="tab === 'tickets'"
+					class="min-h-[42px] rounded-full text-sm transition"
+					:class="tab === 'tickets' ? 'bg-surface-white font-semibold shadow-sm dark:bg-surface-gray-1' : 'font-medium text-ink-gray-7'"
+					@click="tab = 'tickets'"
+				>
+					Tickets ouverts<template v-if="ticketsOuverts.length"> · {{ ticketsOuverts.length }}</template>
+				</button>
+			</div>
 
-			<section class="mb-6">
-				<div class="mb-2.5 flex items-baseline justify-between">
-					<h2 class="section-title">Visites du jour</h2>
-					<span v-if="visitesDuJour.length" class="text-sm text-ink-gray-6">{{ visitesFaites }} / {{ visitesDuJour.length }} faites</span>
-				</div>
-				<p v-if="!visitesDuJour.length" class="text-sm text-ink-gray-6">Aucune visite prévue aujourd'hui.</p>
-				<div v-else class="card divide-y divide-outline-gray-1 overflow-hidden">
-					<RouterLink v-for="v in visitesDuJour" :key="v.name" :to="{ name: 'Visit', params: { id: v.name } }" class="flex items-center gap-3 px-4 py-3.5 active:bg-surface-gray-2">
-						<span class="w-11 shrink-0 text-sm font-semibold tabular-nums text-ink-gray-6">{{ v.debut ? formatTime(v.debut) : '—' }}</span>
-						<span class="min-w-0 flex-1">
-							<span class="block truncate font-medium">{{ v.nom_client || clientName(v.client) }}</span>
-							<span class="block truncate text-xs text-ink-gray-6">{{ v.type_visite }}<template v-if="v.date !== today"> · commencée {{ v.date }}</template></span>
+			<section v-if="tab === 'visites'" class="space-y-2.5" role="tabpanel" aria-label="Visites du jour">
+				<div v-if="aLaUne" class="card space-y-2.5 p-4">
+					<div class="flex items-center justify-between gap-2">
+						<span v-if="aLaUne.status === 'En Cours'" class="badge gap-1.5 bg-surface-green-2 font-semibold text-ink-green-3">
+							<span class="h-1.5 w-1.5 rounded-full bg-ink-green-3" aria-hidden="true" />En cours depuis {{ formatTime(aLaUne.debut) }}
 						</span>
-						<span v-if="v._pending" class="pending-dot" title="En attente d'envoi" />
-						<StatusPill :status="v.status" />
-					</RouterLink>
+						<span v-else class="badge bg-surface-blue-2 font-semibold text-ink-blue-3">À faire aujourd'hui</span>
+						<span v-if="aLaUne._pending" class="pending-dot" title="En attente d'envoi" />
+					</div>
+					<div>
+						<p class="text-base font-semibold">{{ aLaUne.nom_client || clientName(aLaUne.client) }}</p>
+						<p class="text-sm text-ink-gray-6">{{ aLaUne.type_visite || 'Visite' }}</p>
+					</div>
+					<RouterLink :to="{ name: 'Visit', params: { id: aLaUne.name } }" class="btn-primary min-h-11 w-full">{{ aLaUne.status === 'En Cours' ? 'Reprendre' : 'Ouvrir et démarrer' }}</RouterLink>
 				</div>
-			</section>
 
-			<section v-if="rdvDuJour.length" class="mb-6">
-				<h2 class="section-title mb-2.5">Rendez-vous du jour</h2>
-				<div class="card divide-y divide-outline-gray-1 overflow-hidden">
-					<RouterLink v-for="r in rdvDuJour" :key="r.name" :to="{ name: 'Rdv', params: { id: r.name } }" class="flex items-center gap-3 px-4 py-3.5 active:bg-surface-gray-2">
-						<span class="w-11 shrink-0 text-sm font-semibold tabular-nums text-ink-gray-6">{{ formatTime(r.date_heure) }}</span>
+				<p v-if="!aLaUne && !agenda.length" class="py-6 text-center text-sm text-ink-gray-6">Aucune visite ni rendez-vous aujourd'hui.</p>
+				<div v-if="agenda.length" class="card divide-y divide-outline-gray-1 overflow-hidden">
+					<RouterLink v-for="item in agenda" :key="item.key" :to="item.to" class="flex items-center gap-3 px-4 py-3.5 active:bg-surface-gray-2">
+						<span class="w-11 shrink-0 text-sm font-semibold tabular-nums text-ink-gray-6">{{ item.time }}</span>
 						<span class="min-w-0 flex-1">
-							<span class="block truncate font-medium">{{ r.raison_sociale || clientName(r.client) }}</span>
-							<span v-if="r.details" class="block truncate text-xs text-ink-gray-6">{{ stripHtml(r.details) }}</span>
+							<span class="block truncate font-medium">{{ item.title }}</span>
+							<span class="block truncate text-xs text-ink-gray-6">{{ item.sub }}</span>
 						</span>
-						<StatusPill :status="r.status" />
+						<span v-if="item.pending" class="pending-dot" title="En attente d'envoi" />
+						<StatusPill :status="item.status" />
 					</RouterLink>
 				</div>
+				<RouterLink :to="{ name: 'Week' }" class="block py-2.5 text-center text-sm font-medium text-ink-gray-7">Voir ma semaine</RouterLink>
 			</section>
 
-			<section v-if="mesTickets.length" class="mb-6">
-				<div class="mb-2.5 flex items-baseline justify-between">
-					<h2 class="section-title">Mes tickets ouverts</h2>
-					<RouterLink :to="{ name: 'Suivi' }" class="text-sm font-medium">Tout voir</RouterLink>
-				</div>
-				<div class="space-y-2">
-					<RouterLink v-for="t in mesTickets" :key="t.name" :to="{ name: 'Ticket', params: { id: t.name } }" class="card-link space-y-2 p-4">
+			<section v-else class="space-y-2" role="tabpanel" aria-label="Tickets ouverts">
+				<p v-if="!ticketsOuverts.length" class="py-6 text-center text-sm text-ink-gray-6">Aucun ticket ouvert.</p>
+				<RouterLink v-for="t in ticketsOuverts.slice(0, TICKETS_SHOWN)" :key="t.name" :to="{ name: 'Ticket', params: { id: t.name } }" class="card-link space-y-2 p-4">
+					<div class="flex items-center justify-between gap-2">
 						<StatusPill :status="t.status" />
-						<div class="flex items-baseline justify-between gap-3">
-							<span class="truncate font-semibold">{{ t.request_type || 'Ticket' }}</span>
-							<span class="shrink-0 truncate text-sm text-ink-gray-6">{{ t.customer_name || clientName(t.client) }}</span>
-						</div>
-					</RouterLink>
-				</div>
-			</section>
-
-			<RouterLink v-if="objectifs" :to="{ name: 'Objectifs' }" class="mb-6 block rounded-[20px] bg-accent-fonce p-4 text-white transition active:scale-[0.99]">
-				<div class="flex items-baseline justify-between gap-2">
-					<span class="text-sm font-medium text-white/70">Mes objectifs</span>
-					<span class="text-sm font-semibold tabular-nums text-white">{{ Math.round(objectifs.target_achievement_pct || 0) }} %</span>
-				</div>
-				<p v-if="ciblePrincipale" class="mt-1 text-lg font-semibold">
-					{{ formatMetric(ciblePrincipale.achieved_value, ciblePrincipale.unit) }}
-					<span class="text-sm font-normal text-white/70">/ {{ formatMetric(ciblePrincipale.target_value, ciblePrincipale.unit) }} {{ METRIC_LABELS[ciblePrincipale.metric_code] || ciblePrincipale.metric_code }}</span>
-				</p>
-				<div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/20">
-					<div class="h-full rounded-full bg-white" :style="{ width: `${Math.min(100, Math.round(objectifs.target_achievement_pct || 0))}%` }" />
-				</div>
-			</RouterLink>
-
-			<section v-if="rappels.length" class="mb-6">
-				<h2 class="section-title mb-2.5">Appels à rappeler</h2>
-				<div class="space-y-2">
-					<RouterLink v-for="a in rappels" :key="a.name" :to="{ name: 'Appel', params: { id: a.name } }" class="card-link p-4">
-						<p class="truncate font-medium">{{ clientName(a.client) }}</p>
-						<p class="truncate text-sm text-ink-gray-6">{{ a.type }}<template v-if="a.date_rappel"> · {{ formatTime(a.date_rappel) }}</template></p>
-					</RouterLink>
-				</div>
-			</section>
-
-			<RouterLink :to="{ name: 'Week' }" class="btn-secondary mb-6 w-full"><LucideCalendarRange class="h-4 w-4" aria-hidden="true" />Ma semaine</RouterLink>
-
-			<section class="mb-6">
-				<div class="mb-2.5 flex items-center justify-between">
-					<h2 class="section-title">À proximité</h2>
-					<button type="button" class="btn-secondary min-h-9 px-3 text-sm" :disabled="locating" @click="locate">
-						<LucideMapPin class="h-4 w-4" aria-hidden="true" />
-						{{ locating ? 'Localisation…' : position ? 'Actualiser' : 'Me localiser' }}
-					</button>
-				</div>
-				<p v-if="locateError" class="text-sm text-ink-red-3">Position indisponible : autorisez la localisation pour cette application.</p>
-				<p v-else-if="position && !proches.length" class="text-sm text-ink-gray-6">Aucun client non visité depuis 30 jours dans un rayon de 5 km.</p>
-				<p v-else-if="!position" class="text-sm text-ink-gray-6">Les clients à moins de 5 km, non visités depuis 30 jours.</p>
-				<div class="space-y-2">
-					<ClientCard v-for="p in proches" :key="p.row.name" :client="p.row" :meters="p.meters" />
-				</div>
-			</section>
-
-			<section v-if="aRevoir.length">
-				<h2 class="section-title mb-2">Clients actifs à revoir</h2>
-				<p class="mb-2 text-sm text-ink-gray-6">Sans visite depuis plus de {{ STALE_DAYS }} jours.</p>
-				<div class="space-y-2">
-					<ClientCard v-for="c in aRevoir" :key="c.name" :client="c" :meters="distanceTo(c)" />
-				</div>
+						<span class="flex items-center gap-1.5 text-xs text-ink-gray-6">
+							<span v-if="t._pending" class="pending-dot" title="En attente d'envoi" />{{ formatDay(t.creation_date) }}
+						</span>
+					</div>
+					<div class="flex items-baseline justify-between gap-3">
+						<span class="truncate font-semibold">{{ t.request_type || 'Ticket' }}</span>
+						<span class="max-w-[50%] shrink-0 truncate text-right text-sm text-ink-gray-6">{{ t.customer_name || clientName(t.client) }}</span>
+					</div>
+				</RouterLink>
+				<RouterLink :to="{ name: 'Suivi' }" class="block py-2.5 text-center text-sm font-medium text-ink-gray-7">Tous les tickets</RouterLink>
 			</section>
 		</template>
 	</div>

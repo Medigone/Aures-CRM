@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
 // API simulée : instantané minimal, réponses de push_mutations pilotées par chaque test.
-const api = vi.hoisted(() => ({ pushResponse: (_ids: string[]): any => [], pushCalls: [] as any[], bootUser: 'karim@aures.dz', offline: false }))
+const api = vi.hoisted(() => ({ pushResponse: (_ids: string[]): any => [], pushCalls: [] as any[], bootUser: 'karim@aures.dz', offline: false, pullOffline: false }))
 
 vi.mock('@/lib/api', () => {
 	class ApiError extends Error {
@@ -23,7 +23,10 @@ vi.mock('@/lib/api', () => {
 		loginUrl: () => '/login',
 		logout: vi.fn(),
 		refreshBoot: vi.fn(async () => ({ csrf_token: 't', user: api.bootUser })),
-		mobileApi: vi.fn(async (method: string) => (method === 'get_sync_bundle' ? meta : [])),
+		mobileApi: vi.fn(async (method: string) => {
+			if (api.pullOffline) throw new ApiError('Pas de connexion réseau.', 0, true)
+			return method === 'get_sync_bundle' ? meta : []
+		}),
 		call: vi.fn(async (_method: string, params: any) => {
 			if (api.offline) throw new ApiError('Pas de connexion réseau.', 0, true)
 			api.pushCalls.push(params.mutations)
@@ -47,6 +50,7 @@ beforeEach(() => {
 	api.pushCalls = []
 	api.bootUser = 'karim@aures.dz'
 	api.offline = false
+	api.pullOffline = false
 	api.pushResponse = (ids) => ids.map((id) => ({ id, ok: true, retry: false, result: { doctype: 'Visite Commerciale', name: `VC-${id.slice(0, 4)}` }, error: null }))
 })
 
@@ -58,6 +62,19 @@ describe('file des saisies', () => {
 		expect(api.pushCalls).toHaveLength(1)
 		expect(store.outbox).toHaveLength(0)
 		expect(store.resolveKey(`local:${id}`)).toBe(`VC-${id.slice(0, 4)}`)
+	})
+
+	it("garde un document créé visible, sous son nom serveur, tant que l'instantané ne l'a pas rechargé", async () => {
+		const store = await freshStore()
+		const id = store.enqueue('visite_create', { client: 'CL-1', type_visite: 'Prospection' })
+		api.pullOffline = true
+		await store.sync()
+		expect(store.outbox).toHaveLength(0)
+		const name = store.resolveKey(`local:${id}`)
+		expect(store.visitesByName.get(name)).toMatchObject({ name, type_visite: 'Prospection' })
+		api.pullOffline = false
+		await store.sync()
+		expect(store.visitesByName.get(name)).toBeUndefined()
 	})
 
 	it('réessaie plus tard une erreur passagère, puis la passe en échec après 5 essais', async () => {
