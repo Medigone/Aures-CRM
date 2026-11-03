@@ -79,8 +79,16 @@ const LABELS: Record<string, string> = {
 }
 const label = computed(() => LABELS[props.status || ''] || props.status)
 const tone = computed(() => TONES[label.value || ''] || 'bg-surface-gray-2 text-ink-gray-7')
+/** Pastille de teinte assortie, dérivée de la couleur de texte du statut. */
+const dot = computed(() => {
+	const match = tone.value.match(/text-(ink-[\w-]+)/)
+	return match ? `bg-${match[1]}` : 'bg-ink-gray-7'
+})
 </script>
 
 <template>
-	<span v-if="status" class="badge" :class="tone">{{ label }}</span>
+	<span v-if="status" class="badge gap-1.5" :class="tone">
+		<span class="h-1.5 w-1.5 shrink-0 rounded-full" :class="dot" aria-hidden="true"></span>
+		{{ label }}
+	</span>
 </template>

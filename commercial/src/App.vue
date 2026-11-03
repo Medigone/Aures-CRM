@@ -59,9 +59,9 @@ const tabs = [
 			<RouterView v-else />
 		</main>
 
-		<!-- Navigation : barre du bas sur téléphone, rail à gauche sur tablette. -->
+		<!-- Navigation : barre flottante arrondie sur téléphone, rail à gauche sur tablette. -->
 		<nav
-			class="fixed inset-x-0 bottom-0 z-20 grid h-[calc(var(--bottom-chrome)+env(safe-area-inset-bottom))] grid-cols-5 border-t border-outline-gray-2 bg-surface-white pb-[env(safe-area-inset-bottom)] md:inset-y-0 md:left-0 md:right-auto md:flex md:h-auto md:w-20 md:flex-col md:gap-2 md:border-r md:border-t-0 md:pt-6"
+			class="fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 grid h-[4.25rem] grid-cols-5 rounded-[20px] border border-outline-gray-2 bg-surface-white shadow-[0_8px_24px_rgba(17,21,28,0.08)] dark:shadow-none md:inset-x-0 md:inset-y-0 md:bottom-0 md:left-0 md:right-auto md:flex md:h-auto md:w-20 md:flex-col md:gap-2 md:rounded-none md:border-0 md:border-r md:pt-6 md:shadow-none"
 			aria-label="Navigation principale"
 		>
 			<RouterLink

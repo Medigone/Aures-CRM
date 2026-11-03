@@ -228,13 +228,12 @@ async function onPhoto(event: Event) {
 		<!-- Nouvelle ou en cours : saisie. -->
 		<template v-else>
 			<div class="space-y-4">
-				<label class="block">
+				<div>
 					<span class="field-label">Type de visite</span>
-					<select v-model="form.type_visite" class="field-input">
-						<option value="" disabled>Choisir…</option>
-						<option v-for="t in types" :key="t" :value="t">{{ t }}</option>
-					</select>
-				</label>
+					<div class="chip-scroller">
+						<button v-for="t in types" :key="t" type="button" :class="form.type_visite === t ? 'chip-on' : 'chip-off'" @click="form.type_visite = t">{{ t }}</button>
+					</div>
+				</div>
 
 				<NotesField v-model="form.notes" placeholder="Interlocuteur, besoins, prochaines étapes…" />
 

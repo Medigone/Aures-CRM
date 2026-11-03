@@ -3,11 +3,11 @@
 @layer base {
 	:root {
 		color-scheme: light;
-		/* Bleu Aures, en triplet RGB pour les opacités (`bg-accent/20`). */
-		--accent-rgb: 31 78 140;
-		--accent-fonce-rgb: 21 56 104;
-		/* Hauteur de la navigation du bas, relue par les barres d'action. */
-		--bottom-chrome: 4.25rem;
+		/* Bleu Aures (refonte), en triplet RGB pour les opacités (`bg-accent/20`). */
+		--accent-rgb: 29 78 216;
+		--accent-fonce-rgb: 21 51 158;
+		/* Hauteur réservée à la navigation du bas (barre flottante + marge), relue par les barres d'action. */
+		--bottom-chrome: 5.25rem;
 	}
 	@media (min-width: 768px) {
 		:root {
@@ -16,8 +16,8 @@
 	}
 	:root[data-theme='dark'] {
 		color-scheme: dark;
-		--accent-rgb: 96 150 220;
-		--accent-fonce-rgb: 140 180 235;
+		--accent-rgb: 94 150 255;
+		--accent-fonce-rgb: 150 180 255;
 	}
 	:root[data-theme='dark'] body {
 		@apply bg-surface-white;
@@ -40,13 +40,13 @@
 		@apply inline-flex h-6 items-center whitespace-nowrap rounded-full px-2.5 text-xs;
 	}
 	.card {
-		@apply rounded-xl border border-outline-gray-2 bg-surface-white dark:bg-surface-cards;
+		@apply rounded-2xl border border-outline-gray-2 bg-surface-white shadow-[0_1px_2px_rgba(17,21,28,0.04),0_8px_20px_rgba(17,21,28,0.04)] dark:bg-surface-cards dark:shadow-none;
 	}
 	.card-link {
 		@apply card block transition active:scale-[0.99] active:bg-surface-gray-1;
 	}
 	.btn {
-		@apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100;
+		@apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100;
 	}
 	.btn-primary {
 		@apply btn bg-accent text-white active:bg-accent-fonce;
@@ -55,7 +55,7 @@
 		@apply btn border border-outline-gray-2 bg-surface-white text-ink-gray-8 active:bg-surface-gray-2;
 	}
 	.icon-btn {
-		@apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] border border-outline-gray-2 bg-surface-white text-ink-gray-8 transition active:scale-95 active:bg-surface-gray-2;
+		@apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-outline-gray-2 bg-surface-white text-ink-gray-8 transition active:scale-95 active:bg-surface-gray-2;
 	}
 	.quick-actions {
 		@apply grid auto-cols-fr grid-flow-col gap-1;
@@ -70,7 +70,7 @@
 		@apply text-sm font-semibold text-ink-gray-9;
 	}
 	.search-box {
-		@apply flex items-center gap-2 rounded-[10px] border border-outline-gray-2 bg-surface-white px-3 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20;
+		@apply flex items-center gap-2 rounded-xl border border-outline-gray-2 bg-surface-white px-3 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20;
 	}
 	.chip {
 		@apply inline-flex min-h-10 shrink-0 items-center rounded-full border px-3.5 text-sm transition active:scale-[0.97];
@@ -95,7 +95,7 @@
 		@apply mb-1 block text-xs font-medium text-ink-gray-6;
 	}
 	.field-input {
-		@apply block min-h-11 w-full rounded-[10px] border border-outline-gray-2 bg-surface-white px-3 py-2.5 text-base text-ink-gray-9 placeholder:text-ink-gray-5 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
+		@apply block min-h-11 w-full rounded-xl border border-outline-gray-2 bg-surface-white px-3 py-2.5 text-base text-ink-gray-9 placeholder:text-ink-gray-5 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
 	}
 	.pending-dot {
 		@apply inline-block h-2 w-2 shrink-0 rounded-full bg-amber-500;

@@ -121,16 +121,17 @@ const distanceTo = (c: Client) => {
 				</div>
 			</section>
 
-			<RouterLink v-if="objectifs" :to="{ name: 'Objectifs' }" class="card-link mb-6 p-3">
+			<RouterLink v-if="objectifs" :to="{ name: 'Objectifs' }" class="mb-6 block rounded-2xl bg-accent-fonce p-4 text-white transition active:scale-[0.99]">
 				<div class="flex items-baseline justify-between gap-2">
-					<span class="font-medium">Mes objectifs</span>
-					<span class="text-sm font-semibold tabular-nums">{{ Math.round(objectifs.target_achievement_pct || 0) }} %</span>
+					<span class="text-sm font-medium text-white/70">Mes objectifs</span>
+					<span class="text-sm font-semibold tabular-nums text-white">{{ Math.round(objectifs.target_achievement_pct || 0) }} %</span>
 				</div>
-				<p v-if="ciblePrincipale" class="text-sm text-ink-gray-6">
-					{{ METRIC_LABELS[ciblePrincipale.metric_code] || ciblePrincipale.metric_code }} : {{ formatMetric(ciblePrincipale.achieved_value, ciblePrincipale.unit) }} / {{ formatMetric(ciblePrincipale.target_value, ciblePrincipale.unit) }}
+				<p v-if="ciblePrincipale" class="mt-1 text-lg font-semibold">
+					{{ formatMetric(ciblePrincipale.achieved_value, ciblePrincipale.unit) }}
+					<span class="text-sm font-normal text-white/70">/ {{ formatMetric(ciblePrincipale.target_value, ciblePrincipale.unit) }} {{ METRIC_LABELS[ciblePrincipale.metric_code] || ciblePrincipale.metric_code }}</span>
 				</p>
-				<div class="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-gray-2">
-					<div class="h-full rounded-full bg-accent" :style="{ width: `${Math.min(100, Math.round(objectifs.target_achievement_pct || 0))}%` }" />
+				<div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/20">
+					<div class="h-full rounded-full bg-white" :style="{ width: `${Math.min(100, Math.round(objectifs.target_achievement_pct || 0))}%` }" />
 				</div>
 			</RouterLink>
 

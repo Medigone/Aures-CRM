@@ -30,6 +30,17 @@ def normalized(path):
 	return (path or "").strip("/ ").lower()
 
 
+def request_path():
+	"""Chemin brut de la requête HTTP.
+
+	`website_route_rules` réduit tout `/commercial/<quoi que ce soit>` à l'endpoint statique
+	"commercial" avant que les renderers ne voient `path` : impossible d'y distinguer sw.js et
+	manifest.webmanifest du reste. On relit donc le chemin réel sur la requête elle-même.
+	"""
+	request = getattr(frappe.local, "request", None)
+	return normalized(getattr(request, "path", "")) if request is not None else ""
+
+
 def is_spa_path(path):
 	value = normalized(path)
 	if value in PWA_FILES:
@@ -50,10 +61,10 @@ class CommercialPWAFile(BaseRenderer):
 	"""Service worker et manifest, lus dans le build (public/commercial)."""
 
 	def can_render(self):
-		return normalized(self.path) in PWA_FILES
+		return request_path() in PWA_FILES
 
 	def render(self):
-		filename = normalized(self.path).split("/", 1)[1]
+		filename = request_path().split("/", 1)[1]
 		path = frappe.get_app_path("aurescrm", "public", SPA, filename)
 		if not os.path.exists(path):
 			return Response("", status=404)
