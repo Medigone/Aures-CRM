@@ -353,7 +353,8 @@ export const useCommercialStore = defineStore('commercial', () => {
 		await idbDelete(BUNDLE_KEY).catch(() => {})
 		if (!outbox.value.length && !failed.value.length) await idbClear().catch(() => {})
 		navigator.serviceWorker?.controller?.postMessage('clear-caches')
-		window.location.href = loginUrl()
+		// Retour à la page en cours une fois reconnecté.
+		window.location.href = loginUrl(window.location.pathname + window.location.search)
 	}
 
 	async function sync() {

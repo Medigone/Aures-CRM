@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import LucideHouse from '~icons/lucide/house'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideTicket from '~icons/lucide/ticket'
@@ -13,6 +13,7 @@ import { applyUpdate, updateReady } from '@/lib/sw'
 import { dismissPushInvite, enablePush, pushState, shouldInvitePush } from '@/lib/push'
 
 const store = useCommercialStore()
+const route = useRoute()
 // Invitation aux notifications : une fois, dans l'app installée, tant que l'appareil n'est pas abonné.
 const inviteClosed = ref(false)
 const showInvite = computed(() => !inviteClosed.value && pushState.loaded && shouldInvitePush())
@@ -29,7 +30,12 @@ async function acceptInvite() {
 	closeInvite()
 }
 useAppTheme()
-onMounted(() => store.init())
+const router = useRouter()
+// Page de connexion : ni données ni synchro, la session n'existe pas encore.
+onMounted(async () => {
+	await router.isReady()
+	if (route.name !== 'Login') store.init()
+})
 
 // Navigation : le terrain d'abord (journée, tickets), la création au centre, le reste dans « Plus ».
 const tabs = [
@@ -38,7 +44,6 @@ const tabs = [
 	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article', 'NewArticle', 'EditArticle', 'NewProspect'] },
 	{ to: { name: 'Settings' }, label: 'Plus', icon: LucideLayoutGrid, match: ['Settings', 'Sync', 'Objectifs'], badge: true },
 ]
-const route = useRoute()
 const menuOpen = ref(false)
 watch(() => route.fullPath, () => (menuOpen.value = false))
 // Saisie terrain (visite, nouveau ticket) : plein écran sur téléphone, la barre d'action prend la place de la navigation.
@@ -46,7 +51,8 @@ const focusMode = computed(() => ['Visit', 'NewVisit', 'NewTicket', 'NewArticle'
 </script>
 
 <template>
-	<div class="min-h-screen md:pl-20" :class="focusMode && 'focus-mode'">
+	<RouterView v-if="route.name === 'Login'" />
+	<div v-else class="min-h-screen md:pl-20" :class="focusMode && 'focus-mode'">
 		<div v-if="updateReady" class="sticky top-0 z-30 flex items-center justify-between gap-3 bg-accent px-4 py-2 text-sm text-white">
 			<span>Une nouvelle version est disponible.</span>
 			<button type="button" class="rounded-lg bg-white/20 px-3 py-1.5 font-medium" @click="applyUpdate">Mettre à jour</button>

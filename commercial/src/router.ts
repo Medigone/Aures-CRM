@@ -22,8 +22,11 @@ import DevisPage from './pages/DevisPage.vue'
 import CommandePage from './pages/CommandePage.vue'
 import ReclamationPage from './pages/ReclamationPage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
+import LoginPage from './pages/LoginPage.vue'
 
 export const routes = [
+	// Seule page servie sans session : hors de la coquille (navigation, synchro).
+	{ path: '/connexion', name: 'Login', component: LoginPage },
 	{ path: '/', name: 'Today', component: TodayPage },
 	{ path: '/semaine', name: 'Week', component: WeekPage },
 	{ path: '/a-traiter', name: 'ATraiter', component: ATraiterPage },
@@ -55,6 +58,11 @@ const router = createRouter({
 	history: createWebHistory('/commercial'),
 	routes,
 	scrollBehavior: (_to, _from, saved) => saved ?? { top: 0 },
+})
+
+// Déjà connecté (coquille servie avec un utilisateur) : la connexion renvoie à l'accueil.
+router.beforeEach((to) => {
+	if (to.name === 'Login' && window.user) return { name: 'Today' }
 })
 
 export default router

@@ -16,6 +16,7 @@ const SHELL_CACHE = `commercial-shell-${VERSION}`
 const ASSET_CACHE = `commercial-assets-${VERSION}`
 const CONTENT_CACHE = 'commercial-contents'
 const SHELL_KEY = '/commercial'
+const LOGIN_PATH = '/commercial/connexion'
 const HASHED_PREFIXES = ['/assets/aurescrm/commercial/']
 const STABLE_PREFIXES = ['/assets/aurescrm/images/', '/assets/frappe/']
 
@@ -38,7 +39,8 @@ async function networkFirstShell(request) {
 	const cache = await caches.open(SHELL_CACHE)
 	try {
 		const response = await fetch(request)
-		if (response.ok && !response.redirected) {
+		// La page de connexion est servie sans session : elle ne remplace jamais la coquille connectée.
+		if (response.ok && !response.redirected && new URL(request.url).pathname !== LOGIN_PATH) {
 			cache.put(SHELL_KEY, response.clone())
 		}
 		// Serveur en erreur : la coquille en cache permet de continuer hors réseau. Une redirection

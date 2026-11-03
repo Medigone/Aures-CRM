@@ -2,15 +2,39 @@
 # For license information, please see license.txt
 """Page de la PWA commerciale (force de vente Aures), servie sous /commercial."""
 
+import re
+from urllib.parse import quote
+
 import frappe
 from frappe import _
 
 no_cache = 1
 
+HOME_PATH = "/commercial"
+LOGIN_PATH = "/commercial/connexion"
+
+
+def safe_redirect(target):
+	"""Retour après connexion : une page de la PWA seulement (même règle que `safeRedirect` côté client)."""
+	value = (target or "").strip()
+	if not re.match(r"^/commercial(?:[/?#]|$)", value) or value.startswith(LOGIN_PATH):
+		return HOME_PATH
+	return value
+
 
 def get_context(context=None):
-	if frappe.session.user == "Guest":
-		frappe.local.flags.redirect_location = "/login?redirect-to=/commercial"
+	request = frappe.local.request
+	path = "/" + (request.path or "").strip("/")
+	on_login = path == LOGIN_PATH
+	if frappe.session.user == "Guest" and not on_login:
+		# Page de connexion de la PWA, avec la page demandée pour y revenir ensuite.
+		target = safe_redirect(request.full_path.rstrip("?"))
+		frappe.local.flags.redirect_location = (
+			LOGIN_PATH if target == HOME_PATH else f"{LOGIN_PATH}?redirect-to={quote(target, safe='/')}"
+		)
+		raise frappe.Redirect
+	if frappe.session.user != "Guest" and on_login:
+		frappe.local.flags.redirect_location = safe_redirect(frappe.form_dict.get("redirect-to"))
 		raise frappe.Redirect
 	frappe.db.commit()
 	context = frappe._dict()
