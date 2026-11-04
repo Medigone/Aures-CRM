@@ -776,6 +776,10 @@ class TestClients(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		frappe.db.savepoint("test_clients")
+		# Sans cela, chaque client de test met en file un dossier Nextcloud, qui échoue après l'annulation et remplit l'Error Log.
+		nextcloud = patch("aurescrm.integrations.nextcloud.on_customer_after_insert")
+		nextcloud.start()
+		self.addCleanup(nextcloud.stop)
 		if not frappe.db.exists("User", self.COMMERCIAL):
 			frappe.get_doc({"doctype": "User", "email": self.COMMERCIAL, "first_name": "Commercial Test", "send_welcome_email": 0, "roles": [{"role": "Commercial Sédentaire"}]}).insert(ignore_permissions=True)
 		self.commune = frappe.db.get_value("Communes", {}, "name")
