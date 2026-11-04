@@ -1,7 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { commandeDelai, commandeEnRetard, devisValidite, ecartJours, reclamationEcheance, suiviFiltres, suiviGroupes, suiviResume, suiviTuiles, type SuiviData } from './suivi'
 
 const today = '2026-11-04'
+// Horloge fixe : l'ancienneté affichée (« aujourd'hui ») ne doit dépendre ni du jour ni de l'heure du test.
+beforeEach(() => {
+	vi.useFakeTimers({ toFake: ['Date'] })
+	vi.setSystemTime(new Date(`${today}T15:00:00`))
+})
+afterEach(() => vi.useRealTimers())
+
 const empty: SuiviData = { tickets: [], devis: [], commandes: [], reclamations: [] }
 const ticket = (over: object) => ({ name: 'TC-1', docstatus: 0, status: 'En Cours', client: 'C1', customer_name: 'Laiterie', request_type: 'Bon de commande', creation_date: today, ...over }) as any
 const commande = (over: object) => ({ name: 'SAL-ORD-2026-00001', docstatus: 1, status: 'To Deliver and Bill', client: 'C1', customer_name: 'Laiterie', per_delivered: 0, delivery_date: '2026-10-30', lignes: [], fabrication: null, ...over }) as any

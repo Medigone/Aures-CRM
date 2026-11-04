@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { IDBFactory } from 'fake-indexeddb'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
 // API simulée : instantané minimal, réponses de push_mutations pilotées par chaque test.
@@ -36,9 +37,9 @@ vi.mock('@/lib/api', () => {
 })
 
 async function freshStore() {
+	// Une base par store : ceux des tests précédents tournent encore (minuteries, synchro) et écriraient leur état dans la même.
+	globalThis.indexedDB = new IDBFactory()
 	vi.resetModules()
-	const { idbClear } = await import('@/lib/idb')
-	await idbClear()
 	setActivePinia(createPinia())
 	const { useCommercialStore } = await import('./commercial')
 	const store = useCommercialStore()
@@ -47,11 +48,19 @@ async function freshStore() {
 }
 
 beforeEach(() => {
+	// Minuteries simulées : celles d'une saisie ou d'un store ne se déclenchent jamais pendant un autre test.
+	// (IndexedDB simulé repose sur setImmediate, laissé réel.)
+	vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] })
 	api.pushCalls = []
 	api.bootUser = 'karim@aures.dz'
 	api.offline = false
 	api.pullOffline = false
 	api.pushResponse = (ids) => ids.map((id) => ({ id, ok: true, retry: false, result: { doctype: 'Visite Commerciale', name: `VC-${id.slice(0, 4)}` }, error: null }))
+})
+
+afterEach(() => {
+	vi.clearAllTimers()
+	vi.useRealTimers()
 })
 
 describe('file des saisies', () => {
@@ -152,7 +161,8 @@ describe('file des saisies', () => {
 		api.offline = true
 		const first = await freshStore()
 		first.enqueue('visite_create', { client: 'CL-1', type_visite: 'Prospection' })
-		await new Promise((resolve) => setTimeout(resolve, 50))
+		const { idbGet } = await import('@/lib/idb')
+		await vi.waitFor(async () => expect((await idbGet<any>('state'))?.outbox).toHaveLength(1))
 		setActivePinia(createPinia())
 		const { useCommercialStore } = await import('./commercial')
 		const again = useCommercialStore()

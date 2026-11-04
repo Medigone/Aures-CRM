@@ -8,7 +8,8 @@ export function toServerDateTime(date: Date = new Date()): string {
 
 export function parseServerDate(value?: string | null): Date | null {
 	if (!value) return null
-	const date = new Date(value.replace(' ', 'T'))
+	// « YYYY-MM-DD » seul serait lu en UTC par `Date` : on le force en heure locale, comme le reste.
+	const date = new Date(value.length === 10 ? `${value}T00:00:00` : value.replace(' ', 'T'))
 	return Number.isNaN(date.getTime()) ? null : date
 }
 
@@ -46,7 +47,10 @@ export function formatDay(value?: string | null) {
 export function relativeDays(value?: string | null) {
 	const date = parseServerDate(value)
 	if (!date) return 'Jamais'
-	const days = Math.round((Date.now() - date.getTime()) / 86400000)
+	// Jours calendaires, heure locale : une date sans heure (lue à minuit) reste « aujourd'hui » toute la journée.
+	const startOfDay = (day: Date) => new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime()
+	// Arrondi : un changement d'heure donne des journées de 23 h ou 25 h.
+	const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86400000)
 	if (days <= 0) return "Aujourd'hui"
 	if (days === 1) return 'Hier'
 	if (days < 30) return `Il y a ${days} j`
