@@ -1,0 +1,530 @@
+@import 'frappe-ui/style.css';
+@import '../../shared/styles.css';
+
+@layer base {
+	:root {
+		/* Hauteur des boutons et des champs : réduite à la souris, confortable au doigt. */
+		--ctl: 2rem;
+	}
+	@media (pointer: coarse) {
+		:root {
+			--ctl: 2.75rem;
+		}
+	}
+	body {
+		@apply text-base;
+	}
+}
+
+/* Composants communs resserrés pour le poste de bureau ; la PWA garde les siens. */
+@layer components {
+	.btn,
+	.btn-primary,
+	.btn-secondary,
+	.btn-danger {
+		min-height: var(--ctl);
+		@apply gap-1.5 whitespace-nowrap px-3.5 text-base;
+	}
+	.icon-btn {
+		height: var(--ctl);
+		width: var(--ctl);
+	}
+	.field-input {
+		min-height: var(--ctl);
+		@apply rounded-[10px] px-2.5 py-1;
+	}
+	select.field-input {
+		padding-right: 1.75rem;
+	}
+	.chip,
+	.chip-on,
+	.chip-off {
+		min-height: var(--ctl);
+		@apply px-3 text-sm;
+	}
+	.badge {
+		@apply h-5 gap-1 px-2;
+	}
+	.card {
+		@apply rounded-[14px];
+	}
+}
+
+/* Disposition : la page ne défile plus, la liste et le détail du ticket ont chacun leur défilement. */
+@layer components {
+	.bureau-shell {
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+		height: 100dvh;
+		min-height: 520px;
+		overflow: hidden;
+	}
+	.bureau-work {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		gap: 0.625rem;
+		width: 100%;
+		max-width: 1680px;
+		min-height: 0;
+		margin-inline: auto;
+		padding: 0.625rem 1rem;
+	}
+	.bureau-list {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		gap: 0.625rem;
+		min-height: 0;
+	}
+	.bureau-toolbar {
+		position: relative;
+		display: flex;
+		flex: none;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.bureau-search {
+		flex: 0 1 240px;
+		width: auto;
+		min-width: 0;
+	}
+	.bureau-popover {
+		position: absolute;
+		top: 100%;
+		right: 0;
+		z-index: 15;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		width: 520px;
+		max-width: 100%;
+		margin-top: 0.375rem;
+		padding: 0.5rem;
+		border-radius: 14px;
+		box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
+		@apply bg-surface-white;
+	}
+	.bureau-list-area {
+		position: relative;
+		display: flex;
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+	.bureau-list-card {
+		flex: 1 1 0;
+		min-width: 0;
+		overflow: auto;
+		border-radius: 14px;
+		scrollbar-width: thin;
+		@apply bg-surface-white;
+	}
+
+	/* Barre d'actions groupées : elle flotte pour que les lignes ne bougent pas pendant qu'on coche. */
+	.bureau-bulk {
+		position: absolute;
+		bottom: 0.75rem;
+		left: 0.75rem;
+		z-index: 4;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		max-width: calc(100% - 1.5rem);
+		padding: 0.5rem 0.625rem 0.5rem 0.875rem;
+		border-radius: 14px;
+		box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
+		@apply border border-outline-gray-2 bg-surface-white;
+	}
+	.bureau-bulk-sep {
+		width: 1px;
+		height: 1.25rem;
+		@apply bg-surface-gray-4;
+	}
+
+	/* Aperçu en tiroir : il passe par-dessus la liste, qui reste cliquable pour changer de ticket. */
+	@keyframes bureau-drawer-in {
+		from {
+			opacity: 0;
+			transform: translateX(24px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+	.bureau-drawer {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 5;
+		display: flex;
+		flex-direction: column;
+		width: 430px;
+		max-width: 100%;
+		overflow: hidden;
+		border-radius: 14px;
+		box-shadow: -8px 0 28px rgb(0 0 0 / 16%);
+		animation: bureau-drawer-in 0.16s ease-out;
+		@apply bg-surface-white;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.bureau-drawer {
+			animation: none;
+		}
+	}
+	.bureau-drawer-head {
+		display: flex;
+		flex: none;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.5rem 0.625rem;
+		@apply border-b border-outline-gray-1;
+	}
+	.bureau-drawer-body {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		gap: 0.875rem;
+		min-height: 0;
+		overflow-y: auto;
+		padding: 0.875rem;
+		scrollbar-width: thin;
+	}
+	.bureau-drawer-facts {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.625rem 0.875rem;
+		margin: 0;
+	}
+	.bureau-drawer-facts dt {
+		@apply text-xs text-ink-gray-6;
+	}
+	.bureau-drawer-facts dd {
+		margin: 0;
+		@apply font-medium;
+	}
+	/* Dans le tiroir, les cartes de la fiche deviennent de simples sections. */
+	.bureau-drawer .card {
+		border-radius: 0;
+		padding: 0.75rem 0 0;
+		background: transparent;
+		@apply border-t border-outline-gray-1;
+	}
+	.bureau-main {
+		display: flex;
+		flex: 1 1 0;
+		flex-direction: column;
+		gap: 0.625rem;
+		min-width: 0;
+		min-height: 0;
+	}
+	.bureau-detail {
+		display: flex;
+		flex: 1 1 auto;
+		flex-wrap: wrap;
+		align-content: flex-start;
+		align-items: flex-start;
+		gap: 0.625rem;
+		min-height: 0;
+		overflow-y: auto;
+		padding-bottom: 0.625rem;
+		scrollbar-width: thin;
+	}
+	.bureau-center {
+		display: flex;
+		flex: 999 1 320px;
+		flex-direction: column;
+		gap: 0.625rem;
+		min-width: 0;
+	}
+	.bureau-side {
+		display: flex;
+		flex: 1 1 280px;
+		flex-direction: column;
+		gap: 0.625rem;
+		min-width: 0;
+	}
+
+	/* Écran étroit : la page reprend le défilement ; la liste garde une hauteur limitée et l'aperçu prend tout l'écran. */
+	@media (max-width: 900px) {
+		.bureau-shell {
+			height: auto;
+			min-height: 100vh;
+			overflow: visible;
+		}
+		.bureau-list,
+		.bureau-list-area,
+		.bureau-main {
+			flex: none;
+			width: 100%;
+		}
+		.bureau-list-card {
+			max-height: 75vh;
+		}
+		.bureau-popover {
+			left: 0;
+			width: auto;
+		}
+		.bureau-drawer {
+			position: fixed;
+			inset: 0;
+			z-index: 18;
+			width: auto;
+			border-radius: 0;
+			box-shadow: none;
+		}
+		.bureau-detail {
+			flex: none;
+			overflow: visible;
+		}
+	}
+
+	/* En-tête du ticket : une valeur reste sur une ligne, le groupe passe à la ligne suivante s'il manque de place. */
+	.ticket-facts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.25rem;
+		margin: 0;
+		padding-top: 0.5rem;
+		@apply border-t border-outline-gray-1;
+	}
+	.ticket-fact {
+		flex: 1 1 auto;
+		min-width: 0;
+		max-width: 100%;
+	}
+	.ticket-fact dt {
+		@apply text-xs text-ink-gray-6;
+	}
+	.ticket-fact dd {
+		display: flex;
+		align-items: center;
+		min-height: var(--ctl);
+		margin: 0;
+		white-space: nowrap;
+		@apply font-medium;
+	}
+	.ticket-fact-assignee {
+		flex: 0 1 190px;
+		min-width: 150px;
+	}
+}
+
+@layer components {
+	/* Vues de la liste : libellé et compteur sur une ligne. */
+	.views {
+		@apply flex flex-none flex-wrap gap-0.5 rounded-xl bg-surface-gray-3 p-[3px];
+	}
+	.view {
+		@apply inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-[9px] px-2.5 text-sm font-medium text-ink-gray-7 transition hover:bg-surface-gray-4;
+	}
+	.view-count {
+		@apply font-semibold tabular-nums text-ink-gray-9;
+	}
+	.view-count-alert {
+		color: #b42323;
+	}
+	.view[aria-pressed='true'],
+	.view[aria-pressed='true']:hover {
+		@apply bg-primary text-on-primary;
+	}
+	.view[aria-pressed='true'] .view-count {
+		color: inherit;
+	}
+	.filter-chip {
+		@apply inline-flex h-[26px] items-center gap-1.5 rounded-full px-2.5 text-sm font-medium;
+		background-color: #e6edff;
+		color: #15339e;
+	}
+	.filter-chip:hover {
+		background-color: #d6e2ff;
+	}
+
+	/* Lignes de la liste : la case à cocher est à part, le reste de la ligne ouvre l'aperçu. */
+	.list-head,
+	.list-row {
+		display: flex;
+		align-items: center;
+		min-width: 1182px;
+	}
+	.list-head {
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		height: 34px;
+		@apply border-b border-outline-gray-2 bg-surface-white;
+	}
+	.list-head button {
+		@apply inline-flex h-[34px] min-w-0 items-center gap-1 whitespace-nowrap text-left text-xs font-semibold text-ink-gray-7 hover:text-ink-gray-9;
+	}
+	.list-cols {
+		display: grid;
+		flex: 1 1 0;
+		grid-template-columns: minmax(150px, 1.5fr) minmax(120px, 1.1fr) 124px 74px 92px minmax(150px, 1.3fr) 118px 104px minmax(120px, 1.1fr) minmax(100px, 1fr);
+		column-gap: 0.625rem;
+		align-items: center;
+		min-width: 0;
+		padding-right: 0.875rem;
+	}
+	.list-check {
+		display: flex;
+		flex: none;
+		align-self: stretch;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		cursor: pointer;
+	}
+	.list-check input {
+		width: 16px;
+		height: 16px;
+		margin: 0;
+		cursor: pointer;
+		accent-color: #18181b;
+	}
+	.list-row {
+		height: 40px;
+		@apply border-b border-outline-gray-1 bg-surface-white hover:bg-surface-gray-1;
+	}
+	.list-row-checked {
+		background-color: #f4f7ff;
+	}
+	.list-row-on,
+	.list-row-on:hover {
+		background-color: #eef3ff;
+		box-shadow: inset 3px 0 0 #1d4ed8;
+	}
+	.list-row-main {
+		height: 39px;
+		@apply text-left text-sm text-ink-gray-8;
+	}
+	.list-row-main > span {
+		min-width: 0;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+	.list-client {
+		@apply text-base font-semibold text-ink-gray-9;
+	}
+	.list-row-main > .list-urgence,
+	.list-row-main > .list-step {
+		display: flex;
+		align-items: center;
+	}
+	.list-urgence {
+		gap: 0.25rem;
+	}
+	.list-ask {
+		font-size: 11px;
+		font-weight: 600;
+		color: #8a4200;
+	}
+	.list-step {
+		gap: 0.5rem;
+	}
+	.list-bar {
+		flex: none;
+		width: 36px;
+		height: 4px;
+		overflow: hidden;
+		border-radius: 999px;
+		@apply bg-surface-gray-4;
+	}
+	.list-bar > i {
+		display: block;
+		height: 100%;
+		@apply bg-primary;
+	}
+
+	/* Niveaux d'urgence : mêmes couleurs dans la liste, l'en-tête et les décisions. */
+	.urgence {
+		@apply inline-flex h-5 flex-none items-center whitespace-nowrap rounded-full px-2 text-xs font-medium;
+	}
+	.urgence-U0 {
+		background-color: #e4f5e9;
+		color: #1b6e47;
+	}
+	.urgence-U1 {
+		background-color: #fff7c2;
+		color: #6e5600;
+	}
+	.urgence-U2 {
+		background-color: #ffe3cc;
+		color: #8a4200;
+	}
+	.urgence-U3 {
+		background-color: #b42323;
+		color: #ffffff;
+	}
+
+	/* Timeline verticale. */
+	.step-item {
+		@apply relative;
+	}
+	.step-item:not(:last-child)::after {
+		content: '';
+		@apply absolute bottom-[-4px] left-4 top-[30px] w-0.5 bg-surface-gray-4;
+	}
+	.step-item[data-state='done']:not(:last-child)::after {
+		@apply bg-primary;
+	}
+	.step-button {
+		@apply relative z-[1] flex min-h-10 w-full items-start gap-2.5 rounded-[10px] p-1.5 text-left transition hover:bg-surface-gray-1;
+	}
+	.step-button[aria-pressed='true'],
+	.step-button[aria-pressed='true']:hover {
+		@apply bg-surface-gray-2;
+	}
+	.step-dot {
+		@apply inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 border-outline-gray-3 bg-surface-white text-xs font-semibold text-ink-gray-7;
+	}
+	.step-item[data-state='done'] .step-dot {
+		@apply border-primary bg-primary text-on-primary;
+	}
+	.step-item[data-state='current'] .step-dot {
+		@apply border-accent text-accent;
+	}
+	.step-item[data-state='paused'] .step-dot {
+		border-color: #5b3fa8;
+		color: #5b3fa8;
+	}
+	.step-item[data-state='blocked'] .step-dot {
+		background-color: #b42323;
+		border-color: #b42323;
+		color: #ffffff;
+	}
+	.step-label {
+		@apply block text-sm font-medium text-ink-gray-7;
+	}
+	.step-item[data-state='done'] .step-label {
+		@apply text-ink-gray-9;
+	}
+	.step-item[data-state='current'] .step-label,
+	.step-item[data-state='paused'] .step-label,
+	.step-item[data-state='blocked'] .step-label {
+		@apply font-semibold text-ink-gray-9;
+	}
+	.step-detail {
+		@apply block break-words text-xs text-ink-gray-6;
+	}
+	.step-item[data-state='blocked'] .step-detail {
+		color: #b42323;
+	}
+
+	.tone-amber {
+		background-color: #fff4d6;
+		color: #8a4b06;
+	}
+
+	/* Encart de l'étape affichée. */
+	.step-hero {
+		@apply flex flex-col gap-1.5 rounded-[14px] border p-3.5;
+		background-color: #eef3ff;
+		border-color: #c9d8ff;
+	}
+}

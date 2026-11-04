@@ -418,6 +418,8 @@ def generate_etude_faisabilite(docname):
     (quantité = quantité demandée × quantité sous-article).
     Crée une Maquette si elle n'existe pas déjà, puis met à jour le statut de la demande.
     """
+    # Hors du try : le refus de droits ne doit pas être réécrit en erreur générique.
+    frappe.get_doc("Demande Faisabilite", docname).check_permission("write")
     try:
         demande = frappe.get_doc("Demande Faisabilite", docname)
 

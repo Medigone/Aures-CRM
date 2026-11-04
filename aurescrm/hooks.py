@@ -31,6 +31,8 @@ app_license = "mit"
 # Le renderer des fichiers PWA (sw.js, manifest) doit précéder celui de la SPA.
 website_route_rules = [
     {"from_route": "/commercial/<path:app_path>", "to_route": "commercial"},
+    # Poste de bureau (/bureau) : SPA Vue construite dans public/bureau (voir /bureau).
+    {"from_route": "/bureau/<path:app_path>", "to_route": "bureau"},
 ]
 
 page_renderer = [
@@ -174,9 +176,10 @@ override_doctype_dashboards = {
 # dans hooks.py
 doc_events = {
     # PWA commerciale : temps réel et notifications push (filtrés par aurescrm.commercial_events.WATCHED).
+    # Poste de bureau : temps réel (filtré par aurescrm.bureau_events.WATCHED).
     "*": {
-        "on_change": "aurescrm.commercial_events.on_change",
-        "on_trash": "aurescrm.commercial_events.on_trash",
+        "on_change": ["aurescrm.commercial_events.on_change", "aurescrm.bureau_events.on_change"],
+        "on_trash": ["aurescrm.commercial_events.on_trash", "aurescrm.bureau_events.on_trash"],
     },
     "Comment": {
         "validate": "aurescrm.customer_timeline.validate_customer_timeline_comment",

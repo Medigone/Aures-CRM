@@ -9,3 +9,8 @@ aurescrm/public/commercial/
 aurescrm/www/commercial.html
 commercial/components.d.ts
 commercial/auto-imports.d.ts
+# Poste de bureau : build généré par `yarn build` (bench build), jamais commité
+aurescrm/public/bureau/
+aurescrm/www/bureau.html
+bureau/components.d.ts
+bureau/auto-imports.d.ts

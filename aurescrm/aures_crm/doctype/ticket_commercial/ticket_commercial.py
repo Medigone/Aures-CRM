@@ -547,6 +547,9 @@ def process_urgence_decision(docname, action, niveau_valide=None, commentaire=No
 @frappe.whitelist()
 def update_assigne_a(docname, assigne_user):
     """Met à jour les champs assigne_a et assigne_a_nom pour un Ticket Commercial."""
+    # Hors du try : un refus de droits doit rester une erreur, pas un simple statut renvoyé.
+    frappe.get_doc("Ticket Commercial", docname).check_permission("write")
+    _assert_admin_ventes()
     try:
         full_name = frappe.db.get_value("User", assigne_user, "full_name")
         if not full_name:
