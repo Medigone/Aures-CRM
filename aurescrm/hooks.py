@@ -138,6 +138,7 @@ permission_query_conditions = {
     "Etude Faisabilite": "aurescrm.custom_permissions.get_feasibility_study_permission_query_conditions",
     "Etude Technique": "aurescrm.custom_permissions.get_technical_study_permission_query_conditions",
     "Reclamations Clients": "aurescrm.custom_permissions.get_reclamations_clients_permission_query_conditions",
+    "Suivi Creance": "aurescrm.custom_permissions.get_suivi_creance_permission_query_conditions",
     "Guide Utilisation": "aurescrm.guides_utilisation.permissions.get_guide_permission_query_conditions",
     "Guide Utilisation Version": "aurescrm.guides_utilisation.permissions.get_version_permission_query_conditions",
 }
@@ -145,6 +146,7 @@ permission_query_conditions = {
 has_permission = {
     "Customer": "aurescrm.custom_permissions.has_customer_permission",
     "Item": "aurescrm.custom_permissions.has_item_permission",
+    "Suivi Creance": "aurescrm.custom_permissions.has_suivi_creance_permission",
     "Guide Utilisation": "aurescrm.guides_utilisation.permissions.has_guide_permission",
     "Guide Utilisation Version": "aurescrm.guides_utilisation.permissions.has_version_permission",
 }
@@ -267,9 +269,6 @@ doc_events = {
     },
     "Commande Urgente": {
         "before_validate": "aurescrm.commercial_assignment.set_commercial_on_commande_urgente"
-    },
-    "Suivi Creance": {
-        "before_save": "aurescrm.aures_crm.doctype.suivi_creance.suivi_creance.trigger_facture_recovery_on_mode_change"
     },
     # Module Ressources Humaines
     "Employe": {

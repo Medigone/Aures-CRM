@@ -7,10 +7,8 @@
  "field_order": [
   "section_break_cosn",
   "status",
-  "mode_calcul_montant",
   "date",
   "column_break_agrw",
-  "date_prom_paiement",
   "id_utilisateur",
   "utilisateur",
   "section_break_xjqw",
@@ -22,23 +20,33 @@
   "groupe_client",
   "id_commercial",
   "commercial",
-  "section_break_xwht",
-  "html_bout_payement",
-  "factures",
   "section_break_dkmn",
   "type_paiement",
   "date_doc_payement",
   "n_doc",
-  "pourcentage_recouvrement",
   "ecr_paiement",
   "column_break_jxum",
   "montant_tot_du",
   "montant_payement",
   "montant_restant",
+  "total_arrive_echeance",
   "photo",
-  "section_break_pwji",
-  "observations",
-  "section_break_kncy",
+  "factures_tab",
+  "liste_factures_section",
+  "factures",
+  "paiements_tab",
+  "section_paiements",
+  "paiements",
+  "section_break_lvrd",
+  "html_bout_payement",
+  "column_break_jrew",
+  "date_prom_paiement",
+  "promesses_tab",
+  "section_promesses",
+  "promesses",
+  "litige_tab",
+  "section_litiges",
+  "litiges",
   "raison_litige"
  ],
  "fields": [
@@ -50,14 +58,6 @@
    "options": "Nouveau\nPromesse de paiement\nPartiellement r\u00e9gl\u00e9\nTotalement r\u00e9gl\u00e9\nLitige\nObsol\u00e8te"
   },
   {
-   "default": "Manuel",
-   "fieldname": "mode_calcul_montant",
-   "fieldtype": "Select",
-   "in_standard_filter": 1,
-   "label": "Mode de calcul",
-   "options": "Manuel\nAutomatique"
-  },
-  {
    "fieldname": "section_break_dbcd",
    "fieldtype": "Section Break"
   },
@@ -65,6 +65,7 @@
    "allow_in_quick_entry": 1,
    "fieldname": "id_client",
    "fieldtype": "Link",
+   "hidden": 1,
    "in_standard_filter": 1,
    "label": "ID Client",
    "options": "Customer",
@@ -89,32 +90,36 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval: doc.status ==\"Promesse de paiement\"",
    "fieldname": "date_prom_paiement",
    "fieldtype": "Date",
+   "hidden": 1,
    "label": "Date Promesse de paiement",
    "read_only": 1
   },
   {
-   "fieldname": "section_break_pwji",
+   "fieldname": "raison_litige",
+   "fieldtype": "Text Editor",
+   "hidden": 1,
+   "label": "Raison Litige",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_litiges",
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "raison_litige",
-   "fieldtype": "Text Editor",
-   "label": "Raison Litige"
+   "fieldname": "litiges",
+   "fieldtype": "Table",
+   "label": "Liste Litiges",
+   "options": "Litiges Creance"
   },
   {
    "fieldname": "montant_tot_du",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Montant total d\u00fb",
-   "precision": "2"
-  },
-  {
-   "fieldname": "observations",
-   "fieldtype": "Text Editor",
-   "label": "Observations"
+   "label": "Total factur\u00e9",
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_pbnm",
@@ -134,10 +139,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_kncy",
-   "fieldtype": "Section Break"
-  },
-  {
    "fetch_from": "id_client.custom_commercial_attribu\u00e9",
    "fieldname": "id_commercial",
    "fieldtype": "Link",
@@ -154,31 +155,60 @@
    "read_only": 1
   },
   {
-   "fieldname": "factures",
-   "fieldtype": "Table",
-   "options": "Factures Creances",
-   "read_only": 1
+   "fieldname": "html_bout_payement",
+   "fieldtype": "HTML",
+   "label": "Bouton Payement"
   },
   {
-   "fieldname": "section_break_xwht",
+   "fieldname": "factures",
+   "fieldtype": "Table",
+   "label": "Liste Factures",
+   "options": "Factures Creances"
+  },
+  {
+   "fieldname": "section_paiements",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "paiements",
+   "fieldtype": "Table",
+   "label": "Liste Paiements",
+   "options": "Paiements Creances"
+  },
+  {
+   "fieldname": "promesses_tab",
+   "fieldtype": "Tab Break",
+   "label": "Promesses"
+  },
+  {
+   "fieldname": "section_promesses",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "promesses",
+   "fieldtype": "Table",
+   "label": "Liste Promesses",
+   "options": "Promesses Paiement Creance"
   },
   {
    "fieldname": "type_paiement",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Type Paiement",
    "options": "\nEsp\u00e8ce\nCh\u00e8que\nVirement",
    "read_only": 1
   },
   {
    "fieldname": "section_break_dkmn",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hidden": 1
   },
   {
    "depends_on": "eval:doc.type_paiement==\"Ch\u00e8que\" || doc.type_paiement==\"Virement\"\n",
    "description": "Photo du ch\u00e8que ou de l\u2019ordre de virement associ\u00e9.",
    "fieldname": "photo",
    "fieldtype": "Attach Image",
+   "hidden": 1,
    "label": "Photo",
    "read_only": 1
   },
@@ -198,6 +228,7 @@
    "description": "Date du ch\u00e8que ou de l\u2019ordre de virement associ\u00e9.",
    "fieldname": "date_doc_payement",
    "fieldtype": "Date",
+   "hidden": 1,
    "label": "Date Ch\u00e8que/Virement",
    "read_only": 1
   },
@@ -206,17 +237,14 @@
    "description": "Num\u00e9ro du ch\u00e8que ou de l\u2019ordre de virement associ\u00e9.",
    "fieldname": "n_doc",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "N\u00ba",
    "read_only": 1
   },
   {
-   "fieldname": "html_bout_payement",
-   "fieldtype": "HTML",
-   "label": "Bouton Payement"
-  },
-  {
    "fieldname": "section_break_cosn",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hidden": 1
   },
   {
    "default": "User",
@@ -236,7 +264,14 @@
   {
    "fieldname": "montant_restant",
    "fieldtype": "Currency",
-   "label": "Montant Restant",
+   "label": "Solde restant",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_arrive_echeance",
+   "fieldtype": "Currency",
+   "label": "Total arriv\u00e9 \u00e0 \u00e9ch\u00e9ance",
    "precision": "2",
    "read_only": 1
   },
@@ -249,24 +284,45 @@
   },
   {
    "fieldname": "progression",
-   "fieldtype": "HTML"
-  },
-  {
-   "fieldname": "pourcentage_recouvrement",
-   "fieldtype": "Percent",
-   "label": "Pourcentage recouvert",
-   "precision": "2",
-   "read_only": 1
+   "fieldtype": "HTML",
+   "label": "R\u00e9capitulatif"
   },
   {
    "fieldname": "section_break_xjqw",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "factures_tab",
+   "fieldtype": "Tab Break",
+   "label": "Factures"
+  },
+  {
+   "fieldname": "paiements_tab",
+   "fieldtype": "Tab Break",
+   "label": "Paiements"
+  },
+  {
+   "fieldname": "litige_tab",
+   "fieldtype": "Tab Break",
+   "label": "Litige"
+  },
+  {
+   "fieldname": "liste_factures_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_lvrd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_jrew",
+   "fieldtype": "Column Break"
   }
  ],
  "image_field": "photo",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-24 11:42:34.151083",
+ "modified": "2026-07-30 10:43:39.400626",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Suivi Creance",
@@ -326,6 +382,28 @@
    "read": 1,
    "report": 1,
    "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Charg\u00e9 Devis",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Responsable Devis",
    "share": 1,
    "write": 1
   }

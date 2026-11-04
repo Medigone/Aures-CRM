@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-07-30 10:20:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "date_creation",
+  "responsable",
+  "date_promise",
+  "montant_promis",
+  "statut",
+  "remarques"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "date_creation",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date de cr\u00e9ation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "responsable",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Responsable",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_promise",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date promise",
+   "reqd": 1
+  },
+  {
+   "fieldname": "montant_promis",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Montant promis",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "default": "En cours",
+   "fieldname": "statut",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Statut",
+   "options": "En cours\nHonor\u00e9e\nNon honor\u00e9e\nReport\u00e9e",
+   "reqd": 1
+  },
+  {
+   "fieldname": "remarques",
+   "fieldtype": "Small Text",
+   "label": "Remarques"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-30 10:20:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Promesses Paiement Creance",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

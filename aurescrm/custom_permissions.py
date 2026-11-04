@@ -320,3 +320,81 @@ def get_pilotage_commercial_permission_query_conditions(user):
     if "Commercial Itinérant" in roles:
         return f"`tabPilotage Commercial`.`user` = {frappe.db.escape(user)}"
     return "1=0"
+
+
+# Accès complet Suivi Creance (tous les dossiers clients)
+SUIVI_CREANCE_FULL_ACCESS_ROLES = frozenset(
+	{
+		"Administrateur Ventes",
+		"Accounts User",
+		"Accounts Manager",
+		"Chargé Devis",
+		"Responsable Devis",
+	}
+)
+
+SUIVI_CREANCE_COMMERCIAL_ROLES = frozenset(
+	{
+		"Commercial Itinérant",
+		"Commercial Sédentaire",
+	}
+)
+
+
+def user_has_full_suivi_creance_access(user):
+	"""True si l'utilisateur peut voir tous les Suivi Creance."""
+	if is_exempt_user(user):
+		return True
+	return bool(SUIVI_CREANCE_FULL_ACCESS_ROLES.intersection(frappe.get_roles(user)))
+
+
+def _is_suivi_creance_commercial(user):
+	return bool(SUIVI_CREANCE_COMMERCIAL_ROLES.intersection(frappe.get_roles(user)))
+
+
+def get_suivi_creance_permission_query_conditions(user):
+	"""
+	Liste Suivi Creance :
+	- Comptabilité / Devis / Administrateur Ventes (+ exempt) : tous les documents
+	- Commerciaux : uniquement les clients qui leur sont attribués
+	"""
+	if not user:
+		user = frappe.session.user
+	if user_has_full_suivi_creance_access(user):
+		return ""
+	if _is_suivi_creance_commercial(user):
+		return build_commercial_permission_query_condition(
+			"`tabSuivi Creance`.id_client", user
+		)
+	return "1=0"
+
+
+def has_suivi_creance_permission(doc, ptype, user):
+	"""
+	Contrôle d'ouverture / écriture d'un Suivi Creance.
+	Les commerciaux ne voient que les dossiers de leurs clients attribués.
+	Renvoie False pour refuser ; None pour laisser les DocPerm décider.
+	"""
+	if not user:
+		user = frappe.session.user
+	if user_has_full_suivi_creance_access(user):
+		return None
+	if not _is_suivi_creance_commercial(user):
+		return False
+	if not doc:
+		return None
+
+	id_client = doc.get("id_client") if hasattr(doc, "get") else getattr(doc, "id_client", None)
+	if not id_client:
+		# Création sans client encore choisi : DocPerm suffit
+		if ptype == "create":
+			return None
+		return False
+
+	is_commercial, info = is_user_commercial_for_customer(user, id_client)
+	# Pas d'attribution = pas de visibilité pour un commercial (aligné sur le filtre liste)
+	if not info.get("commercials"):
+		return False
+	if not is_commercial:
+		return False
+	return None

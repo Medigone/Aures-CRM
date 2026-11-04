@@ -73,8 +73,7 @@ frappe.ui.form.on("Generation Suivi Creance", {
 		$(frm.fields_dict.html_bouton_generer.wrapper).find("#btn-generer").on("click", function() {
 			frappe.confirm(
 				'Êtes-vous sûr de vouloir générer les suivis de créances ?<br><br>' +
-				'<small class="text-muted">Cette action va créer un nouveau suivi pour chaque client ' +
-				'ayant des factures impayées.</small>',
+				'<small class="text-muted">Un dossier unique par client : création uniquement s\'il n\'existe pas encore.</small>',
 				function() {
 					frappe.call({
 						method: "aurescrm.aures_crm.doctype.generation_suivi_creance.generation_suivi_creance.generer_suivis_creances",
@@ -82,14 +81,18 @@ frappe.ui.form.on("Generation Suivi Creance", {
 						freeze_message: "Génération des suivis de créances en cours...",
 						callback: function(r) {
 							if (!r.exc) {
-								let nb_suivis = r.message;
-								let message = nb_suivis > 0 
-									? `${nb_suivis} nouveau(x) suivi(s) de créances généré(s) avec succès`
-									: "Aucun nouveau suivi de créances n'a été généré";
-								
+								const result = r.message || {};
+								const created = typeof result === 'object' ? (result.created || 0) : result;
+								const existing = typeof result === 'object' ? (result.existing || 0) : 0;
+								const message = created > 0
+									? `${created} nouveau(x) suivi(s) créé(s)` + (existing ? ` (${existing} déjà existant(s))` : '')
+									: existing > 0
+										? `Aucun nouveau suivi — ${existing} dossier(s) déjà existant(s)`
+										: "Aucun suivi généré";
+
 								frappe.show_alert({
 									message: message,
-									indicator: nb_suivis > 0 ? 'green' : 'blue'
+									indicator: created > 0 ? 'green' : 'blue'
 								});
 							}
 						}
