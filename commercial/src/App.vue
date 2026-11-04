@@ -40,7 +40,7 @@ onMounted(async () => {
 // Navigation : le terrain d'abord (journée, tickets), la création au centre, le reste dans « Plus ».
 const tabs = [
 	{ to: { name: 'Today' }, label: "Aujourd'hui", icon: LucideHouse, match: ['Today', 'ATraiter', 'Visit', 'NewVisit', 'Appel', 'NewAppel', 'Week', 'Rdv', 'NewRdv'] },
-	{ to: { name: 'Suivi' }, label: 'Tickets', icon: LucideTicket, match: ['Suivi', 'Ticket', 'NewTicket', 'Devis', 'Commande', 'Reclamation'] },
+	{ to: { name: 'Suivi' }, label: 'Suivi', icon: LucideTicket, match: ['Suivi', 'Ticket', 'NewTicket', 'Devis', 'Commande', 'Reclamation'] },
 	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article', 'NewArticle', 'EditArticle', 'NewProspect'] },
 	{ to: { name: 'Settings' }, label: 'Plus', icon: LucideLayoutGrid, match: ['Settings', 'Sync', 'Objectifs'], badge: true },
 ]

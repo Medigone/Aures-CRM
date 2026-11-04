@@ -47,6 +47,14 @@
 	.badge {
 		@apply inline-flex h-6 items-center whitespace-nowrap rounded-full px-2.5 text-xs;
 	}
+	/* Thème clair : encres de statut foncées pour atteindre 4,5:1 sur les fonds teintés et les cartes. */
+	:root:not([data-theme='dark']) .badge,
+	:root:not([data-theme='dark']) .status-ink {
+		--ink-amber-3: #a85b05;
+		--ink-blue-3: #0060b0;
+		--ink-red-3: #b42323;
+		--ink-green-3: #1b6e47;
+	}
 	.card {
 		@apply rounded-[20px] bg-surface-white dark:bg-surface-cards;
 	}

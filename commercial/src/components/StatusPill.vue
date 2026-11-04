@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 /** Pastille de statut : la teinte suit le sens du statut (Desk Aures). */
-const props = defineProps<{ status?: string | null }>()
+const props = defineProps<{ status?: string | null; tone?: 'red' | 'amber' | 'green' | 'blue' | 'gray' }>()
 
 const TONES: Record<string, string> = {
 	// Clients
@@ -78,17 +78,20 @@ const LABELS: Record<string, string> = {
 	Closed: 'Clôturé',
 }
 const label = computed(() => LABELS[props.status || ''] || props.status)
-const tone = computed(() => TONES[label.value || ''] || 'bg-surface-gray-2 text-ink-gray-7')
-/** Pastille de teinte assortie, dérivée de la couleur de texte du statut. */
-const dot = computed(() => {
-	const match = tone.value.match(/text-(ink-[\w-]+)/)
-	return match ? `bg-${match[1]}` : 'bg-ink-gray-7'
-})
+/** Teintes imposées, pour un libellé calculé (« Retard 18 j »). */
+const FORCED_TONES = {
+	red: 'bg-surface-red-2 text-ink-red-3',
+	amber: 'bg-surface-amber-2 text-ink-amber-3',
+	green: 'bg-surface-green-2 text-ink-green-3',
+	blue: 'bg-surface-blue-2 text-ink-blue-3',
+	gray: 'bg-surface-gray-3 text-ink-gray-7',
+}
+const tone = computed(() => (props.tone && FORCED_TONES[props.tone]) || TONES[label.value || ''] || 'bg-surface-gray-2 text-ink-gray-7')
 </script>
 
 <template>
 	<span v-if="status" class="badge gap-1.5" :class="tone">
-		<span class="h-1.5 w-1.5 shrink-0 rounded-full" :class="dot" aria-hidden="true"></span>
+		<span class="h-1.5 w-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
 		{{ label }}
 	</span>
 </template>

@@ -1,143 +1,187 @@
+<script lang="ts">
+import { ref } from 'vue'
+
+/** Recherche de la page Suivi : conservée au retour d'une fiche. */
+const rechercheSuivi = ref('')
+</script>
+
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, nextTick } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import LucideSearch from '~icons/lucide/search'
 import LucidePaperclip from '~icons/lucide/paperclip'
+import LucideTriangleAlert from '~icons/lucide/triangle-alert'
+import PageHeader from './PageHeader.vue'
 import StatusPill from './StatusPill.vue'
 import { useCommercialStore } from '@/stores/commercial'
-import { commandeEnCours, devisOuvert, fabricationProgress, reclamationOuverte, ticketAlerte, ticketOuvert } from '@/lib/affaires'
-import { formatDay, normalizeSearch } from '@/lib/format'
-import { formatMoney } from '@/lib/text'
+import { isSegment, suiviFiltres, suiviGroupes, suiviResume, suiviTuiles, type Segment, type SuiviData, type SuiviRow } from '@/lib/suivi'
+import { todayIso } from '@/lib/text'
 
-/** Tickets, devis, commandes et réclamations : du portefeuille, ou d'un client (`client`). */
+/**
+ * Tickets, devis, commandes et réclamations : du portefeuille (page Suivi, onglet et filtre dans l'URL pour les
+ * retrouver au retour d'une fiche), ou d'un client (`client`, sans en-tête).
+ */
 const props = defineProps<{ client?: string }>()
 const store = useCommercialStore()
-
-type Segment = 'tickets' | 'devis' | 'commandes' | 'reclamations'
-const segment = ref<Segment>('tickets')
-const ouverts = ref(true)
-const query = ref('')
+const route = useRoute()
+const router = useRouter()
+const today = todayIso()
 
 const mine = <T extends { client: string }>(rows: T[]) => (props.client ? rows.filter((r) => r.client === props.client) : rows)
-const matches = (...values: (string | null | undefined)[]) => {
-	const q = normalizeSearch(query.value)
-	return !q || normalizeSearch(values.join(' ')).includes(q)
+const data = computed<SuiviData>(() => ({
+	tickets: mine(store.tickets),
+	devis: mine(store.devis),
+	commandes: mine(store.commandes),
+	reclamations: mine(store.reclamations),
+}))
+
+// Fiche client : état local, l'URL est celle de la fiche et son onglet n'y figure pas.
+const segmentLocal = ref<Segment>('tickets')
+const filtreLocal = ref<string | null>(null)
+const query = props.client ? ref('') : rechercheSuivi
+
+const segment = computed<Segment>(() => {
+	if (props.client) return segmentLocal.value
+	return isSegment(route.query.onglet) ? route.query.onglet : 'tickets'
+})
+const tuiles = computed(() => suiviTuiles(data.value))
+const filtres = computed(() => suiviFiltres(data.value, segment.value, today))
+const filtre = computed(() => {
+	const wanted = props.client ? filtreLocal.value : route.query.filtre
+	return filtres.value.find((f) => f.key === wanted)?.key ?? filtres.value[0].key
+})
+const groupes = computed(() => suiviGroupes(data.value, segment.value, filtre.value, query.value, { today, client: props.client }))
+const resume = computed(() => suiviResume(data.value))
+
+function pickSegment(key: Segment) {
+	if (props.client) {
+		segmentLocal.value = key
+		filtreLocal.value = null
+	} else {
+		router.replace({ query: { ...route.query, onglet: key === 'tickets' ? undefined : key, filtre: undefined } })
+	}
+}
+function pickFiltre(key: string) {
+	if (props.client) filtreLocal.value = key
+	else router.replace({ query: { ...route.query, filtre: key === filtres.value[0].key ? undefined : key } })
 }
 
-type Row = { key: string; to: object; title: string; subtitle: string; meta: string; status: string; alert?: string | null; pending?: boolean; progress?: number | null; files?: number }
-const rows = computed<Row[]>(() => {
-	if (segment.value === 'tickets')
-		return mine(store.tickets)
-			.filter((t) => !ouverts.value || ticketOuvert(t))
-			.filter((t) => matches(t.customer_name, t.request_type, t.name, t.description))
-			.map((t) => ({
-				key: t.name,
-				to: { name: 'Ticket', params: { id: t.name } },
-				title: t.request_type || 'Ticket',
-				subtitle: t.customer_name || t.client,
-				meta: `${t.name.startsWith('local:') ? 'Nouveau' : t.name} • ${formatDay(t.creation_date)}${t.niveau_urgence && t.niveau_urgence !== 'U0' ? ` · ${t.niveau_urgence}` : ''}`,
-				status: t.status,
-				alert: ticketAlerte(t),
-				pending: t._pending,
-				files: t.pieces_locales || 0,
-			}))
-	if (segment.value === 'devis')
-		return mine(store.devis)
-			.filter((d) => !ouverts.value || devisOuvert(d))
-			.filter((d) => matches(d.customer_name, d.name, ...d.lignes.map((l) => l.item_name)))
-			.map((d) => ({
-				key: d.name,
-				to: { name: 'Devis', params: { id: d.name } },
-				title: d.name,
-				subtitle: d.customer_name || d.client,
-				meta: `${formatDay(d.date)} · ${formatMoney(d.grand_total, d.currency)}`,
-				status: d.statut_commande || d.status,
-			}))
-	if (segment.value === 'commandes')
-		return mine(store.commandes)
-			.filter((c) => !ouverts.value || commandeEnCours(c))
-			.filter((c) => matches(c.customer_name, c.name, c.bon_commande_client, ...c.lignes.map((l) => l.item_name)))
-			.map((c) => ({
-				key: c.name,
-				to: { name: 'Commande', params: { id: c.name } },
-				title: c.bon_commande_client ? `BC ${c.bon_commande_client}` : c.name,
-				subtitle: c.customer_name || c.client,
-				meta: `${c.name} · livraison ${formatDay(c.delivery_date)}`,
-				status: c.status,
-				progress: fabricationProgress(c.fabrication)?.percent ?? null,
-			}))
-	return mine(store.reclamations)
-		.filter((r) => !ouverts.value || reclamationOuverte(r))
-		.filter((r) => matches(r.nom_client, r.type_reclamation, r.name))
-		.map((r) => ({
-			key: r.name,
-			to: { name: 'Reclamation', params: { id: r.name } },
-			title: r.type_reclamation || 'Réclamation',
-			subtitle: r.nom_client || r.client,
-			meta: `${r.name} · échéance ${formatDay(r.date_echeance)}`,
-			status: r.status,
-		}))
-})
+const searchOpen = ref(!!query.value)
+const searchInput = ref<HTMLInputElement | null>(null)
+async function toggleSearch() {
+	searchOpen.value = !searchOpen.value
+	if (searchOpen.value) {
+		await nextTick()
+		searchInput.value?.focus()
+	} else {
+		query.value = ''
+	}
+}
 
-const segments: { key: Segment; label: string }[] = [
-	{ key: 'tickets', label: 'Tickets' },
-	{ key: 'devis', label: 'Devis' },
-	{ key: 'commandes', label: 'Commandes' },
-	{ key: 'reclamations', label: 'Réclam.' },
-]
-const counts = computed(() => ({
-	tickets: mine(store.tickets).filter(ticketOuvert).length,
-	devis: mine(store.devis).filter(devisOuvert).length,
-	commandes: mine(store.commandes).filter(commandeEnCours).length,
-	reclamations: mine(store.reclamations).filter(reclamationOuverte).length,
-}))
+const NOTE_TONES: Record<NonNullable<SuiviRow['note']>['tone'], string> = {
+	red: 'text-ink-red-3',
+	amber: 'text-ink-amber-3',
+	green: 'text-ink-green-3',
+	blue: 'text-ink-blue-3',
+	gray: 'text-ink-gray-7',
+	muted: 'text-ink-gray-6',
+}
 </script>
 
 <template>
 	<div>
-		<div class="mb-3 grid grid-cols-4 gap-1 rounded-full bg-surface-gray-3 p-1" role="tablist">
-			<button
-				v-for="s in segments"
-				:key="s.key"
-				type="button"
-				role="tab"
-				:aria-selected="segment === s.key"
-				class="min-h-10 rounded-full text-sm"
-				:class="segment === s.key ? 'bg-surface-white font-semibold shadow-sm dark:bg-surface-gray-1' : 'font-medium text-ink-gray-7'"
-				@click="segment = s.key"
-			>
-				{{ s.label }}<template v-if="counts[s.key]"> ({{ counts[s.key] }})</template>
-			</button>
-		</div>
-		<div class="mb-3 flex items-center gap-2">
-			<label class="search-box flex-1">
-				<LucideSearch class="h-5 w-5 text-ink-gray-5" aria-hidden="true" />
-				<input v-model="query" type="search" class="min-h-12 w-full border-0 bg-transparent p-0 text-base focus:ring-0" placeholder="Rechercher…" aria-label="Rechercher" />
+		<PageHeader v-if="!client" title="Suivi" :subtitle="resume">
+			<template #actions>
+				<button type="button" class="icon-btn" :aria-label="searchOpen ? 'Fermer la recherche' : 'Rechercher'" :aria-expanded="searchOpen" @click="toggleSearch">
+					<LucideSearch class="h-5 w-5" aria-hidden="true" />
+				</button>
+			</template>
+		</PageHeader>
+
+		<!-- En-tête de liste : reste visible au défilement sur la page Suivi. -->
+		<div
+			class="space-y-3 pb-3"
+			:class="!client && 'sticky top-[env(safe-area-inset-top)] z-10 -mx-4 bg-surface-gray-1 px-4 pt-1 before:absolute before:inset-x-0 before:bottom-full before:h-[env(safe-area-inset-top)] before:bg-surface-gray-1 dark:bg-surface-white dark:before:bg-surface-white'"
+		>
+			<label v-if="client || searchOpen" class="search-box">
+				<LucideSearch class="h-5 w-5 shrink-0 text-ink-gray-5" aria-hidden="true" />
+				<input ref="searchInput" v-model="query" type="search" class="min-h-11 w-full border-0 bg-transparent p-0 text-base focus:ring-0" placeholder="Client, article, n° de BC…" aria-label="Rechercher" />
 			</label>
-			<button type="button" class="min-h-12" :class="ouverts ? 'chip-on' : 'chip-off'" :aria-pressed="ouverts" @click="ouverts = !ouverts">{{ ouverts ? 'En cours' : 'Tous' }}</button>
+
+			<div class="grid grid-cols-4 gap-1.5" role="tablist" aria-label="Type d'affaire">
+				<button
+					v-for="t in tuiles"
+					:key="t.key"
+					type="button"
+					role="tab"
+					:aria-selected="segment === t.key"
+					class="relative flex min-h-[62px] flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-2 transition active:scale-[0.97]"
+					:class="segment === t.key ? 'bg-primary text-on-primary' : 'bg-surface-white text-ink-gray-9 dark:bg-surface-cards'"
+					@click="pickSegment(t.key)"
+				>
+					<span class="text-xl font-bold leading-tight tabular-nums">{{ t.count }}</span>
+					<span class="text-[11px] leading-tight" :class="segment === t.key ? 'font-semibold' : 'font-medium'">{{ t.label }}</span>
+					<span v-if="t.alertes" class="status-ink absolute right-2 top-2 h-2 w-2 rounded-full bg-current text-ink-red-3">
+						<span class="sr-only">{{ t.alertes }} à traiter</span>
+					</span>
+				</button>
+			</div>
+
+			<div class="chip-scroller">
+				<button
+					v-for="f in filtres"
+					:key="f.key"
+					type="button"
+					class="gap-1.5 whitespace-nowrap"
+					:class="filtre === f.key ? 'chip-on' : 'chip-off'"
+					:aria-pressed="filtre === f.key"
+					@click="pickFiltre(f.key)"
+				>
+					{{ f.label }}<span class="font-medium tabular-nums opacity-70">{{ f.count }}</span>
+				</button>
+			</div>
 		</div>
-		<p v-if="!rows.length" class="py-8 text-center text-sm text-ink-gray-6">{{ ouverts ? 'Rien en cours.' : 'Aucun élément.' }}</p>
-		<div class="space-y-2">
-			<RouterLink v-for="r in rows" :key="r.key" :to="r.to" class="card-link space-y-2.5 p-4">
-				<div class="flex items-center justify-between gap-2">
-					<StatusPill :status="r.status" />
-					<span class="flex items-center gap-2 text-xs text-ink-gray-6">
-						<span v-if="r.pending" class="inline-flex items-center gap-1"><span class="pending-dot" />À envoyer</span>
-						<span v-if="r.files" class="inline-flex items-center gap-1"><LucidePaperclip class="h-3.5 w-3.5" aria-hidden="true" />{{ r.files }}</span>
+
+		<div v-if="!groupes.length" class="flex flex-col items-center gap-3 py-10 text-center">
+			<p class="text-sm text-ink-gray-6">{{ query ? `Aucun résultat pour « ${query} ».` : 'Rien ici pour le moment.' }}</p>
+			<button v-if="query" type="button" class="btn-secondary min-h-11" @click="query = ''">Effacer la recherche</button>
+		</div>
+
+		<section v-for="g in groupes" :key="g.title ?? 'liste'" class="mb-4 space-y-2">
+			<div v-if="g.title" class="flex items-baseline justify-between px-1">
+				<h2 class="text-base font-semibold">{{ g.title }}</h2>
+				<span v-if="g.hint" class="text-sm tabular-nums text-ink-gray-6">{{ g.hint }}</span>
+			</div>
+			<RouterLink v-for="r in g.rows" :key="r.key" :to="r.to" class="card-link px-4 py-3.5">
+				<div class="flex items-center gap-2.5">
+					<p class="min-w-0 flex-1 truncate text-base font-semibold">{{ r.title }}</p>
+					<StatusPill :status="r.status" :tone="r.tone" class="shrink-0" />
+				</div>
+				<div v-if="r.sub || r.urgence || r.pending || r.files" class="mt-0.5 flex items-center gap-1.5 text-sm text-ink-gray-6">
+					<span class="min-w-0 truncate">{{ r.sub }}</span>
+					<span v-if="r.urgence" class="status-ink shrink-0 rounded-md bg-surface-amber-2 px-1.5 text-xs font-semibold leading-[18px] text-ink-amber-3">{{ r.urgence }}</span>
+					<span v-if="r.pending" class="ml-auto inline-flex shrink-0 items-center gap-1 text-xs"><span class="pending-dot" />À envoyer</span>
+					<span v-if="r.files" class="inline-flex shrink-0 items-center gap-0.5 text-xs" :class="!r.pending && 'ml-auto'">
+						<LucidePaperclip class="h-3.5 w-3.5" aria-hidden="true" />{{ r.files }}
+						<span class="sr-only">pièce(s) jointe(s)</span>
 					</span>
 				</div>
-				<div class="flex items-end justify-between gap-3">
-					<div class="min-w-0">
-						<p class="truncate text-base font-semibold">{{ r.title }}</p>
-						<p class="truncate text-sm text-ink-gray-6">{{ r.meta }}</p>
-					</div>
-					<span v-if="!client" class="max-w-[45%] shrink-0 truncate text-right text-sm text-ink-gray-7">{{ r.subtitle }}</span>
+				<div v-if="r.note || r.amount" class="mt-1.5 flex items-center justify-between gap-2.5 text-[13px] leading-snug">
+					<span v-if="r.note" class="status-ink inline-flex min-w-0 items-center gap-1.5 font-medium" :class="NOTE_TONES[r.note.tone]">
+						<LucideTriangleAlert v-if="r.note.alert" class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{{ r.note.text }}
+					</span>
+					<span v-if="r.amount" class="ml-auto shrink-0 text-sm font-semibold tabular-nums text-ink-gray-9">{{ r.amount }}</span>
 				</div>
-				<p v-if="r.alert" class="text-xs font-medium text-ink-amber-3">{{ r.alert }}</p>
-				<div v-if="r.progress != null" class="h-1.5 overflow-hidden rounded-full bg-surface-gray-2">
-					<div class="h-full rounded-full bg-accent" :style="{ width: `${r.progress}%` }" />
+				<div v-if="r.progress" class="mt-2">
+					<div class="h-1.5 overflow-hidden rounded-full bg-surface-gray-3" role="progressbar" :aria-valuenow="r.progress.percent" aria-valuemin="0" aria-valuemax="100">
+						<div class="h-full rounded-full bg-accent" :style="{ width: `${r.progress.percent}%` }" />
+					</div>
+					<div class="mt-1 flex justify-between gap-2 text-xs text-ink-gray-6">
+						<span class="shrink-0 font-semibold tabular-nums text-ink-gray-9">{{ r.progress.percent }} %</span>
+						<span class="truncate">{{ r.progress.label }}</span>
+					</div>
 				</div>
 			</RouterLink>
-		</div>
+		</section>
 	</div>
 </template>
