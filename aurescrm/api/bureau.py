@@ -16,11 +16,12 @@ import unicodedata
 import frappe
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_transitions
-from frappe.utils import cint, cstr, get_fullname, getdate, strip_html, today
+from frappe.utils import cint, cstr, escape_html, get_fullname, getdate, strip_html, today
 
 from aurescrm.api import activity
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
 	CHECKLIST_TERMINE_FIELDS,
+	default_niveau_urgence_pour_creation,
 	get_cycle_documents,
 	process_urgence_decision,
 	save_ticket_rapprochement_decision,
@@ -49,6 +50,11 @@ HIDDEN_ACTIONS = {"Bloquer Créance"}
 # Tailles de page : la file trie ici, sur toute la vue, puis ne calcule les étapes que de la page demandée.
 DEFAULT_PAGE_LENGTH = 20
 MAX_PAGE_LENGTH = 500
+
+# Création d'un ticket.
+CLIENT_COMMERCIAL_FIELD = "custom_commercial_attribué"
+CLIENT_SEARCH_LIMIT = 8
+COMMERCIAL_ROLES = ("Commercial Itinérant", "Commercial Sédentaire")
 
 # Actions groupées : seulement ce qui ne demande ni saisie ni contrôle ticket par ticket, et reste réversible.
 BULK_LIMIT = 100
@@ -151,11 +157,11 @@ def view_filters(view, user):
 	return views[view]
 
 
-def condition_filters(conditions):
-	"""Traduit les filtres choisis dans la file. Un filtre sans valeur est ignoré, sauf « sans échéance »."""
+def condition_filters(conditions, fields=None):
+	"""Traduit les filtres choisis dans une liste. Un filtre sans valeur est ignoré, sauf « sans échéance »."""
 	filters = []
 	for condition in conditions or []:
-		field = FILTER_FIELDS.get(cstr(condition.get("field")))
+		field = (fields or FILTER_FIELDS).get(cstr(condition.get("field")))
 		if not field:
 			frappe.throw(_("Filtre inconnu."))
 		fieldname, kind = field
@@ -853,6 +859,105 @@ def remove_document(name, file):
 	# Droits contrôlés ci-dessus : le rôle n'a pas forcément de droit direct sur le DocType File.
 	frappe.delete_doc("File", file, ignore_permissions=True)
 	return get_ticket(name)
+
+
+def _commercial_users():
+	members = frappe.get_all("Has Role", filters={"role": ["in", list(COMMERCIAL_ROLES)], "parenttype": "User"}, pluck="parent")
+	return frappe.get_all(
+		"User",
+		filters={"name": ["in", members or [""]], "enabled": 1, "user_type": "System User"},
+		fields=["name", "full_name"],
+		order_by="full_name asc",
+	)
+
+
+@frappe.whitelist()
+def get_ticket_form_options():
+	"""Listes de la fenêtre de création. L'urgence de chaque type reprend la règle appliquée à l'enregistrement."""
+	require_bureau()
+	return {
+		"types": [{"value": value, "urgence": default_niveau_urgence_pour_creation(value)} for value in _select_options("request_type")],
+		"channels": _select_options("channel"),
+		"sites": [
+			{"value": site.name, "label": site.title or site.name}
+			for site in frappe.get_list("Site Production", fields=["name", "title"], order_by="title asc", limit_page_length=0)
+		],
+		"commercials": [{"value": user.name, "label": user.full_name or user.name} for user in _commercial_users()],
+	}
+
+
+@frappe.whitelist()
+def search_clients(search=None):
+	"""Clients proposés à la création, avec leur commercial et leurs tickets ouverts pour repérer un doublon."""
+	require_bureau()
+	value = cstr(search).strip()
+	pattern = f"%{value}%"
+	clients = frappe.get_list(
+		"Customer",
+		filters={"disabled": 0},
+		or_filters=[["customer_name", "like", pattern], ["name", "like", pattern], ["custom_wilaya", "like", pattern]] if value else None,
+		fields=["name", "customer_name", "custom_wilaya", CLIENT_COMMERCIAL_FIELD],
+		order_by="customer_name asc",
+		limit_page_length=CLIENT_SEARCH_LIMIT,
+	)
+	names = [client.name for client in clients]
+	open_tickets = {}
+	if names:
+		rows = frappe.get_list(
+			TICKET,
+			filters={"customer": ["in", names], "status": ["not in", CLOSED_STATUSES]},
+			fields=["customer", "count(name) as total"],
+			group_by="customer",
+			limit_page_length=0,
+		)
+		open_tickets = {row.customer: row.total for row in rows}
+	return [
+		{
+			"name": client.name,
+			"label": client.customer_name or client.name,
+			"wilaya": client.custom_wilaya,
+			"commercial": client.get(CLIENT_COMMERCIAL_FIELD),
+			"commercial_name": get_fullname(client.get(CLIENT_COMMERCIAL_FIELD)) if client.get(CLIENT_COMMERCIAL_FIELD) else None,
+			"open_tickets": open_tickets.get(client.name, 0),
+		}
+		for client in clients
+	]
+
+
+def _description_html(text):
+	paragraphs = [escape_html(paragraph.strip()).replace("\n", "<br>") for paragraph in cstr(text).split("\n\n") if paragraph.strip()]
+	return "".join(f"<p>{paragraph}</p>" for paragraph in paragraphs)
+
+
+@frappe.whitelist(methods=["POST"])
+def create_ticket(customer=None, request_type=None, site=None, description=None, commercial=None, channel=None, echeance=None):
+	"""Crée un ticket. Le commercial est par défaut celui du client : le ticket apparaît ainsi dans son suivi."""
+	require_bureau()
+	for value, label in ((customer, _("Le client")), (request_type, _("Le type de demande")), (site, _("Le site de production"))):
+		if not cstr(value).strip():
+			frappe.throw(_("{0} est obligatoire.").format(label))
+	if not cstr(description).strip():
+		frappe.throw(_("Décrivez la demande."))
+	assigned = frappe.db.get_value("Customer", customer, CLIENT_COMMERCIAL_FIELD)
+	if commercial and commercial != assigned and commercial not in {user.name for user in _commercial_users()}:
+		frappe.throw(_("Choisissez un commercial de la liste."))
+	doc = frappe.get_doc(
+		{
+			"doctype": TICKET,
+			"customer": customer,
+			"request_type": request_type,
+			"site": site,
+			"priority": "Moyenne",
+			# Sans cela, un rôle exempté de la règle d'urgence garderait la valeur par défaut du champ (U0).
+			"niveau_urgence": default_niveau_urgence_pour_creation(request_type),
+			"channel": channel or None,
+			"echeance": echeance or None,
+			"description": _description_html(description),
+			"commercial": commercial or assigned or frappe.session.user,
+		}
+	)
+	doc.insert()
+	return {"name": doc.name}
 
 
 @frappe.whitelist()

@@ -174,3 +174,19 @@ declare global {
 		user_fullname?: string | null
 	}
 }
+
+export interface TicketFormOptions {
+	types: { value: string; urgence: string }[]
+	channels: string[]
+	sites: Option[]
+	commercials: Option[]
+}
+
+export interface ClientChoice {
+	name: string
+	label: string
+	wilaya: string | null
+	commercial: string | null
+	commercial_name: string | null
+	open_tickets: number
+}

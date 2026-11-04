@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import LucideArrowDown from '~icons/lucide/arrow-down'
 import LucideArrowUp from '~icons/lucide/arrow-up'
 import LucideArrowUpDown from '~icons/lucide/arrow-up-down'
-import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
+import LucidePlus from '~icons/lucide/plus'
 import LucideCheck from '~icons/lucide/check'
 import LucideColumns3 from '~icons/lucide/columns-3'
 import LucideDownload from '~icons/lucide/download'
@@ -14,6 +14,7 @@ import LucideX from '~icons/lucide/x'
 import ListPager from '@shared/components/ListPager.vue'
 import ListState from '@shared/components/ListState.vue'
 import FilterBuilder from './FilterBuilder.vue'
+import NewTicketDialog from './NewTicketDialog.vue'
 import TicketStatus from './TicketStatus.vue'
 import { bulkAction, bulkAssign, getQueue, getReferences } from '@/lib/api'
 import { echeanceLabel } from '@/lib/display'
@@ -187,6 +188,41 @@ function arrow(key: string) {
 	return sort?.key === key ? (sort.dir === 'asc' ? '↑' : '↓') : ''
 }
 
+// Création : la liste reste en place, et amène à la nouvelle ligne une fois la fenêtre fermée ou prête pour la suivante.
+const creating = ref(false)
+const created = ref<{ name: string; failedFiles: number } | null>(null)
+let createdTimer: ReturnType<typeof setTimeout> | null = null
+function dismissCreated() {
+	if (createdTimer) clearTimeout(createdTimer)
+	created.value = null
+}
+async function onCreated(result: { name: string; failedFiles: number }) {
+	const state = props.state
+	dismissCreated()
+	created.value = result
+	// Un fichier non envoyé reste signalé jusqu'à ce qu'on ferme le message.
+	if (!result.failedFiles) createdTimer = setTimeout(dismissCreated, 8000)
+	state.view.value = 'todo'
+	state.search.value = ''
+	state.conditions.value = []
+	await nextTick()
+	await state.load()
+	await state.reveal(result.name)
+	await nextTick()
+	list.value?.querySelector('.list-row-created')?.scrollIntoView?.({ block: 'nearest' })
+}
+const createdMessage = computed(() => {
+	if (!created.value) return ''
+	const failed = created.value.failedFiles
+	const files = !failed ? '' : failed > 1 ? ` ${failed} fichiers n'ont pas été envoyés : joignez-les depuis la fiche.` : " Un fichier n'a pas été envoyé : joignez-le depuis la fiche."
+	return `Ticket ${created.value.name} créé.${files}`
+})
+function openCreated() {
+	const name = created.value?.name
+	dismissCreated()
+	if (name) emit('open', name)
+}
+
 // Export : toute la vue, page après page, avec les colonnes affichées.
 const exporting = ref(false)
 const exportError = ref('')
@@ -233,6 +269,7 @@ onBeforeUnmount(() => {
 	document.removeEventListener('pointerdown', onPointerDown)
 	document.removeEventListener('keydown', onKeydown)
 	if (messageTimer) clearTimeout(messageTimer)
+	if (createdTimer) clearTimeout(createdTimer)
 })
 </script>
 
@@ -246,10 +283,10 @@ onBeforeUnmount(() => {
 				<LucideDownload class="h-3.5 w-3.5" aria-hidden="true" />
 				{{ exporting ? 'Export…' : 'Exporter' }}
 			</button>
-			<a href="/app/ticket-commercial/new" class="btn-primary" target="_blank" rel="noopener noreferrer" title="La création se fait pour l'instant sur le Desk">
+			<button type="button" class="btn-primary" @click="creating = true">
+				<LucidePlus class="h-3.5 w-3.5" aria-hidden="true" />
 				Nouveau ticket
-				<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />
-			</a>
+			</button>
 		</div>
 
 		<div ref="toolbar" class="bureau-toolbar">
@@ -356,7 +393,7 @@ onBeforeUnmount(() => {
 					</ListState>
 					<ListState v-else-if="!state.tickets.value.length" dieline title="Rien dans cette vue" text="Les tickets apparaîtront ici dès qu'ils correspondront à cette vue." />
 
-					<div v-for="ticket in state.tickets.value" :key="ticket.name" class="list-row" :class="{ 'list-row-on': ticket.name === selected, 'list-row-checked': checked.has(ticket.name) }" :style="rowStyle">
+					<div v-for="ticket in state.tickets.value" :key="ticket.name" class="list-row" :class="{ 'list-row-on list-row-created': ticket.name === created?.name, 'list-row-on': ticket.name === selected, 'list-row-checked': checked.has(ticket.name) }" :style="rowStyle">
 						<label class="list-check">
 							<input type="checkbox" :aria-label="`Sélectionner le ticket ${ticket.name}`" :checked="checked.has(ticket.name)" @change="toggle(ticket.name)" />
 						</label>
@@ -416,6 +453,13 @@ onBeforeUnmount(() => {
 			</div>
 
 			<slot name="drawer"></slot>
+		</div>
+
+		<NewTicketDialog v-if="creating" @close="creating = false" @created="onCreated" />
+		<div v-if="created" class="toast-action" role="status">
+			<span>{{ createdMessage }}</span>
+			<button type="button" @click="openCreated">Ouvrir la fiche</button>
+			<button v-if="created.failedFiles" type="button" aria-label="Fermer ce message" @click="dismissCreated"><LucideX class="h-3.5 w-3.5" aria-hidden="true" /></button>
 		</div>
 	</section>
 </template>

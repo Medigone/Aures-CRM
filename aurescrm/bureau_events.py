@@ -21,6 +21,7 @@ WATCHED = {
 	"Dossier Essai Blanc": "ticket_commercial",
 	"Quotation": None,
 	"Sales Order": None,
+	"Customer": None,
 }
 
 

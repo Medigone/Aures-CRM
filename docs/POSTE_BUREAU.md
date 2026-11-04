@@ -16,7 +16,7 @@ Cahier des charges de la V1 et maquette : voir les liens transmis au projet.
 - **Temps réel** : l'événement `aures_bureau_update` (`aurescrm/bureau_events.py`) ne porte que des identifiants ; la file et le ticket ouvert se rechargent.
 - **Conflits** : chaque action envoie la date `modified` affichée. Si le ticket a changé entre-temps, l'action est refusée et l'écran se recharge, sans perdre la saisie.
 
-Les créations (demande de faisabilité, dossier essai à blanc, commande, article) restent sur le Desk jusqu'aux lots 3 et 4, comme « Nouveau ticket ».
+Les créations (demande de faisabilité, dossier essai à blanc, commande, article) restent sur le Desk jusqu'aux lots 3 et 4.
 
 ## Liste, aperçu et fiche
 
@@ -32,6 +32,27 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 - **Tri** : par colonne, ou urgence puis échéance par défaut. L'étape ne trie pas : elle se calcule ligne par ligne. Les lignes sans valeur restent à la fin dans les deux sens.
 - **Sélection** : la case de tête coche la page affichée. Changer de page, de vue ou de taille vide la sélection.
 - **Colonnes** : Commercial et Créance s'ajoutent par le menu Colonnes. **Exporter** écrit en CSV toute la vue avec les colonnes affichées, au format d'Excel en français.
+
+## Créer un ticket
+
+- « Nouveau ticket » ouvre une fenêtre par-dessus la liste (`shared/components/FormDialog.vue`, `bureau/src/components/NewTicketDialog.vue`). `create_ticket` passe par `doc.insert()`, avec les validations et les droits habituels.
+- **Commercial** : celui du client (`custom_commercial_attribué`), modifiable. **Urgence** : fixée par le type, comme le veut le serveur : la fenêtre l'annonce, sans la laisser choisir.
+- **Après la création** : la nouvelle ligne est surlignée sur la vue À traiter, avec un lien vers sa fiche. « Créer et en saisir un autre » garde le client, le site, le commercial et le canal.
+- **Pièces jointes** : envoyées après la création. Un échec ne perd pas le ticket, et le message le signale.
+
+## Clients
+
+- **Adresses** : liste sous `/bureau/clients` (`?vue=creance&page=2&apercu=CLI-…`), fiche sous `/bureau/clients/CLI-…?onglet=affaires`. Même modèle que les tickets : un clic ouvre l'aperçu, un double clic ouvre la fiche, et la liste reste montée pendant la fiche.
+- **Serveur** : `aurescrm/api/bureau_clients.py`. `get_clients` lit toute la vue, la trie, puis renvoie une page, le total, `names` et les compteurs des vues. Le tri se fait aussi sur la créance, la dernière visite et les tickets.
+- **Créance** : le solde vient de `Creance Client` (créances non soldées), comme dans la PWA, et non de `Suivi Creance`.
+- **Dernière visite** : la plus récente à la date du jour ou avant. Une visite à venir ne compte pas.
+- **Sans case à cocher** : aucune action groupée n'est définie pour les clients, la liste n'offre donc pas de sélection.
+- **Fiche** : six onglets, Aperçu, Affaires, Articles, Visites et appels, Informations, Activité. Un document lié que le rôle ne peut pas lire donne une liste vide, sans erreur.
+- **Droits** : ceux du Desk (`get_customer_edit_status`, `can_view_customer_activity`). Sans le droit, Modifier et l'onglet Activité disparaissent, et le serveur refuse l'écriture.
+- **Nouveau prospect** : raison sociale, forme juridique, catégorie, commune et commercial sont obligatoires. La wilaya découle de la commune, et le statut est toujours Prospect. Le commercial devient le principal de la société dans la table d'attributions.
+- **Modifier** : seuls les champs changés partent, avec la date `modified` affichée. Si le client a changé entre-temps, l'enregistrement est refusé.
+- **Commune** : le nom d'une commune est un identifiant. Le serveur renvoie aussi `commune_label`, seul affiché à l'écran.
+- **Encore sur le Desk** : nouvelle visite, nouveau rendez-vous, nouvel appel et nouvel article, ouverts dans une nouvelle fenêtre.
 
 ## Commentaires et activité
 
@@ -52,7 +73,7 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 - Les tailles viennent de la densité Poste (`data-density="poste"` dans `bureau/index.html`, valeurs dans `shared/tokens.css`) : texte courant de 13 px, boutons et champs de 32 px (variable `--ctl`, 44 px sur écran tactile). Voir `docs/STYLE_AURES.md`.
 - Le thème suit celui de l'appareil. Le menu du compte force clair ou sombre, sous la clé `bureau-theme`.
 - **Coquille** (`shared/components/AppShell.vue`) : barre du haut et menu de gauche. Le menu démarre replié sous 1 440 px de large, pour laisser la place au tableau, et garde ensuite le choix de l'utilisateur (clé `bureau-menu`). Sur téléphone, il devient une barre en bas de l'écran.
-- **Menu** : les entrées sans écran dans le poste de bureau (Commandes, Devis, Créances, Clients, Articles) ouvrent le Desk dans une nouvelle fenêtre.
+- **Menu** : les entrées sans écran dans le poste de bureau (Commandes, Devis, Créances, Articles) ouvrent le Desk dans une nouvelle fenêtre.
 - **Recherche globale** (`Ctrl K`) : tickets ouverts et clos, par client ou numéro, avec `get_queue`.
 - Une classe dont le nom est composé à l'exécution (`urgence-${niveau}`) doit figurer dans `safelist`, sinon le build la retire.
 
@@ -63,6 +84,7 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 | Socle partagé avec la PWA commerciale | `shared/` |
 | Page et informations de démarrage | `aurescrm/www/bureau.py` |
 | API et calcul des étapes | `aurescrm/api/bureau.py` |
+| API des clients | `aurescrm/api/bureau_clients.py` |
 | Temps réel | `aurescrm/bureau_events.py` |
 | Tests serveur | `aurescrm/tests/test_bureau.py` |
 

@@ -27,6 +27,6 @@ Les surfaces, encres et contours gris (`--surface-*`, `--ink-*`, `--outline-*`) 
 
 1. **Socle** : fait. `/bureau` a la forme nette et le thème sombre. La PWA garde ses formes actuelles, le temps de passer à son tour aux modèles communs : les lignes concernées sont signalées dans `shared/tokens.css`.
 2. **Coquille** : fait sur `/bureau`. Barre du haut et menu de gauche dans `shared/`. La PWA garde sa navigation pour l'instant.
-3. **Liste** : pagination, états et barre d'outils faits sur les tickets. `QueueList.vue` reste à rendre générique pour la prochaine liste.
-4. **Fiche** : fil, en-tête et menu `⋯` faits sur les tickets. Le modèle de référence reste à faire avec les clients.
+3. **Liste** : pagination, états et barre d'outils faits sur les tickets et les clients, avec `useServerList` et `FilterBuilder` communs. `QueueList.vue` et `ClientList.vue` partagent encore leur gabarit par copie : à fondre en un composant à la prochaine liste.
+4. **Fiche** : fil, en-tête et menu `⋯` faits sur les tickets. Le modèle de référence est fait sur les clients (`ClientView.vue`, classes `.record-tabs`, `.ref-table`, `.kv`).
 5. **PWA** : passage aux jetons et aux modèles, écran par écran.

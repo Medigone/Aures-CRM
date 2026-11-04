@@ -12,7 +12,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from frappe.desk.notifications import extract_mentions
 
-from aurescrm.api import activity, bureau
+from aurescrm.api import activity, bureau, bureau_clients
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import generate_etude_faisabilite
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import update_assigne_a
 
@@ -701,3 +701,218 @@ class TestActivite(FrappeTestCase):
 		summary = bureau.get_ticket(self.name)["comments"]
 		self.assertEqual(summary["count"], before + 1)
 		self.assertEqual(summary["last"]["parts"][0]["text"], "Dernier message")
+
+
+class TestCreationTicket(FrappeTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.commit = patch("frappe.db.commit")
+		self.commit.start()
+		self.customer = frappe.db.get_value("Customer", {"disabled": 0}, "name")
+		self.site = frappe.db.get_value("Site Production", {}, "name")
+		if not self.customer or not self.site:
+			self.skipTest("Il faut un client et un site.")
+
+	def tearDown(self):
+		self.commit.stop()
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+
+	def _create(self, **extra):
+		values = {"customer": self.customer, "request_type": "Autre", "site": self.site, "description": "Une demande"}
+		return bureau.create_ticket(**{**values, **extra})
+
+	def test_cree_le_ticket_avec_le_commercial_du_client(self):
+		assigned = frappe.db.get_value("Customer", self.customer, bureau.CLIENT_COMMERCIAL_FIELD)
+		doc = frappe.get_doc("Ticket Commercial", self._create()["name"])
+		self.assertEqual(doc.customer, self.customer)
+		self.assertEqual(doc.commercial, assigned or "Administrator")
+		self.assertEqual(doc.status, "Nouveau")
+		self.assertEqual(doc.priority, "Moyenne")
+
+	def test_urgence_fixee_par_le_type(self):
+		options = {row["value"]: row["urgence"] for row in bureau.get_ticket_form_options()["types"]}
+		self.assertEqual(options["Bon de commande"], "U2")
+		self.assertEqual(options["Essai Blanc"], "U3")
+		doc = frappe.get_doc("Ticket Commercial", self._create(request_type="Bon de commande")["name"])
+		self.assertEqual(doc.niveau_urgence, "U2")
+
+	def test_champs_obligatoires(self):
+		for field in ("customer", "request_type", "site", "description"):
+			with self.assertRaises(frappe.ValidationError):
+				self._create(**{field: "  "})
+
+	def test_description_echappee(self):
+		doc = frappe.get_doc("Ticket Commercial", self._create(description="<img src=x>\n\nSuite\nligne")["name"])
+		self.assertNotIn("<img", doc.description)
+		self.assertIn("<p>Suite<br>ligne</p>", doc.description)
+
+	def test_commercial_hors_liste_refuse(self):
+		with self.assertRaises(frappe.ValidationError):
+			self._create(commercial="inconnu@example.com")
+
+	def test_invite_refuse(self):
+		frappe.set_user("Guest")
+		for call in (bureau.get_ticket_form_options, bureau.search_clients, self._create):
+			with self.assertRaises(frappe.PermissionError):
+				call()
+
+	def test_recherche_de_clients(self):
+		label = frappe.db.get_value("Customer", self.customer, "customer_name")
+		results = bureau.search_clients(label[:6])
+		row = next(item for item in results if item["name"] == self.customer)
+		self.assertIn("open_tickets", row)
+		before = row["open_tickets"]
+		self._create()
+		row = next(item for item in bureau.search_clients(label[:6]) if item["name"] == self.customer)
+		self.assertEqual(row["open_tickets"], before + 1)
+
+
+class TestClients(FrappeTestCase):
+	"""Liste, fiche, création et modification des clients du poste de bureau."""
+
+	COMMERCIAL = "bureau.commercial.test@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		frappe.db.savepoint("test_clients")
+		if not frappe.db.exists("User", self.COMMERCIAL):
+			frappe.get_doc({"doctype": "User", "email": self.COMMERCIAL, "first_name": "Commercial Test", "send_welcome_email": 0, "roles": [{"role": "Commercial Sédentaire"}]}).insert(ignore_permissions=True)
+		self.commune = frappe.db.get_value("Communes", {}, "name")
+		self.categorie = frappe.db.get_value("Customer Group", {"is_group": 0}, "name")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback(save_point="test_clients")
+
+	def _values(self, **changes):
+		values = {
+			"customer_name": frappe.generate_hash(length=12),
+			"forme_juridique": "SARL",
+			"categorie": self.categorie,
+			"commune": self.commune,
+			"commercial": self.COMMERCIAL,
+			"contact": "R. Saidi",
+			"telephone": "036 00 12 40",
+			"email": "achats@example.com",
+		}
+		values.update(changes)
+		return values
+
+	def _create(self, **changes):
+		return bureau_clients.create_prospect(self._values(**changes))["name"]
+
+	def test_prospect_attribue_au_commercial_choisi(self):
+		doc = frappe.get_doc("Customer", self._create(customer_name="sarl essai bureau"))
+		self.assertEqual(doc.customer_name, "SARL ESSAI BUREAU")
+		self.assertEqual(doc.custom_status, "Prospect")
+		self.assertEqual(doc.get("custom_commercial_attribué"), self.COMMERCIAL)
+		self.assertEqual([row.commercial for row in doc.custom_commercial_assignments if row.is_principal], [self.COMMERCIAL])
+		self.assertEqual(doc.custom_wilaya, frappe.db.get_value("Communes", self.commune, "wilaya"))
+
+	def test_champs_obligatoires_du_prospect(self):
+		for field in ("customer_name", "forme_juridique", "categorie", "commune", "commercial"):
+			with self.assertRaises(frappe.ValidationError):
+				self._create(**{field: "  "})
+
+	def test_nom_deja_pris_refuse(self):
+		self._create(customer_name="doublon bureau")
+		with self.assertRaisesRegex(frappe.ValidationError, "existe déjà"):
+			self._create(customer_name="Doublon Bureau")
+
+	def test_commercial_hors_liste_refuse(self):
+		with self.assertRaises(frappe.ValidationError):
+			self._create(commercial="inconnu@example.com")
+
+	def test_liste_vues_et_pagination(self):
+		name = self._create(customer_name="zzz vue bureau")
+		result = bureau_clients.get_clients(view="prospect", search="ZZZ VUE BUREAU", page_length=20)
+		self.assertEqual(result["names"], [name])
+		self.assertEqual(result["clients"][0]["commercial"], "Commercial Test")
+		self.assertEqual(result["counts"]["prospect"], 1)
+		self.assertEqual(result["counts"]["actif"], 0)
+		self.assertEqual(bureau_clients.get_clients(view="actif", search="ZZZ VUE BUREAU")["total"], 0)
+		with self.assertRaises(frappe.ValidationError):
+			bureau_clients.get_clients(view="inconnue")
+
+	def test_filtres_de_la_liste(self):
+		name = self._create(customer_name="zzz filtre bureau")
+		conditions = [{"field": "commercial", "op": "est", "value": self.COMMERCIAL}, {"field": "grand_compte", "op": "est", "value": "0"}]
+		self.assertIn(name, bureau_clients.get_clients(conditions=conditions, page_length=500)["names"])
+		conditions = [{"field": "grand_compte", "op": "est", "value": "1"}]
+		self.assertNotIn(name, bureau_clients.get_clients(conditions=conditions, page_length=500)["names"])
+
+	def test_tri_sans_valeur_a_la_fin(self):
+		rows = [{"client": "B", "visite": None}, {"client": "A", "visite": "2026-01-01"}, {"client": "C", "visite": "2026-06-01"}]
+		self.assertEqual([row["client"] for row in bureau_clients.order_clients(rows, "visite", "asc")], ["A", "C", "B"])
+		self.assertEqual([row["client"] for row in bureau_clients.order_clients(rows, "visite", "desc")], ["C", "A", "B"])
+		self.assertEqual([row["client"] for row in bureau_clients.order_clients(rows)], ["A", "B", "C"])
+
+	def test_fiche_reunit_les_documents_lies(self):
+		client = bureau_clients.get_client(self._create())
+		self.assertTrue(client["can_edit"])
+		self.assertTrue(client["can_view_activity"])
+		self.assertEqual(client["tickets"], [])
+		self.assertIsNone(client["creance"])
+		self.assertEqual([piece["label"] for piece in client["pieces"]], ["Nº RC", "Nº NIF", "Nº NIS", "Nº AI"])
+		self.assertEqual(client["contacts"][0]["nom"], "R. Saidi")
+		self.assertEqual(client["attributions"][0]["principal"], 1)
+		label = frappe.db.get_value("Communes", self.commune, "commune")
+		self.assertEqual(client["commune"], self.commune)
+		self.assertEqual(client["commune_label"], label)
+		self.assertEqual(client["adresses"][0]["commune"], label)
+
+	def test_modification_et_conflit(self):
+		name = self._create()
+		client = bureau_clients.get_client(name)
+		updated = bureau_clients.update_client(name, client["modified"], {"status": "Actif", "rc": "19 B 001", "contact": "K. Hamdi"})
+		self.assertEqual(updated["status"], "Actif")
+		self.assertEqual(updated["contact"], "K. Hamdi")
+		self.assertEqual(updated["pieces"][0]["numero"], "19 B 001")
+		with self.assertRaises(frappe.TimestampMismatchError):
+			bureau_clients.update_client(name, client["modified"], {"status": "Dormant"})
+
+	def test_changer_de_commercial_garde_un_seul_principal(self):
+		other = "bureau.commercial2.test@example.com"
+		if not frappe.db.exists("User", other):
+			frappe.get_doc({"doctype": "User", "email": other, "first_name": "Autre Commercial", "send_welcome_email": 0, "roles": [{"role": "Commercial Sédentaire"}]}).insert(ignore_permissions=True)
+		name = self._create()
+		bureau_clients.update_client(name, None, {"commercial": other})
+		doc = frappe.get_doc("Customer", name)
+		self.assertEqual(doc.get("custom_commercial_attribué"), other)
+		self.assertEqual(doc.custom_nom_commercial, "Autre Commercial")
+		self.assertEqual([row.commercial for row in doc.custom_commercial_assignments if row.is_principal], [other])
+
+	def test_piece_doit_etre_jointe_au_client(self):
+		name = self._create()
+		with self.assertRaisesRegex(frappe.ValidationError, "pas joint"):
+			bureau_clients.set_client_piece(name, None, "rc", "/private/files/ailleurs.pdf")
+		with self.assertRaises(frappe.ValidationError):
+			bureau_clients.set_client_piece(name, None, "inconnue", "/x")
+
+	def test_champ_hors_liste_ignore(self):
+		name = self._create()
+		bureau_clients.update_client(name, None, {"disabled": "1", "custom_grand_compte": "1"})
+		doc = frappe.get_doc("Customer", name)
+		self.assertEqual(doc.disabled, 0)
+		self.assertEqual(doc.custom_grand_compte, 0)
+
+	def test_commentaire_sur_le_client(self):
+		name = self._create()
+		feed = bureau_clients.add_client_comment(name, "Bonjour")
+		self.assertEqual(feed["comment_count"], 1)
+		self.assertEqual(bureau_clients.get_client(name)["comments"]["count"], 1)
+
+	def test_activite_refusee_sans_droit(self):
+		name = self._create()
+		with patch("aurescrm.api.bureau_clients.can_view_customer_activity", return_value=False):
+			for call in (lambda: bureau_clients.get_client_activity(name), lambda: bureau_clients.add_client_comment(name, "x")):
+				with self.assertRaises(frappe.PermissionError):
+					call()
+
+	def test_invite_refuse(self):
+		name = self._create()
+		frappe.set_user("Guest")
+		for call in (bureau_clients.get_clients, bureau_clients.get_client_options, bureau_clients.search_communes, lambda: bureau_clients.get_client(name), lambda: bureau_clients.update_client(name, None, {}), lambda: bureau_clients.create_prospect(self._values())):
+			with self.assertRaises(frappe.PermissionError):
+				call()

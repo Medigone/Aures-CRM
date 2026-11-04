@@ -1,7 +1,8 @@
 /** File, tickets et actions. Les règles restent côté serveur (aurescrm/api/bureau.py). */
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
 import { call, uploadFile } from '@shared/api'
-import type { BulkResult, CandidateDemande, QueueResponse, QueueTicket, QueueView, References, TicketDetail } from '@/types'
+import type { BulkResult, CandidateDemande, ClientChoice, QueueResponse, QueueTicket, QueueView, References, TicketDetail, TicketFormOptions } from '@/types'
+import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { Condition } from './filters'
 import { conditionsForServer } from './filters'
 
@@ -76,6 +77,54 @@ export function ticketActivity(name: string): ActivityApi {
 		add: (text, mentions) => call<ActivityFeedData>(`${BUREAU}.add_comment`, { name, text, mentions }, true),
 		update: (comment, text, mentions) => call<ActivityFeedData>(`${BUREAU}.update_comment`, { name, comment, text, mentions }, true),
 		remove: (comment) => call<ActivityFeedData>(`${BUREAU}.delete_comment`, { name, comment }, true),
+		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
+	}
+}
+
+export const getTicketFormOptions = () => call<TicketFormOptions>(`${BUREAU}.get_ticket_form_options`)
+
+export const searchClients = (search: string) => call<ClientChoice[]>(`${BUREAU}.search_clients`, { search: search.trim() || undefined })
+
+export const createTicket = (values: { customer: string; request_type: string; site: string; description: string; commercial?: string; channel?: string; echeance?: string }) =>
+	call<{ name: string }>(`${BUREAU}.create_ticket`, values, true)
+
+/** Clients : liste, fiche, création et modification. */
+const CLIENTS = 'aurescrm.api.bureau_clients'
+
+export const getClients = (view: ClientView, conditions: Condition[], search: string, paging: QueuePaging = {}) =>
+	call<ClientsResponse>(`${CLIENTS}.get_clients`, {
+		view,
+		conditions: conditionsForServer(conditions),
+		search: search.trim() || undefined,
+		start: paging.start,
+		page_length: paging.pageLength,
+		sort: paging.sort,
+		direction: paging.direction,
+	})
+
+export const getClient = (name: string) => call<ClientDetail>(`${CLIENTS}.get_client`, { name })
+
+export const getClientOptions = () => call<ClientOptions>(`${CLIENTS}.get_client_options`)
+
+export const searchCommunes = (search: string) => call<CommuneChoice[]>(`${CLIENTS}.search_communes`, { search: search.trim() || undefined })
+
+export const createProspect = (values: ClientValues) => call<{ name: string }>(`${CLIENTS}.create_prospect`, { values }, true)
+
+export const updateClient = (client: ClientDetail, values: ClientValues) => call<ClientDetail>(`${CLIENTS}.update_client`, { name: client.name, modified: client.modified, values }, true)
+
+/** Envoie le fichier, puis le range dans la pièce administrative : un échec laisse le fichier joint au client. */
+export async function attachClientPiece(client: ClientDetail, piece: string, file: File) {
+	const uploaded = await uploadFile(file, 'Customer', client.name)
+	return call<ClientDetail>(`${CLIENTS}.set_client_piece`, { name: client.name, modified: client.modified, piece, file_url: uploaded.file_url }, true)
+}
+
+/** Commentaires et activité d'un client, pour le fil commun. */
+export function clientActivity(name: string): ActivityApi {
+	return {
+		load: () => call<ActivityFeedData>(`${CLIENTS}.get_client_activity`, { name }),
+		add: (text, mentions) => call<ActivityFeedData>(`${CLIENTS}.add_client_comment`, { name, text, mentions }, true),
+		update: (comment, text, mentions) => call<ActivityFeedData>(`${CLIENTS}.update_client_comment`, { name, comment, text, mentions }, true),
+		remove: (comment) => call<ActivityFeedData>(`${CLIENTS}.delete_client_comment`, { name, comment }, true),
 		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
 	}
 }

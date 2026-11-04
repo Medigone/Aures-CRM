@@ -50,6 +50,7 @@
 		--urgence-u3-bg: #b42323;
 		--urgence-u3-ink: #ffffff;
 
+		--scrim: rgba(0, 0, 0, 0.4);
 		--shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.18);
 		--shadow-drawer: -8px 0 28px rgba(0, 0, 0, 0.16);
 
@@ -59,6 +60,7 @@
 		--sidebar-open: 216px;
 		--sidebar-rail: 56px;
 		--bottom-nav: 76px;
+		--dialog-width: 640px;
 	}
 
 	:root[data-theme='dark'] {
@@ -101,6 +103,7 @@
 		--urgence-u3-bg: #c62d2d;
 		--urgence-u3-ink: #ffffff;
 
+		--scrim: rgba(0, 0, 0, 0.6);
 		--shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.6);
 		--shadow-drawer: -8px 0 28px rgba(0, 0, 0, 0.6);
 	}

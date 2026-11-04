@@ -393,6 +393,13 @@
 		min-width: 0;
 		padding-right: 0.875rem;
 	}
+	/* Liste sans case à cocher : pas d'action groupée à proposer. */
+	.list-no-check .list-cols {
+		padding-left: 0.875rem;
+	}
+	.list-col-end {
+		text-align: right;
+	}
 	.list-check {
 		display: flex;
 		flex: none;

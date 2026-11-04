@@ -7,7 +7,7 @@ export interface Sort {
 	dir: 'asc' | 'desc'
 }
 
-export interface Column {
+export interface Column<Row = QueueTicket> {
 	key: string
 	label: string
 	/** Largeur fixe en pixels, ou minimum d'une colonne qui partage la place restante. */
@@ -17,7 +17,7 @@ export interface Column {
 	/** Absente de l'affichage par défaut : elle s'ajoute par le menu Colonnes. */
 	optional?: boolean
 	/** Valeur de l'export. */
-	text: (ticket: QueueTicket) => string | number
+	text: (row: Row) => string | number
 }
 
 export const COLUMNS: Column[] = [
@@ -46,11 +46,11 @@ export function visibleColumns(keys: string[]) {
 	return COLUMNS.filter((column) => column.key === 'client' || keys.includes(column.key))
 }
 
-export function gridTemplate(columns: Column[]) {
+export function gridTemplate<Row>(columns: Column<Row>[]) {
 	return columns.map((column) => (column.grow ? `minmax(${column.width}px, ${column.grow}fr)` : `${column.width}px`)).join(' ')
 }
 
-export function minListWidth(columns: Column[]) {
+export function minListWidth<Row>(columns: Column<Row>[]) {
 	return CHECK_WIDTH + RIGHT_PADDING + columns.reduce((sum, column) => sum + column.width, 0) + COLUMN_GAP * (columns.length - 1)
 }
 
@@ -67,8 +67,8 @@ function csvCell(value: string | number) {
 }
 
 /** CSV au format attendu par Excel en français : point-virgule, et marque d'encodage pour les accents. */
-export function ticketsToCsv(tickets: QueueTicket[], columns: Column[]) {
-	const lines = [columns.map((column) => csvCell(column.label)), ...tickets.map((ticket) => columns.map((column) => csvCell(column.text(ticket))))]
+export function ticketsToCsv<Row = QueueTicket>(rows: Row[], columns: Column<Row>[]) {
+	const lines = [columns.map((column) => csvCell(column.label)), ...rows.map((row) => columns.map((column) => csvCell(column.text(row))))]
 	return `\ufeff${lines.map((line) => line.join(';')).join('\r\n')}`
 }
 

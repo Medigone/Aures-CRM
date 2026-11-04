@@ -11,7 +11,13 @@ export interface Condition {
 	value: string
 }
 
-export const FIELDS: { value: string; label: string; kind: FieldKind }[] = [
+export interface FilterField {
+	value: string
+	label: string
+	kind: FieldKind
+}
+
+export const FIELDS: FilterField[] = [
 	{ value: 'client', label: 'Client', kind: 'text' },
 	{ value: 'type', label: 'Type de ticket', kind: 'choice' },
 	{ value: 'status', label: 'Statut', kind: 'choice' },
@@ -42,21 +48,21 @@ const OPERATORS: Record<FieldKind, Option[]> = {
 	],
 }
 
-export function kindOf(field: string): FieldKind {
-	return FIELDS.find((item) => item.value === field)?.kind ?? 'text'
+export function kindOf(field: string, fields: FilterField[] = FIELDS): FieldKind {
+	return fields.find((item) => item.value === field)?.kind ?? 'text'
 }
 
-export function operatorsOf(field: string): Option[] {
-	return OPERATORS[kindOf(field)]
+export function operatorsOf(field: string, fields: FilterField[] = FIELDS): Option[] {
+	return OPERATORS[kindOf(field, fields)]
 }
 
-export function newCondition(id: number, field = 'type'): Condition {
-	return { id, field, op: operatorsOf(field)[0].value, value: '' }
+export function newCondition(id: number, field = 'type', fields: FilterField[] = FIELDS): Condition {
+	return { id, field, op: operatorsOf(field, fields)[0].value, value: '' }
 }
 
 /** Changer de champ repart de sa première condition, sans valeur : l'ancienne n'aurait plus de sens. */
-export function withField(condition: Condition, field: string): Condition {
-	return { ...newCondition(condition.id, field) }
+export function withField(condition: Condition, field: string, fields: FilterField[] = FIELDS): Condition {
+	return { ...newCondition(condition.id, field, fields) }
 }
 
 export function needsValue(condition: Pick<Condition, 'op'>) {

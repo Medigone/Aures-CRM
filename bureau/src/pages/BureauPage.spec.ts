@@ -111,6 +111,13 @@ const activity = {
 		{ id: 'TC-1-creation', kind: 'create', who: 'Commercial A', at: '2026-11-01 10:00:00', text: 'a créé ce document' },
 	],
 }
+const formOptions = {
+	types: [{ value: 'Bon de commande', urgence: 'U2' }, { value: 'Autre', urgence: 'U0' }],
+	channels: ['Email'],
+	sites: [{ value: 'S1', label: 'OFFSET' }, { value: 'S2', label: 'FLEXO 2' }],
+	commercials: [{ value: 'a@example.com', label: 'Commercial A' }, { value: 'b@example.com', label: 'Commercial B' }],
+}
+const clientChoices = [{ name: 'CLI-1', label: 'Client Un', wilaya: 'Sétif', commercial: 'b@example.com', commercial_name: 'Commercial B', open_tickets: 2 }]
 const candidates = {
 	candidates: [
 		{
@@ -141,7 +148,15 @@ function respond(url: string) {
 			? activity
 			: url.includes('get_mention_candidates')
 				? [{ id: 'a@example.com', label: 'Commercial A' }, { id: 'b@example.com', label: 'Autre Personne' }]
-				: url.includes('get_references')
+				: url.includes('get_ticket_form_options')
+					? formOptions
+					: url.includes('search_clients')
+						? clientChoices
+						: url.includes('create_ticket')
+							? { name: 'TC-NEW' }
+							: url.includes('upload_file')
+								? {}
+								: url.includes('get_references')
 			? references
 			: url.includes('get_ticket')
 				? ticket
@@ -420,6 +435,129 @@ describe('poste de bureau', () => {
 		await wrapper.find('.list-state button').trigger('click')
 		expect((wrapper.find('.bureau-search').element as HTMLInputElement).value).toBe('')
 		fetchMock.mockImplementation((input) => respond(String(input)))
+	})
+
+	describe('création de ticket', () => {
+		const openDialog = async () => {
+			const opened = await open('/')
+			await opened.wrapper.findAll('.page-head button').find((button) => button.text() === 'Nouveau ticket')!.trigger('click')
+			await flushPromises()
+			return opened
+		}
+		const chooseClient = async (wrapper: Awaited<ReturnType<typeof open>>['wrapper']) => {
+			await wrapper.find('#nouveau-client').trigger('focus')
+			await flushPromises()
+			await wrapper.find('.picker-menu .app-menu-item').trigger('click')
+		}
+		const fill = async (wrapper: Awaited<ReturnType<typeof open>>['wrapper']) => {
+			await chooseClient(wrapper)
+			await wrapper.findAll('.type-tile').find((tile) => tile.text() === 'Bon de commande')!.trigger('click')
+			await wrapper.find('#nouveau-site').setValue('S1')
+			await wrapper.find('#nouveau-description').setValue('40 000 boîtes')
+		}
+		const button = (wrapper: Awaited<ReturnType<typeof open>>['wrapper'], label: string) => wrapper.findAll('.dialog button').find((item) => item.text() === label)!
+
+		it("ouvre la fenêtre sans quitter la page et n'envoie rien vers le Desk", async () => {
+			const { wrapper, router } = await openDialog()
+			expect(wrapper.find('.dialog').exists()).toBe(true)
+			expect(router.currentRoute.value.path).toBe('/')
+			expect(wrapper.find('a[href*="ticket-commercial/new"]').exists()).toBe(false)
+		})
+
+		it('refuse une saisie incomplète, sans appeler le serveur', async () => {
+			const { wrapper } = await openDialog()
+			await button(wrapper, 'Créer le ticket').trigger('click')
+			expect(wrapper.findAll('.dialog .field-error')).toHaveLength(4)
+			expect(posted().some((item) => item.url.includes('create_ticket'))).toBe(false)
+		})
+
+		it('reprend le commercial du client, signale ses tickets ouverts et annonce l\'urgence', async () => {
+			const { wrapper } = await openDialog()
+			await fill(wrapper)
+			expect((wrapper.find('#nouveau-commercial').element as HTMLSelectElement).value).toBe('b@example.com')
+			expect(wrapper.find('.dialog').text()).toContain('déjà 2 tickets ouverts')
+			expect(wrapper.find('.dialog .urgence').text()).toBe('U2')
+		})
+
+		it('crée le ticket, ferme la fenêtre et surligne la ligne', async () => {
+			fetchMock.mockImplementation((input) => {
+				const url = String(input)
+				if (url.includes('get_queue')) return Promise.resolve(new Response(JSON.stringify({ message: { ...queue, tickets: [{ ...queue.tickets[0], name: 'TC-NEW' }], names: ['TC-NEW'], total: 1 } }), { status: 200 }))
+				return respond(url)
+			})
+			const { wrapper, router } = await openDialog()
+			await fill(wrapper)
+			await button(wrapper, 'Créer le ticket').trigger('click')
+			await flushPromises()
+			await flushPromises()
+			const call = posted().find((item) => item.url.includes('create_ticket'))!
+			expect(call.body).toMatchObject({ customer: 'CLI-1', request_type: 'Bon de commande', site: 'S1', description: '40 000 boîtes', commercial: 'b@example.com' })
+			expect(wrapper.find('.dialog').exists()).toBe(false)
+			expect(router.currentRoute.value.path).toBe('/')
+			expect(wrapper.find('.list-row-created').exists()).toBe(true)
+			await wrapper.find('.toast-action button').trigger('click')
+			await flushPromises()
+			expect(router.currentRoute.value.params.id).toBe('TC-NEW')
+			fetchMock.mockImplementation((input) => respond(String(input)))
+		})
+
+		it('garde le client, le site et le commercial pour la saisie suivante', async () => {
+			const { wrapper } = await openDialog()
+			await fill(wrapper)
+			await button(wrapper, 'Créer et en saisir un autre').trigger('click')
+			await flushPromises()
+			await flushPromises()
+			expect(wrapper.find('.dialog').exists()).toBe(true)
+			expect(wrapper.find('.picked').text()).toContain('Client Un')
+			expect((wrapper.find('#nouveau-site').element as HTMLSelectElement).value).toBe('S1')
+			expect((wrapper.find('#nouveau-description').element as HTMLTextAreaElement).value).toBe('')
+			expect(wrapper.find('.type-tile[aria-checked="true"]').exists()).toBe(false)
+		})
+
+		it('garde la saisie si le serveur refuse', async () => {
+			const { wrapper } = await openDialog()
+			await fill(wrapper)
+			fetchMock.mockImplementationOnce(() => Promise.resolve(new Response(JSON.stringify({ exception: 'frappe.ValidationError: Refusé' }), { status: 417 })))
+			await button(wrapper, 'Créer le ticket').trigger('click')
+			await flushPromises()
+			expect(wrapper.find('.dialog [role="alert"]').exists()).toBe(true)
+			expect((wrapper.find('#nouveau-description').element as HTMLTextAreaElement).value).toBe('40 000 boîtes')
+		})
+
+		it('signale un fichier non envoyé sans perdre le ticket', async () => {
+			fetchMock.mockImplementation((input) => {
+				const url = String(input)
+				if (url.includes('upload_file')) return Promise.reject(new Error('réseau'))
+				return respond(url)
+			})
+			const { wrapper } = await openDialog()
+			await fill(wrapper)
+			const input = wrapper.find('.dropzone input')
+			Object.defineProperty(input.element, 'files', { value: [new File(['x'], 'bc.pdf')], configurable: true })
+			await input.trigger('change')
+			expect(wrapper.find('.dialog').text()).toContain('bc.pdf')
+			await button(wrapper, 'Créer le ticket').trigger('click')
+			await flushPromises()
+			await flushPromises()
+			expect(wrapper.find('.toast-action').text()).toContain("Un fichier n'a pas été envoyé")
+			fetchMock.mockImplementation((input2) => respond(String(input2)))
+		})
+
+		it('demande confirmation avant de perdre une saisie, pas si la fenêtre est vide', async () => {
+			const { wrapper } = await openDialog()
+			await wrapper.find('.dialog-scrim').trigger('keydown', { key: 'Escape' })
+			expect(wrapper.find('.dialog').exists()).toBe(false)
+
+			await wrapper.findAll('.page-head button').find((item) => item.text() === 'Nouveau ticket')!.trigger('click')
+			await flushPromises()
+			await wrapper.find('#nouveau-description').setValue('Texte')
+			await wrapper.find('.dialog-scrim').trigger('keydown', { key: 'Escape' })
+			expect(wrapper.find('.dialog').text()).toContain('Abandonner cette saisie ?')
+			await button(wrapper, 'Continuer la saisie').trigger('click')
+			expect((wrapper.find('#nouveau-description').element as HTMLTextAreaElement).value).toBe('Texte')
+			await wrapper.find('.dialog-scrim').trigger('click')
+			expect(wrapper.find('.dialog').exists()).toBe(true)
+		})
 	})
 
 	describe('commentaires et activité', () => {
