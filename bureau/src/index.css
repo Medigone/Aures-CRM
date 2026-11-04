@@ -2,64 +2,27 @@
 @import '../../shared/styles.css';
 
 @layer base {
-	:root {
-		/* Hauteur des boutons et des champs : réduite à la souris, confortable au doigt. */
-		--ctl: 2rem;
-	}
-	@media (pointer: coarse) {
-		:root {
-			--ctl: 2.75rem;
-		}
-	}
 	body {
 		@apply text-base;
 	}
-}
-
-/* Composants communs resserrés pour le poste de bureau ; la PWA garde les siens. */
-@layer components {
-	.btn,
-	.btn-primary,
-	.btn-secondary,
-	.btn-danger {
-		min-height: var(--ctl);
-		@apply gap-1.5 whitespace-nowrap px-3.5 text-base;
+	/* Cases à cocher natives : leur coche suit le thème, y compris sur la couleur d'action claire du thème sombre. */
+	input[type='checkbox'] {
+		appearance: auto;
+		background: none;
+		border: revert;
+		accent-color: var(--primary);
 	}
-	.icon-btn {
-		height: var(--ctl);
-		width: var(--ctl);
+	input[type='checkbox']:checked {
+		background: none;
 	}
-	.field-input {
-		min-height: var(--ctl);
-		@apply rounded-[10px] px-2.5 py-1;
-	}
+	/* Liste déroulante : garder la place de sa flèche malgré le padding resserré. */
 	select.field-input {
 		padding-right: 1.75rem;
-	}
-	.chip,
-	.chip-on,
-	.chip-off {
-		min-height: var(--ctl);
-		@apply px-3 text-sm;
-	}
-	.badge {
-		@apply h-5 gap-1 px-2;
-	}
-	.card {
-		@apply rounded-[14px];
 	}
 }
 
 /* Disposition : la page ne défile plus, la liste et le détail du ticket ont chacun leur défilement. */
 @layer components {
-	.bureau-shell {
-		display: flex;
-		flex-direction: column;
-		height: 100vh;
-		height: 100dvh;
-		min-height: 520px;
-		overflow: hidden;
-	}
 	.bureau-work {
 		display: flex;
 		flex: 1 1 auto;
@@ -103,9 +66,10 @@
 		max-width: 100%;
 		margin-top: 0.375rem;
 		padding: 0.5rem;
-		border-radius: 14px;
-		box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
-		@apply bg-surface-white;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: var(--radius-card);
+		background-color: var(--surface-modal);
+		box-shadow: var(--shadow-overlay);
 	}
 	.bureau-list-area {
 		position: relative;
@@ -114,18 +78,26 @@
 		min-height: 0;
 	}
 	.bureau-list-card {
+		display: flex;
 		flex: 1 1 0;
+		flex-direction: column;
 		min-width: 0;
+		overflow: hidden;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: var(--radius-card);
+		background-color: var(--surface-cards);
+	}
+	.bureau-list-scroll {
+		flex: 1 1 auto;
+		min-height: 0;
 		overflow: auto;
-		border-radius: 14px;
 		scrollbar-width: thin;
-		@apply bg-surface-white;
 	}
 
 	/* Barre d'actions groupées : elle flotte pour que les lignes ne bougent pas pendant qu'on coche. */
 	.bureau-bulk {
 		position: absolute;
-		bottom: 0.75rem;
+		bottom: 2.875rem;
 		left: 0.75rem;
 		z-index: 4;
 		display: flex;
@@ -134,9 +106,10 @@
 		gap: 0.5rem;
 		max-width: calc(100% - 1.5rem);
 		padding: 0.5rem 0.625rem 0.5rem 0.875rem;
-		border-radius: 14px;
-		box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
-		@apply border border-outline-gray-2 bg-surface-white;
+		border-radius: var(--radius-card);
+		background-color: var(--surface-modal);
+		box-shadow: var(--shadow-overlay);
+		@apply border border-outline-gray-2;
 	}
 	.bureau-bulk-sep {
 		width: 1px;
@@ -147,11 +120,9 @@
 	/* Aperçu en tiroir : il passe par-dessus la liste, qui reste cliquable pour changer de ticket. */
 	@keyframes bureau-drawer-in {
 		from {
-			opacity: 0;
 			transform: translateX(24px);
 		}
 		to {
-			opacity: 1;
 			transform: none;
 		}
 	}
@@ -166,10 +137,11 @@
 		width: 430px;
 		max-width: 100%;
 		overflow: hidden;
-		border-radius: 14px;
-		box-shadow: -8px 0 28px rgb(0 0 0 / 16%);
+		border: 1px solid var(--outline-gray-2);
+		border-radius: var(--radius-card);
+		background-color: var(--surface-cards);
+		box-shadow: var(--shadow-drawer);
 		animation: bureau-drawer-in 0.16s ease-out;
-		@apply bg-surface-white;
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.bureau-drawer {
@@ -209,10 +181,11 @@
 	}
 	/* Dans le tiroir, les cartes de la fiche deviennent de simples sections. */
 	.bureau-drawer .card {
+		border-width: 1px 0 0;
+		border-color: var(--outline-gray-1);
 		border-radius: 0;
 		padding: 0.75rem 0 0;
 		background: transparent;
-		@apply border-t border-outline-gray-1;
 	}
 	.bureau-main {
 		display: flex;
@@ -251,19 +224,14 @@
 
 	/* Écran étroit : la page reprend le défilement ; la liste garde une hauteur limitée et l'aperçu prend tout l'écran. */
 	@media (max-width: 900px) {
-		.bureau-shell {
-			height: auto;
-			min-height: 100vh;
-			overflow: visible;
-		}
 		.bureau-list,
 		.bureau-list-area,
 		.bureau-main {
 			flex: none;
 			width: 100%;
 		}
-		.bureau-list-card {
-			max-height: 75vh;
+		.bureau-list-scroll {
+			max-height: 70vh;
 		}
 		.bureau-popover {
 			left: 0;
@@ -315,9 +283,65 @@
 }
 
 @layer components {
+	/* Recherche de la barre du haut. */
+	.global-search {
+		position: relative;
+		flex: 0 1 260px;
+		min-width: 120px;
+	}
+	.global-search input {
+		padding-right: 3rem;
+	}
+	.global-search kbd {
+		position: absolute;
+		top: 50%;
+		right: 0.375rem;
+		padding-inline: 0.3125rem;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: 4px;
+		background-color: var(--surface-gray-1);
+		font-family: inherit;
+		font-size: 10px;
+		line-height: 1rem;
+		transform: translateY(-50%);
+		@apply text-ink-gray-6;
+	}
+	.global-search-results {
+		width: max(100%, 20rem);
+		max-height: 60vh;
+		overflow-y: auto;
+	}
+	.global-search-results .app-menu-item[aria-selected='true'] {
+		@apply bg-surface-gray-2;
+	}
+	/* État du temps réel. */
+	.live-status {
+		display: inline-flex;
+		flex: none;
+		align-items: center;
+		gap: 0.3125rem;
+		white-space: nowrap;
+		@apply text-xs text-ink-gray-6;
+	}
+	.live-status i {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background-color: var(--tone-amber-ink);
+	}
+	.live-status[data-live='true'] i {
+		background-color: var(--tone-green-ink);
+	}
+	@media (max-width: 720px) {
+		.global-search kbd,
+		.live-status span {
+			display: none;
+		}
+	}
+
 	/* Vues de la liste : libellé et compteur sur une ligne. */
 	.views {
-		@apply flex flex-none flex-wrap gap-0.5 rounded-xl bg-surface-gray-3 p-[3px];
+		@apply flex flex-none flex-wrap gap-0.5 rounded-control bg-surface-gray-3 p-[3px];
 	}
 	.view {
 		@apply inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-[9px] px-2.5 text-sm font-medium text-ink-gray-7 transition hover:bg-surface-gray-4;
@@ -326,7 +350,7 @@
 		@apply font-semibold tabular-nums text-ink-gray-9;
 	}
 	.view-count-alert {
-		color: #b42323;
+		color: var(--tone-red-ink);
 	}
 	.view[aria-pressed='true'],
 	.view[aria-pressed='true']:hover {
@@ -337,11 +361,11 @@
 	}
 	.filter-chip {
 		@apply inline-flex h-[26px] items-center gap-1.5 rounded-full px-2.5 text-sm font-medium;
-		background-color: #e6edff;
-		color: #15339e;
+		background-color: var(--filter-chip-bg);
+		color: var(--accent-fonce);
 	}
 	.filter-chip:hover {
-		background-color: #d6e2ff;
+		background-color: var(--filter-chip-hover);
 	}
 
 	/* Lignes de la liste : la case à cocher est à part, le reste de la ligne ouvre l'aperçu. */
@@ -349,14 +373,14 @@
 	.list-row {
 		display: flex;
 		align-items: center;
-		min-width: 1182px;
 	}
 	.list-head {
 		position: sticky;
 		top: 0;
 		z-index: 2;
 		height: 34px;
-		@apply border-b border-outline-gray-2 bg-surface-white;
+		background-color: var(--surface-cards);
+		@apply border-b border-outline-gray-2;
 	}
 	.list-head button {
 		@apply inline-flex h-[34px] min-w-0 items-center gap-1 whitespace-nowrap text-left text-xs font-semibold text-ink-gray-7 hover:text-ink-gray-9;
@@ -364,7 +388,6 @@
 	.list-cols {
 		display: grid;
 		flex: 1 1 0;
-		grid-template-columns: minmax(150px, 1.5fr) minmax(120px, 1.1fr) 124px 74px 92px minmax(150px, 1.3fr) 118px 104px minmax(120px, 1.1fr) minmax(100px, 1fr);
 		column-gap: 0.625rem;
 		align-items: center;
 		min-width: 0;
@@ -379,24 +402,33 @@
 		width: 36px;
 		cursor: pointer;
 	}
+	.list-head-plain {
+		@apply inline-flex h-[34px] min-w-0 items-center whitespace-nowrap text-xs font-semibold text-ink-gray-7;
+	}
+	.list-comments {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-variant-numeric: tabular-nums;
+		@apply text-xs text-ink-gray-6;
+	}
 	.list-check input {
 		width: 16px;
 		height: 16px;
 		margin: 0;
 		cursor: pointer;
-		accent-color: #18181b;
 	}
 	.list-row {
 		height: 40px;
-		@apply border-b border-outline-gray-1 bg-surface-white hover:bg-surface-gray-1;
+		background-color: var(--surface-cards);
+		@apply border-b border-outline-gray-1 hover:bg-surface-gray-1;
 	}
 	.list-row-checked {
-		background-color: #f4f7ff;
+		background-color: var(--selection-checked);
 	}
 	.list-row-on,
 	.list-row-on:hover {
-		background-color: #eef3ff;
-		box-shadow: inset 3px 0 0 #1d4ed8;
+		background-color: var(--selection);
 	}
 	.list-row-main {
 		height: 39px;
@@ -412,7 +444,8 @@
 		@apply text-base font-semibold text-ink-gray-9;
 	}
 	.list-row-main > .list-urgence,
-	.list-row-main > .list-step {
+	.list-row-main > .list-step,
+	.list-row-main > .list-comments {
 		display: flex;
 		align-items: center;
 	}
@@ -420,9 +453,9 @@
 		gap: 0.25rem;
 	}
 	.list-ask {
-		font-size: 11px;
 		font-weight: 600;
-		color: #8a4200;
+		color: var(--urgence-u2-ink);
+		@apply text-xs;
 	}
 	.list-step {
 		gap: 0.5rem;
@@ -441,27 +474,6 @@
 		@apply bg-primary;
 	}
 
-	/* Niveaux d'urgence : mêmes couleurs dans la liste, l'en-tête et les décisions. */
-	.urgence {
-		@apply inline-flex h-5 flex-none items-center whitespace-nowrap rounded-full px-2 text-xs font-medium;
-	}
-	.urgence-U0 {
-		background-color: #e4f5e9;
-		color: #1b6e47;
-	}
-	.urgence-U1 {
-		background-color: #fff7c2;
-		color: #6e5600;
-	}
-	.urgence-U2 {
-		background-color: #ffe3cc;
-		color: #8a4200;
-	}
-	.urgence-U3 {
-		background-color: #b42323;
-		color: #ffffff;
-	}
-
 	/* Timeline verticale. */
 	.step-item {
 		@apply relative;
@@ -474,14 +486,15 @@
 		@apply bg-primary;
 	}
 	.step-button {
-		@apply relative z-[1] flex min-h-10 w-full items-start gap-2.5 rounded-[10px] p-1.5 text-left transition hover:bg-surface-gray-1;
+		@apply relative z-[1] flex min-h-10 w-full items-start gap-2.5 rounded-control p-1.5 text-left transition hover:bg-surface-gray-1;
 	}
 	.step-button[aria-pressed='true'],
 	.step-button[aria-pressed='true']:hover {
 		@apply bg-surface-gray-2;
 	}
 	.step-dot {
-		@apply inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 border-outline-gray-3 bg-surface-white text-xs font-semibold text-ink-gray-7;
+		background-color: var(--surface-cards);
+		@apply inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 border-control-border text-xs font-semibold text-ink-gray-7;
 	}
 	.step-item[data-state='done'] .step-dot {
 		@apply border-primary bg-primary text-on-primary;
@@ -490,13 +503,13 @@
 		@apply border-accent text-accent;
 	}
 	.step-item[data-state='paused'] .step-dot {
-		border-color: #5b3fa8;
-		color: #5b3fa8;
+		border-color: var(--tone-violet-ink);
+		color: var(--tone-violet-ink);
 	}
 	.step-item[data-state='blocked'] .step-dot {
-		background-color: #b42323;
-		border-color: #b42323;
-		color: #ffffff;
+		background-color: var(--urgence-u3-bg);
+		border-color: var(--urgence-u3-bg);
+		color: var(--urgence-u3-ink);
 	}
 	.step-label {
 		@apply block text-sm font-medium text-ink-gray-7;
@@ -513,18 +526,13 @@
 		@apply block break-words text-xs text-ink-gray-6;
 	}
 	.step-item[data-state='blocked'] .step-detail {
-		color: #b42323;
-	}
-
-	.tone-amber {
-		background-color: #fff4d6;
-		color: #8a4b06;
+		color: var(--tone-red-ink);
 	}
 
 	/* Encart de l'étape affichée. */
 	.step-hero {
-		@apply flex flex-col gap-1.5 rounded-[14px] border p-3.5;
-		background-color: #eef3ff;
-		border-color: #c9d8ff;
+		@apply flex flex-col gap-1.5 rounded-card border p-3.5;
+		background-color: var(--selection);
+		border-color: var(--selection-border);
 	}
 }

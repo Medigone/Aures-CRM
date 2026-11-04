@@ -1,6 +1,6 @@
 <script setup lang="ts">
-/** `lg` : écrans où la marque est seule en tête (connexion). */
-withDefaults(defineProps<{ size?: 'md' | 'lg' }>(), { size: 'md' })
+/** `lg` : écrans où la marque est seule en tête (connexion). `markOnly` : le logo sans le nom, dans la barre du haut. */
+withDefaults(defineProps<{ size?: 'md' | 'lg'; markOnly?: boolean }>(), { size: 'md' })
 </script>
 
 <!-- Logo « Pli » et nom de la société ; suit la couleur du texte (clair/sombre). -->
@@ -10,6 +10,6 @@ withDefaults(defineProps<{ size?: 'md' | 'lg' }>(), { size: 'md' })
 			<polygon points="50,20 20,80 50,70" fill="currentColor" />
 			<polygon points="50,20 50,70 80,80" fill="currentColor" fill-opacity="0.55" />
 		</svg>
-		<p class="min-w-0 truncate font-bold tracking-tight" :class="size === 'lg' ? 'text-xl' : 'text-sm'">Aures <span class="font-medium text-ink-gray-6">Emballages</span></p>
+		<p v-if="!markOnly" class="min-w-0 truncate font-bold tracking-tight" :class="size === 'lg' ? 'text-xl' : 'text-sm'">Aures <span class="font-medium text-ink-gray-6">Emballages</span></p>
 	</div>
 </template>

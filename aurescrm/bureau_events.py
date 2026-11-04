@@ -33,6 +33,8 @@ def _ticket_of(doc):
 	"""Ticket concerné, ou None. Un fichier ne compte que s'il est joint à un ticket."""
 	if doc.doctype == "File":
 		return doc.attached_to_name if doc.attached_to_doctype == TICKET else None
+	if doc.doctype == "Comment":
+		return doc.reference_name if doc.reference_doctype == TICKET else None
 	fieldname = WATCHED.get(doc.doctype)
 	return doc.get(fieldname) if fieldname else None
 
@@ -40,6 +42,8 @@ def _ticket_of(doc):
 def _is_watched(doc):
 	if doc.doctype == "File":
 		return doc.get("attached_to_doctype") == TICKET
+	if doc.doctype == "Comment":
+		return doc.get("reference_doctype") == TICKET
 	return doc.doctype in WATCHED
 
 

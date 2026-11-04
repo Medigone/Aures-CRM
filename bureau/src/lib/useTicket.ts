@@ -93,10 +93,10 @@ export function useTicket(id: () => string, changed: () => void) {
 		if (value.status === 'Blocage Créance') {
 			const allowed = value.actions.includes('Débloquer Créance')
 			const motif = value.motif_blocage_creance ? `Blocage créance : ${value.motif_blocage_creance}` : 'Blocage créance.'
-			return { text: allowed ? `${motif} La créance est autorisée : débloquez le ticket pour continuer.` : motif, style: 'bg-surface-red-2 text-ink-red-3' }
+			return { text: allowed ? `${motif} La créance est autorisée : débloquez le ticket pour continuer.` : motif, style: 'tone-red' }
 		}
-		if (value.status === 'Terminé') return { text: 'Ticket terminé : consultation seule.', style: 'bg-surface-green-2 text-ink-green-3' }
-		if (value.status === 'Annulé') return { text: 'Ticket annulé : consultation seule.', style: 'bg-surface-gray-3 text-ink-gray-7' }
+		if (value.status === 'Terminé') return { text: 'Ticket terminé : consultation seule.', style: 'tone-green' }
+		if (value.status === 'Annulé') return { text: 'Ticket annulé : consultation seule.', style: 'tone-gray' }
 		return null
 	})
 

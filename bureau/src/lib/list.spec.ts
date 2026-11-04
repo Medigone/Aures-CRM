@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bulkSummary, canPause, canStart, creanceText, isOpen, nextSort, sortTickets, stepPercent, stepText } from './list'
+import { bulkSummary, canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, gridTemplate, isOpen, minListWidth, nextSort, SORTABLE_COLUMNS, sortText, stepPercent, stepText, ticketsToCsv, visibleColumns } from './list'
 import type { QueueTicket } from '@/types'
 
 const row = (name: string, extra: Partial<QueueTicket> = {}): QueueTicket => ({
@@ -19,26 +19,37 @@ const row = (name: string, extra: Partial<QueueTicket> = {}): QueueTicket => ({
 	assigne_a: null,
 	assigne_a_nom: null,
 	mine: false,
+	comments: 0,
 	...extra,
 })
 
 describe('liste des tickets', () => {
-	it("garde l'ordre du serveur sans tri choisi", () => {
-		const tickets = [row('B'), row('A')]
-		expect(sortTickets(tickets, null)).toBe(tickets)
+	it("ne propose ni l'étape ni les commentaires au tri", () => {
+		const keys = SORTABLE_COLUMNS.map((column) => column.key)
+		expect(keys).not.toContain('step')
+		expect(keys).not.toContain('comments')
+		expect(sortText(null)).toBe('Tri : urgence, puis échéance')
+		expect(sortText({ key: 'client', dir: 'asc' })).toBe('Tri : client')
 	})
 
-	it('trie sans modifier la liste reçue', () => {
-		const tickets = [row('B'), row('A')]
-		expect(sortTickets(tickets, { key: 'client', dir: 'asc' }).map((t) => t.name)).toEqual(['A', 'B'])
-		expect(sortTickets(tickets, { key: 'client', dir: 'desc' }).map((t) => t.name)).toEqual(['B', 'A'])
-		expect(tickets[0].name).toBe('B')
+	it('garde toujours le client et ignore une colonne inconnue', () => {
+		expect(visibleColumns(['ancienne', 'status']).map((column) => column.key)).toEqual(['client', 'status'])
+		expect(DEFAULT_COLUMNS).not.toContain('commercial')
+		expect(DEFAULT_COLUMNS).toContain('comments')
 	})
 
-	it("compte une urgence en attente et range les tickets sans échéance à la fin", () => {
-		const attente = row('attente', { niveau_urgence: 'U0', urgence_en_attente: true, niveau_urgence_demande: 'U3' })
-		expect(sortTickets([attente, row('u1', { niveau_urgence: 'U1' })], { key: 'urgence', dir: 'desc' })[0].name).toBe('attente')
-		expect(sortTickets([row('sans'), row('avec', { echeance: '2026-11-05' })], { key: 'echeance', dir: 'asc' })[0].name).toBe('avec')
+	it('calcule la grille et la largeur minimale des colonnes affichées', () => {
+		const columns = visibleColumns(['status'])
+		expect(gridTemplate(columns)).toBe('minmax(150px, 1.5fr) 124px')
+		expect(minListWidth(columns)).toBe(36 + 14 + 150 + 124 + 10)
+	})
+
+	it('exporte un CSV lisible par Excel, sans formule exécutable', () => {
+		const columns = COLUMNS.filter((column) => ['client', 'comments'].includes(column.key))
+		const csv = ticketsToCsv([row('=SOMME(A1)', { comments: 2 }), row('A;B')], columns)
+		expect(csv.startsWith('\ufeffClient;Comm.')).toBe(true)
+		expect(csv).toContain("'=SOMME(A1);2")
+		expect(csv).toContain('"A;B";0')
 	})
 
 	it('passe par croissant, décroissant, puis ordre du serveur', () => {

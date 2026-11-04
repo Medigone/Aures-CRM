@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
+import ActivityFeed from '@shared/components/ActivityFeed.vue'
+import MoreMenu from '@shared/components/MoreMenu.vue'
 import ActionButtons from './ActionButtons.vue'
 import AssigneeField from './AssigneeField.vue'
 import ChecklistCard from './ChecklistCard.vue'
@@ -12,18 +14,50 @@ import StepTimeline from './StepTimeline.vue'
 import TicketStatus from './TicketStatus.vue'
 import UrgenceCard from './UrgenceCard.vue'
 import { htmlToText } from '@shared/text'
-import { setAssignee } from '@/lib/api'
+import { setAssignee, ticketActivity } from '@/lib/api'
 import { deskUrl, formatDay, missingChecklist, stepHelp } from '@/lib/display'
 import { useTicket } from '@/lib/useTicket'
 
-const props = defineProps<{ id: string; step?: number | null }>()
+const props = defineProps<{ id: string; step?: number | null; goToActivity?: boolean }>()
 const emit = defineEmits<{ changed: [] }>()
 
 const { ticket, error, notFound, actionError, notice, busy, load, perform, refresh, isClosed, followIndex, urgencePending, banner, assigneeOptions, canAssign, assign } = useTicket(
 	() => props.id,
 	() => emit('changed'),
 )
-defineExpose({ refresh })
+
+const feed = ref<InstanceType<typeof ActivityFeed> | null>(null)
+const activityApi = computed(() => ticketActivity(props.id))
+const userName = window.user_fullname || window.user || ''
+function refreshAll(message = '') {
+	refresh(message)
+	feed.value?.refresh()
+}
+defineExpose({ refresh: refreshAll })
+
+async function showActivity() {
+	await nextTick()
+	feed.value?.root?.scrollIntoView?.({ block: 'start' })
+}
+// Depuis l'aperçu : la fiche s'ouvre sur le fil, une fois le ticket chargé.
+watch(
+	() => [ticket.value?.name, props.goToActivity],
+	([name, wanted]) => {
+		if (name && wanted) showActivity()
+	},
+)
+const commentLabel = computed(() => {
+	const count = ticket.value?.comments.count ?? 0
+	return count ? `${count} commentaire${count > 1 ? 's' : ''}` : 'Commenter'
+})
+async function copyLink() {
+	try {
+		await navigator.clipboard.writeText(window.location.href)
+		notice.value = 'Lien de la fiche copié.'
+	} catch {
+		actionError.value = "Le navigateur a refusé la copie : copiez l'adresse de la page."
+	}
+}
 
 // Étape consultée ; `null` : l'écran suit l'étape en cours. L'aperçu peut demander d'ouvrir une étape précise.
 const viewStep = ref<number | null>(props.step ?? null)
@@ -47,12 +81,12 @@ const isBC = computed(() => ticket.value?.request_type === 'Bon de commande')
 const showCreance = computed(() => isBC.value && viewed.value?.key === 'creance')
 const showRappro = computed(() => isBC.value && viewed.value?.key === 'rappro')
 const showChecks = computed(() => Boolean(ticket.value?.checklist.length) && ['check', 'fin'].includes(viewed.value?.key || ''))
+// L'action principale de la fiche vit dans l'encart d'étape ; l'en-tête ne garde que des actions secondaires.
 const heroActions = computed(() => {
-	if (viewed.value?.key === 'charge') return ['Démarrer']
-	if (viewed.value?.key === 'creance') return ['Débloquer Créance']
-	if (viewed.value?.key === 'fin') return ['Terminer']
-	return []
+	const key = viewed.value?.key
+	return ['Reprendre', ...(key === 'charge' ? ['Démarrer'] : key === 'creance' ? ['Débloquer Créance'] : key === 'fin' ? ['Terminer'] : [])]
 })
+const menuActions = ['Annuler']
 const needsDesk = computed(() => !isClosed.value && ['doc', 'confirm'].includes(viewed.value?.key || ''))
 const finishHint = computed(() => (ticket.value ? missingChecklist(ticket.value) : ''))
 const window_user = window.user
@@ -60,7 +94,7 @@ const window_user = window.user
 
 <template>
 	<main class="bureau-main">
-		<div v-if="error" role="alert" class="card p-3.5 text-ink-red-3">
+		<div v-if="error" role="alert" class="card p-3.5 text-tone-red">
 			{{ error }}
 			<button type="button" class="ml-1 font-semibold underline" @click="load">Réessayer</button>
 		</div>
@@ -72,26 +106,33 @@ const window_user = window.user
 				<div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
 					<div class="min-w-0">
 						<div class="flex flex-wrap items-center gap-1.5">
-							<h2 class="text-xl font-semibold">{{ ticket.request_type }}</h2>
+							<h2 class="page-title">{{ ticket.request_type }}</h2>
 							<TicketStatus :status="ticket.status" />
 							<span class="urgence" :class="`urgence-${ticket.niveau_urgence}`">{{ ticket.niveau_urgence }}</span>
 						</div>
-						<p class="mt-0.5 text-sm text-ink-gray-7">{{ ticket.client }} · {{ ticket.name }}</p>
+						<p class="mt-0.5 text-sm text-ink-gray-7">
+							{{ ticket.client }} · {{ ticket.name }} ·
+							<button type="button" class="font-medium text-accent hover:underline" @click="showActivity">{{ commentLabel }}</button>
+						</p>
 					</div>
 					<div class="flex flex-wrap items-center gap-1.5">
-						<a class="inline-flex min-h-[var(--ctl)] items-center gap-1.5 px-2 text-sm font-medium text-accent hover:underline" :href="deskUrl('Ticket Commercial', ticket.name)" target="_blank" rel="noopener noreferrer">
-							Ouvrir sur le Desk
-							<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />
-						</a>
 						<button v-if="canAssign && !ticket.mine" type="button" class="btn-secondary" :disabled="busy" @click="perform(() => setAssignee(ticket!, String(window_user)))">Me l'attribuer</button>
-						<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" />
+						<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" secondary :except="[...heroActions, ...menuActions]" />
+						<MoreMenu>
+							<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
+							<a class="app-menu-item" role="menuitem" :href="deskUrl('Ticket Commercial', ticket.name)" target="_blank" rel="noopener noreferrer">
+								<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />
+								Ouvrir sur le Desk
+							</a>
+							<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" in-menu :only="menuActions" />
+						</MoreMenu>
 					</div>
 				</div>
-				<p v-if="finishHint" class="text-right text-sm" style="color: #8a4b06">{{ finishHint }}</p>
+				<p v-if="finishHint" class="text-right text-sm text-tone-amber">{{ finishHint }}</p>
 				<dl class="ticket-facts">
 					<div class="ticket-fact"><dt>Commercial</dt><dd><span class="truncate" :title="ticket.commercial || undefined">{{ ticket.commercial || '—' }}</span></dd></div>
 					<div class="ticket-fact"><dt>Site</dt><dd>{{ ticket.site || '—' }}</dd></div>
-					<div class="ticket-fact"><dt>Échéance</dt><dd :class="ticket.is_late && 'text-ink-red-3'">{{ formatDay(ticket.echeance) || 'Sans échéance' }}</dd></div>
+					<div class="ticket-fact"><dt>Échéance</dt><dd :class="ticket.is_late && 'text-tone-red'">{{ formatDay(ticket.echeance) || 'Sans échéance' }}</dd></div>
 					<div class="ticket-fact"><dt>Créé le</dt><dd>{{ formatDay(ticket.creation_date) || '—' }}</dd></div>
 					<div class="ticket-fact ticket-fact-assignee">
 						<dt><label for="ticket-assignee">Pris en charge par</label></dt>
@@ -102,19 +143,19 @@ const window_user = window.user
 				</dl>
 			</div>
 
-			<p v-if="actionError" role="alert" class="flex-none rounded-xl bg-surface-red-2 px-3.5 py-2.5 text-ink-red-3">{{ actionError }}</p>
-			<p v-if="notice" role="status" class="flex-none rounded-xl bg-surface-blue-2 px-3.5 py-2.5 text-ink-blue-3">{{ notice }}</p>
+			<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
+			<p v-if="notice" role="status" class="flex-none rounded-control tone-blue px-3.5 py-2.5">{{ notice }}</p>
 
 			<div class="bureau-detail">
 				<div class="bureau-center">
-					<p v-if="banner" class="rounded-xl px-3.5 py-2.5" :class="banner.style">{{ banner.text }}</p>
+					<p v-if="banner" class="rounded-control px-3.5 py-2.5" :class="banner.style">{{ banner.text }}</p>
 					<div v-if="viewed" class="step-hero">
 						<div class="flex flex-wrap items-baseline justify-between gap-2">
-							<span class="text-xs font-semibold" style="color: #3d4a66">Étape {{ viewIndex + 1 }} sur {{ ticket.steps.length }}</span>
+							<span class="text-xs font-semibold text-selection-ink">Étape {{ viewIndex + 1 }} sur {{ ticket.steps.length }}</span>
 							<button v-if="viewIndex !== followIndex" type="button" class="min-h-[var(--ctl)] text-sm font-medium text-accent hover:underline" @click="viewStep = null">Revenir à l'étape en cours</button>
 						</div>
 						<h3 class="text-xl font-semibold">{{ viewed.label }}</h3>
-						<p style="color: #3d4a66">{{ stepHelp(viewed.key, ticket) }}</p>
+						<p class="text-selection-ink">{{ stepHelp(viewed.key, ticket) }}</p>
 						<div v-if="heroActions.length" class="flex flex-wrap gap-2 empty:hidden">
 							<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" :only="heroActions" />
 						</div>
@@ -134,6 +175,7 @@ const window_user = window.user
 					<CreanceCard v-if="showCreance" :ticket="ticket" :busy="busy" :perform="perform" />
 					<RapprochementCard v-if="showRappro" :ticket="ticket" :busy="busy" :perform="perform" />
 					<ChecklistCard v-if="showChecks" :ticket="ticket" :busy="busy" :perform="perform" />
+					<ActivityFeed ref="feed" :api="activityApi" :version="ticket.modified" :user-name="userName" @changed="refresh(); emit('changed')" />
 				</div>
 
 				<div class="bureau-side">

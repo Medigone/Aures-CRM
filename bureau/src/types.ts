@@ -1,3 +1,5 @@
+import type { CommentPart } from '@shared/activity'
+
 export type QueueView = 'todo' | 'mine' | 'urgent' | 'creance' | 'closed'
 
 export interface QueueStep {
@@ -25,13 +27,18 @@ export interface QueueTicket {
 	assigne_a: string | null
 	assigne_a_nom: string | null
 	mine: boolean
+	comments: number
 }
 
 export interface QueueResponse {
 	tickets: QueueTicket[]
 	counts: Record<QueueView, number>
-	truncated: boolean
-	limit: number
+	/** Nombre de tickets de la vue, toutes pages confondues. */
+	total: number
+	start: number
+	page_length: number
+	/** Toute la vue, dans l'ordre affiché : pour aller au ticket voisin au-delà de la page. */
+	names: string[]
 }
 
 /** Résultat d'une action groupée : chaque ticket est traité à part. */
@@ -95,6 +102,11 @@ export interface CycleGroup {
 	sales_documents: CycleSalesDocument[]
 }
 
+export interface CommentSummary {
+	count: number
+	last: { who: string; at: string; parts: CommentPart[] } | null
+}
+
 export interface TicketDetail {
 	name: string
 	modified: string
@@ -127,6 +139,7 @@ export interface TicketDetail {
 	devis_rapproche: string | null
 	demande_faisabilite_rapprochee: string | null
 	checklist: { fieldname: string; label: string; checked: boolean }[]
+	comments: CommentSummary
 	steps: Step[]
 	current_step: number | null
 	documents: TicketDocument[]

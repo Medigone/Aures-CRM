@@ -1,0 +1,177 @@
+/* Jetons Aures Pli : seule source des couleurs, des rayons et des densités de /commercial et /bureau.
+   Les surfaces, encres et contours gris viennent de frappe-ui (--surface-*, --ink-*, --outline-*).
+   Référence visuelle : docs/STYLE_AURES.md. */
+
+@layer base {
+	:root {
+		color-scheme: light;
+
+		/* Action principale : noir (clair), blanc cassé (sombre). En triplet RGB pour les opacités (`bg-primary/85`). */
+		--primary-rgb: 24 24 27;
+		--on-primary-rgb: 255 255 255;
+		--primary: rgb(var(--primary-rgb));
+		--on-primary: rgb(var(--on-primary-rgb));
+		/* Bleu Aures : liens, focus, étape en cours, sélection. Jamais un bouton. */
+		--accent-rgb: 29 78 216;
+		--accent-fonce-rgb: 21 51 158;
+		--accent: rgb(var(--accent-rgb));
+		--accent-fonce: rgb(var(--accent-fonce-rgb));
+
+		--page: #f8f8f8;
+		--control-border: #949494;
+
+		--selection: #eef3ff;
+		--selection-checked: #f4f7ff;
+		--selection-border: #c9d8ff;
+		--selection-ink: #3d4a66;
+		--filter-chip-bg: #e6edff;
+		--filter-chip-hover: #d6e2ff;
+
+		/* Six teintes, un seul sens : à faire, en cours, abouti, bloquant, clos, en attente d'un tiers. */
+		--tone-blue-bg: #e6f4ff;
+		--tone-blue-ink: #0060b0;
+		--tone-amber-bg: #fff7d3;
+		--tone-amber-ink: #a85b05;
+		--tone-green-bg: #e4faeb;
+		--tone-green-ink: #1b6e47;
+		--tone-red-bg: #ffe7e7;
+		--tone-red-ink: #b42323;
+		--tone-gray-bg: #ededed;
+		--tone-gray-ink: #525252;
+		--tone-violet-bg: #efe9ff;
+		--tone-violet-ink: #5b3fa8;
+
+		--urgence-u0-bg: #e4f5e9;
+		--urgence-u0-ink: #1b6e47;
+		--urgence-u1-bg: #fff7c2;
+		--urgence-u1-ink: #6e5600;
+		--urgence-u2-bg: #ffe3cc;
+		--urgence-u2-ink: #8a4200;
+		--urgence-u3-bg: #b42323;
+		--urgence-u3-ink: #ffffff;
+
+		--shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.18);
+		--shadow-drawer: -8px 0 28px rgba(0, 0, 0, 0.16);
+
+		--radius-pill: 999px;
+		--space-gap: 0.625rem;
+
+		--sidebar-open: 216px;
+		--sidebar-rail: 56px;
+		--bottom-nav: 76px;
+	}
+
+	:root[data-theme='dark'] {
+		color-scheme: dark;
+
+		--primary-rgb: 244 244 245;
+		--on-primary-rgb: 24 24 27;
+		--accent-rgb: 94 150 255;
+		--accent-fonce-rgb: 150 180 255;
+
+		--page: #0f0f0f;
+		--control-border: #6e6e6e;
+
+		--selection: #14213f;
+		--selection-checked: #111a2e;
+		--selection-border: #2a3f73;
+		--selection-ink: #b7c4e0;
+		--filter-chip-bg: #1a2a55;
+		--filter-chip-hover: #243768;
+
+		--tone-blue-bg: #052b53;
+		--tone-blue-ink: #5aaef2;
+		--tone-amber-bg: #4b2606;
+		--tone-amber-ink: #e79913;
+		--tone-green-bg: #0a3f27;
+		--tone-green-ink: #58c08e;
+		--tone-red-bg: #361515;
+		--tone-red-ink: #ff8a8a;
+		--tone-gray-bg: #343434;
+		--tone-gray-ink: #c4c4c4;
+		--tone-violet-bg: #221c42;
+		--tone-violet-ink: #b8a6ff;
+
+		--urgence-u0-bg: #0a3f27;
+		--urgence-u0-ink: #58c08e;
+		--urgence-u1-bg: #3f3500;
+		--urgence-u1-ink: #f0d45a;
+		--urgence-u2-bg: #4b2606;
+		--urgence-u2-ink: #ffb27a;
+		--urgence-u3-bg: #c62d2d;
+		--urgence-u3-ink: #ffffff;
+
+		--shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.6);
+		--shadow-drawer: -8px 0 28px rgba(0, 0, 0, 0.6);
+	}
+
+	/* Densité Terrain, au doigt : valeur par défaut, celle de la PWA. */
+	:root {
+		--text-xs: 12px;
+		--text-sm: 14px;
+		--text-base: 15px;
+		--text-lg: 17px;
+		--text-xl: 20px;
+		--text-page: 24px;
+		--leading-base: 1.45;
+
+		--topbar: 3.5rem;
+		--ctl: 3rem;
+		--ctl-icon: 2.75rem;
+		--btn-px: 1.25rem;
+		--btn-gap: 0.5rem;
+		--btn-wrap: normal;
+		--field-px: 0.75rem;
+		--field-py: 0.625rem;
+		--chip-h: 2.5rem;
+		--chip-px: 0.875rem;
+		--badge-h: 1.5rem;
+		--badge-px: 0.625rem;
+		--badge-gap: 0;
+
+		/* Formes actuelles de la PWA : ces cinq lignes disparaîtront au passage de la PWA aux modèles communs. */
+		--radius-control: 999px;
+		--radius-field: 1rem;
+		--radius-card: 20px;
+		--card-border: 0;
+		--field-border: var(--outline-gray-2);
+	}
+
+	/* Densité Poste, à la souris. */
+	:root[data-density='poste'] {
+		--text-xs: 11px;
+		--text-sm: 12px;
+		--text-base: 13px;
+		--text-lg: 14px;
+		--text-xl: 15px;
+		--text-page: 18px;
+		--leading-base: 1.4;
+
+		--topbar: 3rem;
+		--ctl: 2rem;
+		--ctl-icon: 2rem;
+		--btn-px: 0.875rem;
+		--btn-gap: 0.375rem;
+		--btn-wrap: nowrap;
+		--field-px: 0.625rem;
+		--field-py: 0.25rem;
+		--chip-h: var(--ctl);
+		--chip-px: 0.75rem;
+		--badge-h: 1.25rem;
+		--badge-px: 0.5rem;
+		--badge-gap: 0.25rem;
+
+		--radius-control: 8px;
+		--radius-field: 8px;
+		--radius-card: 12px;
+		--card-border: 1px;
+		--field-border: var(--control-border);
+	}
+	/* Poste de bureau sur écran tactile : des contrôles assez grands pour le doigt. */
+	@media (pointer: coarse) {
+		:root[data-density='poste'] {
+			--ctl: 2.75rem;
+			--ctl-icon: 2.75rem;
+		}
+	}
+}

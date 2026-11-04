@@ -29,6 +29,7 @@ const queue = {
 			assigne_a: null,
 			assigne_a_nom: null,
 			mine: false,
+			comments: 0,
 		},
 		{
 			name: 'TC-2',
@@ -47,11 +48,14 @@ const queue = {
 			assigne_a: null,
 			assigne_a_nom: null,
 			mine: false,
+			comments: 0,
 		},
 	],
 	counts: { todo: 2, mine: 0, urgent: 1, creance: 0, closed: 4 },
-	truncated: false,
-	limit: 500,
+	total: 2,
+	start: 0,
+	page_length: 20,
+	names: ['TC-1', 'TC-2'],
 }
 const ticket = {
 	...queue.tickets[0],
@@ -96,6 +100,16 @@ const ticket = {
 		dossiers: [],
 	},
 	commande: null,
+	comments: { count: 2, last: { who: 'Commercial A', at: '2026-11-01 10:00:00', parts: [{ text: 'Le client relance', mention: false }] } },
+}
+const activity = {
+	comment_count: 1,
+	items: [
+		{ id: 'C1', kind: 'comment', who: 'Back Office', at: '2026-11-03 10:00:00', mine: true, text: 'Bonjour @Commercial A', parts: [{ text: 'Bonjour ', mention: false }, { text: '@Commercial A', mention: true }], mentions: [{ id: 'a@example.com', label: 'Commercial A' }] },
+		{ id: 'C2', kind: 'comment', who: 'Commercial A', at: '2026-11-02 10:00:00', mine: false, text: 'Message', parts: [{ text: 'Message', mention: false }], mentions: [] },
+		{ id: 'V1', kind: 'change', who: 'Back Office', at: '2026-11-01 11:00:00', changes: [{ label: 'Statut', old: 'Nouveau', new: 'En Cours' }] },
+		{ id: 'TC-1-creation', kind: 'create', who: 'Commercial A', at: '2026-11-01 10:00:00', text: 'a créé ce document' },
+	],
 }
 const candidates = {
 	candidates: [
@@ -123,7 +137,11 @@ const references = { types: ['Bon de commande'], statuses: ['Pending'], urgences
 function respond(url: string) {
 	const message = url.includes('get_queue')
 		? queue
-		: url.includes('get_references')
+		: /get_activity|add_comment|update_comment|delete_comment/.test(url)
+			? activity
+			: url.includes('get_mention_candidates')
+				? [{ id: 'a@example.com', label: 'Commercial A' }, { id: 'b@example.com', label: 'Autre Personne' }]
+				: url.includes('get_references')
 			? references
 			: url.includes('get_ticket')
 				? ticket
@@ -181,8 +199,7 @@ describe('poste de bureau', () => {
 		expect(text).toContain('→ U3')
 		expect(text).toContain('Retard 03/11')
 		expect(text).toContain('3/5 Créance vérifiée')
-		expect(text).toContain('Commercial A')
-		expect(row(wrapper, 'TC-2').text()).toContain('—')
+		expect(text).not.toContain('Commercial A')
 	})
 
 	it("ouvre l'aperçu au clic, change de ticket sans le fermer, puis ouvre la fiche", async () => {
@@ -205,7 +222,7 @@ describe('poste de bureau', () => {
 		expect(wrapper.find('.bureau-drawer').exists()).toBe(false)
 		expect(wrapper.text()).toContain('2 sur 2')
 
-		await wrapper.findAll('button').find((button) => button.text() === 'Retour à la liste')!.trigger('click')
+		await wrapper.find('.btn-ghost').trigger('click')
 		await flushPromises()
 		expect(router.currentRoute.value.query.apercu).toBe('TC-2')
 	})
@@ -219,6 +236,60 @@ describe('poste de bureau', () => {
 		expect(wrapper.text()).toContain('Étape 4 sur 5')
 	})
 
+	it('bascule le thème depuis le menu du compte et le garde sur cet appareil', async () => {
+		const { wrapper } = await open('/')
+		const before = document.documentElement.dataset.theme
+		await wrapper.find('button[aria-label^="Mon compte"]').trigger('click')
+		await wrapper.find('button[role="menuitem"]').trigger('click')
+		const after = document.documentElement.dataset.theme
+		expect(after).not.toBe(before)
+		expect(localStorage.getItem('bureau-theme')).toBe(after)
+		expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+		await wrapper.find('button[aria-label^="Mon compte"]').trigger('click')
+		await wrapper.find('button[role="menuitem"]').trigger('click')
+		expect(document.documentElement.dataset.theme).toBe(before)
+	})
+
+	it("montre les tickets en cours dans le menu et ouvre sur le Desk ce qui n'est pas encore repris", async () => {
+		const { wrapper } = await open('/')
+		const current = wrapper.find('.app-nav-item[aria-current="page"]')
+		expect(current.text()).toContain('Tickets')
+		expect(current.text()).toContain('2')
+		const commandes = wrapper.find('a.app-nav-item[href="/app/sales-order"]')
+		expect(commandes.attributes('target')).toBe('_blank')
+	})
+
+	it('replie le menu et garde ce choix sur cet appareil', async () => {
+		const { wrapper } = await open('/')
+		const shell = wrapper.find('.app-shell')
+		const before = shell.attributes('data-collapsed')
+		await wrapper.find('.app-collapse').trigger('click')
+		expect(shell.attributes('data-collapsed')).not.toBe(before)
+		expect(localStorage.getItem('bureau-menu')).toBe(before === 'true' ? 'open' : 'rail')
+	})
+
+	it('le fil d\'Ariane nomme la fiche ouverte et ramène à la liste', async () => {
+		const { wrapper } = await open('/ticket/TC-1')
+		const crumbs = wrapper.find('.app-crumbs')
+		expect(crumbs.text()).toContain('Client Un · TC-1')
+		expect(crumbs.find('a').text()).toBe('Tickets')
+	})
+
+	it('la recherche globale trouve un ticket, y compris clos, et ouvre sa fiche', async () => {
+		const { wrapper, router } = await open('/')
+		fetchMock.mockClear()
+		await wrapper.find('.global-search input').setValue('Client')
+		await new Promise((resolve) => setTimeout(resolve, 300))
+		await flushPromises()
+		const views = fetchMock.mock.calls.map(([url]) => new URL(String(url), 'http://x').searchParams.get('view'))
+		expect(views).toEqual(expect.arrayContaining(['todo', 'closed']))
+		const results = wrapper.findAll('.global-search-results .app-menu-item')
+		expect(results).toHaveLength(2)
+		await results[1].trigger('click')
+		await flushPromises()
+		expect(router.currentRoute.value.path).toBe('/ticket/TC-2')
+	})
+
 	it('va au ticket voisin depuis la fiche', async () => {
 		const { wrapper, router } = await open('/ticket/TC-1')
 		await flushPromises()
@@ -229,17 +300,217 @@ describe('poste de bureau', () => {
 		expect(router.currentRoute.value.params.id).toBe('TC-2')
 	})
 
-	it('trie au clic sur une colonne : croissant, décroissant, puis ordre du serveur', async () => {
+	const queueParams = () => {
+		const urls = fetchMock.mock.calls.map(([url]) => String(url)).filter((url) => url.includes('get_queue'))
+		return new URL(urls[urls.length - 1], 'http://x').searchParams
+	}
+
+	it('demande le tri au serveur : croissant, décroissant, puis ordre par défaut', async () => {
 		const { wrapper } = await open('/')
-		const names = () => wrapper.findAll('.list-client').map((item) => item.text())
-		const sortByClient = () => wrapper.find('.list-head [aria-label*="Client"]').trigger('click')
-		expect(names()).toEqual(['Client Un', 'Client Deux'])
+		const sortByClient = async () => {
+			await wrapper.find('.list-head [aria-label*="Client"]').trigger('click')
+			await flushPromises()
+		}
 		await sortByClient()
-		expect(names()).toEqual(['Client Deux', 'Client Un'])
+		expect(queueParams().get('sort')).toBe('client')
+		expect(queueParams().get('direction')).toBe('asc')
 		await sortByClient()
-		expect(names()).toEqual(['Client Un', 'Client Deux'])
+		expect(queueParams().get('direction')).toBe('desc')
 		await sortByClient()
-		expect(names()).toEqual(['Client Un', 'Client Deux'])
+		expect(queueParams().get('sort')).toBeNull()
+	})
+
+	it("n'offre pas le tri par étape", async () => {
+		const { wrapper } = await open('/')
+		expect(wrapper.find('.list-head [aria-label*="Étape"]').exists()).toBe(false)
+		expect(wrapper.find('.list-head').text()).toContain('Étape')
+	})
+
+	describe('pagination', () => {
+		const paged = { ...queue, total: 45, names: Array.from({ length: 45 }, (_, index) => `TC-${index + 1}`) }
+		beforeEach(() => {
+			localStorage.removeItem('bureau-tickets-par-page')
+			fetchMock.mockImplementation((input) => {
+				const url = String(input)
+				if (!url.includes('get_queue')) return respond(url)
+				const params = new URL(url, 'http://x').searchParams
+				return Promise.resolve(new Response(JSON.stringify({ message: { ...paged, start: Number(params.get('start')), page_length: Number(params.get('page_length')) } }), { status: 200 }))
+			})
+		})
+		afterEach(() => {
+			fetchMock.mockImplementation((input) => respond(String(input)))
+			localStorage.removeItem('bureau-tickets-par-page')
+		})
+
+		it("affiche la position, change de page et garde la page dans l'adresse", async () => {
+			const { wrapper, router } = await open('/')
+			expect(wrapper.find('.pager').text()).toContain('1–20 sur 45')
+			expect(wrapper.find('.pager').text()).toContain('Page 1 sur 3')
+			expect(wrapper.find('[aria-label="Page précédente"]').attributes('disabled')).toBeDefined()
+			await wrapper.find('[aria-label="Page suivante"]').trigger('click')
+			await flushPromises()
+			expect(queueParams().get('start')).toBe('20')
+			expect(wrapper.find('.pager').text()).toContain('21–40 sur 45')
+			await flushPromises()
+			expect(router.currentRoute.value.query.page).toBe('2')
+		})
+
+		it("reprend la page et la vue depuis l'adresse", async () => {
+			await open('/?vue=mine&page=3')
+			expect(queueParams().get('view')).toBe('mine')
+			expect(queueParams().get('start')).toBe('40')
+		})
+
+		it('changer de taille ramène à la première page et reste en mémoire', async () => {
+			const { wrapper } = await open('/?page=2')
+			await wrapper.findAll('.seg button').find((button) => button.text() === '100')!.trigger('click')
+			await flushPromises()
+			expect(queueParams().get('start')).toBe('0')
+			expect(queueParams().get('page_length')).toBe('100')
+			expect(localStorage.getItem('bureau-tickets-par-page')).toBe('100')
+		})
+
+		it('changer de vue ramène à la première page', async () => {
+			const { wrapper } = await open('/?page=2')
+			await wrapper.find('.view[aria-label^="À moi"]').trigger('click')
+			await flushPromises()
+			expect(queueParams().get('view')).toBe('mine')
+			expect(queueParams().get('start')).toBe('0')
+		})
+
+		it('changer de page vide la sélection', async () => {
+			const { wrapper } = await open('/')
+			await row(wrapper, 'TC-1').find('input[type="checkbox"]').setValue(true)
+			expect(wrapper.find('.bureau-bulk').exists()).toBe(true)
+			await wrapper.find('[aria-label="Page suivante"]').trigger('click')
+			await flushPromises()
+			expect(wrapper.find('.bureau-bulk').exists()).toBe(false)
+		})
+
+		it('la fiche va au ticket voisin au-delà de la page affichée', async () => {
+			const { wrapper, router } = await open('/ticket/TC-2')
+			expect(wrapper.text()).toContain('2 sur 45')
+			await wrapper.find('[aria-label="Ticket suivant"]').trigger('click')
+			await flushPromises()
+			expect(router.currentRoute.value.params.id).toBe('TC-3')
+		})
+	})
+
+	it('choisit les colonnes et garde ce choix', async () => {
+		localStorage.removeItem('bureau-tickets-colonnes')
+		const { wrapper } = await open('/')
+		await wrapper.find('[aria-label="Choisir les colonnes"]').trigger('click')
+		const commercial = wrapper.findAll('[role="menuitemcheckbox"]').find((item) => item.text() === 'Commercial')!
+		await commercial.trigger('click')
+		expect(row(wrapper, 'TC-1').text()).toContain('Commercial A')
+		expect(JSON.parse(localStorage.getItem('bureau-tickets-colonnes')!)).toContain('commercial')
+		localStorage.removeItem('bureau-tickets-colonnes')
+	})
+
+	it("distingue une vue vide d'une recherche sans résultat", async () => {
+		fetchMock.mockImplementation((input) => {
+			const url = String(input)
+			if (url.includes('get_queue')) return Promise.resolve(new Response(JSON.stringify({ message: { ...queue, tickets: [], names: [], total: 0 } }), { status: 200 }))
+			return respond(url)
+		})
+		const { wrapper } = await open('/')
+		expect(wrapper.find('.list-state').text()).toContain('Rien dans cette vue')
+		await wrapper.find('.bureau-search').setValue('xyz')
+		expect(wrapper.find('.list-state').text()).toContain('Aucun résultat')
+		await wrapper.find('.list-state button').trigger('click')
+		expect((wrapper.find('.bureau-search').element as HTMLInputElement).value).toBe('')
+		fetchMock.mockImplementation((input) => respond(String(input)))
+	})
+
+	describe('commentaires et activité', () => {
+		it("montre les bulles et l'historique, avec les outils sur ses seuls commentaires", async () => {
+			const { wrapper } = await open('/ticket/TC-1')
+			await flushPromises()
+			const feed = wrapper.find('.activity')
+			expect(feed.findAll('.comment-bubble')).toHaveLength(2)
+			expect(feed.findAll('.comment-tools')).toHaveLength(1)
+			expect(feed.find('.mention').text()).toBe('@Commercial A')
+			expect(feed.text()).toContain('a changé Statut de Nouveau à En Cours')
+			expect(feed.text()).toContain('a créé ce document')
+			expect(wrapper.text()).toContain('2 commentaires')
+		})
+
+		it('filtre le fil', async () => {
+			const { wrapper } = await open('/ticket/TC-1')
+			await flushPromises()
+			const filterBy = async (label: string) => {
+				await wrapper.findAll('.activity .seg button').find((button) => button.text().startsWith(label))!.trigger('click')
+			}
+			await filterBy('Commentaires')
+			expect(wrapper.findAll('.activity .act-item')).toHaveLength(2)
+			await filterBy('Historique')
+			expect(wrapper.findAll('.comment-bubble')).toHaveLength(0)
+			expect(wrapper.findAll('.activity .act-item')).toHaveLength(2)
+		})
+
+		it('envoie un commentaire avec sa mention, puis vide la saisie', async () => {
+			const { wrapper } = await open('/ticket/TC-1')
+			await flushPromises()
+			const input = wrapper.find('textarea[aria-label="Écrire un commentaire"]')
+			const send = () => wrapper.findAll('.comment-foot button')[0]
+			expect(send().attributes('disabled')).toBeDefined()
+			await input.setValue('Bonjour @Comm')
+			;(input.element as HTMLTextAreaElement).setSelectionRange(13, 13)
+			await input.trigger('input')
+			await flushPromises()
+			await flushPromises()
+			const options = wrapper.findAll('.mention-menu .app-menu-item')
+			expect(options).toHaveLength(1)
+			await options[0].trigger('click')
+			await flushPromises()
+			expect((input.element as HTMLTextAreaElement).value).toBe('Bonjour @Commercial A ')
+			await send().trigger('click')
+			await flushPromises()
+			const call = posted().find((item) => item.url.includes('add_comment'))!
+			expect(call.body.text).toBe('Bonjour @Commercial A')
+			expect(call.body.mentions).toEqual([{ id: 'a@example.com', label: 'Commercial A' }])
+			expect((input.element as HTMLTextAreaElement).value).toBe('')
+		})
+
+		it('garde le texte si le serveur refuse', async () => {
+			const { wrapper } = await open('/ticket/TC-1')
+			await flushPromises()
+			fetchMock.mockImplementationOnce(() => Promise.resolve(new Response(JSON.stringify({ exception: 'frappe.ValidationError: Refusé' }), { status: 417 })))
+			const input = wrapper.find('textarea[aria-label="Écrire un commentaire"]')
+			await input.setValue('Mon message')
+			await wrapper.findAll('.comment-foot button')[0].trigger('click')
+			await flushPromises()
+			expect(wrapper.find('.comment-field [role="alert"]').exists()).toBe(true)
+			expect((input.element as HTMLTextAreaElement).value).toBe('Mon message')
+		})
+
+		it('modifie puis supprime son commentaire après confirmation', async () => {
+			const { wrapper } = await open('/ticket/TC-1')
+			await flushPromises()
+			await wrapper.find('[aria-label="Modifier ce commentaire"]').trigger('click')
+			await wrapper.find('textarea[aria-label="Modifier le commentaire"]').setValue('Corrigé')
+			await wrapper.findAll('.comment-bubble button').find((button) => button.text() === 'Enregistrer')!.trigger('click')
+			await flushPromises()
+			const updated = posted().find((item) => item.url.includes('update_comment'))!
+			expect(updated.body).toMatchObject({ name: 'TC-1', comment: 'C1', text: 'Corrigé' })
+
+			await wrapper.find('[aria-label="Supprimer ce commentaire"]').trigger('click')
+			expect(posted().some((item) => item.url.includes('delete_comment'))).toBe(false)
+			await wrapper.findAll('.comment-confirm button').find((button) => button.text() === 'Supprimer')!.trigger('click')
+			await flushPromises()
+			expect(posted().find((item) => item.url.includes('delete_comment'))!.body.comment).toBe('C1')
+		})
+
+		it("montre le dernier commentaire dans l'aperçu et ouvre la fiche sur le fil", async () => {
+			const { wrapper, router } = await open('/?apercu=TC-1')
+			await flushPromises()
+			const drawer = wrapper.find('.bureau-drawer')
+			expect(drawer.text()).toContain('Le client relance')
+			await drawer.findAll('button').find((button) => button.text() === 'Voir les 2 commentaires')!.trigger('click')
+			await flushPromises()
+			expect(router.currentRoute.value.params.id).toBe('TC-1')
+			expect(router.currentRoute.value.query.fil).toBe('1')
+		})
 	})
 
 	it("cocher une ligne n'ouvre pas l'aperçu et propose les actions concernées", async () => {

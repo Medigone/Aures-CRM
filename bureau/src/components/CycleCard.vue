@@ -56,14 +56,14 @@ const groups = computed(() => {
 		<h3 class="text-base font-semibold">Cycle du dossier</h3>
 		<p v-if="!groups.length" class="text-ink-gray-6">Aucune demande de faisabilité ni devis pour l'instant.</p>
 		<div v-for="group in groups" :key="group.key" class="flex flex-col gap-0.5 border-t border-outline-gray-1 pt-1.5">
-			<a :href="group.url" target="_blank" rel="noopener noreferrer" class="flex min-h-[var(--ctl)] items-center justify-between gap-2 rounded-xl hover:bg-surface-gray-2">
+			<a :href="group.url" target="_blank" rel="noopener noreferrer" class="flex min-h-[var(--ctl)] items-center justify-between gap-2 rounded-control hover:bg-surface-gray-2">
 				<span class="min-w-0">
 					<span class="block font-semibold text-accent">{{ group.label }}</span>
 					<span class="block text-xs text-ink-gray-6">{{ group.name }}</span>
 				</span>
 				<StatusPill :status="group.status" />
 			</a>
-			<a v-for="child in group.children" :key="child.key" :href="child.url" target="_blank" rel="noopener noreferrer" class="flex min-h-[var(--ctl)] items-center justify-between gap-2 rounded-xl pl-2.5 text-sm text-ink-gray-7 hover:bg-surface-gray-2">
+			<a v-for="child in group.children" :key="child.key" :href="child.url" target="_blank" rel="noopener noreferrer" class="flex min-h-[var(--ctl)] items-center justify-between gap-2 rounded-control pl-2.5 text-sm text-ink-gray-7 hover:bg-surface-gray-2">
 				<span class="min-w-0">
 					<span class="block">{{ child.label }}</span>
 					<span class="block break-words text-xs text-ink-gray-6">{{ child.sub }}</span>

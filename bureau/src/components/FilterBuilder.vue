@@ -45,7 +45,7 @@ function add() {
 <template>
 	<div class="card flex max-h-[40vh] flex-none flex-col gap-1.5 overflow-y-auto p-2">
 		<p v-if="!modelValue.length" class="text-ink-gray-6">Aucun filtre. Chaque filtre ajouté s'ajoute aux précédents.</p>
-		<div v-for="condition in modelValue" :key="condition.id" class="flex flex-col gap-1.5 rounded-[10px] border border-outline-gray-2 p-2">
+		<div v-for="condition in modelValue" :key="condition.id" class="flex flex-col gap-1.5 rounded-control border border-outline-gray-2 p-2">
 			<div class="flex items-center gap-1.5">
 				<select class="field-input min-w-0 flex-1" aria-label="Champ du filtre" :value="condition.field" @change="setField(condition, $event)">
 					<option v-for="field in FIELDS" :key="field.value" :value="field.value">{{ field.label }}</option>

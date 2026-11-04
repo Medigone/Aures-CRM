@@ -1,4 +1,5 @@
-/** Règles de la liste des tickets : colonnes, tri, cellules et actions groupées. */
+/** Règles de la liste des tickets : colonnes, tri, export et actions groupées. */
+import { statusLabel } from './display'
 import type { BulkResult, QueueTicket } from '@/types'
 
 export interface Sort {
@@ -6,38 +7,69 @@ export interface Sort {
 	dir: 'asc' | 'desc'
 }
 
-const RANK: Record<string, number> = { U0: 0, U1: 1, U2: 2, U3: 3 }
-
-/** Une demande d'urgence en attente compte déjà, comme dans le tri du serveur. */
-function urgenceLevel(ticket: QueueTicket) {
-	const level = RANK[ticket.niveau_urgence] ?? 0
-	return ticket.urgence_en_attente ? Math.max(level, RANK[ticket.niveau_urgence_demande || ''] ?? 0) : level
+export interface Column {
+	key: string
+	label: string
+	/** Largeur fixe en pixels, ou minimum d'une colonne qui partage la place restante. */
+	width: number
+	grow?: number
+	sortable: boolean
+	/** Absente de l'affichage par défaut : elle s'ajoute par le menu Colonnes. */
+	optional?: boolean
+	/** Valeur de l'export. */
+	text: (ticket: QueueTicket) => string | number
 }
 
-// Ordre choisi pour le tiroir : il couvre la droite de la liste, l'essentiel reste donc à gauche.
-export const COLUMNS: { key: string; label: string; value: (ticket: QueueTicket) => string | number }[] = [
-	{ key: 'client', label: 'Client', value: (ticket) => ticket.client },
-	{ key: 'type', label: 'Type', value: (ticket) => ticket.request_type },
-	{ key: 'status', label: 'Statut', value: (ticket) => ticket.status },
-	{ key: 'urgence', label: 'Urg.', value: urgenceLevel },
-	{ key: 'echeance', label: 'Échéance', value: (ticket) => ticket.echeance || '9999' },
-	{ key: 'step', label: 'Étape', value: ({ step }) => (step.current === null ? 99 : step.current / step.total) },
-	{ key: 'name', label: 'N° ticket', value: (ticket) => ticket.name },
-	{ key: 'creance', label: 'Créance', value: (ticket) => ticket.statut_creance || '' },
-	{ key: 'commercial', label: 'Commercial', value: (ticket) => ticket.commercial || '' },
-	{ key: 'assigne', label: 'Pris en charge', value: (ticket) => ticket.assigne_a_nom || '~' },
+export const COLUMNS: Column[] = [
+	{ key: 'client', label: 'Client', width: 150, grow: 1.5, sortable: true, text: (ticket) => ticket.client },
+	{ key: 'type', label: 'Type', width: 120, grow: 1.1, sortable: true, text: (ticket) => ticket.request_type },
+	{ key: 'status', label: 'Statut', width: 124, sortable: true, text: (ticket) => statusLabel(ticket.status) },
+	{ key: 'urgence', label: 'Urg.', width: 74, sortable: true, text: (ticket) => ticket.niveau_urgence },
+	{ key: 'echeance', label: 'Échéance', width: 92, sortable: true, text: (ticket) => ticket.echeance || '' },
+	// L'étape se calcule ligne par ligne sur le serveur : elle ne peut pas trier toute la vue.
+	{ key: 'step', label: 'Étape', width: 150, grow: 1.3, sortable: false, text: (ticket) => stepText(ticket) },
+	{ key: 'name', label: 'N° ticket', width: 118, sortable: true, text: (ticket) => ticket.name },
+	{ key: 'assigne', label: 'Pris en charge', width: 120, grow: 1.1, sortable: true, text: (ticket) => ticket.assigne_a_nom || '' },
+	{ key: 'comments', label: 'Comm.', width: 56, sortable: false, text: (ticket) => ticket.comments },
+	{ key: 'commercial', label: 'Commercial', width: 120, grow: 1.1, sortable: true, optional: true, text: (ticket) => ticket.commercial || '' },
+	{ key: 'creance', label: 'Créance', width: 104, sortable: true, optional: true, text: (ticket) => creanceText(ticket) },
 ]
 
-/** Sans tri choisi, l'ordre du serveur reste : urgence, puis échéance. */
-export function sortTickets(tickets: QueueTicket[], sort: Sort | null) {
+export const DEFAULT_COLUMNS = COLUMNS.filter((column) => !column.optional).map((column) => column.key)
+export const SORTABLE_COLUMNS = COLUMNS.filter((column) => column.sortable)
+const CHECK_WIDTH = 36
+const COLUMN_GAP = 10
+const RIGHT_PADDING = 14
+
+/** La colonne Client reste toujours affichée ; une clé inconnue, venue d'un ancien réglage, est ignorée. */
+export function visibleColumns(keys: string[]) {
+	return COLUMNS.filter((column) => column.key === 'client' || keys.includes(column.key))
+}
+
+export function gridTemplate(columns: Column[]) {
+	return columns.map((column) => (column.grow ? `minmax(${column.width}px, ${column.grow}fr)` : `${column.width}px`)).join(' ')
+}
+
+export function minListWidth(columns: Column[]) {
+	return CHECK_WIDTH + RIGHT_PADDING + columns.reduce((sum, column) => sum + column.width, 0) + COLUMN_GAP * (columns.length - 1)
+}
+
+export function sortText(sort: Sort | null) {
 	const column = sort && COLUMNS.find((item) => item.key === sort.key)
-	if (!column) return tickets
-	const sign = sort!.dir === 'asc' ? 1 : -1
-	return [...tickets].sort((a, b) => {
-		const x = column.value(a)
-		const y = column.value(b)
-		return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'fr')) * sign
-	})
+	return column ? `Tri : ${column.label.toLowerCase()}` : 'Tri : urgence, puis échéance'
+}
+
+function csvCell(value: string | number) {
+	const text = String(value)
+	// Un tableur exécuterait une cellule qui commence par l'un de ces signes.
+	const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text
+	return /[;"\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe
+}
+
+/** CSV au format attendu par Excel en français : point-virgule, et marque d'encodage pour les accents. */
+export function ticketsToCsv(tickets: QueueTicket[], columns: Column[]) {
+	const lines = [columns.map((column) => csvCell(column.label)), ...tickets.map((ticket) => columns.map((column) => csvCell(column.text(ticket))))]
+	return `\ufeff${lines.map((line) => line.join(';')).join('\r\n')}`
 }
 
 /** Un clic trie, le deuxième inverse, le troisième revient à l'ordre du serveur. */

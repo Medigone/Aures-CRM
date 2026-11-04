@@ -27,7 +27,7 @@ function decide(decision: 'validate' | 'refuse') {
 </script>
 
 <template>
-	<div class="card flex flex-col gap-2 p-3.5" style="background-color: #fff4e8">
+	<div class="card flex flex-col gap-2 bg-tone-amber-bg p-3.5">
 		<h3 class="text-base font-semibold">Demande d'urgence {{ ticket.niveau_urgence_demande }} à décider</h3>
 		<p class="whitespace-pre-line text-ink-gray-8">{{ htmlToText(ticket.descr_urgence) || 'Aucun motif indiqué.' }}</p>
 		<div class="flex flex-col gap-1.5">
@@ -37,7 +37,7 @@ function decide(decision: 'validate' | 'refuse') {
 					v-for="item in LEVELS"
 					:key="item"
 					type="button"
-					class="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[10px] border-2 bg-surface-white px-1 py-1.5 transition"
+					class="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-control border-2 bg-surface-white px-1 py-1.5 transition"
 					:class="chosen === item ? 'border-primary' : 'border-outline-gray-2 hover:border-outline-gray-3'"
 					:aria-pressed="chosen === item"
 					:disabled="busy || readOnly"

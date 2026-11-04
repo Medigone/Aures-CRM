@@ -33,7 +33,7 @@ function remove(document: TicketDocument) {
 		</div>
 		<p v-if="!documents.length" class="text-sm text-ink-gray-6">Aucun document joint.</p>
 		<div v-for="document in documents" :key="document.name" class="flex items-center gap-1">
-			<a :href="fileUrl(document.file_url) || undefined" target="_blank" rel="noopener noreferrer" class="flex min-h-10 min-w-0 flex-auto items-center gap-2 rounded-[10px] p-1 transition hover:bg-surface-gray-2">
+			<a :href="fileUrl(document.file_url) || undefined" target="_blank" rel="noopener noreferrer" class="flex min-h-10 min-w-0 flex-auto items-center gap-2 rounded-control p-1 transition hover:bg-surface-gray-2">
 				<span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-gray-3 text-xs font-bold text-ink-gray-8">{{ fileExtension(document.file_name) }}</span>
 				<span class="min-w-0 flex-auto">
 					<span class="block break-words font-medium">{{ document.file_name }}</span>

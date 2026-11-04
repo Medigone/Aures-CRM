@@ -3,6 +3,7 @@
  * Les messages ne portent que des identifiants ; l'application recharge ensuite ses données par l'API.
  */
 import { io, type Socket } from 'socket.io-client'
+import { ref } from 'vue'
 
 declare global {
 	interface Window {
@@ -44,6 +45,9 @@ export function throttledReload(reload: () => void, { delayMs = 3000, minInterva
 
 let socket: Socket | null = null
 
+/** Vrai tant que les changements faits ailleurs arrivent seuls. */
+export const realtimeConnected = ref(false)
+
 /** Connexion Socket.IO alignée sur Frappe (namespace = site, proxy nginx en production). */
 export function connectRealtime<T extends RealtimeEvent>(eventName: string, onEvent: (event: T) => void, onReconnect: () => void): Socket | null {
 	if (socket) return socket
@@ -56,8 +60,10 @@ export function connectRealtime<T extends RealtimeEvent>(eventName: string, onEv
 	let disconnected = false
 	socket.on('disconnect', () => {
 		disconnected = true
+		realtimeConnected.value = false
 	})
 	socket.on('connect', () => {
+		realtimeConnected.value = true
 		if (!disconnected) return
 		disconnected = false
 		onReconnect()
@@ -76,4 +82,5 @@ export function connectRealtime<T extends RealtimeEvent>(eventName: string, onEv
 export function closeRealtime() {
 	socket?.disconnect()
 	socket = null
+	realtimeConnected.value = false
 }

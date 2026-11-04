@@ -1,4 +1,5 @@
 /** File, tickets et actions. Les règles restent côté serveur (aurescrm/api/bureau.py). */
+import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
 import { call, uploadFile } from '@shared/api'
 import type { BulkResult, CandidateDemande, QueueResponse, QueueTicket, QueueView, References, TicketDetail } from '@/types'
 import type { Condition } from './filters'
@@ -7,8 +8,23 @@ import { conditionsForServer } from './filters'
 const BUREAU = 'aurescrm.api.bureau'
 const TICKET = 'aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial'
 
-export const getQueue = (view: QueueView, conditions: Condition[], search: string) =>
-	call<QueueResponse>(`${BUREAU}.get_queue`, { view, conditions: conditionsForServer(conditions), search: search.trim() || undefined })
+export interface QueuePaging {
+	start?: number
+	pageLength?: number
+	sort?: string
+	direction?: 'asc' | 'desc'
+}
+
+export const getQueue = (view: QueueView, conditions: Condition[], search: string, paging: QueuePaging = {}) =>
+	call<QueueResponse>(`${BUREAU}.get_queue`, {
+		view,
+		conditions: conditionsForServer(conditions),
+		search: search.trim() || undefined,
+		start: paging.start,
+		page_length: paging.pageLength,
+		sort: paging.sort,
+		direction: paging.direction,
+	})
 
 export const getReferences = () => call<References>(`${BUREAU}.get_references`)
 
@@ -51,4 +67,15 @@ export const bulkAction = (tickets: QueueTicket[], name: string) =>
 export async function attachFiles(ticket: TicketDetail, files: File[]) {
 	for (const file of files) await uploadFile(file, 'Ticket Commercial', ticket.name)
 	return getTicket(ticket.name)
+}
+
+/** Commentaires et activité d'un ticket, pour le fil commun. */
+export function ticketActivity(name: string): ActivityApi {
+	return {
+		load: () => call<ActivityFeedData>(`${BUREAU}.get_activity`, { name }),
+		add: (text, mentions) => call<ActivityFeedData>(`${BUREAU}.add_comment`, { name, text, mentions }, true),
+		update: (comment, text, mentions) => call<ActivityFeedData>(`${BUREAU}.update_comment`, { name, comment, text, mentions }, true),
+		remove: (comment) => call<ActivityFeedData>(`${BUREAU}.delete_comment`, { name, comment }, true),
+		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
+	}
 }

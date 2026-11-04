@@ -11,12 +11,14 @@ changé entre-temps, l'action est refusée plutôt que d'écraser le travail d'u
 """
 
 import json
+import unicodedata
 
 import frappe
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_transitions
 from frappe.utils import cint, cstr, get_fullname, getdate, strip_html, today
 
+from aurescrm.api import activity
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
 	CHECKLIST_TERMINE_FIELDS,
 	get_cycle_documents,
@@ -44,9 +46,9 @@ URGENCE_RANK = {"U0": 0, "U1": 1, "U2": 2, "U3": 3}
 # Le blocage passe par la carte Créance, qui exige un motif : pas de bouton de workflow pour lui.
 HIDDEN_ACTIONS = {"Bloquer Créance"}
 
-# Au-delà, la file est tronquée et le signale : le tri par urgence se fait ici, pas en base.
-QUEUE_LIMIT = 500
-CLOSED_LIMIT = 100
+# Tailles de page : la file trie ici, sur toute la vue, puis ne calcule les étapes que de la page demandée.
+DEFAULT_PAGE_LENGTH = 20
+MAX_PAGE_LENGTH = 500
 
 # Actions groupées : seulement ce qui ne demande ni saisie ni contrôle ticket par ticket, et reste réversible.
 BULK_LIMIT = 100
@@ -75,6 +77,25 @@ QUEUE_FIELDS = [
 	"devis_rapproche",
 	"demande_faisabilite_rapprochee",
 	*sorted({fieldname for fields in CHECKLIST_TERMINE_FIELDS.values() for fieldname in fields}),
+]
+
+# Champs lus pour trier toute la vue : peu de colonnes, car elle peut compter des milliers de lignes.
+QUEUE_ORDER_FIELDS = [
+	"name",
+	"customer",
+	"customer_name",
+	"request_type",
+	"status",
+	"echeance",
+	"creation",
+	"modified",
+	"niveau_urgence",
+	"niveau_urgence_demande",
+	"statut_demande_urgence",
+	"assigne_a_nom",
+	"commercial",
+	"nom_commercial",
+	"statut_creance",
 ]
 
 # Filtre de la file → (champ du ticket, nature de la valeur).
@@ -174,6 +195,52 @@ def queue_level(ticket):
 
 def queue_sort_key(ticket):
 	return (-queue_level(ticket), cstr(ticket.get("echeance")) or "9999-12-31", cstr(ticket.get("creation")))
+
+
+def _sort_text(value):
+	"""Texte comparable : sans accents ni casse, pour que « Étui » se range avec les E."""
+	decomposed = unicodedata.normalize("NFD", cstr(value))
+	return "".join(char for char in decomposed if not unicodedata.combining(char)).casefold()
+
+
+# Colonne triable → valeur de tri. L'étape n'y figure pas : elle se calcule ligne par ligne (`compute_steps`).
+QUEUE_SORTS = {
+	"client": lambda row: row.customer_name or row.customer,
+	"type": lambda row: row.request_type,
+	"status": lambda row: row.status,
+	"urgence": queue_level,
+	"echeance": lambda row: str(row.echeance) if row.echeance else None,
+	"name": lambda row: row.name,
+	"creance": lambda row: row.statut_creance,
+	"commercial": lambda row: row.nom_commercial or row.commercial,
+	"assigne": lambda row: row.assigne_a_nom,
+}
+
+
+def order_queue(rows, view, sort=None, direction=None):
+	"""Ordre de la vue : la colonne choisie (lignes sans valeur à la fin), sinon urgence puis échéance."""
+	if sort:
+		value_of = QUEUE_SORTS.get(sort)
+		if not value_of:
+			frappe.throw(_("Tri inconnu : {0}").format(sort))
+		filled, empty = [], []
+		for row in rows:
+			value = value_of(row)
+			(empty if value in (None, "") else filled).append((_sort_text(value) if isinstance(value, str) else value, row))
+		filled.sort(key=lambda pair: pair[0], reverse=direction == "desc")
+		return [row for _value, row in filled] + [row for _value, row in empty]
+	if view == "closed":
+		return sorted(rows, key=lambda row: cstr(row.modified), reverse=True)
+	return sorted(rows, key=queue_sort_key)
+
+
+def page_bounds(total, start, page_length):
+	"""Début et taille valides : une page devenue vide ramène à la dernière page qui existe."""
+	length = min(max(cint(page_length) or DEFAULT_PAGE_LENGTH, 1), MAX_PAGE_LENGTH)
+	first = max(cint(start), 0)
+	if first >= total:
+		first = max(total - 1, 0) // length * length
+	return first, length
 
 
 def _search_filters(search):
@@ -277,8 +344,8 @@ def _queue_documents(tickets):
 
 
 @frappe.whitelist()
-def get_queue(view="todo", conditions=None, search=None):
-	"""File de travail : tickets de la vue, triés, et compteurs de toutes les vues pour les mêmes filtres."""
+def get_queue(view="todo", conditions=None, search=None, start=0, page_length=DEFAULT_PAGE_LENGTH, sort=None, direction=None):
+	"""Une page de la file, le total et l'ordre de toute la vue, et les compteurs de toutes les vues pour les mêmes filtres."""
 	user = require_bureau()
 	base = condition_filters(_parse(conditions))
 	or_filters = _search_filters(search)
@@ -294,29 +361,44 @@ def get_queue(view="todo", conditions=None, search=None):
 		)
 		counts[name] = rows[0].total if rows else 0
 
-	is_closed_view = view == "closed"
-	limit = CLOSED_LIMIT if is_closed_view else QUEUE_LIMIT
-	tickets = frappe.get_list(
-		TICKET,
-		filters=base + view_filters(view, user),
-		or_filters=or_filters,
-		fields=QUEUE_FIELDS,
-		order_by="modified desc" if is_closed_view else "creation desc",
-		limit_page_length=limit,
+	ordered = order_queue(
+		frappe.get_list(
+			TICKET,
+			filters=base + view_filters(view, user),
+			or_filters=or_filters,
+			fields=QUEUE_ORDER_FIELDS,
+			limit_page_length=0,
+		),
+		view,
+		sort,
+		direction,
 	)
-	if not is_closed_view:
-		tickets.sort(key=queue_sort_key)
+	names = [row.name for row in ordered]
+	first, length = page_bounds(len(names), start, page_length)
+	page_names = names[first : first + length]
+
+	# Les étapes coûtent cher : seules les lignes de la page les calculent.
+	tickets = frappe.get_list(TICKET, filters=[["name", "in", page_names]], fields=QUEUE_FIELDS, limit_page_length=0) if page_names else []
+	position = {name: index for index, name in enumerate(page_names)}
+	tickets.sort(key=lambda ticket: position[ticket.name])
 
 	current_day = today()
 	cycles, commandes = _queue_documents(tickets)
+	comments = activity.comment_counts(TICKET, page_names)
 	return {
 		"tickets": [
-			_queue_row(ticket, user, current_day, cycles.get(ticket.name), commandes.get(ticket.name))
+			{
+				**_queue_row(ticket, user, current_day, cycles.get(ticket.name), commandes.get(ticket.name)),
+				"comments": comments.get(ticket.name, 0),
+			}
 			for ticket in tickets
 		],
 		"counts": counts,
-		"truncated": len(tickets) >= limit,
-		"limit": limit,
+		"total": len(names),
+		"start": first,
+		"page_length": length,
+		# Toute la vue, pour aller au ticket voisin depuis la fiche, au-delà de la page affichée.
+		"names": names,
 	}
 
 
@@ -586,6 +668,7 @@ def get_ticket(name):
 		"documents": _ticket_documents(doc.name, user, _is_open(doc.status)),
 		"cycle": cycle,
 		"commande": commande,
+		"comments": activity.comment_summary(TICKET, doc.name),
 	}
 
 
@@ -770,3 +853,34 @@ def remove_document(name, file):
 	# Droits contrôlés ci-dessus : le rôle n'a pas forcément de droit direct sur le DocType File.
 	frappe.delete_doc("File", file, ignore_permissions=True)
 	return get_ticket(name)
+
+
+@frappe.whitelist()
+def get_activity(name):
+	"""Commentaires et activité du ticket : les mêmes que sur le Desk."""
+	require_bureau()
+	return activity.get_feed(TICKET, name)
+
+
+@frappe.whitelist()
+def get_mention_candidates():
+	require_bureau()
+	return activity.mention_candidates()
+
+
+@frappe.whitelist(methods=["POST"])
+def add_comment(name, text, mentions=None):
+	require_bureau()
+	return activity.add_comment(TICKET, name, text, mentions)
+
+
+@frappe.whitelist(methods=["POST"])
+def update_comment(name, comment, text, mentions=None):
+	require_bureau()
+	return activity.update_comment(TICKET, name, comment, text, mentions)
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_comment(name, comment):
+	require_bureau()
+	return activity.delete_comment(TICKET, name, comment)

@@ -10,7 +10,9 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from aurescrm.api import bureau
+from frappe.desk.notifications import extract_mentions
+
+from aurescrm.api import activity, bureau
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import generate_etude_faisabilite
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import update_assigne_a
 
@@ -520,3 +522,182 @@ class TestEvents(FrappeTestCase):
 		self.assertEqual(publish.call_count, 2)
 		message = publish.call_args.args[1]
 		self.assertEqual(message, {"doctype": "Demande Faisabilite", "name": "DF-1", "ticket": "TC-1", "by": frappe.session.user, "deleted": 0})
+
+
+class TestPagination(FrappeTestCase):
+	"""Tri et pagination se font côté serveur, sur toute la vue."""
+
+	def _rows(self, *values):
+		return [frappe._dict(name=f"T{index}", customer_name=value, request_type="Autre") for index, value in enumerate(values)]
+
+	def test_tri_sans_accents_ni_casse(self):
+		rows = bureau.order_queue(self._rows("Zeta", "étui", "Alpha"), "todo", "client", "asc")
+		self.assertEqual([row.customer_name for row in rows], ["Alpha", "étui", "Zeta"])
+
+	def test_tri_decroissant(self):
+		rows = bureau.order_queue(self._rows("Alpha", "Zeta"), "todo", "client", "desc")
+		self.assertEqual([row.customer_name for row in rows], ["Zeta", "Alpha"])
+
+	def test_valeurs_vides_a_la_fin_dans_les_deux_sens(self):
+		for direction in ("asc", "desc"):
+			rows = bureau.order_queue(self._rows(None, "Alpha", "Zeta"), "todo", "client", direction)
+			self.assertIsNone(rows[-1].customer_name)
+
+	def test_tri_inconnu_refuse(self):
+		with self.assertRaises(frappe.ValidationError):
+			bureau.order_queue([], "todo", "step", "asc")
+
+	def test_bornes_de_page(self):
+		self.assertEqual(bureau.page_bounds(50, 20, 20), (20, 20))
+		self.assertEqual(bureau.page_bounds(50, 60, 20), (40, 20), "une page disparue ramène à la dernière")
+		self.assertEqual(bureau.page_bounds(40, 40, 20), (20, 20))
+		self.assertEqual(bureau.page_bounds(0, 40, 20), (0, 20))
+		self.assertEqual(bureau.page_bounds(50, -5, 9999), (0, bureau.MAX_PAGE_LENGTH))
+		self.assertEqual(bureau.page_bounds(50, 0, 0), (0, bureau.DEFAULT_PAGE_LENGTH))
+
+	def test_pages_de_la_file(self):
+		frappe.set_user("Administrator")
+		complete = bureau.get_queue("todo", page_length=bureau.MAX_PAGE_LENGTH)
+		if complete["total"] < 3:
+			self.skipTest("Moins de 3 tickets ouverts.")
+		first = bureau.get_queue("todo", start=0, page_length=2)
+		second = bureau.get_queue("todo", start=2, page_length=2)
+		self.assertEqual(first["total"], complete["total"])
+		self.assertEqual(first["names"], complete["names"])
+		self.assertEqual([row["name"] for row in first["tickets"]], complete["names"][:2])
+		self.assertEqual([row["name"] for row in second["tickets"]], complete["names"][2:4])
+		self.assertEqual(second["start"], 2)
+		self.assertTrue(all("comments" in row for row in first["tickets"]))
+
+
+class TestActivite(FrappeTestCase):
+	"""Le fil lit les mêmes sources que la timeline du Desk."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.commit = patch("frappe.db.commit")
+		self.commit.start()
+		self.name = frappe.db.get_value("Ticket Commercial", {}, "name")
+		if not self.name:
+			self.skipTest("Aucun ticket.")
+
+	def tearDown(self):
+		self.commit.stop()
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+
+	def _comments(self, feed):
+		return [item for item in feed["items"] if item["kind"] == "comment"]
+
+	def test_ecrire_modifier_supprimer(self):
+		before = bureau.get_activity(self.name)["comment_count"]
+		feed = bureau.add_comment(self.name, "Premier message")
+		self.assertEqual(feed["comment_count"], before + 1)
+		added = self._comments(feed)[0]
+		self.assertEqual(added["text"], "Premier message")
+		self.assertTrue(added["mine"])
+
+		feed = bureau.update_comment(self.name, added["id"], "Message corrigé")
+		self.assertEqual(self._comments(feed)[0]["text"], "Message corrigé")
+
+		feed = bureau.delete_comment(self.name, added["id"])
+		self.assertEqual(feed["comment_count"], before)
+
+	def test_commentaire_vide_refuse(self):
+		with self.assertRaises(frappe.ValidationError):
+			bureau.add_comment(self.name, "   ")
+
+	def test_html_saisi_echappe(self):
+		feed = bureau.add_comment(self.name, "<img src=x onerror=alert(1)>")
+		added = self._comments(feed)[0]
+		self.assertEqual(added["text"], "<img src=x onerror=alert(1)>")
+		self.assertNotIn("<img", frappe.db.get_value("Comment", added["id"], "content"))
+
+	def test_mention_au_format_du_desk(self):
+		html = activity.to_comment_html("Bonjour @Admin", [{"id": "Administrator", "label": "Admin"}])
+		self.assertEqual(extract_mentions(html), ["Administrator"])
+		parsed = activity.parse_comment(html)
+		self.assertEqual(parsed["text"], "Bonjour @Admin")
+		self.assertEqual(parsed["parts"], [{"text": "Bonjour ", "mention": False}, {"text": "@Admin", "mention": True}])
+		self.assertEqual(parsed["mentions"], [{"id": "Administrator", "label": "Admin"}])
+
+	def test_mention_ecrite_sur_le_desk(self):
+		# Format relevé en base : le Desk range un lien HTML dans `data-value`.
+		html = (
+			'<div class="ql-editor read-mode"><p><span class="mention" data-id="a@example.com" '
+			'data-value="&lt;a href=&quot;https://site/app/user-profile/a@example.com&quot; target=&quot;_blank&quot;&gt;Amine Melizi" '
+			'data-denotation-char="@"><span contenteditable="false"><span class="ql-mention-denotation-char">@</span>Amine Melizi</span></span> '
+			"manque grammage</p></div>"
+		)
+		parsed = activity.parse_comment(html)
+		self.assertEqual(parsed["text"], "@Amine Melizi manque grammage")
+		self.assertEqual(parsed["mentions"], [{"id": "a@example.com", "label": "Amine Melizi"}])
+
+	def test_mention_d_un_compte_inconnu_ignoree(self):
+		html = activity.to_comment_html("Bonjour @Personne", [{"id": "inconnu@example.com", "label": "Personne"}])
+		self.assertEqual(extract_mentions(html), [])
+
+	def test_commentaire_du_desk_lu_sans_html(self):
+		html = '<div class="ql-editor read-mode"><p>Ligne <b>un</b></p><p>Ligne deux</p><script>alert(1)</script></div>'
+		parsed = activity.parse_comment(html)
+		self.assertIn("Ligne un\n", parsed["text"])
+		self.assertIn("Ligne deux", parsed["text"])
+		self.assertTrue(all("<" not in part["text"] for part in parsed["parts"]))
+
+	def test_commentaire_d_un_autre_protege(self):
+		feed = bureau.add_comment(self.name, "Message de quelqu'un")
+		added = self._comments(feed)[0]
+		frappe.db.set_value("Comment", added["id"], "owner", "autre@example.com", update_modified=False)
+		frappe.set_user("Guest")
+		frappe.local.session.user = "bo-test@example.com"
+		with patch("aurescrm.api.bureau.require_bureau", return_value="bo-test@example.com"):
+			with self.assertRaises(frappe.PermissionError):
+				bureau.delete_comment(self.name, added["id"])
+
+	def test_commentaire_d_un_autre_ticket_refuse(self):
+		other = frappe.db.get_value("Ticket Commercial", {"name": ["!=", self.name]}, "name")
+		if not other:
+			self.skipTest("Un seul ticket.")
+		added = self._comments(bureau.add_comment(self.name, "Message"))[0]
+		with self.assertRaises(frappe.PermissionError):
+			bureau.update_comment(other, added["id"], "Détourné")
+
+	def test_fil_du_plus_recent_au_plus_ancien_avec_la_creation_en_dernier(self):
+		bureau.add_comment(self.name, "Message")
+		items = bureau.get_activity(self.name)["items"]
+		self.assertEqual(items[-1]["kind"], "create")
+		dates = [item["at"] for item in items[:-1]]
+		self.assertEqual(dates, sorted(dates, reverse=True))
+
+	def test_changement_de_valeur_en_libelle(self):
+		ticket = frappe.get_doc("Ticket Commercial", self.name)
+		version = frappe.get_doc(
+			{
+				"doctype": "Version",
+				"ref_doctype": "Ticket Commercial",
+				"docname": self.name,
+				"data": frappe.as_json({"changed": [["status", "Nouveau", "En Cours"], ["champ_inconnu", "a", "b"]]}),
+			}
+		).insert(ignore_permissions=True)
+		items = activity._version_items(ticket)
+		change = next(item for item in items if item["id"] == version.name)
+		self.assertEqual(change["changes"], [{"label": "Statut", "old": "Nouveau", "new": "En Cours"}])
+
+	def test_fichier_sans_lien_dangereux(self):
+		comment = frappe._dict(
+			name="C1", comment_type="Attachment", content='<a href="javascript:alert(1)">piege.pdf</a>', comment_by="X", owner="x", creation="2026-01-01"
+		)
+		self.assertIsNone(activity._log_item(comment)["link"]["url"])
+
+	def test_invite_refuse(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			bureau.get_activity(self.name)
+
+	def test_aperçu_et_compteurs(self):
+		before = activity.comment_counts("Ticket Commercial", [self.name]).get(self.name, 0)
+		bureau.add_comment(self.name, "Dernier message")
+		self.assertEqual(activity.comment_counts("Ticket Commercial", [self.name])[self.name], before + 1)
+		summary = bureau.get_ticket(self.name)["comments"]
+		self.assertEqual(summary["count"], before + 1)
+		self.assertEqual(summary["last"]["parts"][0]["text"], "Dernier message")
