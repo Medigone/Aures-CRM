@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 /** Pastille de statut : la teinte suit le sens du statut (Desk Aures). */
-const props = defineProps<{ status?: string | null; tone?: 'red' | 'amber' | 'green' | 'blue' | 'gray' }>()
+const props = defineProps<{ status?: string | null; tone?: 'red' | 'amber' | 'green' | 'blue' | 'gray' | 'violet' }>()
 
 const TONES: Record<string, string> = {
 	// Clients
@@ -85,6 +85,7 @@ const FORCED_TONES = {
 	green: 'bg-surface-green-2 text-ink-green-3',
 	blue: 'bg-surface-blue-2 text-ink-blue-3',
 	gray: 'bg-surface-gray-3 text-ink-gray-7',
+	violet: 'tone-violet',
 }
 const tone = computed(() => (props.tone && FORCED_TONES[props.tone]) || TONES[label.value || ''] || 'bg-surface-gray-2 text-ink-gray-7')
 </script>

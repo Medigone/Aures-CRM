@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import StatusPill from './StatusPill.vue'
+import StatusPill from '@shared/components/StatusPill.vue'
 import { relativeDays } from '@/lib/format'
 import { formatDistance } from '@/lib/geo'
 import type { Client } from '@/types'

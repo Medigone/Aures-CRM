@@ -9,7 +9,7 @@ import LucideCloud from '~icons/lucide/cloud'
 import LucideChevronLeft from '~icons/lucide/chevron-left'
 import LucideMail from '~icons/lucide/mail'
 import { ApiError, login, resetPassword, safeRedirect } from '@/lib/api'
-import BrandMark from '@/components/BrandMark.vue'
+import BrandMark from '@shared/components/BrandMark.vue'
 
 const route = useRoute()
 const screen = ref<'login' | 'forgot'>('login')

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import StatusPill from './StatusPill.vue'
+import StatusPill from '@shared/components/StatusPill.vue'
 import { isLocal } from '@/lib/mutations'
 import type { Article } from '@/types'
 

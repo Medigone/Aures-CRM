@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
-import StatusPill from '@/components/StatusPill.vue'
+import StatusPill from '@shared/components/StatusPill.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { METRIC_LABELS, PERIOD_LABELS, formatMetric, progressOf, visitsDoneSince } from '@/lib/objectifs'
 import { formatDay, relativeDays } from '@/lib/format'

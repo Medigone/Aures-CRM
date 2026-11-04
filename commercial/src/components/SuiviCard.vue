@@ -2,7 +2,7 @@
 import { RouterLink } from 'vue-router'
 import LucidePaperclip from '~icons/lucide/paperclip'
 import LucideTriangleAlert from '~icons/lucide/triangle-alert'
-import StatusPill from './StatusPill.vue'
+import StatusPill from '@shared/components/StatusPill.vue'
 import type { SuiviRow } from '@/lib/suivi'
 
 /** Carte d'une affaire ou d'une visite : titre et statut, détail, note, avancement. */

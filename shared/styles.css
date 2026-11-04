@@ -1,0 +1,91 @@
+/* Socle visuel des applications Aures : couleurs et composants communs à /commercial et /bureau. */
+
+@layer base {
+	:root {
+		color-scheme: light;
+		/* Bleu Aures (refonte), en triplet RGB pour les opacités (`bg-accent/20`). */
+		--accent-rgb: 29 78 216;
+		--accent-fonce-rgb: 21 51 158;
+		/* Action principale : noir (clair) / blanc cassé (sombre) ; le bleu reste à la dictée et aux liens. */
+		--primary-rgb: 24 24 27;
+		--on-primary-rgb: 255 255 255;
+	}
+	:root[data-theme='dark'] {
+		color-scheme: dark;
+		--accent-rgb: 94 150 255;
+		--accent-fonce-rgb: 150 180 255;
+		--primary-rgb: 244 244 245;
+		--on-primary-rgb: 24 24 27;
+	}
+	:root[data-theme='dark'] body {
+		@apply bg-surface-white;
+	}
+	html,
+	body {
+		@apply bg-surface-gray-1 text-ink-gray-9;
+		-webkit-tap-highlight-color: transparent;
+		overscroll-behavior-y: none;
+		-webkit-font-smoothing: antialiased;
+	}
+	:focus-visible {
+		outline: 2px solid rgb(var(--accent-rgb));
+		outline-offset: 2px;
+	}
+}
+
+@layer components {
+	.badge {
+		@apply inline-flex h-6 items-center whitespace-nowrap rounded-full px-2.5 text-xs;
+	}
+	/* Thème clair : encres de statut foncées pour atteindre 4,5:1 sur les fonds teintés et les cartes. */
+	:root:not([data-theme='dark']) .badge,
+	:root:not([data-theme='dark']) .status-ink {
+		--ink-amber-3: #a85b05;
+		--ink-blue-3: #0060b0;
+		--ink-red-3: #b42323;
+		--ink-green-3: #1b6e47;
+	}
+	.tone-violet {
+		background-color: #efe9ff;
+		color: #5b3fa8;
+	}
+	.card {
+		@apply rounded-[20px] bg-surface-white dark:bg-surface-cards;
+	}
+	.card-link {
+		@apply card block transition active:scale-[0.99] active:bg-surface-gray-1;
+	}
+	.btn {
+		@apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100;
+	}
+	.btn-primary {
+		@apply btn bg-primary text-on-primary active:bg-primary/85;
+	}
+	.btn-secondary {
+		@apply btn border border-outline-gray-2 bg-surface-white font-medium text-ink-gray-8 active:bg-surface-gray-2;
+	}
+	.btn-danger {
+		@apply btn border border-outline-gray-2 bg-surface-white text-ink-red-3;
+	}
+	.icon-btn {
+		@apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-outline-gray-2 bg-surface-white text-ink-gray-8 transition active:scale-95 active:bg-surface-gray-2;
+	}
+	.section-title {
+		@apply text-[17px] font-semibold text-ink-gray-9;
+	}
+	.chip {
+		@apply inline-flex min-h-10 shrink-0 items-center rounded-full border px-3.5 text-sm transition active:scale-[0.97];
+	}
+	.chip-on {
+		@apply chip border-primary bg-primary font-semibold text-on-primary;
+	}
+	.chip-off {
+		@apply chip border-outline-gray-2 bg-surface-white font-medium text-ink-gray-7 dark:bg-surface-cards;
+	}
+	.field-label {
+		@apply mb-1 block text-xs font-medium text-ink-gray-6;
+	}
+	.field-input {
+		@apply block min-h-12 w-full rounded-2xl border border-outline-gray-2 bg-surface-white px-3 py-2.5 text-base text-ink-gray-9 placeholder:text-ink-gray-5 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
+	}
+}

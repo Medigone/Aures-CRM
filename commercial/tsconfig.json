@@ -14,9 +14,9 @@
     "strict": true,
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@/*": ["./src/*"], "@shared/*": ["../shared/*"], "vue": ["./node_modules/vue"] }
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.vue", "../shared/**/*.ts", "../shared/**/*.vue"],
   "exclude": ["src/**/*.spec.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

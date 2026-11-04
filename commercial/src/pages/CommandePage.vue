@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
-import StatusPill from '@/components/StatusPill.vue'
+import StatusPill from '@shared/components/StatusPill.vue'
 import SaleLines from '@/components/SaleLines.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { fabricationProgress } from '@/lib/affaires'

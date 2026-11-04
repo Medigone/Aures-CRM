@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
-import StatusPill from '@/components/StatusPill.vue'
+import StatusPill from '@shared/components/StatusPill.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { formatDay } from '@/lib/format'
 import { htmlToText } from '@/lib/text'

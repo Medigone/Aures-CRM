@@ -25,7 +25,9 @@ export default defineConfig(async () => {
 			vue(),
 		],
 		resolve: {
-			alias: { '@': path.resolve(__dirname, 'src') },
+			alias: { '@': path.resolve(__dirname, 'src'), '@shared': path.resolve(__dirname, '../shared') },
+			// Le socle partagé (../shared) n'a pas ses propres node_modules : une seule copie de Vue.
+			dedupe: ['vue'],
 		},
 		server: { host: '0.0.0.0', port: 8083 },
 		build: {
