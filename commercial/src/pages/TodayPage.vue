@@ -6,6 +6,7 @@ import LucideMic from '~icons/lucide/mic'
 import LucideBell from '~icons/lucide/bell'
 import BrandMark from '@/components/BrandMark.vue'
 import SyncPill from '@/components/SyncPill.vue'
+import UserMenu from '@/components/UserMenu.vue'
 import StatusPill from '@/components/StatusPill.vue'
 import { useCommercialStore } from '@/stores/commercial'
 import { useATraiter } from '@/lib/aTraiter'
@@ -80,14 +81,15 @@ const TICKETS_SHOWN = 8
 
 <template>
 	<div>
-		<!-- Ligne de marque : logo et nom à gauche, synchro et « À traiter » à droite ; le titre prend ensuite toute la largeur. -->
+		<!-- Ligne de marque : logo et nom à gauche ; à droite la synchro en cas de problème, « À traiter » et le compte. -->
 		<div class="mb-3 flex items-center gap-2">
 			<BrandMark class="min-w-0 flex-1" />
-			<SyncPill />
+			<SyncPill v-if="!store.online || store.syncError || store.failed.length" />
 			<RouterLink :to="{ name: 'ATraiter' }" class="relative flex h-11 w-11 items-center justify-center rounded-full bg-surface-white dark:bg-surface-cards" :aria-label="aTraiter ? `À traiter : ${aTraiter}` : 'À traiter'">
 				<LucideBell class="h-5 w-5" aria-hidden="true" />
 				<span v-if="aTraiter" class="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-orange-700 px-1 text-[11px] font-bold text-white">{{ aTraiter }}</span>
 			</RouterLink>
+			<UserMenu />
 		</div>
 		<div class="mb-4">
 			<h1 class="text-[28px] font-bold leading-tight tracking-tight">Aujourd'hui</h1>

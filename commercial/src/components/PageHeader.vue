@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useRouter, type RouteLocationRaw } from 'vue-router'
 import LucideChevronLeft from '~icons/lucide/chevron-left'
+import UserMenu from './UserMenu.vue'
 
-/** Titre de page avec retour : l'historique s'il existe, sinon `back`. */
+/** Titre de page avec retour (l'historique s'il existe, sinon `back`) et avatar de l'utilisateur. */
 const props = defineProps<{ title: string; subtitle?: string | null; back?: RouteLocationRaw }>()
 const router = useRouter()
 
@@ -21,9 +22,11 @@ function goBack() {
 		<div class="min-w-0 flex-1 py-1.5">
 			<h1 class="text-[24px] font-bold leading-tight tracking-tight">{{ title }}</h1>
 			<p v-if="subtitle" class="truncate text-sm text-ink-gray-6">{{ subtitle }}</p>
+			<div v-if="$slots.meta" class="mt-2 flex flex-wrap items-center gap-2"><slot name="meta" /></div>
 		</div>
-		<div v-if="$slots.actions" class="flex shrink-0 items-center gap-2 pt-0.5">
+		<div class="flex shrink-0 items-center gap-2 pt-0.5">
 			<slot name="actions" />
+			<UserMenu />
 		</div>
 	</div>
 </template>

@@ -19,6 +19,7 @@ import { formatMoney, gpsText, stripHtml } from '@/lib/text'
 import { currentPosition } from '@/lib/geo'
 import { refTo } from '@/lib/mutations'
 import AffairesTabs from '@/components/AffairesTabs.vue'
+import { clientItineraire, clientTelephone } from '@/lib/visites'
 import type { CreanceDetail } from '@/types'
 import LucideTicket from '~icons/lucide/ticket'
 import LucideMessageSquareWarning from '~icons/lucide/message-square-warning'
@@ -63,14 +64,8 @@ async function toggleCreance(name: string) {
 	}
 }
 
-const telephone = computed(() => client.value?.telephone_principal || client.value?.telephone || null)
-const mapsUrl = computed(() => {
-	const c = client.value
-	if (!c) return null
-	if (c.lat != null && c.lon != null) return `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}`
-	const place = [c.commune, c.wilaya].filter(Boolean).join(' ')
-	return place ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${c.customer_name} ${place}`)}` : null
-})
+const telephone = computed(() => clientTelephone(client.value))
+const mapsUrl = computed(() => clientItineraire(client.value))
 
 // Articles du client : recherche et filtre par procédé, hors-ligne.
 const articleQuery = ref('')

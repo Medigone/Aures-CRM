@@ -9,6 +9,7 @@ import NewArticlePage from './pages/NewArticlePage.vue'
 import ATraiterPage from './pages/ATraiterPage.vue'
 import EditArticlePage from './pages/EditArticlePage.vue'
 import ArticlePage from './pages/ArticlePage.vue'
+import VisitesPage from './pages/VisitesPage.vue'
 import VisitPage from './pages/VisitPage.vue'
 import NewVisitPage from './pages/NewVisitPage.vue'
 import RdvPage from './pages/RdvPage.vue'
@@ -36,6 +37,7 @@ export const routes = [
 	{ path: '/articles/nouveau', name: 'NewArticle', component: NewArticlePage },
 	{ path: '/articles/:id', name: 'Article', component: ArticlePage, props: true },
 	{ path: '/articles/:id/modifier', name: 'EditArticle', component: EditArticlePage, props: true },
+	{ path: '/visites', name: 'Visites', component: VisitesPage },
 	{ path: '/visites/nouvelle', name: 'NewVisit', component: NewVisitPage },
 	{ path: '/visites/:id', name: 'Visit', component: VisitPage, props: true },
 	{ path: '/rdv/nouveau', name: 'NewRdv', component: RdvPage },

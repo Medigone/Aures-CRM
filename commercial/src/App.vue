@@ -4,7 +4,7 @@ import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import LucideHouse from '~icons/lucide/house'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideTicket from '~icons/lucide/ticket'
-import LucideLayoutGrid from '~icons/lucide/layout-grid'
+import LucideMapPin from '~icons/lucide/map-pin'
 import LucidePlus from '~icons/lucide/plus'
 import CreateMenu from '@/components/CreateMenu.vue'
 import { useCommercialStore } from '@/stores/commercial'
@@ -37,17 +37,20 @@ onMounted(async () => {
 	if (route.name !== 'Login') store.init()
 })
 
-// Navigation : le terrain d'abord (journée, tickets), la création au centre, le reste dans « Plus ».
+// Navigation : le terrain d'abord (journée, visites), la création au centre ; le compte est sur l'avatar des en-têtes.
 const tabs = [
-	{ to: { name: 'Today' }, label: "Aujourd'hui", icon: LucideHouse, match: ['Today', 'ATraiter', 'Visit', 'NewVisit', 'Appel', 'NewAppel', 'Week', 'Rdv', 'NewRdv'] },
+	{ to: { name: 'Today' }, label: "Aujourd'hui", icon: LucideHouse, match: ['Today', 'ATraiter', 'Appel', 'NewAppel', 'Rdv', 'NewRdv'] },
+	{ to: { name: 'Visites' }, label: 'Visites', icon: LucideMapPin, match: ['Visites', 'Visit', 'NewVisit', 'Week'] },
 	{ to: { name: 'Suivi' }, label: 'Suivi', icon: LucideTicket, match: ['Suivi', 'Ticket', 'NewTicket', 'Devis', 'Commande', 'Reclamation'] },
 	{ to: { name: 'Clients' }, label: 'Clients', icon: LucideBuilding2, match: ['Clients', 'Client', 'Article', 'NewArticle', 'EditArticle', 'NewProspect'] },
-	{ to: { name: 'Settings' }, label: 'Plus', icon: LucideLayoutGrid, match: ['Settings', 'Sync', 'Objectifs'], badge: true },
 ]
 const menuOpen = ref(false)
 watch(() => route.fullPath, () => (menuOpen.value = false))
 // Saisie terrain (visite, nouveau ticket) : plein écran sur téléphone, la barre d'action prend la place de la navigation.
-const focusMode = computed(() => ['Visit', 'NewVisit', 'NewTicket', 'NewArticle', 'EditArticle'].includes(String(route.name)))
+const focusMode = computed(() => {
+	if (route.name === 'Visit') return store.visitesByName.get(store.resolveKey(String(route.params.id)))?.docstatus !== 1
+	return ['NewVisit', 'NewTicket', 'NewArticle', 'EditArticle'].includes(String(route.name))
+})
 </script>
 
 <template>
@@ -97,12 +100,6 @@ const focusMode = computed(() => ['Visit', 'NewVisit', 'NewTicket', 'NewArticle'
 				>
 					<span class="relative">
 						<component :is="tab.icon" class="h-6 w-6" aria-hidden="true" />
-						<span
-							v-if="tab.badge && (store.pendingCount || store.failed.length)"
-							class="absolute -right-2 -top-1 min-w-[1.1rem] rounded-full px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white"
-							:class="store.failed.length ? 'bg-red-500' : 'bg-amber-500'"
-							:aria-label="`${store.pendingCount} saisie(s) en attente, ${store.failed.length} à corriger`"
-						>{{ store.failed.length || store.pendingCount }}</span>
 					</span>
 					{{ tab.label }}
 					<span class="h-0.5 w-4 rounded-full" :class="tab.match.includes(String($route.name)) ? 'bg-ink-gray-9' : 'bg-transparent'" aria-hidden="true" />

@@ -7,14 +7,12 @@ const rechercheSuivi = ref('')
 
 <script setup lang="ts">
 import { computed, nextTick } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import LucideSearch from '~icons/lucide/search'
-import LucidePaperclip from '~icons/lucide/paperclip'
-import LucideTriangleAlert from '~icons/lucide/triangle-alert'
 import PageHeader from './PageHeader.vue'
-import StatusPill from './StatusPill.vue'
+import SuiviCard from './SuiviCard.vue'
 import { useCommercialStore } from '@/stores/commercial'
-import { isSegment, suiviFiltres, suiviGroupes, suiviResume, suiviTuiles, type Segment, type SuiviData, type SuiviRow } from '@/lib/suivi'
+import { isSegment, suiviFiltres, suiviGroupes, suiviResume, suiviTuiles, type Segment, type SuiviData } from '@/lib/suivi'
 import { todayIso } from '@/lib/text'
 
 /**
@@ -78,14 +76,6 @@ async function toggleSearch() {
 	}
 }
 
-const NOTE_TONES: Record<NonNullable<SuiviRow['note']>['tone'], string> = {
-	red: 'text-ink-red-3',
-	amber: 'text-ink-amber-3',
-	green: 'text-ink-green-3',
-	blue: 'text-ink-blue-3',
-	gray: 'text-ink-gray-7',
-	muted: 'text-ink-gray-6',
-}
 </script>
 
 <template>
@@ -152,36 +142,7 @@ const NOTE_TONES: Record<NonNullable<SuiviRow['note']>['tone'], string> = {
 				<h2 class="text-base font-semibold">{{ g.title }}</h2>
 				<span v-if="g.hint" class="text-sm tabular-nums text-ink-gray-6">{{ g.hint }}</span>
 			</div>
-			<RouterLink v-for="r in g.rows" :key="r.key" :to="r.to" class="card-link px-4 py-3.5">
-				<div class="flex items-center gap-2.5">
-					<p class="min-w-0 flex-1 truncate text-base font-semibold">{{ r.title }}</p>
-					<StatusPill :status="r.status" :tone="r.tone" class="shrink-0" />
-				</div>
-				<div v-if="r.sub || r.urgence || r.pending || r.files" class="mt-0.5 flex items-center gap-1.5 text-sm text-ink-gray-6">
-					<span class="min-w-0 truncate">{{ r.sub }}</span>
-					<span v-if="r.urgence" class="status-ink shrink-0 rounded-md bg-surface-amber-2 px-1.5 text-xs font-semibold leading-[18px] text-ink-amber-3">{{ r.urgence }}</span>
-					<span v-if="r.pending" class="ml-auto inline-flex shrink-0 items-center gap-1 text-xs"><span class="pending-dot" />À envoyer</span>
-					<span v-if="r.files" class="inline-flex shrink-0 items-center gap-0.5 text-xs" :class="!r.pending && 'ml-auto'">
-						<LucidePaperclip class="h-3.5 w-3.5" aria-hidden="true" />{{ r.files }}
-						<span class="sr-only">pièce(s) jointe(s)</span>
-					</span>
-				</div>
-				<div v-if="r.note || r.amount" class="mt-1.5 flex items-center justify-between gap-2.5 text-[13px] leading-snug">
-					<span v-if="r.note" class="status-ink inline-flex min-w-0 items-center gap-1.5 font-medium" :class="NOTE_TONES[r.note.tone]">
-						<LucideTriangleAlert v-if="r.note.alert" class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{{ r.note.text }}
-					</span>
-					<span v-if="r.amount" class="ml-auto shrink-0 text-sm font-semibold tabular-nums text-ink-gray-9">{{ r.amount }}</span>
-				</div>
-				<div v-if="r.progress" class="mt-2">
-					<div class="h-1.5 overflow-hidden rounded-full bg-surface-gray-3" role="progressbar" :aria-valuenow="r.progress.percent" aria-valuemin="0" aria-valuemax="100">
-						<div class="h-full rounded-full bg-accent" :style="{ width: `${r.progress.percent}%` }" />
-					</div>
-					<div class="mt-1 flex justify-between gap-2 text-xs text-ink-gray-6">
-						<span class="shrink-0 font-semibold tabular-nums text-ink-gray-9">{{ r.progress.percent }} %</span>
-						<span class="truncate">{{ r.progress.label }}</span>
-					</div>
-				</div>
-			</RouterLink>
+			<SuiviCard v-for="r in g.rows" :key="r.key" :row="r" />
 		</section>
 	</div>
 </template>

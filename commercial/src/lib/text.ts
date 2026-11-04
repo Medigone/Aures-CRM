@@ -72,3 +72,9 @@ export function htmlToText(value?: string | null): string {
 		.replace(/\n{3,}/g, '\n\n')
 		.trim()
 }
+
+/** Initiales d'un nom, pour l'avatar : les deux premiers mots. */
+export function initiales(name?: string | null): string {
+	const words = (name || '').trim().split(/\s+/).filter(Boolean)
+	return words.length ? words.slice(0, 2).map((w) => w[0].toUpperCase()).join('') : '?'
+}
