@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import unittest
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -72,7 +73,9 @@ class TestPantoneBase(FrappeTestCase):
 		with tempfile.NamedTemporaryFile("w", suffix=".json") as handle:
 			json.dump(rows, handle)
 			handle.flush()
-			counts = import_reference(handle.name)
+			# L'import valide son travail : ici, le test doit rester annulable.
+			with patch.object(frappe.db, "commit"):
+				counts = import_reference(handle.name)
 		self.assertEqual(frappe.db.get_value(DOCTYPE, "9996 C", "hex"), "#000000")
 		self.assertEqual(frappe.db.get_value(DOCTYPE, "9995 C", "hex"), "#ffffff")
 		self.assertEqual(frappe.db.get_value(DOCTYPE, "9994 C", "approximative"), 1)
