@@ -60,6 +60,76 @@
 		background-color: var(--tone-violet-bg);
 		color: var(--tone-violet-ink);
 	}
+	/* Densité Poste : un état porte une teinte légère, un contour fin et une icône. La PWA garde sa pastille. */
+	.status-icon {
+		display: none;
+		flex: none;
+		width: 13px;
+		height: 13px;
+	}
+	:root[data-density='poste'] .status-icon {
+		display: block;
+	}
+	:root[data-density='poste'] .status-dot {
+		display: none;
+	}
+	:root[data-density='poste'] .badge {
+		height: 1.375rem;
+		padding-inline: 0.5rem 0.5625rem;
+		border: 1px solid;
+		font-weight: 500;
+	}
+	:root[data-density='poste'] .badge.tone-blue {
+		border-color: var(--tone-blue-line);
+		background-color: var(--tone-blue-soft);
+	}
+	:root[data-density='poste'] .badge.tone-amber {
+		border-color: var(--tone-amber-line);
+		background-color: var(--tone-amber-soft);
+	}
+	:root[data-density='poste'] .badge.tone-green {
+		border-color: var(--tone-green-line);
+		background-color: var(--tone-green-soft);
+	}
+	:root[data-density='poste'] .badge.tone-red {
+		border-color: var(--tone-red-line);
+		background-color: var(--tone-red-soft);
+	}
+	:root[data-density='poste'] .badge.tone-gray {
+		border-color: var(--tone-gray-line);
+		background-color: var(--tone-gray-soft);
+	}
+	:root[data-density='poste'] .badge.tone-violet {
+		border-color: var(--tone-violet-line);
+		background-color: var(--tone-violet-soft);
+	}
+	:root[data-density='poste'] .urgence {
+		gap: 0.3125rem;
+		height: 1.375rem;
+		padding-inline: 0.4375rem 0.5625rem;
+		border: 1px solid;
+		font-weight: 600;
+	}
+	:root[data-density='poste'] .urgence::before {
+		content: '';
+		flex: none;
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background-color: currentColor;
+	}
+	:root[data-density='poste'] .urgence-U0 {
+		border-color: var(--urgence-u0-line);
+	}
+	:root[data-density='poste'] .urgence-U1 {
+		border-color: var(--urgence-u1-line);
+	}
+	:root[data-density='poste'] .urgence-U2 {
+		border-color: var(--urgence-u2-line);
+	}
+	:root[data-density='poste'] .urgence-U3 {
+		border-color: var(--urgence-u3-bg);
+	}
 	/* Niveaux d'urgence : mêmes couleurs dans la liste, l'en-tête et les décisions. */
 	.urgence {
 		@apply inline-flex h-5 flex-none items-center whitespace-nowrap rounded-full px-2 text-xs font-medium;
@@ -95,7 +165,7 @@
 		min-height: var(--ctl);
 		gap: var(--btn-gap);
 		padding-inline: var(--btn-px);
-		border-radius: var(--radius-control);
+		border-radius: var(--radius-action);
 		font-size: var(--text-base);
 		white-space: var(--btn-wrap);
 		@apply font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100;
@@ -104,8 +174,32 @@
 		@apply btn bg-primary text-on-primary active:bg-primary/85;
 	}
 	.btn-secondary {
-		background-color: var(--surface-cards);
-		@apply btn border border-outline-gray-2 font-medium text-ink-gray-8 active:bg-surface-gray-2;
+		border: 1px solid var(--btn-line);
+		background-color: var(--btn-bg);
+		@apply btn font-medium text-ink-gray-8 hover:bg-[var(--btn-hover)] active:bg-[var(--btn-hover)];
+	}
+	/* Filtre ou tri appliqué : l'action montre qu'elle change ce qui est affiché. */
+	.btn-on {
+		border-color: var(--selection-border);
+		background-color: var(--filter-chip-bg);
+		color: var(--accent-fonce);
+	}
+	.btn-on:hover,
+	.btn-on:active {
+		background-color: var(--filter-chip-hover);
+	}
+	.btn-count {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1rem;
+		height: 1rem;
+		padding-inline: 0.25rem;
+		border-radius: var(--radius-pill);
+		background-color: var(--accent);
+		color: var(--on-accent);
+		font-size: 10px;
+		font-weight: 700;
 	}
 	.btn-danger {
 		background-color: var(--surface-cards);
@@ -123,9 +217,10 @@
 		justify-content: center;
 		width: var(--ctl-icon);
 		height: var(--ctl-icon);
-		border-radius: var(--radius-control);
-		background-color: var(--surface-cards);
-		@apply border border-outline-gray-2 text-ink-gray-8 transition active:scale-95 active:bg-surface-gray-2;
+		border: 1px solid var(--btn-line);
+		border-radius: var(--radius-action);
+		background-color: var(--btn-bg);
+		@apply text-ink-gray-8 transition hover:bg-[var(--btn-hover)] active:scale-95 active:bg-[var(--btn-hover)];
 	}
 	.section-title {
 		font-size: var(--text-lg);
@@ -497,10 +592,10 @@
 		justify-content: center;
 		width: 1.625rem;
 		height: 1.625rem;
-		border: 1px solid var(--outline-gray-2);
-		border-radius: 6px;
-		background-color: var(--surface-cards);
-		@apply text-ink-gray-7 hover:bg-surface-gray-2 disabled:opacity-50;
+		border: 1px solid var(--btn-line);
+		border-radius: var(--radius-action);
+		background-color: var(--btn-bg);
+		@apply text-ink-gray-7 hover:bg-[var(--btn-hover)] disabled:opacity-50;
 	}
 	.list-state {
 		display: flex;

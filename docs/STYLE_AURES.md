@@ -12,6 +12,7 @@ Toutes les applications métier (`/commercial`, `/bureau` et les postes à venir
 | Thème clair ou sombre | `shared/theme.ts` |
 | Barre du haut et menu de gauche | `shared/components/AppShell.vue`, `shared/shell.ts` |
 | Pied de liste et états | `shared/components/ListPager.vue`, `ListState.vue` |
+| Gabarit de liste | `bureau/src/components/DataList.vue` |
 | Commentaires et activité | `shared/components/ActivityFeed.vue`, `shared/activity.ts`, `aurescrm/api/activity.py` |
 
 Les surfaces, encres et contours gris (`--surface-*`, `--ink-*`, `--outline-*`) viennent de frappe-ui.
@@ -21,12 +22,12 @@ Les surfaces, encres et contours gris (`--surface-*`, `--ink-*`, `--outline-*`) 
 - **Aucune couleur écrite en dur.** Chaque couleur a un jeton, en clair et en sombre. `bureau/src/lib/tokens.spec.ts` fait échouer les tests si une couleur apparaît ailleurs que dans `shared/tokens.css`.
 - **Une application ne redéfinit ni `text-base` ni la hauteur d'un bouton.** Elle choisit sa densité sur `<html>` : `data-density="poste"` (souris, 13 px, contrôles de 32 px) ou `data-density="terrain"` (doigt, 15 px, contrôles de 48 px). Sans attribut, c'est Terrain.
 - **Une seule action principale à l'écran**, en `primary`. Le bleu `accent` sert aux liens, au focus et à la sélection.
-- **Rond pour un état, rectangle pour une action.**
+- **Une action est neutre, un état porte une teinte.** En densité Poste, boutons et recherche sont en pilule grise (`--radius-action`, `--btn-*`) ; les statuts et urgences ont un fond léger, un contour fin et une icône ou un point. Champs de formulaire et messages gardent 8 px.
 
 ## État de la bascule
 
 1. **Socle** : fait. `/bureau` a la forme nette et le thème sombre. La PWA garde ses formes actuelles, le temps de passer à son tour aux modèles communs : les lignes concernées sont signalées dans `shared/tokens.css`.
 2. **Coquille** : fait sur `/bureau`. Barre du haut et menu de gauche dans `shared/`. La PWA garde sa navigation pour l'instant.
-3. **Liste** : pagination, états et barre d'outils faits sur les tickets et les clients, avec `useServerList` et `FilterBuilder` communs. `QueueList.vue` et `ClientList.vue` partagent encore leur gabarit par copie : à fondre en un composant à la prochaine liste.
+3. **Liste** : modèle commun `bureau/src/components/DataList.vue`, utilisé par `QueueList.vue` et `ClientList.vue` : barre d'outils en carte, plateau de lignes de 44 px, menu `⋮`. Plus d'onglets de vues : le choix Afficher est en tête du panneau Filtres. Une nouvelle liste fournit ses colonnes, ses vues, ses cellules et son menu de ligne.
 4. **Fiche** : fil, en-tête et menu `⋯` faits sur les tickets. Le modèle de référence est fait sur les clients (`ClientView.vue`, classes `.record-tabs`, `.ref-table`, `.kv`).
 5. **PWA** : passage aux jetons et aux modèles, écran par écran.

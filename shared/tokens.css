@@ -50,6 +50,33 @@
 		--urgence-u3-bg: #b42323;
 		--urgence-u3-ink: #ffffff;
 
+		/* Listes : plateau de lignes et actions neutres (densité Poste). */
+		--tray: #f9f9f9;
+		--line-soft: #eaeaea;
+		--soft-bg: #f8f8f8;
+		--soft-hover: #efefef;
+		--soft-line: #e4e4e4;
+		--on-accent: #ffffff;
+		--check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+		--check-mixed: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+
+		/* États en densité Poste : fond très léger et contour fin, avec les mêmes encres. */
+		--tone-blue-soft: #f1f8ff;
+		--tone-blue-line: #b8dcfb;
+		--tone-amber-soft: #fffbe8;
+		--tone-amber-line: #f5dc8a;
+		--tone-green-soft: #f0fcf4;
+		--tone-green-line: #b5e8c7;
+		--tone-red-soft: #fff3f3;
+		--tone-red-line: #f7c4c4;
+		--tone-gray-soft: #f6f6f6;
+		--tone-gray-line: #dcdcdc;
+		--tone-violet-soft: #f6f3ff;
+		--tone-violet-line: #d6c9fa;
+		--urgence-u0-line: #b5e8c7;
+		--urgence-u1-line: #efd96a;
+		--urgence-u2-line: #f6c9a1;
+
 		--scrim: rgba(0, 0, 0, 0.4);
 		--shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.18);
 		--shadow-drawer: -8px 0 28px rgba(0, 0, 0, 0.16);
@@ -103,6 +130,31 @@
 		--urgence-u3-bg: #c62d2d;
 		--urgence-u3-ink: #ffffff;
 
+		--tray: #1b1b1b;
+		--line-soft: #292929;
+		--soft-bg: #1e1e1e;
+		--soft-hover: #2a2a2a;
+		--soft-line: #313131;
+		--on-accent: #0b1220;
+		--check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b1220' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+		--check-mixed: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b1220' stroke-width='3.5' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+
+		--tone-blue-soft: #0a2036;
+		--tone-blue-line: #164a7a;
+		--tone-amber-soft: #2c1a07;
+		--tone-amber-line: #6b4210;
+		--tone-green-soft: #0b2a1c;
+		--tone-green-line: #1a5a3b;
+		--tone-red-soft: #2b1414;
+		--tone-red-line: #6e2a2a;
+		--tone-gray-soft: #262626;
+		--tone-gray-line: #454545;
+		--tone-violet-soft: #1c1736;
+		--tone-violet-line: #40347a;
+		--urgence-u0-line: #1a5a3b;
+		--urgence-u1-line: #6b5a10;
+		--urgence-u2-line: #7a4516;
+
 		--scrim: rgba(0, 0, 0, 0.6);
 		--shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.6);
 		--shadow-drawer: -8px 0 28px rgba(0, 0, 0, 0.6);
@@ -134,10 +186,15 @@
 
 		/* Formes actuelles de la PWA : ces cinq lignes disparaîtront au passage de la PWA aux modèles communs. */
 		--radius-control: 999px;
+		--radius-action: 999px;
 		--radius-field: 1rem;
 		--radius-card: 20px;
 		--card-border: 0;
 		--field-border: var(--outline-gray-2);
+
+		--btn-bg: var(--surface-cards);
+		--btn-hover: var(--surface-gray-2);
+		--btn-line: var(--outline-gray-2);
 	}
 
 	/* Densité Poste, à la souris. */
@@ -165,10 +222,16 @@
 		--badge-gap: 0.25rem;
 
 		--radius-control: 8px;
+		/* Les actions sont en pilule ; les blocs (messages, champs) gardent 8 px. */
+		--radius-action: 999px;
 		--radius-field: 8px;
 		--radius-card: 12px;
 		--card-border: 1px;
 		--field-border: var(--control-border);
+
+		--btn-bg: var(--soft-bg);
+		--btn-hover: var(--soft-hover);
+		--btn-line: var(--soft-line);
 	}
 	/* Poste de bureau sur écran tactile : des contrôles assez grands pour le doigt. */
 	@media (pointer: coarse) {

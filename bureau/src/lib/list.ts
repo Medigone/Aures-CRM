@@ -16,18 +16,20 @@ export interface Column<Row = QueueTicket> {
 	sortable: boolean
 	/** Absente de l'affichage par défaut : elle s'ajoute par le menu Colonnes. */
 	optional?: boolean
+	/** Nombres : alignés à droite. */
+	end?: boolean
 	/** Valeur de l'export. */
 	text: (row: Row) => string | number
 }
 
 export const COLUMNS: Column[] = [
-	{ key: 'client', label: 'Client', width: 150, grow: 1.5, sortable: true, text: (ticket) => ticket.client },
-	{ key: 'type', label: 'Type', width: 120, grow: 1.1, sortable: true, text: (ticket) => ticket.request_type },
-	{ key: 'status', label: 'Statut', width: 124, sortable: true, text: (ticket) => statusLabel(ticket.status) },
+	{ key: 'client', label: 'Client', width: 140, grow: 1.5, sortable: true, text: (ticket) => ticket.client },
+	{ key: 'type', label: 'Type', width: 110, grow: 1.1, sortable: true, text: (ticket) => ticket.request_type },
+	{ key: 'status', label: 'Statut', width: 132, sortable: true, text: (ticket) => statusLabel(ticket.status) },
 	{ key: 'urgence', label: 'Urg.', width: 74, sortable: true, text: (ticket) => ticket.niveau_urgence },
 	{ key: 'echeance', label: 'Échéance', width: 92, sortable: true, text: (ticket) => ticket.echeance || '' },
 	// L'étape se calcule ligne par ligne sur le serveur : elle ne peut pas trier toute la vue.
-	{ key: 'step', label: 'Étape', width: 150, grow: 1.3, sortable: false, text: (ticket) => stepText(ticket) },
+	{ key: 'step', label: 'Étape', width: 136, grow: 1.3, sortable: false, text: (ticket) => stepText(ticket) },
 	{ key: 'name', label: 'N° ticket', width: 118, sortable: true, text: (ticket) => ticket.name },
 	{ key: 'assigne', label: 'Pris en charge', width: 120, grow: 1.1, sortable: true, text: (ticket) => ticket.assigne_a_nom || '' },
 	{ key: 'comments', label: 'Comm.', width: 56, sortable: false, text: (ticket) => ticket.comments },
@@ -37,9 +39,10 @@ export const COLUMNS: Column[] = [
 
 export const DEFAULT_COLUMNS = COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 export const SORTABLE_COLUMNS = COLUMNS.filter((column) => column.sortable)
-const CHECK_WIDTH = 36
-const COLUMN_GAP = 10
-const RIGHT_PADDING = 14
+const CHECK_WIDTH = 32
+const COLUMN_GAP = 8
+const MENU_WIDTH = 30
+const TRAY_BORDER = 2
 
 /** La colonne Client reste toujours affichée ; une clé inconnue, venue d'un ancien réglage, est ignorée. */
 export function visibleColumns(keys: string[]) {
@@ -51,7 +54,7 @@ export function gridTemplate<Row>(columns: Column<Row>[]) {
 }
 
 export function minListWidth<Row>(columns: Column<Row>[]) {
-	return CHECK_WIDTH + RIGHT_PADDING + columns.reduce((sum, column) => sum + column.width, 0) + COLUMN_GAP * (columns.length - 1)
+	return CHECK_WIDTH + MENU_WIDTH + TRAY_BORDER + columns.reduce((sum, column) => sum + column.width, 0) + COLUMN_GAP * (columns.length - 1)
 }
 
 export function sortText(sort: Sort | null) {

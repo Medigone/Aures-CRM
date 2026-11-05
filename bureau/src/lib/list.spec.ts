@@ -40,8 +40,8 @@ describe('liste des tickets', () => {
 
 	it('calcule la grille et la largeur minimale des colonnes affichées', () => {
 		const columns = visibleColumns(['status'])
-		expect(gridTemplate(columns)).toBe('minmax(150px, 1.5fr) 124px')
-		expect(minListWidth(columns)).toBe(36 + 14 + 150 + 124 + 10)
+		expect(gridTemplate(columns)).toBe('minmax(140px, 1.5fr) 132px')
+		expect(minListWidth(columns)).toBe(32 + 30 + 2 + 140 + 132 + 8)
 	})
 
 	it('exporte un CSV lisible par Excel, sans formule exécutable', () => {

@@ -4,7 +4,7 @@ Application de bureau pour les équipes internes, à côté du Desk. Le premier 
 Cahier des charges de la V1 et maquette : voir les liens transmis au projet.
 
 ## Lot 1 (livré) : lecture
-- **Liste de travail** : recherche, filtres combinables, vues avec compteurs, tri par urgence puis échéance.
+- **Liste de travail** : recherche, filtres combinables, choix de la vue avec ses compteurs dans le panneau Filtres, tri par urgence puis échéance.
 - **Ticket** : en-tête, étape active, demande du commercial, urgence à décider, créance, rapprochement et liste de contrôle, en lecture seule.
 - **Colonne de droite** : timeline, documents (ouverts dans une nouvelle fenêtre), cycle du dossier (ouvert sur le Desk).
 - **Accès** : `Administrateur Ventes`, `System Manager`, `Administrator`. Les autres comptes reçoivent un refus, dans la page comme dans l'API.
@@ -20,7 +20,7 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 
 ## Liste, aperçu et fiche
 
-- **Liste** (`/bureau`) : tableau pleine largeur, trié par urgence puis échéance, ou par la colonne choisie. Vues, recherche et filtres combinables en haut. L'étape de chaque ligne vient de `compute_steps` ; `_queue_documents` lit les cycles en une seule fois, et un test vérifie que la liste et la fiche donnent la même étape.
+- **Liste** (`/bureau`) : tableau pleine largeur, trié par urgence puis échéance, ou par la colonne choisie. Recherche et filtres combinables en haut, avec le choix de la vue en tête du panneau Filtres. L'étape de chaque ligne vient de `compute_steps` ; `_queue_documents` lit les cycles en une seule fois, et un test vérifie que la liste et la fiche donnent la même étape.
 - **Aperçu** (`/bureau?apercu=TC-…`) : tiroir à droite, par-dessus la liste, sans fond grisé. La liste reste cliquable pour changer de ticket. Un double clic sur une ligne ouvre directement la fiche.
 - **Fiche** (`/bureau/ticket/TC-…`) : pleine page, avec retour à la liste et passage au ticket voisin de la vue affichée. Depuis l'aperçu, cliquer sur une étape ouvre la fiche à cette étape (`?etape=`).
 - La liste reste montée pendant qu'une fiche est ouverte : sa sélection et son défilement sont conservés.

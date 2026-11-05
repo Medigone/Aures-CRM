@@ -201,6 +201,11 @@ describe('poste de bureau', () => {
 	})
 
 	const ticketCalls = () => fetchMock.mock.calls.filter((call) => String(call[0]).includes('get_ticket'))
+	/** La vue se choisit dans le panneau des filtres. */
+	async function chooseView(wrapper: Awaited<ReturnType<typeof open>>['wrapper'], view: string) {
+		if (!wrapper.find('select[aria-label="Afficher"]').exists()) await wrapper.findAll('.bureau-toolbar button').find((button) => button.text().startsWith('Filtres'))!.trigger('click')
+		await wrapper.find('select[aria-label="Afficher"]').setValue(view)
+	}
 	const row = (wrapper: Awaited<ReturnType<typeof open>>['wrapper'], name: string) => wrapper.findAll('.list-row').find((item) => item.text().includes(name))!
 
 	it("arrive sur la liste, sans ouvrir de ticket", async () => {
@@ -387,7 +392,7 @@ describe('poste de bureau', () => {
 
 		it('changer de vue ramène à la première page', async () => {
 			const { wrapper } = await open('/?page=2')
-			await wrapper.find('.view[aria-label^="À moi"]').trigger('click')
+			await chooseView(wrapper, 'mine')
 			await flushPromises()
 			expect(queueParams().get('view')).toBe('mine')
 			expect(queueParams().get('start')).toBe('0')
@@ -430,17 +435,17 @@ describe('poste de bureau', () => {
 		})
 		const { wrapper } = await open('/')
 		expect(wrapper.find('.list-state').text()).toContain('Rien dans cette vue')
-		await wrapper.find('.bureau-search').setValue('xyz')
+		await wrapper.find('.bureau-search input').setValue('xyz')
 		expect(wrapper.find('.list-state').text()).toContain('Aucun résultat')
 		await wrapper.find('.list-state button').trigger('click')
-		expect((wrapper.find('.bureau-search').element as HTMLInputElement).value).toBe('')
+		expect((wrapper.find('.bureau-search input').element as HTMLInputElement).value).toBe('')
 		fetchMock.mockImplementation((input) => respond(String(input)))
 	})
 
 	describe('création de ticket', () => {
 		const openDialog = async () => {
 			const opened = await open('/')
-			await opened.wrapper.findAll('.page-head button').find((button) => button.text() === 'Nouveau ticket')!.trigger('click')
+			await opened.wrapper.findAll('.bureau-toolbar button').find((button) => button.text() === 'Nouveau ticket')!.trigger('click')
 			await flushPromises()
 			return opened
 		}
@@ -548,7 +553,7 @@ describe('poste de bureau', () => {
 			await wrapper.find('.dialog-scrim').trigger('keydown', { key: 'Escape' })
 			expect(wrapper.find('.dialog').exists()).toBe(false)
 
-			await wrapper.findAll('.page-head button').find((item) => item.text() === 'Nouveau ticket')!.trigger('click')
+			await wrapper.findAll('.bureau-toolbar button').find((item) => item.text() === 'Nouveau ticket')!.trigger('click')
 			await flushPromises()
 			await wrapper.find('#nouveau-description').setValue('Texte')
 			await wrapper.find('.dialog-scrim').trigger('keydown', { key: 'Escape' })
@@ -670,7 +675,7 @@ describe('poste de bureau', () => {
 		expect((all.element as HTMLInputElement).indeterminate).toBe(true)
 		await all.setValue(true)
 		expect(wrapper.find('.bureau-bulk').text()).toContain('2 tickets sélectionnés')
-		await wrapper.findAll('.view')[1].trigger('click')
+		await chooseView(wrapper, 'mine')
 		await flushPromises()
 		expect(wrapper.find('.bureau-bulk').exists()).toBe(false)
 	})
@@ -770,12 +775,47 @@ describe('poste de bureau', () => {
 		expect(wrapper.find('.filter-chip').text()).toBe('Type de ticket est Bon de commande')
 		const urls = fetchMock.mock.calls.map((call) => new URL(String(call[0]), 'http://x').searchParams.get('conditions') || '')
 		expect(urls.some((conditions) => conditions.includes('"value":"Bon de commande"'))).toBe(true)
-		expect(wrapper.text()).toContain('Filtres (1)')
+		expect(wrapper.find('.btn-on .btn-count').text()).toBe('1')
 
-		await wrapper.findAll('.view')[4].trigger('click')
+		await chooseView(wrapper, 'closed')
 		await flushPromises()
 		const last = decodeURIComponent(String(fetchMock.mock.calls.at(-1)?.[0]))
 		expect(last).toContain('view=closed')
+		// La vue choisie se lit et se retire comme un filtre.
+		expect(wrapper.find('.btn-on .btn-count').text()).toBe('2')
+		expect(wrapper.findAll('.filter-chip').map((chip) => chip.text())).toContain('Clos')
+		await wrapper.findAll('.filter-chip').find((chip) => chip.text() === 'Clos')!.trigger('click')
+		await flushPromises()
+		expect(decodeURIComponent(String(fetchMock.mock.calls.at(-1)?.[0]))).toContain('view=todo')
+	})
+
+	it('propose les vues avec leur compteur dans les filtres, et plus en onglets', async () => {
+		const { wrapper } = await open('/')
+		expect(wrapper.find('.view').exists()).toBe(false)
+		await wrapper.findAll('.bureau-toolbar button').find((button) => button.text().startsWith('Filtres'))!.trigger('click')
+		const labels = wrapper.findAll('select[aria-label="Afficher"] option').map((option) => option.text())
+		expect(labels[0]).toMatch(/^À traiter \(\d+\)$/)
+		expect(labels).toHaveLength(5)
+	})
+
+	it("le menu de la ligne agit sur ce ticket sans toucher à la sélection", async () => {
+		const { wrapper, router } = await open('/')
+		await row(wrapper, 'TC-2').find('input[type="checkbox"]').setValue(true)
+		await row(wrapper, 'TC-1').find('.list-more-btn').trigger('click')
+		const items = row(wrapper, 'TC-1').findAll('.app-menu-item')
+		expect(items.map((item) => item.text())).toContain('Ouvrir la fiche')
+		await items.find((item) => item.text() === 'Prendre en charge')!.trigger('click')
+		await flushPromises()
+		const body = fetchMock.mock.calls.find((call) => String(call[0]).includes('bulk_assign'))?.[1]?.body
+		expect(String(body)).toContain('TC-1')
+		expect(String(body)).not.toContain('TC-2')
+		expect(row(wrapper, 'TC-1').find('.app-menu').exists()).toBe(false)
+		expect((row(wrapper, 'TC-2').find('input[type="checkbox"]').element as HTMLInputElement).checked).toBe(true)
+
+		await row(wrapper, 'TC-1').find('.list-more-btn').trigger('click')
+		await row(wrapper, 'TC-1').findAll('.app-menu-item').find((item) => item.text() === 'Ouvrir la fiche')!.trigger('click')
+		await flushPromises()
+		expect(router.currentRoute.value.params.id).toBe('TC-1')
 	})
 
 	it("signale une erreur et permet de réessayer", async () => {

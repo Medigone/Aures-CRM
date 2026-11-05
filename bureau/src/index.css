@@ -41,6 +41,7 @@
 		gap: 0.625rem;
 		min-height: 0;
 	}
+	/* Barre d'outils : recherche à gauche, actions à droite. */
 	.bureau-toolbar {
 		position: relative;
 		display: flex;
@@ -48,11 +49,29 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem;
+		padding: 0.5rem;
+		border: 1px solid var(--line-soft);
+		border-radius: 14px;
+		background-color: var(--surface-cards);
 	}
 	.bureau-search {
+		position: relative;
 		flex: 0 1 240px;
-		width: auto;
-		min-width: 0;
+		min-width: 150px;
+	}
+	.bureau-search svg {
+		position: absolute;
+		top: 50%;
+		left: 0.6875rem;
+		transform: translateY(-50%);
+		pointer-events: none;
+		@apply text-ink-gray-6;
+	}
+	.bureau-search input {
+		padding-left: 1.9375rem;
+		border-color: var(--btn-line);
+		border-radius: var(--radius-action);
+		background-color: var(--btn-bg);
 	}
 	.bureau-popover {
 		position: absolute;
@@ -83,9 +102,15 @@
 		flex-direction: column;
 		min-width: 0;
 		overflow: hidden;
-		border: 1px solid var(--outline-gray-2);
-		border-radius: var(--radius-card);
+		padding-inline: 0.5rem;
+		border: 1px solid var(--line-soft);
+		border-radius: 14px;
 		background-color: var(--surface-cards);
+	}
+	.bureau-list-card .pager {
+		min-height: 2.625rem;
+		padding-inline: 0.375rem;
+		border-top: 0;
 	}
 	.bureau-list-scroll {
 		flex: 1 1 auto;
@@ -97,16 +122,16 @@
 	/* Barre d'actions groupées : elle flotte pour que les lignes ne bougent pas pendant qu'on coche. */
 	.bureau-bulk {
 		position: absolute;
-		bottom: 2.875rem;
-		left: 0.75rem;
+		bottom: 3.25rem;
+		left: 1rem;
 		z-index: 4;
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem;
-		max-width: calc(100% - 1.5rem);
-		padding: 0.5rem 0.625rem 0.5rem 0.875rem;
-		border-radius: var(--radius-card);
+		max-width: calc(100% - 2rem);
+		padding: 0.4375rem 0.5rem 0.4375rem 0.875rem;
+		border-radius: 22px;
 		background-color: var(--surface-modal);
 		box-shadow: var(--shadow-overlay);
 		@apply border border-outline-gray-2;
@@ -339,28 +364,9 @@
 		}
 	}
 
-	/* Vues de la liste : libellé et compteur sur une ligne. */
-	.views {
-		@apply flex flex-none flex-wrap gap-0.5 rounded-control bg-surface-gray-3 p-[3px];
-	}
-	.view {
-		@apply inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-[9px] px-2.5 text-sm font-medium text-ink-gray-7 transition hover:bg-surface-gray-4;
-	}
-	.view-count {
-		@apply font-semibold tabular-nums text-ink-gray-9;
-	}
-	.view-count-alert {
-		color: var(--tone-red-ink);
-	}
-	.view[aria-pressed='true'],
-	.view[aria-pressed='true']:hover {
-		@apply bg-primary text-on-primary;
-	}
-	.view[aria-pressed='true'] .view-count {
-		color: inherit;
-	}
 	.filter-chip {
 		@apply inline-flex h-[26px] items-center gap-1.5 rounded-full px-2.5 text-sm font-medium;
+		border: 1px solid var(--selection-border);
 		background-color: var(--filter-chip-bg);
 		color: var(--accent-fonce);
 	}
@@ -371,30 +377,45 @@
 	/* Lignes de la liste : la case à cocher est à part, le reste de la ligne ouvre l'aperçu. */
 	.list-head,
 	.list-row {
-		display: flex;
-		align-items: center;
+		position: relative;
+		height: 44px;
+		border-radius: 9px;
+		@apply hover:bg-surface-gray-2;
 	}
+	.list-row + .list-row::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 8px;
+		left: 8px;
+		height: 1px;
+		background-color: var(--line-soft);
+	}
+	/* En-têtes sur le blanc, lignes dans un plateau gris. */
 	.list-head {
 		position: sticky;
 		top: 0;
 		z-index: 2;
-		height: 34px;
+		height: 40px;
 		background-color: var(--surface-cards);
-		@apply border-b border-outline-gray-2;
+	}
+	.list-tray {
+		border: 1px solid var(--line-soft);
+		border-radius: 12px;
+		background-color: var(--tray);
 	}
 	.list-head button {
-		@apply inline-flex h-[34px] min-w-0 items-center gap-1 whitespace-nowrap text-left text-xs font-semibold text-ink-gray-7 hover:text-ink-gray-9;
+		@apply inline-flex h-10 min-w-0 items-center gap-1 whitespace-nowrap text-left text-sm font-medium text-ink-gray-8 hover:text-ink-gray-9;
 	}
 	.list-cols {
 		display: grid;
 		flex: 1 1 0;
-		column-gap: 0.625rem;
+		column-gap: 0.5rem;
 		align-items: center;
 		min-width: 0;
-		padding-right: 0.875rem;
 	}
 	/* Liste sans case à cocher : pas d'action groupée à proposer. */
-	.list-no-check .list-cols {
+	.list-no-check > .list-cols {
 		padding-left: 0.875rem;
 	}
 	.list-col-end {
@@ -406,11 +427,30 @@
 		align-self: stretch;
 		align-items: center;
 		justify-content: center;
-		width: 36px;
+		width: 32px;
 		cursor: pointer;
 	}
+	.list-more {
+		display: flex;
+		flex: none;
+		align-items: center;
+		justify-content: center;
+		width: 30px;
+	}
+	.list-more-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		border-radius: var(--radius-pill);
+		@apply text-ink-gray-8 hover:bg-surface-gray-4;
+	}
+	.list-more-btn[aria-expanded='true'] {
+		@apply bg-surface-gray-4;
+	}
 	.list-head-plain {
-		@apply inline-flex h-[34px] min-w-0 items-center whitespace-nowrap text-xs font-semibold text-ink-gray-7;
+		@apply inline-flex h-10 min-w-0 items-center whitespace-nowrap text-sm font-medium text-ink-gray-8;
 	}
 	.list-comments {
 		display: inline-flex;
@@ -423,7 +463,24 @@
 		width: 16px;
 		height: 16px;
 		margin: 0;
+		appearance: none;
+		border: 1.5px solid var(--control-border);
+		border-radius: 5px;
+		background: var(--surface-cards) center / 12px no-repeat;
 		cursor: pointer;
+	}
+	.list-check input:hover {
+		border-color: var(--accent);
+	}
+	.list-check input:checked {
+		border-color: var(--accent);
+		background-color: var(--accent);
+		background-image: var(--check-mark);
+	}
+	.list-check input:indeterminate {
+		border-color: var(--accent);
+		background-color: var(--accent);
+		background-image: var(--check-mixed);
 	}
 	.list-row {
 		height: 40px;
@@ -436,10 +493,15 @@
 	.list-row-on,
 	.list-row-on:hover {
 		background-color: var(--selection);
+		box-shadow: inset 0 0 0 1px var(--selection-border);
+	}
+	.list-row-on::before,
+	.list-row-on + .list-row::before {
+		display: none;
 	}
 	.list-row-main {
-		height: 39px;
-		@apply text-left text-sm text-ink-gray-8;
+		height: 100%;
+		@apply text-left text-sm text-ink-gray-7;
 	}
 	.list-row-main > span {
 		min-width: 0;
@@ -469,7 +531,7 @@
 	}
 	.list-bar {
 		flex: none;
-		width: 36px;
+		width: 28px;
 		height: 4px;
 		overflow: hidden;
 		border-radius: 999px;

@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import LucideCircleCheck from '~icons/lucide/circle-check'
+import LucideCircleDot from '~icons/lucide/circle-dot'
+import LucideCircleMinus from '~icons/lucide/circle-minus'
+import LucideCirclePause from '~icons/lucide/circle-pause'
+import LucideCircleX from '~icons/lucide/circle-x'
+import LucideLoader from '~icons/lucide/loader'
+import LucideLock from '~icons/lucide/lock'
 
 /** Pastille de statut : la teinte suit le sens du statut (Desk Aures). */
 const props = defineProps<{ status?: string | null; tone?: 'red' | 'amber' | 'green' | 'blue' | 'gray' | 'violet' }>()
@@ -88,11 +95,27 @@ const FORCED_TONES = {
 	violet: 'tone-violet',
 }
 const tone = computed(() => (props.tone && FORCED_TONES[props.tone]) || TONES[label.value || ''] || 'tone-gray')
+/** Icône de la densité Poste : l'état se lit aussi par sa forme, pas seulement par sa couleur. */
+const TONE_ICONS: Record<string, unknown> = {
+	'tone-blue': LucideCircleDot,
+	'tone-amber': LucideLoader,
+	'tone-green': LucideCircleCheck,
+	'tone-red': LucideCircleX,
+	'tone-gray': LucideCircleMinus,
+	'tone-violet': LucideCirclePause,
+}
+const LABEL_ICONS: Record<string, unknown> = {
+	'Blocage Créance': LucideLock,
+	Dormant: LucideCirclePause,
+	'En Pause': LucideCirclePause,
+}
+const icon = computed(() => LABEL_ICONS[label.value || ''] ?? TONE_ICONS[tone.value])
 </script>
 
 <template>
 	<span v-if="status" class="badge gap-1.5" :class="tone">
-		<span class="h-1.5 w-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
+		<span class="status-dot h-1.5 w-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
+		<component :is="icon" class="status-icon" aria-hidden="true" />
 		{{ label }}
 	</span>
 </template>
