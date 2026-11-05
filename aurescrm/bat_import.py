@@ -33,8 +33,15 @@ INFORMATION_LABELS = (("projet", "Nom du projet"), ("client", "Nom du client"), 
 _LEGEND_PANTONE = re.compile(r"PANTONE\s*®?\s+([A-Za-z0-9 ]+?\s[CUcu])(?![A-Za-z0-9])")
 _LEGEND_PROCESS = {"NOIR": "n", "BLACK": "n", "CYAN": "c", "MAGENTA": "m", "JAUNE": "j", "YELLOW": "j"}
 # Ces encres servent au façonnage ou à l'interface : elles ne s'impriment pas comme une couleur de l'article.
-_TECHNICAL_INK = re.compile(r"^(cut|coupe|decoupe|dieline|die line|rainage|crease|braille|none|all|registration)$")
+_TECHNICAL_INK = re.compile(r"^(cut|coupe|decoupe|dieline|die line|rainage|(artios )?crease|braille|none|all|registration)$")
 _PROCESS_INK = {"black", "noir", "cyan", "magenta", "yellow", "jaune"}
+_LIGATURES = str.maketrans({"ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl"})
+# Cartouche aux intitulés vectorisés : seule la disposition des valeurs permet de les reconnaître.
+_DIMENSION = re.compile(r"^\d+(?:[.,]\d+)?(?:\s*[x×]\s*\d+(?:[.,]\d+)?){1,2}\s*(?:mm)?$", re.I)
+_GRAMMAGE = re.compile(r"\d\s*g\s*/\s*m", re.I)
+_DATE = re.compile(r"^\d{1,2}\s*/\s*\d{1,2}\s*/\s*\d{2,4}$")
+COLUMN_TOLERANCE = 4
+PAGE_LABELS = {"reference": "Réf. doc", "dimension": "Dimension", "support": "Support", "finitions": "Finitions", "client": "Nom du client", "projet": "Nom du projet", "date": "Date du BAT", "auteur": "Auteur du BAT", "version": "Version du BAT"}
 
 
 def _plain(text):
@@ -50,7 +57,7 @@ def _text_lines(page):
 	lines = []
 	for block in page.get_text("dict").get("blocks", []):
 		for line in block.get("lines", []):
-			text = "".join(span["text"] for span in line["spans"]).strip()
+			text = "".join(span["text"] for span in line["spans"]).translate(_LIGATURES).strip()
 			if text:
 				x0, y0, x1, y1 = line["bbox"]
 				lines.append({"text": text, "x0": x0, "y0": y0, "x1": x1, "y1": y1})
@@ -86,10 +93,80 @@ def read_cartouche(lines):
 		following = [line for line in lines if id(line) not in taken and -4 <= line["y0"] - last["y1"] <= 3 and line["x0"] < last["x1"] and line["x1"] > last["x0"] and line["x0"] < stop]
 		for line in following:
 			taken.add(id(line))
+		if label["key"] == "reference" and len(found) > 1:
+			# Un repère de langue suit parfois la référence dans sa case : `AB123 - X   vFr`.
+			values["repere"] = " ".join(line["text"] for line in found[1:])
+			found = found[:1]
 		values[label["key"]] = re.sub(r"\s+", " ", " ".join(line["text"] for line in [*found, *following])).strip()
 	if values.get("date"):
 		values["date"] = re.sub(r"\s*/\s*", "/", values["date"])
 	return values
+
+
+def read_layout(lines):
+	"""Intitulés vectorisés : les cotes et, juste dessous dans la même colonne, le support ancrent tout le cartouche.
+	Sans cet ancrage, rien n'est lu : un texte du visuel ne doit pas passer pour une valeur."""
+	ordered = sorted(lines, key=lambda item: (item["y0"], item["x0"]))
+	for dimension in ordered:
+		if not _DIMENSION.match(dimension["text"]):
+			continue
+		column = [line for line in ordered if line is not dimension and abs(line["x0"] - dimension["x0"]) <= COLUMN_TOLERANCE]
+		reach = 3 * (dimension["y1"] - dimension["y0"])
+		support = next((line for line in column if 0 < line["y0"] - dimension["y0"] <= reach and _GRAMMAGE.search(line["text"])), None)
+		if support:
+			return _layout_values(ordered, dimension, support, column)
+	return {}
+
+
+def _layout_values(lines, dimension, support, column):
+	gap = support["y0"] - dimension["y0"]
+	reference = next((line for line in reversed(column) if 0 < dimension["y0"] - line["y0"] <= 1.5 * gap), None)
+	finitions = next((line for line in column if 0 < line["y0"] - support["y0"] <= 1.5 * gap), None)
+	top = (reference or dimension)["y0"] - COLUMN_TOLERANCE
+	bottom = (finitions or support)["y1"] + COLUMN_TOLERANCE
+	row = [line for line in lines if top <= line["y0"] <= bottom and line not in (reference, dimension, support, finitions)]
+	values = {"dimension": dimension["text"], "support": support["text"]}
+	if reference:
+		values["reference"] = reference["text"]
+	if finitions:
+		values["finitions"] = finitions["text"]
+	date = next((line for line in row if line["x0"] > dimension["x0"] and _DATE.match(line["text"])), None)
+	if date:
+		values["date"] = re.sub(r"\s*/\s*", "/", date["text"])
+		under = [line for line in row if line["y0"] > date["y0"] and abs(line["x0"] - date["x0"]) <= COLUMN_TOLERANCE]
+		for key, line in zip(("auteur", "version"), under):
+			values[key] = line["text"]
+	left = [line for line in row if line["x1"] <= dimension["x0"] and line["y0"] < support["y0"]]
+	client = next((line for line in left if reference and _same_row(line, reference)), None)
+	if client:
+		values["client"] = client["text"]
+	projet = [line["text"] for line in left if line is not client]
+	if projet:
+		values["projet"] = " ".join(projet)
+	if reference:
+		limit = date["x0"] - COLUMN_TOLERANCE if date else float("inf")
+		repere = [line["text"] for line in row if line["x0"] > reference["x1"] and line["x0"] < limit and _same_row(line, reference)]
+		if repere:
+			values["repere"] = " ".join(repere)
+	return values
+
+
+def merge_pages(pages):
+	"""Une valeur commune aux pages est retenue. Si elles se contredisent, rien n'est tranché : les deux restent affichées."""
+	cartouche, disagreements, marks = {}, {}, []
+	for number, page in enumerate(pages, 1):
+		if page.get("repere"):
+			marks.append({"page": number, "value": page["repere"]})
+		for key, value in page.items():
+			if key == "repere":
+				continue
+			known = disagreements.get(key) or ([cartouche[key]] if key in cartouche else [])
+			if not known:
+				cartouche[key] = value
+			elif _plain(value) not in {_plain(item) for item in known}:
+				cartouche.pop(key, None)
+				disagreements[key] = [*known, value]
+	return {"cartouche": cartouche, "disagreements": disagreements, "marks": marks}
 
 
 def read_legend(text):
@@ -104,6 +181,14 @@ def read_legend(text):
 	return pantones, process
 
 
+def _ink_name(name):
+	"""Les octets d'un nom d'encre sont en UTF-8 ou en Latin-1 selon le logiciel qui a produit le PDF."""
+	try:
+		return name.encode("latin-1").decode("utf-8")
+	except UnicodeError:
+		return name
+
+
 def read_inks(document):
 	"""Noms des encres déclarées dans le fichier : Separation et DeviceN."""
 	names = []
@@ -116,7 +201,7 @@ def read_inks(document):
 		for group in re.findall(r"/DeviceN\s*\[([^\]]*)\]", source):
 			found += re.findall(r"/([^\s/\[\]<>()]+)", group)
 		for raw in found:
-			name = re.sub(r"#([0-9A-Fa-f]{2})", lambda hit: chr(int(hit[1], 16)), raw)
+			name = _ink_name(re.sub(r"#([0-9A-Fa-f]{2})", lambda hit: chr(int(hit[1], 16)), raw))
 			if name not in names:
 				names.append(name)
 	return names
@@ -133,7 +218,7 @@ def compare_colors(legend, process, inks):
 	spots = []
 	others = []
 	for ink in inks:
-		plain = _plain(ink)
+		plain = _plain(ink).replace("_", " ")
 		if plain.startswith("pantone") or plain.startswith("pms "):
 			code = normalize_code(ink)
 			if code not in spots:
@@ -158,15 +243,23 @@ def read_document(data):
 	with fitz.open(stream=data, filetype="pdf") as document:
 		if document.needs_pass:
 			raise ValueError("protected")
-		lines, text = [], []
+		pages, text = [], []
 		for index in range(min(document.page_count, MAX_PAGES)):
 			page = document[index]
-			lines += _text_lines(page)
+			lines = _text_lines(page)
+			pages.append(read_cartouche(lines) or read_layout(lines))
 			text.append(page.get_text())
 		text = "\n".join(text)
 		inks = read_inks(document)
+		page_count = document.page_count
 	legend, process = read_legend(text)
-	return {"cartouche": read_cartouche(lines), "colors": compare_colors(legend, process, inks), "braille": any(_plain(ink) == "braille" for ink in inks)}
+	return {
+		**merge_pages(pages),
+		"page_count": page_count,
+		"recto_verso": page_count == 2 and all(pages),
+		"colors": compare_colors(legend, process, inks),
+		"braille": any(_plain(ink) == "braille" for ink in inks),
+	}
 
 
 def parse_support(raw, papers):
@@ -258,10 +351,18 @@ def build_proposals(document, schema, papers, grammages):
 	inform("Finition non reconnue", ", ".join(unknown))
 	if document["braille"]:
 		add("custom_braille", "1", "Encre Braille", "Encres du fichier")
+	if document["recto_verso"]:
+		add("custom_recto_verso", "1", "2 pages", "Nombre de pages")
+	elif document["page_count"] > 1:
+		inform("Pages du BAT", f"{document['page_count']} pages")
 	colors = document["colors"]
 	inform("Autres encres du fichier", ", ".join(colors["other_inks"]))
 	for key, label in INFORMATION_LABELS:
 		inform(label, cartouche.get(key))
+	for key, values in document["disagreements"].items():
+		inform(f"{PAGE_LABELS[key]} selon les pages", " / ".join(values))
+	for mark in document["marks"]:
+		inform(f"Repère de la page {mark['page']}" if document["page_count"] > 1 else "Repère", mark["value"])
 
 	codes = [*colors["pantones"], *(gap["code"] for gap in colors["gaps"])]
 	details = describe(codes)
