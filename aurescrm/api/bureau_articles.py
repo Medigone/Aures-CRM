@@ -487,16 +487,30 @@ def _check_choice(value, choices, message):
 		frappe.throw(message)
 
 
-def _check_unique(designation, client=None, current=None):
+def _duplicate_message(designation, client=None, current=None):
 	"""Un client n'a qu'un article de ce nom ; pour un article général, le contrôle porte sur tous les articles généraux."""
 	label = designation.upper()
 	filters = {"item_code": label}
 	filters.update({"custom_client": client} if client else {"custom_type_article": TYPE_GENERAL})
 	existing = frappe.db.get_value(ITEM, filters, "name")
-	if existing and existing != current:
-		if client:
-			frappe.throw(_("Le client a déjà un article « {0} ».").format(label))
-		frappe.throw(_("Un article général « {0} » existe déjà.").format(label))
+	if not existing or existing == current:
+		return None
+	if client:
+		return _("Le client a déjà un article « {0} ».").format(label)
+	return _("Un article général « {0} » existe déjà.").format(label)
+
+
+def _check_unique(designation, client=None, current=None):
+	message = _duplicate_message(designation, client, current)
+	if message:
+		frappe.throw(message)
+
+
+@frappe.whitelist()
+def check_article_designation(designation, client=None):
+	"""Contrôle avant la fiche technique : la désignation est refusée dès la première phase, pas après toute la saisie."""
+	require_bureau()
+	return {"message": _duplicate_message(cstr(designation).strip(), client or None)}
 
 
 def _apply_fiche(doc, fiche):

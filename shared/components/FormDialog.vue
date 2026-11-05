@@ -5,9 +5,10 @@ import LucideX from '~icons/lucide/x'
 /**
  * Fenêtre de création, par-dessus la page qui reste en place.
  * Un clic à côté ne ferme pas. Si la saisie n'est pas vide (`dirty`), la fermeture demande confirmation dans le pied.
+ * Avec `draft`, la saisie est gardée en brouillon par l'appelant : fermer ne perd rien, et `discard` l'efface.
  */
-const props = withDefaults(defineProps<{ title: string; dirty: boolean; busy?: boolean; hint?: string }>(), { hint: 'Ctrl + Entrée pour créer' })
-const emit = defineEmits<{ close: []; submit: [] }>()
+const props = withDefaults(defineProps<{ title: string; dirty: boolean; busy?: boolean; hint?: string; draft?: boolean }>(), { hint: 'Ctrl + Entrée pour créer' })
+const emit = defineEmits<{ close: []; submit: []; discard: [] }>()
 
 const root = ref<HTMLElement | null>(null)
 const body = ref<HTMLElement | null>(null)
@@ -54,11 +55,18 @@ onMounted(async () => {
 				<h2 class="page-title">{{ title }}</h2>
 				<button type="button" class="app-icon-bare" aria-label="Fermer" :disabled="busy" @click="requestClose"><LucideX class="h-4 w-4" aria-hidden="true" /></button>
 			</div>
+			<slot name="top" />
 			<div ref="body" class="dialog-body">
 				<slot />
 			</div>
 			<div class="dialog-foot">
-				<template v-if="confirming">
+				<template v-if="confirming && draft">
+					<span class="flex-auto font-semibold text-ink-gray-9">Votre saisie reste en brouillon.</span>
+					<button type="button" class="btn-ghost" @click="confirming = false">Continuer la saisie</button>
+					<button type="button" class="btn-danger" @click="emit('discard')">Effacer la saisie</button>
+					<button type="button" class="btn-primary" @click="emit('close')">Fermer</button>
+				</template>
+				<template v-else-if="confirming">
 					<span class="flex-auto font-semibold text-ink-gray-9">Abandonner cette saisie ?</span>
 					<button type="button" class="btn-secondary" @click="confirming = false">Continuer la saisie</button>
 					<button type="button" class="btn-danger" @click="emit('close')">Abandonner</button>

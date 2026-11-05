@@ -461,17 +461,19 @@ export function finishesSummary(cards: FicheCardValues[]) {
 	return [pelliculage && `Pelliculage ${pelliculage.toLowerCase()}`, ...vernis.map((label) => `Vernis ${label.toLowerCase()}`)].filter(Boolean).join(' · ')
 }
 
-// Création : le minimum pour identifier l'article. Le reste de la fiche se complète ensuite.
-export const CREATE_FIELDS: Record<string, string[]> = {
-	Offset: ['custom_support', 'custom_grammage', 'custom_cotations_article', 'custom_nbr_couleurs'],
-	Flexo: ['custom_type_support', 'custom_epaisseur', 'custom_dimensions_h_x_l'],
-	'Salle Blanche Pharma': ['custom_epaisseur_sb', 'custom_nombre_de_couleurs', 'custom_découpe'],
-}
+/** Largeur, Hauteur et Longueur sont abandonnées : à la création, le format se saisit dans Cotations Article. */
+const CREATION_HIDDEN_FIELDS = new Set(['custom_largeur', 'custom_hauteur', 'custom_longueur'])
+const CREATION_LAST_FIELDS = new Set(['custom_tolérance_', 'custom_nombre_passages'])
 
-export function createFields(schema: FicheSchema | undefined, procede: string) {
-	const wanted = CREATE_FIELDS[procede] ?? []
-	const fields = (schema?.groups ?? []).flatMap((group) => group.fields)
-	return wanted.map((name) => fields.find((field) => field.fieldname === name)).filter((field): field is FicheField => Boolean(field))
+/** Fiche technique de la phase 2 : les cartes du procédé, sans les champs abandonnés. */
+export function creationCards(schema: FicheSchema | undefined, doc: FicheDoc): FicheCard[] {
+	return ficheCards(schema, doc)
+		.map(({ title, fields }) => {
+			const kept = fields.filter((field) => !CREATION_HIDDEN_FIELDS.has(field.fieldname))
+			// Ces champs communs à tous les procédés passent après ceux du procédé, comme dans la maquette.
+			return { title, fields: [...kept.filter((field) => !CREATION_LAST_FIELDS.has(field.fieldname)), ...kept.filter((field) => CREATION_LAST_FIELDS.has(field.fieldname))] }
+		})
+		.filter((card) => card.fields.length)
 }
 
 export type ArticleField = 'designation' | 'client' | 'procede' | 'groupe'

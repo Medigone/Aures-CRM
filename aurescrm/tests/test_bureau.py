@@ -1282,6 +1282,12 @@ class TestArticles(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			self._create(procede="Inconnu")
 
+	def test_controle_de_designation_avant_la_fiche_technique(self):
+		designation = f"zzz doublon {frappe.generate_hash(length=8)}"
+		self.assertIsNone(bureau_articles.check_article_designation(designation, self.client)["message"])
+		bureau_articles.create_article({"type": "Client", "designation": designation, "client": self.client, "procede": "Offset", "groupe": self.groupe})
+		self.assertIn(designation.upper(), bureau_articles.check_article_designation(f"  {designation} ", self.client)["message"])
+
 	def test_article_general_sans_client_ni_procede(self):
 		name = bureau_articles.create_article({"type": "Général", "designation": f"zzz matiere {frappe.generate_hash(length=8)}", "groupe": self.groupe})["name"]
 		article = bureau_articles.get_article(name)

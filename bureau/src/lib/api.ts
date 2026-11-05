@@ -194,6 +194,8 @@ export const getArticle = (name: string) => call<ArticleDetail>(`${ARTICLES}.get
 
 export const getArticleOptions = () => call<ArticleOptions>(`${ARTICLES}.get_article_options`)
 
+export const checkArticleDesignation = (designation: string, client?: string) => call<{ message: string | null }>(`${ARTICLES}.check_article_designation`, { designation, client })
+
 export const createArticle = (values: ArticleValues) => call<{ name: string }>(`${ARTICLES}.create_article`, { values }, true)
 
 export const updateArticle = (article: ArticleDetail, values: ArticleValues) => call<ArticleDetail>(`${ARTICLES}.update_article`, { name: article.name, modified: article.modified, values }, true)

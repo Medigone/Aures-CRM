@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activationConsequence, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSigle, articleSortText, changedFields, clientTone, createFields, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
+import { activationConsequence, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSigle, articleSortText, changedFields, clientTone, creationCards, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
 
 const offset = "eval: doc.custom_procédé == 'Offset'"
 const flexo = "eval: doc.custom_procédé == 'Flexo'"
@@ -62,9 +62,10 @@ describe('articles', () => {
 		expect(finishesSummary([])).toBe('')
 	})
 
-	it('à la création, ne demande que le minimum du procédé', () => {
-		expect(createFields(schema, 'Offset').map((field) => field.fieldname)).toEqual(['custom_support'])
-		expect(createFields(schema, 'Numérique')).toEqual([])
+	it('à la création, propose toute la fiche du procédé sauf les dimensions abandonnées', () => {
+		const format = { groups: [{ label: 'Cotations', fields: ['custom_largeur', 'custom_hauteur', 'custom_longueur', 'custom_cotations_article'].map((fieldname) => ({ fieldname, label: fieldname, fieldtype: 'Data', conditions: [] })) }, { label: 'Autre', fields: [{ fieldname: 'custom_largeur', label: 'Largeur', fieldtype: 'Data', conditions: [] }] }], fields: [] }
+		const fields = creationCards(format, {}).flatMap((card) => card.fields.map((field) => field.fieldname))
+		expect(fields).toEqual(['custom_cotations_article'])
 	})
 
 	it('exige client, procédé, désignation et groupe selon le type', () => {

@@ -88,6 +88,7 @@ describe('page Articles', () => {
 	}
 
 	beforeEach(() => {
+		for (const key of Object.keys(localStorage)) if (key.startsWith('bureau-article-brouillon')) localStorage.removeItem(key)
 		window.can_access = true
 		window.user = 'bo@example.com'
 		window.user_fullname = 'Back Office'
@@ -280,26 +281,96 @@ describe('page Articles', () => {
 		wrapper.unmount()
 	})
 
-	it('Nouvel article exige le client et le procédé, puis crée', async () => {
-		const { wrapper } = await open('/articles')
+	const openDialog = async (wrapper: ReturnType<typeof mount>) => {
 		await wrapper.findAll('.bureau-toolbar button').find((button) => button.text() === 'Nouvel article')!.trigger('click')
 		await flushPromises()
 		await flushPromises()
-		const create = () => wrapper.findAll('.dialog button').find((button) => button.text() === "Créer l'article")!
-		await create().trigger('click')
-		await flushPromises()
-		expect(wrapper.find('.dialog').text()).toContain('Saisissez la désignation.')
-		expect(wrapper.find('.dialog').text()).toContain('Choisissez le client.')
-		expect(wrapper.find('.dialog').text()).toContain('Choisissez le procédé.')
+	}
+	const dialogButton = (wrapper: ReturnType<typeof mount>, label: string) => wrapper.findAll('.dialog button').find((button) => button.text() === label)!
+	const fillBase = async (wrapper: ReturnType<typeof mount>) => {
 		await wrapper.find('#article-designation').setValue('Etui chocolat')
 		await wrapper.find('#article-client').trigger('focus')
 		await flushPromises()
 		await wrapper.find('.picker-menu .app-menu-item').trigger('click')
 		await wrapper.findAll('.dialog .seg button').find((button) => button.text() === 'Offset')!.trigger('click')
 		await flushPromises()
-		await create().trigger('click')
+	}
+
+	it('Nouvel article passe par les deux phases, puis crée avec les seuls champs du procédé', async () => {
+		const { wrapper } = await open('/articles')
+		await openDialog(wrapper)
+		await dialogButton(wrapper, 'Continuer').trigger('click')
 		await flushPromises()
-		expect(posted('bureau_articles.create_article').values).toMatchObject({ type: 'Client', designation: 'Etui chocolat', client: 'CLI-1', procede: 'Offset', groupe: 'Produits' })
+		expect(wrapper.find('.dialog').text()).toContain('Saisissez la désignation.')
+		expect(wrapper.find('.dialog').text()).toContain('Choisissez le client.')
+		expect(wrapper.find('.dialog').text()).toContain('Choisissez le procédé.')
+		await fillBase(wrapper)
+		await dialogButton(wrapper, 'Continuer').trigger('click')
+		await flushPromises()
+		expect(wrapper.find('.phase-step[aria-current="step"]').text()).toContain('Fiche technique Offset')
+		expect(wrapper.find('.phase-recap').text()).toContain('ETUI CHOCOLAT')
+		expect(wrapper.find('.dialog').text()).toContain('Papier')
+		expect(wrapper.find('.dialog').text()).not.toContain('Champ Flexo')
+		await wrapper.find('#fiche-custom_support').setValue('BBTB')
+		await dialogButton(wrapper, "Créer l'article").trigger('click')
+		await flushPromises()
+		expect(posted('bureau_articles.create_article').values).toMatchObject({ type: 'Client', designation: 'Etui chocolat', client: 'CLI-1', procede: 'Offset', groupe: 'Produits', fiche: { custom_support: 'BBTB' } })
+		expect(wrapper.text()).toContain('Article créé.')
+		expect(Object.keys(localStorage).filter((key) => key.startsWith('bureau-article-brouillon'))).toEqual([])
+		wrapper.unmount()
+	})
+
+	it('refuse dès Continuer une désignation déjà prise par le client', async () => {
+		current['check_article_designation'] = { message: 'Le client a déjà un article « ETUI CHOCOLAT ».' }
+		const { wrapper } = await open('/articles')
+		await openDialog(wrapper)
+		await fillBase(wrapper)
+		await dialogButton(wrapper, 'Continuer').trigger('click')
+		await flushPromises()
+		expect(wrapper.find('.field-error').text()).toContain('a déjà un article')
+		expect(wrapper.find('.phase-step[aria-current="step"]').text()).toContain('Informations de base')
+		delete current['check_article_designation']
+		wrapper.unmount()
+	})
+
+	it('garde la saisie en brouillon après une fermeture, puis la reprend ou l efface', async () => {
+		const { wrapper } = await open('/articles')
+		await openDialog(wrapper)
+		await fillBase(wrapper)
+		await dialogButton(wrapper, 'Continuer').trigger('click')
+		await flushPromises()
+		await wrapper.find('#fiche-custom_support').setValue('BBTB')
+		await dialogButton(wrapper, 'Annuler').trigger('click')
+		expect(wrapper.find('.dialog-foot').text()).toContain('Votre saisie reste en brouillon.')
+		await dialogButton(wrapper, 'Fermer').trigger('click')
+		await flushPromises()
+		expect(wrapper.find('.dialog').exists()).toBe(false)
+
+		await openDialog(wrapper)
+		expect(wrapper.find('.draft-note').text()).toContain('Brouillon repris')
+		expect((wrapper.find('#fiche-custom_support').element as HTMLSelectElement).value).toBe('BBTB')
+		expect(wrapper.find('.phase-recap').text()).toContain('BISCUITERIE NUMIDIA')
+		await dialogButton(wrapper, 'Repartir de zéro').trigger('click')
+		await dialogButton(wrapper, 'Effacer').trigger('click')
+		await flushPromises()
+		expect((wrapper.find('#article-designation').element as HTMLInputElement).value).toBe('')
+		expect(Object.keys(localStorage).filter((key) => key.startsWith('bureau-article-brouillon'))).toEqual([])
+		wrapper.unmount()
+	})
+
+	it('sans réseau à la création, ne perd rien et le dit', async () => {
+		const { wrapper } = await open('/articles')
+		await openDialog(wrapper)
+		await fillBase(wrapper)
+		await dialogButton(wrapper, 'Continuer').trigger('click')
+		await flushPromises()
+		fetchMock.mockImplementationOnce(() => Promise.reject(new TypeError('Failed to fetch')))
+		await dialogButton(wrapper, "Créer l'article").trigger('click')
+		await flushPromises()
+		expect(wrapper.find('.phase-alert').text()).toContain('reste en brouillon')
+		expect(Object.keys(localStorage).some((key) => key.startsWith('bureau-article-brouillon'))).toBe(true)
+		await dialogButton(wrapper, "Créer l'article").trigger('click')
+		await flushPromises()
 		expect(wrapper.text()).toContain('Article créé.')
 		wrapper.unmount()
 	})
