@@ -51,7 +51,21 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 - **Nouveau prospect** : raison sociale, forme juridique, catégorie, commune et commercial sont obligatoires. La wilaya découle de la commune, et le statut est toujours Prospect. Le commercial devient le principal de la société dans la table d'attributions.
 - **Modifier** : seuls les champs changés partent, avec la date `modified` affichée. Si le client a changé entre-temps, l'enregistrement est refusé.
 - **Commune** : le nom d'une commune est un identifiant. Le serveur renvoie aussi `commune_label`, seul affiché à l'écran.
-- **Encore sur le Desk** : nouvelle visite, nouveau rendez-vous, nouvel appel et nouvel article, ouverts dans une nouvelle fenêtre.
+- **Encore sur le Desk** : nouvelle visite, nouveau rendez-vous et nouvel appel, ouverts dans une nouvelle fenêtre.
+
+## Articles
+
+- **Adresses** : liste sous `/bureau/articles` (`?vue=sans_bat&page=2&apercu=CLI-…`), fiche sous `/bureau/articles/CLI-…?onglet=prepresse`. Même modèle que les clients.
+- **Serveur** : `aurescrm/api/bureau_articles.py`. `get_articles` lit toute la vue, la trie, puis renvoie une page, le total, `names` et les compteurs des vues.
+- **Statut** : un article n'a pas de champ de statut. La pastille montre son dernier BAT : le plus récent encore en vigueur, sinon le plus récent devenu obsolète. La vue « Sans BAT validé » écarte les articles généraux.
+- **Écart de BAT** : une alerte signale un BAT validé dont la maquette n'est plus la version activée (`bat_gap`). Sans maquette renseignée sur le BAT, rien n'est signalé.
+- **Fiche technique** : les champs viennent d'`article_schema`, avec les conditions du Desk évaluées par `shared/fiche.ts`, commun avec la PWA. Un article Offset ne montre que les champs Offset, et seuls les champs renseignés apparaissent à la lecture. `CARD_OF` (`bureau/src/lib/articles.ts`) les range par sujet.
+- **Onglets** : Aperçu, Fiche technique, Sous-articles (article composé), Prépresse, Affaires, Activité. Un article général n'a ni fiche technique ni prépresse, et son action principale est Modifier.
+- **Tickets** : un ticket ne porte pas d'article. Il se retrouve par sa demande de faisabilité, son dossier d'essai ou son devis rapproché. Un ticket sans aucune de ces pièces n'apparaît donc pas sur la fiche, et Nouveau ticket ne préremplit que le client.
+- **Devis et commandes** : une ligne par ligne d'article : la quantité et le prix sont ceux de l'article, pas le total de la pièce.
+- **Nouvel article** : désignation, groupe, et pour un article client, le client et le procédé. Le code vient de `custom_item_naming`. Un client n'a qu'un article de ce nom.
+- **Modifier** : seuls les champs changés partent, avec la date `modified` affichée. Le client et le type d'article ne se changent pas depuis /bureau, car ils décident du code.
+- **Encore sur le Desk** : l'étude de faisabilité, depuis la fiche de l'article sur le Desk.
 
 ## Commentaires et activité
 
@@ -97,6 +111,7 @@ Toute liste construite sur `DataList` les obtient en déclarant `bulk-doctype`, 
 | Connexion | `bureau/src/pages/LoginPage.vue`, `bureau/src/components/LoginLayout.vue` |
 | API et calcul des étapes | `aurescrm/api/bureau.py` |
 | API des clients | `aurescrm/api/bureau_clients.py` |
+| API des articles | `aurescrm/api/bureau_articles.py` |
 | Temps réel | `aurescrm/bureau_events.py` |
 | Tests serveur | `aurescrm/tests/test_bureau.py` |
 

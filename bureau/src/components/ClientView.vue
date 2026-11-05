@@ -10,6 +10,7 @@ import ActivityFeed from '@shared/components/ActivityFeed.vue'
 import ListState from '@shared/components/ListState.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
+import ArticleDialog from './ArticleDialog.vue'
 import ClientDialog from './ClientDialog.vue'
 import ClientTicketsTable from './ClientTicketsTable.vue'
 import NewTicketDialog from './NewTicketDialog.vue'
@@ -129,6 +130,10 @@ const ticketClient = computed<ClientChoice | undefined>(() => {
 	const current = client.value
 	return current ? { name: current.name, label: current.client, wilaya: current.wilaya, commercial: current.commercial_user, commercial_name: current.commercial, open_tickets: openTickets.value.length } : undefined
 })
+const newArticle = ref(false)
+function onArticleCreated(name: string) {
+	router.push({ name: 'Article', params: { id: name } })
+}
 function onTicketCreated(result: { name: string; failedFiles: number }) {
 	createdTicket.value = result.name
 	load()
@@ -293,14 +298,14 @@ function onPieceFile(piece: string, event: Event) {
 				<div v-else-if="activeTab === 'articles'" class="bureau-center">
 					<section class="card ref-card">
 						<template v-if="client.articles.length">
-							<div class="ref-card-head"><h3>Articles du client</h3><a class="btn-secondary" :href="newOnDesk('Item', 'custom_client')" target="_blank" rel="noopener noreferrer">Nouvel article<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" /></a></div>
+							<div class="ref-card-head"><h3>Articles du client</h3><button v-if="client.can_edit" type="button" class="btn-secondary" @click="newArticle = true">Nouvel article</button></div>
 							<div class="ref-scroll"><table class="ref-table">
 								<thead><tr><th>Code</th><th>Désignation</th><th>Réf. client</th><th>Procédé</th><th>Dernier BAT</th><th>Dernière commande</th></tr></thead>
-								<tbody><tr v-for="row in client.articles" :key="row.name"><td><a class="ref-link" :href="deskUrl('Item', row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td class="font-semibold text-ink-gray-9">{{ row.designation }}</td><td class="tabular-nums">{{ row.reference || '—' }}</td><td>{{ row.procede || '—' }}</td><td><StatusPill v-if="row.bat" :status="row.bat" /><span v-else class="text-ink-gray-6">Aucun</span></td><td class="tabular-nums">{{ formatDay(row.derniere_commande) || '—' }}</td></tr></tbody>
+								<tbody><tr v-for="row in client.articles" :key="row.name"><td><RouterLink class="ref-link" :to="{ name: 'Article', params: { id: row.name } }">{{ row.name }}</RouterLink></td><td class="font-semibold text-ink-gray-9">{{ row.designation }}</td><td class="tabular-nums">{{ row.reference || '—' }}</td><td>{{ row.procede || '—' }}</td><td><StatusPill v-if="row.bat" :status="row.bat" /><span v-else class="text-ink-gray-6">Aucun</span></td><td class="tabular-nums">{{ formatDay(row.derniere_commande) || '—' }}</td></tr></tbody>
 							</table></div>
 						</template>
 						<ListState v-else dieline title="Aucun article pour ce client" text="Les articles apparaissent ici dès leur création.">
-							<a class="btn-secondary" :href="newOnDesk('Item', 'custom_client')" target="_blank" rel="noopener noreferrer">Nouvel article<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" /></a>
+							<button v-if="client.can_edit" type="button" class="btn-secondary" @click="newArticle = true">Nouvel article</button>
 						</ListState>
 					</section>
 				</div>
@@ -394,6 +399,7 @@ function onPieceFile(piece: string, event: Event) {
 		</template>
 
 		<ClientDialog v-if="editing && client" :client="client" @close="editing = false" @saved="onSaved" />
+		<ArticleDialog v-if="newArticle && ticketClient" :initial-client="ticketClient" @close="newArticle = false" @created="onArticleCreated" />
 		<NewTicketDialog v-if="newTicket && ticketClient" :initial-client="ticketClient" @close="newTicket = false" @created="onTicketCreated" />
 	</main>
 </template>

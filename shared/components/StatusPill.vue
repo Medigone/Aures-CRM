@@ -33,6 +33,17 @@ const TONES: Record<string, string> = {
 	'BAT-P Validé': 'tone-green',
 	Obsolète: 'tone-gray',
 	'BAT en cours': 'tone-blue',
+	// Maquettes, clichés et études
+	'A référencer': 'tone-amber',
+	Référencée: 'tone-blue',
+	'Version Activée': 'tone-green',
+	Détruite: 'tone-gray',
+	'En étude': 'tone-amber',
+	Réalisable: 'tone-green',
+	'Non Réalisable': 'tone-red',
+	'A Réaliser': 'tone-blue',
+	Réalisé: 'tone-green',
+	Archivé: 'tone-gray',
 	// Tickets
 	Pending: 'tone-amber',
 	'Blocage Créance': 'tone-red',

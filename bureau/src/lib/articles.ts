@@ -1,0 +1,362 @@
+/** Règles de la page Articles : types, vues, colonnes, filtres, fiche technique et validation de la fenêtre. */
+import { fieldVisible, isEmptyValue, type FicheDoc, type FicheField, type FicheSchema } from '@shared/fiche'
+import type { CommentSummary, Option } from '@/types'
+import type { ClientTicket } from './clients'
+import { isComplete, needsValue, operatorsOf, type Condition, type FilterField } from './filters'
+import { formatDay } from './display'
+import { tagsText, type Column, type Sort } from './list'
+import type { ListResponse } from './useServerList'
+
+export type ArticleView = 'all' | 'offset' | 'flexo' | 'salle_blanche' | 'sans_bat' | 'compose' | 'general'
+
+export const ARTICLE_VIEWS: { key: ArticleView; label: string }[] = [
+	{ key: 'all', label: 'Tous' },
+	{ key: 'offset', label: 'Offset' },
+	{ key: 'flexo', label: 'Flexo' },
+	{ key: 'salle_blanche', label: 'Salle blanche' },
+	{ key: 'sans_bat', label: 'Sans BAT validé' },
+	{ key: 'compose', label: 'Composés' },
+	{ key: 'general', label: 'Généraux' },
+]
+
+export const PROCEDE_FLEXO = 'Flexo'
+export const TYPE_GENERAL = 'Général'
+
+export interface ArticleRow {
+	name: string
+	modified: string
+	tags: string[]
+	designation: string
+	type: string | null
+	client: string | null
+	client_label: string | null
+	commercial: string | null
+	procede: string | null
+	support: string | null
+	format: string | null
+	bat: string | null
+	commande: string | null
+	reference: string | null
+	groupe: string | null
+	couleurs: string | null
+	consommation: number
+	compose: number
+	sous_article: number
+	parent: string | null
+}
+
+export interface ArticlesResponse extends ListResponse {
+	articles: ArticleRow[]
+	counts: Record<ArticleView, number>
+	page_length: number
+}
+
+export interface ArticleVente {
+	name: string
+	transaction_date: string
+	status: string
+	custom_statut_commande?: string | null
+	qty: number
+	rate: number
+	amount: number
+}
+
+export interface ArticlePrepresse {
+	maquettes: { name: string; status: string; ver: number | null; resume_couleurs: string | null; date_creation: string | null; desc_changements: string | null; fichier_maquette: string | null }[]
+	bats: { name: string; status: string; date: string | null; maquette: string | null; valide_par_nom: string | null; fichier_valide: string | null; image: string | null }[]
+	traces: { name: string; dimensions: string | null; fichier_trace: string | null }[]
+	impositions: { name: string; machine_impression: string | null; nbr_poses: number | null; taux_chutes: number | null; defaut: number; fichier_imp: string | null }[]
+	cliches: { name: string; status: string; date: string | null; version: number | null; version_active: number; nbr_couleurs: string | null }[]
+	plans_flexo: { name: string; date: string | null; dimensions: string | null; laize: string | null; fichier: string | null }[]
+	etudes_techniques: { name: string; status: string; date: string | null; nom_utilisateur: string | null; machine: string | null; nb_passages: number | null }[]
+}
+
+export interface ArticleDetail {
+	name: string
+	modified: string
+	tags: string[]
+	designation: string
+	type: string | null
+	procede: string | null
+	support: string | null
+	format: string | null
+	reference: string | null
+	ancien_code: string | null
+	groupe: string | null
+	unite: string | null
+	consommation: number
+	couleurs: string | null
+	compose: number
+	sous_article: number
+	parent: string | null
+	parent_label: string | null
+	quantite_parent: number
+	client: string | null
+	client_label: string | null
+	wilaya: string | null
+	commercial: string | null
+	commercial_user: string | null
+	bat: string | null
+	image: string | null
+	own_image: boolean
+	fichiers: { image: string | null; fiche_technique: string | null; trace_decoupe: string | null }
+	fiche: Record<string, string | number>
+	prepresse: ArticlePrepresse
+	ecart_bat: { bat: string; maquette_bat: string; maquette_active: string } | null
+	commandes: ArticleVente[]
+	devis: ArticleVente[]
+	etudes: { name: string; doctype: string; date_creation: string | null; status: string; quantite: number | null }[]
+	tickets: ClientTicket[]
+	sous_articles: { name: string; designation: string; quantite: number; support: string | null; format: string | null; bat: string | null }[]
+	comments: CommentSummary
+	can_edit: boolean
+}
+
+export interface ArticleOptions {
+	procedes: string[]
+	types: string[]
+	groupes: string[]
+	supports: string[]
+	clients: Option[]
+	groupe_defaut: string
+	can_create: boolean
+	schema: FicheSchema
+}
+
+export interface ArticleValues {
+	type?: string
+	designation?: string
+	client?: string
+	procede?: string
+	reference?: string
+	groupe?: string
+	ancien_code?: string
+	consommation?: string
+	fiche?: Record<string, string>
+}
+
+export const ARTICLE_COLUMNS: Column<ArticleRow>[] = [
+	{ key: 'designation', label: 'Article', width: 230, grow: 2, sortable: true, text: (row) => row.designation },
+	{ key: 'name', label: 'Code', width: 122, sortable: true, text: (row) => row.name },
+	{ key: 'client_label', label: 'Client', width: 140, grow: 1, sortable: true, text: (row) => row.client_label || '' },
+	{ key: 'procede', label: 'Procédé', width: 88, sortable: true, text: (row) => row.procede || '' },
+	{ key: 'support', label: 'Support', width: 110, sortable: true, text: (row) => row.support || '' },
+	{ key: 'format', label: 'Format (mm)', width: 104, sortable: true, text: (row) => row.format || '' },
+	{ key: 'bat', label: 'Dernier BAT', width: 112, sortable: true, text: (row) => row.bat || '' },
+	{ key: 'commande', label: 'Commande', width: 92, sortable: true, text: (row) => formatDay(row.commande) },
+	{ key: 'tags', label: 'Tags', width: 130, sortable: false, text: (row) => tagsText(row) },
+	{ key: 'reference', label: 'Réf. client', width: 100, sortable: true, optional: true, text: (row) => row.reference || '' },
+	{ key: 'commercial', label: 'Commercial', width: 130, sortable: true, optional: true, text: (row) => row.commercial || '' },
+	{ key: 'groupe', label: 'Groupe', width: 110, sortable: true, optional: true, text: (row) => row.groupe || '' },
+	{ key: 'couleurs', label: 'Couleurs', width: 90, sortable: true, optional: true, text: (row) => row.couleurs || '' },
+	{ key: 'consommation', label: 'Conso. annuelle', width: 110, sortable: true, optional: true, end: true, text: (row) => row.consommation },
+]
+export const DEFAULT_ARTICLE_COLUMNS = ARTICLE_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
+
+/** La colonne Article reste toujours affichée ; une clé inconnue, venue d'un ancien réglage, est ignorée. */
+export function visibleArticleColumns(keys: string[]) {
+	return ARTICLE_COLUMNS.filter((column) => column.key === 'designation' || keys.includes(column.key))
+}
+
+export function articleSortText(sort: Sort | null) {
+	const column = sort && ARTICLE_COLUMNS.find((item) => item.key === sort.key)
+	return column ? `Tri : ${column.label.toLowerCase()}` : 'Tri : désignation'
+}
+
+export const ARTICLE_FILTER_FIELDS: FilterField[] = [
+	{ value: 'procede', label: 'Procédé', kind: 'choice' },
+	{ value: 'client', label: 'Client', kind: 'choice' },
+	{ value: 'groupe', label: 'Groupe', kind: 'choice' },
+	{ value: 'type', label: 'Type', kind: 'choice' },
+	{ value: 'support', label: 'Papier', kind: 'choice' },
+	{ value: 'designation', label: 'Désignation', kind: 'text' },
+	{ value: 'reference', label: 'Réf. client', kind: 'text' },
+	{ value: 'tag', label: 'Tag', kind: 'text' },
+]
+
+export function articleFilterChoices(field: string, options: ArticleOptions | null): Option[] {
+	if (!options) return []
+	const plain = (values: string[]) => values.map((value) => ({ value, label: value }))
+	if (field === 'procede') return plain(options.procedes)
+	if (field === 'client') return options.clients
+	if (field === 'groupe') return plain(options.groupes)
+	if (field === 'type') return plain(options.types)
+	if (field === 'support') return plain(options.supports)
+	return []
+}
+
+/** Texte de la pastille d'un filtre actif : « Client est Biscuiterie Numidia ». */
+export function articleConditionLabel(condition: Condition, options: ArticleOptions | null) {
+	const field = ARTICLE_FILTER_FIELDS.find((item) => item.value === condition.field)?.label ?? condition.field
+	const op = operatorsOf(condition.field, ARTICLE_FILTER_FIELDS).find((item) => item.value === condition.op)?.label ?? condition.op
+	if (!needsValue(condition) || !isComplete(condition)) return `${field} ${op}`
+	const value = condition.value.trim()
+	const shown = articleFilterChoices(condition.field, options).find((item) => item.value === value)?.label ?? value
+	return `${field} ${op} ${shown}`
+}
+
+/** Prix unitaire : deux décimales et une virgule, avec une espace pour les milliers : « 1 240,50 ». */
+export function formatRate(value?: number | null) {
+	const [whole, decimals] = (value ?? 0).toFixed(2).split('.')
+	return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')},${decimals}`
+}
+
+/** Quantité entière avec une espace pour les milliers ; une quantité fractionnaire garde sa virgule. */
+export function formatQuantity(value?: number | null) {
+	const amount = value ?? 0
+	const [whole, decimals] = String(amount).split('.')
+	return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}${decimals ? `,${decimals}` : ''}`
+}
+
+export function posesLabel(count: number) {
+	return `${count} pose${count > 1 ? 's' : ''}`
+}
+
+// Cartes de la fiche technique : le Desk range ces champs par section de formulaire, on les lit par sujet.
+const CARD_OF: Record<string, string> = {
+	custom_support_fourni: 'Support',
+	custom_support: 'Support',
+	custom_grammage: 'Support',
+	custom_tolérance_: 'Support',
+	custom_type_support: 'Support',
+	custom_complexage: 'Support',
+	custom_epaisseur: 'Support',
+	custom_grammage_support: 'Support',
+	custom_epaisseur_2: 'Support',
+	custom_autre_epaisseur: 'Support',
+	custom_largeur: 'Format',
+	custom_hauteur: 'Format',
+	custom_longueur: 'Format',
+	custom_cotations_article: 'Format',
+	custom_dimensions_h_x_l: 'Format',
+	custom_impression: 'Impression',
+	custom_nbr_couleurs: 'Impression',
+	custom_recto_verso: 'Impression',
+	custom_nombre_de_poses: 'Impression',
+	custom_nombre_passages: 'Impression',
+	custom_pelliculage: 'Finitions',
+	custom_marquage_à_chaud: 'Finitions',
+	custom_marquage_à_froid: 'Finitions',
+	custom_couleur_marquage_à_chaud: 'Finitions',
+	custom_notice: 'Finitions',
+	custom_finition: 'Finitions',
+	custom_perforation: 'Finitions',
+	custom_type_perforation: 'Finitions',
+	custom_diametre_mandrin: 'Bobine',
+	custom_autre_diamètre_mandrin: 'Bobine',
+	custom_diamètre_bobine: 'Bobine',
+	custom_sens_deroulement: 'Bobine',
+	custom_sense_défilement_: 'Bobine',
+	custom_poids_bobine: 'Bobine',
+	custom_conditionnement: 'Conditionnement et essais',
+	custom_certification_fsc: 'Conditionnement et essais',
+	custom_essai_blanc: 'Conditionnement et essais',
+	custom_essai_imprimé: 'Conditionnement et essais',
+}
+const GROUP_CARD: Record<string, string> = { 'Options Vernis': 'Vernis', 'Finition Offset': 'Finitions', 'Salle Blanche': 'Salle blanche' }
+const CARD_ORDER = ['Support', 'Format', 'Impression', 'Salle blanche', 'Vernis', 'Finitions', 'Bobine', 'Conditionnement et essais']
+
+export interface FicheCard {
+	title: string
+	fields: FicheField[]
+}
+
+/** Champs visibles pour ce procédé, rangés par carte. Sert à la saisie, et de base à la lecture. */
+export function ficheCards(schema: FicheSchema | undefined, doc: FicheDoc): FicheCard[] {
+	const cards = new Map<string, FicheField[]>()
+	for (const group of schema?.groups ?? []) {
+		for (const field of group.fields) {
+			if (!fieldVisible(field, doc)) continue
+			const title = CARD_OF[field.fieldname] ?? GROUP_CARD[group.label] ?? group.label
+			cards.set(title, [...(cards.get(title) ?? []), field])
+		}
+	}
+	const rank = (title: string) => {
+		const index = CARD_ORDER.indexOf(title)
+		return index < 0 ? CARD_ORDER.length : index
+	}
+	return [...cards.entries()].sort((left, right) => rank(left[0]) - rank(right[0])).map(([title, fields]) => ({ title, fields }))
+}
+
+export interface FicheCardValues {
+	title: string
+	rows: { label: string; value: string }[]
+	checks: string[]
+}
+
+/** Lecture : seuls les champs renseignés. Une carte sans valeur disparaît. */
+export function ficheCardValues(schema: FicheSchema | undefined, doc: FicheDoc): FicheCardValues[] {
+	return ficheCards(schema, doc)
+		.map(({ title, fields }) => ({
+			title,
+			rows: fields.filter((field) => field.fieldtype !== 'Check' && !isEmptyValue(doc[field.fieldname])).map((field) => ({ label: field.label, value: String(doc[field.fieldname]) })),
+			checks: fields.filter((field) => field.fieldtype === 'Check' && Number(doc[field.fieldname])).map((field) => field.label),
+		}))
+		.filter((card) => card.rows.length || card.checks.length)
+}
+
+/** Document évalué par les conditions du Desk : l'identité de l'article et les valeurs de sa fiche. */
+export function articleDoc(article: Pick<ArticleDetail, 'type' | 'procede' | 'compose' | 'sous_article' | 'designation' | 'fiche'>): FicheDoc {
+	return {
+		custom_type_article: article.type,
+		custom_procédé: article.procede,
+		custom_article_compose: article.compose,
+		custom_sous_article: article.sous_article,
+		item_code: article.designation,
+		item_name: article.designation,
+		...article.fiche,
+	}
+}
+
+/** Résumé des finitions pour l'aperçu : pelliculage et vernis. */
+export function finishesSummary(cards: FicheCardValues[]) {
+	const pelliculage = cards.find((card) => card.title === 'Finitions')?.rows.find((row) => row.label === 'Pelliculage')?.value
+	const vernis = cards.find((card) => card.title === 'Vernis')?.checks ?? []
+	return [pelliculage && `Pelliculage ${pelliculage.toLowerCase()}`, ...vernis.map((label) => `Vernis ${label.toLowerCase()}`)].filter(Boolean).join(' · ')
+}
+
+// Création : le minimum pour identifier l'article. Le reste de la fiche se complète ensuite.
+export const CREATE_FIELDS: Record<string, string[]> = {
+	Offset: ['custom_support', 'custom_grammage', 'custom_cotations_article', 'custom_nbr_couleurs'],
+	Flexo: ['custom_type_support', 'custom_epaisseur', 'custom_dimensions_h_x_l'],
+	'Salle Blanche Pharma': ['custom_epaisseur_sb', 'custom_nombre_de_couleurs', 'custom_découpe'],
+}
+
+export function createFields(schema: FicheSchema | undefined, procede: string) {
+	const wanted = CREATE_FIELDS[procede] ?? []
+	const fields = (schema?.groups ?? []).flatMap((group) => group.fields)
+	return wanted.map((name) => fields.find((field) => field.fieldname === name)).filter((field): field is FicheField => Boolean(field))
+}
+
+export type ArticleField = 'designation' | 'client' | 'procede' | 'groupe'
+
+export function validateArticle(values: ArticleValues, editing: boolean) {
+	const errors: Partial<Record<ArticleField, string>> = {}
+	const general = values.type === TYPE_GENERAL
+	if (!values.designation?.trim()) errors.designation = 'Saisissez la désignation.'
+	if (!values.groupe?.trim()) errors.groupe = "Choisissez le groupe d'article."
+	if (!general && !values.procede?.trim()) errors.procede = 'Choisissez le procédé.'
+	if (!general && !editing && !values.client?.trim()) errors.client = 'Choisissez le client.'
+	return errors
+}
+
+/** Valeurs de saisie de la fiche : du texte partout, « 1 » ou « 0 » pour une case. */
+export function ficheFormValues(fiche: Record<string, string | number>, schema?: FicheSchema) {
+	const values: Record<string, string> = {}
+	for (const group of schema?.groups ?? []) {
+		for (const field of group.fields) {
+			const value = fiche[field.fieldname]
+			values[field.fieldname] = field.fieldtype === 'Check' ? (Number(value) ? '1' : '0') : value == null ? '' : String(value)
+		}
+	}
+	return values
+}
+
+/** Seuls les champs changés partent au serveur : une fiche ouverte ne réécrit pas ce qu'elle n'a pas touché. */
+export function changedFields<Key extends string>(initial: Partial<Record<Key, string>>, current: Partial<Record<Key, string>>) {
+	const changes: Partial<Record<Key, string>> = {}
+	for (const key of Object.keys(current) as Key[]) {
+		if ((current[key] ?? '').trim() !== (initial[key] ?? '').trim()) changes[key] = (current[key] ?? '').trim()
+	}
+	return changes
+}

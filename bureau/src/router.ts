@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import ArticlesPage from './pages/ArticlesPage.vue'
 import BureauPage from './pages/BureauPage.vue'
 import ClientsPage from './pages/ClientsPage.vue'
 import LoginPage from './pages/LoginPage.vue'
@@ -10,6 +11,8 @@ export const routes = [
 	{ path: '/ticket/:id', name: 'Ticket', component: BureauPage, props: true },
 	{ path: '/clients', name: 'Clients', component: ClientsPage },
 	{ path: '/clients/:id', name: 'Client', component: ClientsPage, props: true },
+	{ path: '/articles', name: 'Articles', component: ArticlesPage },
+	{ path: '/articles/:id', name: 'Article', component: ArticlesPage, props: true },
 	{ path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 

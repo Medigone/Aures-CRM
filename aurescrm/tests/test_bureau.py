@@ -13,7 +13,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from frappe.desk.notifications import extract_mentions
 
-from aurescrm.api import activity, bureau, bureau_bulk, bureau_clients
+from aurescrm.api import activity, bureau, bureau_articles, bureau_bulk, bureau_clients
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import generate_etude_faisabilite
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import update_assigne_a
 from aurescrm.www import bureau as bureau_page
@@ -510,7 +510,8 @@ class TestEvents(FrappeTestCase):
 		self.assertTrue(bureau_events._is_watched(frappe._dict(doctype="Ticket Commercial")))
 		self.assertTrue(bureau_events._is_watched(frappe._dict(doctype="File", attached_to_doctype="Ticket Commercial")))
 		self.assertFalse(bureau_events._is_watched(frappe._dict(doctype="File", attached_to_doctype="Customer")))
-		self.assertFalse(bureau_events._is_watched(frappe._dict(doctype="Item")))
+		self.assertTrue(bureau_events._is_watched(frappe._dict(doctype="Item")))
+		self.assertFalse(bureau_events._is_watched(frappe._dict(doctype="Supplier")))
 
 	def test_message_sans_donnees_metier(self):
 		from aurescrm import bureau_events
@@ -1154,3 +1155,143 @@ class TestConnexion(FrappeTestCase):
 
 	def test_utilisateur_connecte_quitte_la_connexion(self):
 		self.assertEqual(self.open_page("/bureau/connexion", "Administrator", "redirect-to=/bureau/clients"), "/bureau/clients")
+
+
+class TestArticles(FrappeTestCase):
+	"""Liste, fiche, création et modification des articles du poste de bureau."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		frappe.db.savepoint("test_articles")
+		self.client = frappe.db.get_value("Customer", {"disabled": 0}, "name")
+		self.groupe = frappe.db.get_value("Item Group", {"name": ["!=", bureau_articles.ROOT_ITEM_GROUP]}, "name")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback(save_point="test_articles")
+
+	def _create(self, **changes):
+		values = {"designation": f"zzz test {frappe.generate_hash(length=8)}", "client": self.client, "procede": "Offset", "groupe": self.groupe}
+		values.update(changes)
+		return bureau_articles.create_article(values)["name"]
+
+	def test_libelles_selon_le_procede(self):
+		offset = {"custom_procédé": "Offset", "custom_support": "BBTB", "custom_grammage": "275", "custom_cotations_article": "100x200x34"}
+		self.assertEqual(bureau_articles.support_label(offset), "BBTB 275 g")
+		self.assertEqual(bureau_articles.format_label(offset), "100×200×34")
+		flexo = {"custom_procédé": "Flexo", "custom_support": "BBTB", "custom_type_support": "BOPP Transparent", "custom_epaisseur": "30µ", "custom_dimensions_h_x_l": "150x220"}
+		self.assertEqual(bureau_articles.support_label(flexo), "BOPP Transparent 30µ")
+		self.assertEqual(bureau_articles.format_label(flexo), "150×220")
+		self.assertEqual(bureau_articles.format_label({"custom_procédé": "Salle Blanche Pharma", "custom_laize": "670 mm"}), "Laize 670")
+		self.assertIsNone(bureau_articles.support_label({"custom_procédé": "Offset"}))
+
+	def test_cree_un_article_client_avec_son_code(self):
+		name = self._create(fiche={"custom_support": frappe.db.get_value("Type Papier", {}, "name")})
+		self.assertTrue(name.startswith(f"{self.client}-"))
+		article = bureau_articles.get_article(name)
+		self.assertEqual(article["designation"], article["designation"].upper())
+		self.assertEqual(article["client"], self.client)
+		self.assertEqual(article["procede"], "Offset")
+		self.assertIsNone(article["bat"])
+		self.assertEqual(article["tickets"], [])
+
+	def test_refuse_un_doublon_et_un_champ_obligatoire_absent(self):
+		self._create(designation="zzz doublon bureau")
+		with self.assertRaises(frappe.ValidationError):
+			self._create(designation="ZZZ DOUBLON BUREAU")
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.create_article({"designation": "zzz sans client", "procede": "Offset", "groupe": self.groupe})
+		with self.assertRaises(frappe.ValidationError):
+			self._create(procede="Inconnu")
+
+	def test_article_general_sans_client_ni_procede(self):
+		name = bureau_articles.create_article({"type": "Général", "designation": f"zzz matiere {frappe.generate_hash(length=8)}", "groupe": self.groupe})["name"]
+		article = bureau_articles.get_article(name)
+		self.assertEqual(article["type"], "Général")
+		self.assertIsNone(article["client"])
+		self.assertIsNone(article["procede"])
+		self.assertNotIn(name, bureau_articles.get_articles(view="offset", page_length=500)["names"])
+		self.assertIn(name, bureau_articles.get_articles(view="general", page_length=500)["names"])
+		self.assertNotIn(name, bureau_articles.get_articles(view="sans_bat", page_length=500)["names"])
+
+	def test_vues_filtres_et_recherche(self):
+		designation = f"zzz vue {frappe.generate_hash(length=8)}"
+		name = self._create(designation=designation, procede="Flexo")
+		result = bureau_articles.get_articles(view="flexo", search=designation, page_length=20)
+		self.assertEqual(result["names"], [name])
+		self.assertEqual(result["counts"]["flexo"], 1)
+		self.assertEqual(result["counts"]["offset"], 0)
+		self.assertEqual(result["counts"]["sans_bat"], 1)
+		self.assertEqual(bureau_articles.get_articles(view="offset", search=designation)["total"], 0)
+		conditions = [{"field": "procede", "op": "est", "value": "Flexo"}]
+		self.assertIn(name, bureau_articles.get_articles(conditions=conditions, page_length=500)["names"])
+		conditions = [{"field": "procede", "op": "nest", "value": "Flexo"}]
+		self.assertNotIn(name, bureau_articles.get_articles(conditions=conditions, page_length=500)["names"])
+		customer_name = frappe.db.get_value("Customer", self.client, "customer_name")
+		self.assertIn(name, bureau_articles.get_articles(search=customer_name, page_length=500)["names"])
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.get_articles(view="inconnue")
+
+	def test_tri_garde_les_vides_a_la_fin(self):
+		rows = [{"designation": "B", "commande": None}, {"designation": "A", "commande": "2026-01-01"}, {"designation": "C", "commande": "2026-02-01"}]
+		self.assertEqual([row["designation"] for row in bureau_articles.order_articles(rows, "commande", "asc")], ["A", "C", "B"])
+		self.assertEqual([row["designation"] for row in bureau_articles.order_articles(rows, "commande", "desc")], ["C", "A", "B"])
+		self.assertEqual([row["designation"] for row in bureau_articles.order_articles(rows)], ["A", "B", "C"])
+
+	def test_ecart_entre_bat_valide_et_maquette_active(self):
+		maquettes = [{"name": "MAQ-V2", "status": "Version Activée"}, {"name": "MAQ-V1", "status": "Obsolète"}]
+		bat = {"name": "BAT-1", "status": "BAT-P Validé", "maquette": "MAQ-V1"}
+		self.assertEqual(bureau_articles.bat_gap([bat], maquettes), {"bat": "BAT-1", "maquette_bat": "MAQ-V1", "maquette_active": "MAQ-V2"})
+		self.assertIsNone(bureau_articles.bat_gap([{**bat, "maquette": "MAQ-V2"}], maquettes))
+		self.assertIsNone(bureau_articles.bat_gap([{**bat, "maquette": None}], maquettes))
+		self.assertIsNone(bureau_articles.bat_gap([{**bat, "status": "Obsolète"}], maquettes))
+		self.assertIsNone(bureau_articles.bat_gap([bat], [{"name": "MAQ-V1", "status": "Obsolète"}]))
+
+	def test_modification_et_version(self):
+		name = self._create()
+		article = bureau_articles.get_article(name)
+		updated = bureau_articles.update_article(name, article["modified"], {"reference": "H200", "consommation": "240000", "fiche": {"custom_nombre_de_poses": "8", "custom_acrylique": "1"}})
+		self.assertEqual(updated["reference"], "H200")
+		self.assertEqual(updated["consommation"], 240000)
+		self.assertEqual(updated["fiche"]["custom_nombre_de_poses"], 8)
+		self.assertEqual(updated["fiche"]["custom_acrylique"], 1)
+		with self.assertRaises(frappe.TimestampMismatchError):
+			bureau_articles.update_article(name, article["modified"], {"reference": "H300"})
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.update_article(name, None, {"fiche": {"item_group": "Produits"}})
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.update_article(name, None, {"fiche": {"custom_pelliculage": "Inconnu"}})
+
+	def test_fichier_doit_etre_joint_a_l_article(self):
+		name = self._create()
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.set_article_file(name, None, "fiche_technique", "/private/files/ailleurs.pdf")
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.set_article_file(name, None, "inconnue", "/private/files/ailleurs.pdf")
+
+	def test_article_compose_et_sous_article(self):
+		name = self._create()
+		article = bureau_articles.get_article(name)
+		self.assertEqual(bureau_articles.make_composed(name, article["modified"])["compose"], 1)
+		result = bureau_articles.add_sous_article(name, "cale", 2)
+		self.assertEqual(result["name"], f"{name}-1")
+		self.assertEqual([(row["name"], row["quantite"]) for row in result["article"]["sous_articles"]], [(result["name"], 2.0)])
+		child = bureau_articles.get_article(result["name"])
+		self.assertEqual(child["parent"], name)
+		self.assertEqual(child["sous_article"], 1)
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.make_composed(result["name"], None)
+
+	def test_tags_et_commentaires(self):
+		name = self._create()
+		article = bureau_articles.get_article(name)
+		self.assertEqual(bureau_bulk.add_doc_tag("Item", name, article["modified"], "Saisonnier")["tags"], ["Saisonnier"])
+		self.assertEqual(bureau_articles.add_article_comment(name, "À vérifier")["comment_count"], 1)
+		self.assertEqual(bureau_articles.get_article(name)["comments"]["count"], 1)
+
+	def test_refus_hors_du_poste(self):
+		name = self._create()
+		frappe.set_user("Guest")
+		for call in (lambda: bureau_articles.get_articles(), lambda: bureau_articles.get_article(name), lambda: bureau_articles.get_article_options(), lambda: bureau_articles.create_article({})):
+			with self.assertRaises(frappe.PermissionError):
+				call()

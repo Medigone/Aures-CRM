@@ -264,10 +264,11 @@ def _note(value):
 	return text if len(text) <= NOTE_LENGTH else f"{text[:NOTE_LENGTH].rstrip()}…"
 
 
-def _tickets(name):
+def ticket_rows(filters=None, or_filters=None):
 	rows = frappe.get_list(
 		TICKET,
-		filters={"customer": name},
+		filters=filters,
+		or_filters=or_filters,
 		fields=["name", "request_type", "status", "niveau_urgence", "echeance"],
 		order_by="modified desc",
 		limit_page_length=RELATED_LIMIT,
@@ -279,6 +280,10 @@ def _tickets(name):
 	# Ouverts d'abord, les plus urgents en tête, puis la plus proche échéance.
 	rows.sort(key=lambda row: (not row.is_open, -URGENCE_RANK.get(row.niveau_urgence, 0), not row.echeance, str(row.echeance or "")))
 	return rows
+
+
+def _tickets(name):
+	return ticket_rows({"customer": name})
 
 
 def _creance(name):

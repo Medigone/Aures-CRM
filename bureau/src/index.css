@@ -552,6 +552,71 @@
 		}
 	}
 
+	/* Fiche article : visuel, chaîne de prépresse et cartes de la fiche technique. */
+	.article-visual {
+		display: flex;
+		flex: none;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.25rem;
+		height: 6.5rem;
+		overflow: hidden;
+		border-bottom: 1px solid var(--outline-gray-1);
+		background-color: var(--tray);
+		color: var(--ink-gray-6);
+		font-size: var(--text-sm);
+	}
+	.article-visual img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+	.article-visual .dieline {
+		width: 4.5rem;
+		height: 3.15rem;
+		margin: 0;
+	}
+	.article-chain {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+	.article-chain > div {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.25rem;
+		min-width: 0;
+		padding-inline: 0.75rem;
+		border-left: 1px solid var(--outline-gray-1);
+		overflow-wrap: anywhere;
+	}
+	.article-chain > div:first-child {
+		padding-left: 0;
+		border-left: 0;
+	}
+	/* Un numéro long passe à la ligne sans éloigner sa flèche. */
+	.ref-link.inline-link {
+		display: inline;
+		overflow-wrap: anywhere;
+	}
+	.article-cards {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+		align-items: start;
+		gap: 0.625rem;
+	}
+	@media (max-width: 720px) {
+		.article-chain {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			row-gap: 0.75rem;
+		}
+		.article-chain > div:nth-child(odd) {
+			padding-left: 0;
+			border-left: 0;
+		}
+	}
+
 	/* Lignes de la liste : la case à cocher est à part, le reste de la ligne ouvre l'aperçu. */
 	.list-head,
 	.list-row {

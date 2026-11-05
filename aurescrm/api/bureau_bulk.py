@@ -17,6 +17,7 @@ from frappe.model.workflow import get_workflow_name
 from frappe.utils import cint, cstr, flt, get_datetime, getdate
 
 from aurescrm.api.bureau import TICKET, _bulk_apply, _parse, _ticket_for_write, require_bureau, row_tags
+from aurescrm.api.bureau_articles import ITEM, _article_for_write
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, _check_commercial, _client_for_write, _set_principal
 
 TEXT_TYPES = {"Data", "Small Text", "Text", "Long Text"}
@@ -64,6 +65,21 @@ BULK_DOCTYPES = {
 			"custom_dernier_numéro_article",  # compteur de la numérotation des articles
 		},
 		"setters": {COMMERCIAL_FIELD: _set_commercial},
+	},
+	ITEM: {
+		"load": _article_for_write,
+		# Identité et rattachement de l'article : ils décident de son code et de sa place, ils se changent un par un.
+		"excluded": {
+			"item_code",
+			"item_name",
+			"naming_series",
+			"custom_type_article",
+			"custom_client",
+			"custom_sous_article",
+			"custom_article_parent",
+			"custom_article_compose",
+		},
+		"setters": {},
 	},
 }
 

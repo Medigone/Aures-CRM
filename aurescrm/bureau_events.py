@@ -22,6 +22,9 @@ WATCHED = {
 	"Quotation": None,
 	"Sales Order": None,
 	"Customer": None,
+	"Item": None,
+	"BAT": None,
+	"Maquette": None,
 }
 
 

@@ -2,6 +2,7 @@
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
 import { call, uploadFile } from '@shared/api'
 import type { BulkItem, BulkOptions, BulkResult, CandidateDemande, ClientChoice, Option, QueueResponse, QueueTicket, QueueView, References, TicketDetail, TicketFormOptions } from '@/types'
+import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { Condition } from './filters'
 import { conditionsForServer } from './filters'
@@ -179,6 +180,49 @@ export function clientActivity(name: string): ActivityApi {
 		add: (text, mentions) => call<ActivityFeedData>(`${CLIENTS}.add_client_comment`, { name, text, mentions }, true),
 		update: (comment, text, mentions) => call<ActivityFeedData>(`${CLIENTS}.update_client_comment`, { name, comment, text, mentions }, true),
 		remove: (comment) => call<ActivityFeedData>(`${CLIENTS}.delete_client_comment`, { name, comment }, true),
+		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
+	}
+}
+
+/** Articles : liste, fiche, création et modification. */
+const ARTICLES = 'aurescrm.api.bureau_articles'
+
+export const getArticles = (view: ArticleView, conditions: Condition[], search: string, paging: QueuePaging = {}) =>
+	call<ArticlesResponse>(`${ARTICLES}.get_articles`, {
+		view,
+		conditions: conditionsForServer(conditions),
+		search: search.trim() || undefined,
+		start: paging.start,
+		page_length: paging.pageLength,
+		sort: paging.sort,
+		direction: paging.direction,
+	})
+
+export const getArticle = (name: string) => call<ArticleDetail>(`${ARTICLES}.get_article`, { name })
+
+export const getArticleOptions = () => call<ArticleOptions>(`${ARTICLES}.get_article_options`)
+
+export const createArticle = (values: ArticleValues) => call<{ name: string }>(`${ARTICLES}.create_article`, { values }, true)
+
+export const updateArticle = (article: ArticleDetail, values: ArticleValues) => call<ArticleDetail>(`${ARTICLES}.update_article`, { name: article.name, modified: article.modified, values }, true)
+
+export const makeComposed = (article: ArticleDetail) => call<ArticleDetail>(`${ARTICLES}.make_composed`, { name: article.name, modified: article.modified }, true)
+
+export const addSousArticle = (article: ArticleDetail, designation: string, quantite: number) => call<{ name: string; article: ArticleDetail }>(`${ARTICLES}.add_sous_article`, { name: article.name, designation, quantite }, true)
+
+/** Envoie le fichier, puis le range sur l'article : un échec laisse le fichier joint à l'article. */
+export async function attachArticleFile(article: ArticleDetail, piece: string, file: File) {
+	const uploaded = await uploadFile(file, 'Item', article.name)
+	return call<ArticleDetail>(`${ARTICLES}.set_article_file`, { name: article.name, modified: article.modified, piece, file_url: uploaded.file_url }, true)
+}
+
+/** Commentaires et activité d'un article, pour le fil commun. */
+export function articleActivity(name: string): ActivityApi {
+	return {
+		load: () => call<ActivityFeedData>(`${ARTICLES}.get_article_activity`, { name }),
+		add: (text, mentions) => call<ActivityFeedData>(`${ARTICLES}.add_article_comment`, { name, text, mentions }, true),
+		update: (comment, text, mentions) => call<ActivityFeedData>(`${ARTICLES}.update_article_comment`, { name, comment, text, mentions }, true),
+		remove: (comment) => call<ActivityFeedData>(`${ARTICLES}.delete_article_comment`, { name, comment }, true),
 		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
 	}
 }

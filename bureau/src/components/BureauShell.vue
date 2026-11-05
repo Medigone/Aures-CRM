@@ -21,7 +21,7 @@ import { useAppTheme } from '@/lib/theme'
 import { todoCount } from '@/lib/todoCount'
 
 /** Coquille du poste de bureau : la même barre et le même menu sur toutes ses pages. */
-const props = defineProps<{ crumbs: Crumb[]; active: 'tickets' | 'clients' }>()
+const props = defineProps<{ crumbs: Crumb[]; active: 'tickets' | 'clients' | 'articles' }>()
 
 const router = useRouter()
 const userName = window.user_fullname || window.user || ''
@@ -46,7 +46,7 @@ const navGroups = computed<NavGroup[]>(() => [
 		title: 'Référentiel',
 		items: [
 			{ id: 'clients', label: 'Clients', icon: LucideBuilding2, to: { name: 'Clients' }, active: props.active === 'clients' },
-			{ id: 'articles', label: 'Articles', icon: LucidePackage, href: '/app/item' },
+			{ id: 'articles', label: 'Articles', icon: LucidePackage, to: { name: 'Articles' }, active: props.active === 'articles' },
 		],
 	},
 ])
