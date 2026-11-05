@@ -112,4 +112,6 @@ cd bureau && yarn test && yarn typecheck
 
 Le poste a sa page, `/bureau/connexion`, sur la même base que celle de `/commercial`. Un visiteur sans session y est envoyé avec la page demandée (`?redirect-to=`), et la déconnexion y ramène. La session reste celle du site : se connecter ici connecte aussi au Desk, et se déconnecter déconnecte des deux. `/login` reste la page du Desk.
 
+Si la session expire pendant le travail, le prochain appel au serveur renvoie vers cette page, avec la page en cours pour y revenir. Le signal est un refus 401 ou 403 accompagné du champ `session_expired` de Frappe ou de l'absence du cookie `user_id` : un simple refus de droit, session valide, ne déconnecte personne. Ce qui était en cours de saisie est perdu.
+
 Un compte connecté sans le rôle voit le refus d'accès dans `App.vue`, avec « Changer de compte ».

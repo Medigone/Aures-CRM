@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { onSessionExpired } from '@shared/api'
 import BrandMark from '@shared/components/BrandMark.vue'
 import LoginLayout from '@/components/LoginLayout.vue'
-import { logout } from '@/lib/api'
+import { logout, redirectToLogin } from '@/lib/api'
 
 // Un visiteur sans session ne reçoit du serveur que la page de connexion.
 const account = window.user
 const showApp = !account || Boolean(window.can_access)
+if (account) onSessionExpired(redirectToLogin)
 </script>
 
 <template>

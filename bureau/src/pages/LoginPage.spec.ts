@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import App from '@/App.vue'
-import { safeRedirect } from '@/lib/api'
+import { redirectToLogin, safeRedirect } from '@/lib/api'
 import { routes } from '@/router'
 
 function reply(status: number, body: unknown = {}) {
@@ -110,6 +110,49 @@ describe('page de connexion', () => {
 		await flushPromises()
 		expect(fetchMock.mock.calls[0][0]).toBe('/api/method/frappe.core.doctype.user.user.reset_password')
 		expect(wrapper.find('[role="status"]').text()).toContain('Si un compte existe pour bo@example.com')
+	})
+})
+
+describe('session expirée', () => {
+	const assign = vi.fn()
+
+	beforeEach(() => {
+		window.user = 'bo@example.com'
+		window.can_access = true
+		assign.mockReset()
+		vi.spyOn(window.location, 'assign').mockImplementation(assign)
+		window.history.replaceState({}, '', '/bureau/clients?page=2')
+		document.cookie = 'user_id=bo@example.com'
+	})
+
+	const expired = () => reply(403, { session_expired: 1 })
+
+	it('renvoie vers la connexion, avec la page en cours', async () => {
+		fetchMock.mockImplementation(async () => expired())
+		await openLogin('/clients')
+		await flushPromises()
+		expect(assign).toHaveBeenCalledWith('/bureau/connexion?redirect-to=%2Fbureau%2Fclients%3Fpage%3D2')
+	})
+
+	it("reconnaît aussi l'expiration déjà signalée à un autre onglet, au cookie retiré", async () => {
+		document.cookie = 'user_id=Guest'
+		fetchMock.mockImplementation(async () => reply(403))
+		await openLogin('/clients')
+		await flushPromises()
+		expect(assign).toHaveBeenCalledWith('/bureau/connexion?redirect-to=%2Fbureau%2Fclients%3Fpage%3D2')
+	})
+
+	it("sans page à retrouver, renvoie vers la connexion seule", () => {
+		window.history.replaceState({}, '', '/bureau')
+		redirectToLogin()
+		expect(assign).toHaveBeenCalledWith('/bureau/connexion')
+	})
+
+	it('ne bouge pas sur un simple refus de droit, session valide', async () => {
+		fetchMock.mockImplementation(async () => reply(403))
+		await openLogin('/clients')
+		await flushPromises()
+		expect(assign).not.toHaveBeenCalled()
 	})
 })
 

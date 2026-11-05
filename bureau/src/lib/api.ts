@@ -26,6 +26,13 @@ export function safeRedirect(target: string | null | undefined) {
 	return value
 }
 
+/** Session expirée : connexion, avec la page en cours pour y revenir ensuite. */
+export function redirectToLogin() {
+	const { pathname, search, hash } = window.location
+	const target = safeRedirect(pathname + search + hash)
+	window.location.assign(target === HOME_PATH ? LOGIN_PATH : `${LOGIN_PATH}?redirect-to=${encodeURIComponent(target)}`)
+}
+
 /** Connexion Frappe (même méthode que la page /login du site). */
 export const login = (usr: string, pwd: string) => call<string>('login', { usr, pwd }, true)
 

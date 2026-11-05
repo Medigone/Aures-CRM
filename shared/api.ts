@@ -17,6 +17,27 @@ export class ApiError extends Error {
 	}
 }
 
+let sessionExpiredHandler: (() => void) | null = null
+
+/** Action à mener quand un appel est refusé parce que la session n'existe plus. */
+export function onSessionExpired(handler: () => void) {
+	sessionExpiredHandler = handler
+}
+
+/**
+ * Frappe ne pose `session_expired` que sur la première réponse après l'expiration, puis retire ses cookies.
+ * Les appels suivants, dans cet onglet ou un autre, se reconnaissent à l'absence du cookie `user_id`.
+ */
+function checkSession(status: number, body: any) {
+	if (status !== 401 && status !== 403) return
+	const user = document.cookie.match(/(?:^|;\s*)user_id=([^;]*)/)?.[1]
+	if (!body?.session_expired && user && user !== 'Guest') return
+	// Une seule fois : plusieurs appels partis en même temps échouent ensemble.
+	const handler = sessionExpiredHandler
+	sessionExpiredHandler = null
+	handler?.()
+}
+
 /** Délai au-delà duquel une requête est abandonnée : un réseau dégradé ne bloque pas la synchro. */
 export const REQUEST_TIMEOUT_MS = 30 * 1000
 
@@ -78,6 +99,7 @@ export async function call<T = any>(
 	}
 	const body = await response.json().catch(() => ({}))
 	if (!response.ok) {
+		checkSession(response.status, body)
 		throw new ApiError(serverMessage(body) || `Erreur serveur (${response.status}).`, response.status)
 	}
 	return body.message as T
@@ -107,7 +129,10 @@ export async function uploadFile(file: File, doctype: string, docname: string, t
 		if (timer) clearTimeout(timer)
 	}
 	const body = await response.json().catch(() => ({}))
-	if (!response.ok) throw new ApiError(serverMessage(body) || `Envoi refusé (${response.status}).`, response.status)
+	if (!response.ok) {
+		checkSession(response.status, body)
+		throw new ApiError(serverMessage(body) || `Envoi refusé (${response.status}).`, response.status)
+	}
 	return body.message
 }
 
