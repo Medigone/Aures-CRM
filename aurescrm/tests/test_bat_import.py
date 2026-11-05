@@ -132,7 +132,7 @@ class TestPropositions(unittest.TestCase):
 		result = build_proposals(read_document(make_pdf()), SCHEMA, ["BBTB"], ["300"])
 		values = {item["key"]: item["value"] for item in result["propositions"]}
 		self.assertEqual(values, {"reference": "AB123 - X", "custom_cotations_article": "60x30x116", "custom_support": "BBTB", "custom_grammage": "300", "custom_tolérance_": "5%", "custom_acrylique": "1", "custom_braille": "1"})
-		self.assertEqual([line["code"] for line in result["teintes"]], ["186 C", "C0 M0 J0 N100"])
+		self.assertEqual([line["code"] for line in result["teintes"]], ["186 C", "N100"])
 		self.assertEqual([gap["code"] for gap in result["ecarts"]], ["315 C", "314 C"])
 		informations = {item["label"]: item["value"] for item in result["informations"]}
 		self.assertEqual(informations["Finition non reconnue"], "Finition inconnue")
@@ -192,7 +192,7 @@ class TestPlusieursPages(unittest.TestCase):
 		result = build_proposals(read_document(make_pages(SANS_INTITULES, self.verso())), SCHEMA, ["Papier Offset"], ["60"])
 		values = {item["key"]: item["value"] for item in result["propositions"]}
 		self.assertEqual(values, {"reference": "AB123 - X", "custom_cotations_article": "130x160", "custom_support": "Papier Offset", "custom_grammage": "60", "custom_tolérance_": "5%", "custom_recto_verso": "1"})
-		self.assertEqual([line["code"] for line in result["teintes"]], ["C0 M0 J0 N100"])
+		self.assertEqual([line["code"] for line in result["teintes"]], ["N100"])
 		self.assertEqual(result["ecarts"], [])
 		notes = informations(result)
 		self.assertEqual((notes["Repère de la page 1"], notes["Repère de la page 2"]), ("vFr", "vAr"))

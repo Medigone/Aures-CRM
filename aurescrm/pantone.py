@@ -36,7 +36,9 @@ def normalize_code(raw):
 
 
 def cmjn_code(c, m, j, n):
-	return f"C{cint(c)} M{cint(m)} J{cint(j)} N{cint(n)}"
+	"""Seules les encres utilisées : `N100`, `C100 M50 N20`. Une teinte vide reste écrite en entier, le code étant obligatoire."""
+	inks = [f"{letter}{cint(value)}" for letter, value in zip("CMJN", (c, m, j, n)) if cint(value)]
+	return " ".join(inks) or "C0 M0 J0 N0"
 
 
 def derive_impression(rows):
@@ -141,6 +143,9 @@ def item_colors(doc):
 		line = {"type_couleur": row.type_couleur, "code": row.code, "nom": row.nom or "", "c": cint(row.c), "m": cint(row.m), "j": cint(row.j), "n": cint(row.n)}
 		if row.type_couleur == PANTONE:
 			line.update(details.get(row.code) or {})
+		else:
+			# Une ligne enregistrée avant cette écriture s'affiche et se compare comme les autres.
+			line["code"] = cmjn_code(row.c, row.m, row.j, row.n)
 		out.append(line)
 	return out
 

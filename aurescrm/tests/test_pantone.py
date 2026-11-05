@@ -24,7 +24,10 @@ class TestPantoneRegles(unittest.TestCase):
 		self.assertEqual(normalize_code(None), "")
 
 	def test_cmjn_code(self):
-		self.assertEqual(cmjn_code(100, 50, 0, 20), "C100 M50 J0 N20")
+		self.assertEqual(cmjn_code(100, 50, 0, 20), "C100 M50 N20")
+		self.assertEqual(cmjn_code(0, 0, 0, 100), "N100")
+		self.assertEqual(cmjn_code(100, 100, 100, 100), "C100 M100 J100 N100")
+		self.assertEqual(cmjn_code(0, 0, 0, 0), "C0 M0 J0 N0")
 
 	def test_derive_impression_et_passages(self):
 		pantone = {"type_couleur": "Pantone"}
