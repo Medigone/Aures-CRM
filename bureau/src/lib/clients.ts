@@ -3,7 +3,7 @@ import type { CommentSummary, Option } from '@/types'
 import type { Condition, FilterField } from './filters'
 import { isComplete, needsValue, operatorsOf } from './filters'
 import { formatDay } from './display'
-import type { Column, Sort } from './list'
+import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
 
 export type ClientView = 'all' | 'actif' | 'prospect' | 'dormant' | 'creance' | 'perdu'
@@ -31,6 +31,7 @@ export interface ClientRow {
 	visite: string | null
 	creance: number
 	tickets: number
+	tags: string[]
 }
 
 export interface ClientsResponse extends ListResponse {
@@ -166,6 +167,7 @@ export const CLIENT_COLUMNS: Column<ClientRow>[] = [
 	{ key: 'telephone', label: 'Téléphone', width: 112, sortable: true, optional: true, text: (row) => row.telephone || '' },
 	// Masquée par défaut : les codes actuels sont mélangés et n'aident pas à repérer un client.
 	{ key: 'name', label: 'Code', width: 110, sortable: true, optional: true, text: (row) => row.name },
+	{ key: 'tags', label: 'Tags', width: 120, grow: 1, sortable: false, optional: true, text: (row) => tagsText(row) },
 ]
 export const DEFAULT_CLIENT_COLUMNS = CLIENT_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 
@@ -186,6 +188,7 @@ export const CLIENT_FILTER_FIELDS: FilterField[] = [
 	{ value: 'categorie', label: 'Catégorie', kind: 'choice' },
 	{ value: 'grand_compte', label: 'Grand compte', kind: 'choice' },
 	{ value: 'client', label: 'Raison sociale', kind: 'text' },
+	{ value: 'tag', label: 'Tag', kind: 'text' },
 ]
 
 export function clientFilterChoices(field: string, options: ClientOptions | null): Option[] {

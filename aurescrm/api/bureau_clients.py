@@ -22,6 +22,7 @@ from aurescrm.api.bureau import (
 	condition_filters,
 	page_bounds,
 	require_bureau,
+	row_tags,
 )
 from aurescrm.api.commercial_mobile import _latest_bat_status, parse_gps
 from aurescrm.commercial_assignment import get_current_company
@@ -47,6 +48,7 @@ LIST_FIELDS = [
 	"custom_grand_compte",
 	PHONE_FIELD,
 	MAIN_PHONE_FIELD,
+	"_user_tags",
 ]
 
 # Filtre de la liste → (champ du client, nature de la valeur), au format de `bureau.condition_filters`.
@@ -57,6 +59,7 @@ FILTER_FIELDS = {
 	"commercial": (COMMERCIAL_FIELD, "user"),
 	"categorie": ("customer_group", "choice"),
 	"grand_compte": ("custom_grand_compte", "choice"),
+	"tag": ("_user_tags", "text"),
 }
 
 VIEWS = {
@@ -149,6 +152,7 @@ def _list_row(client, soldes, visits, tickets):
 	return {
 		"name": client.name,
 		"modified": client.modified,
+		"tags": row_tags(client),
 		"client": client.customer_name or client.name,
 		"status": client.custom_status,
 		"wilaya": client.custom_wilaya,

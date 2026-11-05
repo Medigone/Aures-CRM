@@ -106,7 +106,7 @@ onBeforeUnmount(closeRealtime)
 	<BureauShell :crumbs="crumbs" active="clients">
 		<div class="bureau-work">
 			<!-- Masquée et non retirée : la liste garde son défilement pendant qu'une fiche est ouverte. -->
-			<ClientList v-show="!id" :state="state" :selected="id ? undefined : preview" @pick="showPreview" @open="openFiche">
+			<ClientList v-show="!id" :state="state" :selected="id ? undefined : preview" @pick="showPreview" @open="openFiche" @changed="state.load(); drawer?.refresh()">
 				<template #drawer>
 					<ClientDrawer v-if="!id && preview" :id="preview" ref="drawer" :position="position" :no-prev="noPrev" :no-next="noNext" @prev="go(-1)" @next="go(1)" @close="showPreview()" @open="(tab) => openFiche(preview!, tab)" />
 				</template>

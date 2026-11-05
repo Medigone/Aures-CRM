@@ -35,6 +35,7 @@ export const COLUMNS: Column[] = [
 	{ key: 'comments', label: 'Comm.', width: 56, sortable: false, text: (ticket) => ticket.comments },
 	{ key: 'commercial', label: 'Commercial', width: 120, grow: 1.1, sortable: true, optional: true, text: (ticket) => ticket.commercial || '' },
 	{ key: 'creance', label: 'Créance', width: 104, sortable: true, optional: true, text: (ticket) => creanceText(ticket) },
+	{ key: 'tags', label: 'Tags', width: 120, grow: 1, sortable: false, optional: true, text: (ticket) => tagsText(ticket) },
 ]
 
 export const DEFAULT_COLUMNS = COLUMNS.filter((column) => !column.optional).map((column) => column.key)
@@ -48,6 +49,9 @@ const TRAY_BORDER = 2
 export function visibleColumns(keys: string[]) {
 	return COLUMNS.filter((column) => column.key === 'client' || keys.includes(column.key))
 }
+
+/** Tags d'une ligne, à l'écran comme à l'export. */
+export const tagsText = (row: { tags?: string[] }) => (row.tags ?? []).join(', ')
 
 export function gridTemplate<Row>(columns: Column<Row>[]) {
 	return columns.map((column) => (column.grow ? `minmax(${column.width}px, ${column.grow}fr)` : `${column.width}px`)).join(' ')

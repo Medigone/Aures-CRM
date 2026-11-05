@@ -26,6 +26,7 @@ export const FIELDS: FilterField[] = [
 	{ value: 'assigne', label: 'Pris en charge par', kind: 'user' },
 	{ value: 'creance', label: 'Créance', kind: 'choice' },
 	{ value: 'echeance', label: 'Échéance', kind: 'date' },
+	{ value: 'tag', label: 'Tag', kind: 'text' },
 ]
 
 const OPERATORS: Record<FieldKind, Option[]> = {

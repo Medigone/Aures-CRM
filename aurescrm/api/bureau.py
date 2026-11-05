@@ -78,6 +78,7 @@ QUEUE_FIELDS = [
 	"commercial",
 	"nom_commercial",
 	"statut_creance",
+	"_user_tags",
 	"creation_date",
 	"decision_rapprochement",
 	"devis_rapproche",
@@ -114,6 +115,7 @@ FILTER_FIELDS = {
 	"creance": ("statut_creance", "choice"),
 	"assigne": ("assigne_a", "user"),
 	"echeance": ("echeance", "date"),
+	"tag": ("_user_tags", "text"),
 }
 FILTER_OPERATORS = {
 	"text": {"contient", "exclut"},
@@ -261,11 +263,17 @@ def _parse(value):
 	return json.loads(value) if isinstance(value, str) and value else value
 
 
+def row_tags(row):
+	"""Tags d'une ligne de liste : la colonne `_user_tags` les range sous la forme « ,tag1,tag2 »."""
+	return [tag for tag in cstr(row.get("_user_tags")).split(",") if tag]
+
+
 def _queue_row(ticket, user, current_day, cycle=None, commande=None):
 	echeance = str(ticket.echeance) if ticket.get("echeance") else None
 	return {
 		"name": ticket.name,
 		"modified": str(ticket.modified),
+		"tags": row_tags(ticket),
 		"client": ticket.customer_name or ticket.customer,
 		"commercial": ticket.nom_commercial or ticket.commercial,
 		"request_type": ticket.request_type,
@@ -777,24 +785,26 @@ def set_assignee(name, user):
 	return get_ticket(name)
 
 
-def _bulk_apply(items, apply):
-	"""Applique une écriture à chaque ticket, séparément : un refus n'empêche pas de traiter les autres.
+def _bulk_apply(items, apply, load=None):
+	"""Applique une écriture à chaque document, séparément : un refus n'empêche pas de traiter les autres.
 
-	`items` : [{name, modified}] tels qu'affichés dans la file. `apply(doc)` renvoie la raison de ne pas traiter le
-	ticket, ou None. Chaque ticket est validé à part, pour qu'une requête interrompue garde ce qui est déjà fait.
+	`items` : [{name, modified}] tels qu'affichés dans la liste. `load(name, modified)` charge le document et contrôle
+	droits et version (un ticket par défaut). `apply(doc)` renvoie la raison de ne pas le traiter, ou None. Chaque
+	document est validé à part, pour qu'une requête interrompue garde ce qui est déjà fait.
 	"""
+	load = load or _ticket_for_write
 	rows = _parse(items) or []
 	if not rows:
-		frappe.throw(_("Aucun ticket sélectionné."))
+		frappe.throw(_("Aucune ligne sélectionnée."))
 	if len(rows) > BULK_LIMIT:
-		frappe.throw(_("Sélectionnez au plus {0} tickets à la fois.").format(BULK_LIMIT))
+		frappe.throw(_("Sélectionnez au plus {0} lignes à la fois.").format(BULK_LIMIT))
 
 	done, skipped = [], []
 	for row in rows:
 		name = cstr(row.get("name"))
 		frappe.db.savepoint(BULK_SAVEPOINT)
 		try:
-			reason = apply(_ticket_for_write(name, row.get("modified")))
+			reason = apply(load(name, row.get("modified")))
 		except (frappe.ValidationError, frappe.PermissionError) as error:
 			frappe.db.rollback(save_point=BULK_SAVEPOINT)
 			reason = strip_html(cstr(error)) or _("Action refusée.")
@@ -802,7 +812,7 @@ def _bulk_apply(items, apply):
 			frappe.db.rollback(save_point=BULK_SAVEPOINT)
 			frappe.log_error(title=f"Poste de bureau : action groupée sur {name}")
 			reason = _("Erreur inattendue.")
-		# Les messages d'un ticket ne doivent pas remonter comme une erreur de toute la requête.
+		# Les messages d'un document ne doivent pas remonter comme une erreur de toute la requête.
 		frappe.clear_messages()
 		if reason:
 			skipped.append({"name": name, "reason": reason})

@@ -12,7 +12,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from frappe.desk.notifications import extract_mentions
 
-from aurescrm.api import activity, bureau, bureau_clients
+from aurescrm.api import activity, bureau, bureau_bulk, bureau_clients
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import generate_etude_faisabilite
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import update_assigne_a
 
@@ -920,3 +920,170 @@ class TestClients(FrappeTestCase):
 		for call in (bureau_clients.get_clients, bureau_clients.get_client_options, bureau_clients.search_communes, lambda: bureau_clients.get_client(name), lambda: bureau_clients.update_client(name, None, {}), lambda: bureau_clients.create_prospect(self._values())):
 			with self.assertRaises(frappe.PermissionError):
 				call()
+
+
+class TestBulkCommun(FrappeTestCase):
+	"""Actions groupées communes aux listes, sur de vrais documents, annulées en fin de test."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.commit = patch("frappe.db.commit")
+		self.commit.start()
+
+	def tearDown(self):
+		self.commit.stop()
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+
+	def _ticket(self, **filters):
+		row = frappe.db.get_value("Ticket Commercial", {"docstatus": 0, **filters}, ["name", "modified"], as_dict=True)
+		if not row:
+			self.skipTest(f"Aucun ticket pour {filters}.")
+		return {"name": row.name, "modified": str(row.modified)}
+
+	def _client(self):
+		row = frappe.db.get_value("Customer", {"disabled": 0}, ["name", "modified"], as_dict=True)
+		if not row:
+			self.skipTest("Aucun client.")
+		return {"name": row.name, "modified": str(row.modified)}
+
+	def _fieldnames(self, doctype):
+		return {field["fieldname"] for field in bureau_bulk.get_bulk_options(doctype)["fields"]}
+
+	def test_refuse_un_doctype_hors_registre(self):
+		for call in (
+			lambda: bureau_bulk.get_bulk_options("User"),
+			lambda: bureau_bulk.bulk_update("User", [{"name": "Administrator"}], "enabled", 0),
+			lambda: bureau_bulk.bulk_delete("User", [{"name": "Guest"}]),
+			lambda: bureau_bulk.bulk_add_tags("User", [{"name": "Guest"}], ["x"]),
+		):
+			with self.assertRaises(frappe.PermissionError):
+				call()
+
+	def test_reserve_au_back_office(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			bureau_bulk.get_bulk_options("Customer")
+
+	def test_champs_proposes(self):
+		tickets = self._fieldnames("Ticket Commercial")
+		self.assertIn("channel", tickets)
+		for fieldname in ("statut_creance", "motif_blocage_creance", "checklist_bc_devis", "customer", "status", "description"):
+			self.assertNotIn(fieldname, tickets)
+		clients = self._fieldnames("Customer")
+		self.assertIn("custom_grand_compte", clients)
+		self.assertIn("custom_commercial_attribué", clients)
+		for fieldname in ("customer_name", "custom_dernier_numéro_article", "custom_fichier_rc", "naming_series"):
+			self.assertNotIn(fieldname, clients)
+
+	def test_refuse_un_champ_exclu_meme_en_appel_direct(self):
+		with self.assertRaises(frappe.PermissionError):
+			bureau_bulk.bulk_update("Ticket Commercial", [self._ticket()], "statut_creance", "OK")
+		with self.assertRaises(frappe.PermissionError):
+			bureau_bulk.bulk_update("Ticket Commercial", [self._ticket()], "status", "Terminé")
+
+	def test_refuse_un_champ_sans_droit_de_niveau(self):
+		meta = frappe.get_meta("Customer")
+		with patch.object(type(meta), "get_permlevel_access", return_value=[0]):
+			fields = {field["fieldname"] for field in bureau_bulk.get_bulk_options("Customer")["fields"]}
+			self.assertNotIn("is_frozen", fields)
+			with self.assertRaises(frappe.PermissionError):
+				bureau_bulk.bulk_update("Customer", [self._client()], "is_frozen", 1)
+
+	def test_refuse_un_champ_obligatoire_vide(self):
+		with self.assertRaises(frappe.ValidationError):
+			bureau_bulk.bulk_update("Ticket Commercial", [self._ticket()], "site", "")
+
+	def test_modifie_et_signale_ce_qui_est_perime(self):
+		item = self._client()
+		perime = {**self._client(), "modified": "2000-01-01 00:00:00"}
+		autre = frappe.db.get_value("Customer", {"disabled": 0, "name": ["!=", item["name"]]}, "name")
+		if not autre:
+			self.skipTest("Un seul client.")
+		perime["name"] = autre
+		before = frappe.db.get_value("Customer", item["name"], "custom_grand_compte")
+		result = bureau_bulk.bulk_update("Customer", [item, perime], "custom_grand_compte", 0 if before else 1)
+		self.assertEqual(result["done"], [item["name"]])
+		self.assertEqual([row["name"] for row in result["skipped"]], [autre])
+		self.assertEqual(frappe.db.get_value("Customer", item["name"], "custom_grand_compte"), 0 if before else 1)
+
+	def test_meme_valeur_sans_ecriture(self):
+		item = self._client()
+		value = frappe.db.get_value("Customer", item["name"], "custom_grand_compte")
+		result = bureau_bulk.bulk_update("Customer", [item], "custom_grand_compte", value)
+		self.assertEqual(result["done"], [item["name"]])
+		self.assertEqual(str(frappe.db.get_value("Customer", item["name"], "modified")), item["modified"])
+
+	def test_commercial_passe_par_les_attributions(self):
+		commercial = next(iter(bureau._commercial_users()), None)
+		if not commercial:
+			self.skipTest("Aucun commercial.")
+		item = self._client()
+		with patch("aurescrm.api.bureau_bulk._set_principal") as principal, patch("frappe.model.document.Document.save"):
+			frappe.db.set_value("Customer", item["name"], "custom_commercial_attribué", None, update_modified=False)
+			bureau_bulk.bulk_update("Customer", [item], "custom_commercial_attribué", commercial.name)
+		principal.assert_called_once()
+		self.assertEqual(principal.call_args.args[1], commercial.name)
+
+	def test_commercial_hors_liste_est_refuse_par_ligne(self):
+		result = bureau_bulk.bulk_update("Customer", [self._client()], "custom_commercial_attribué", "Guest")
+		self.assertEqual(result["done"], [])
+		self.assertIn("commercial", result["skipped"][0]["reason"])
+
+	def test_valeur_non_retenue_n_est_pas_annoncee(self):
+		item = self._client()
+		before = frappe.db.get_value("Customer", item["name"], "custom_grand_compte")
+
+		def revert(doc, *args, **kwargs):
+			doc.custom_grand_compte = before
+
+		with patch("frappe.model.document.Document.save", revert):
+			result = bureau_bulk.bulk_update("Customer", [item], "custom_grand_compte", 0 if before else 1)
+		self.assertEqual(result["done"], [])
+		self.assertIn("retenue", result["skipped"][0]["reason"])
+
+	def test_suppression_refusee_garde_le_document(self):
+		item = self._ticket()
+		with patch("frappe.delete_doc", side_effect=frappe.LinkExistsError("Lié à un devis")):
+			result = bureau_bulk.bulk_delete("Ticket Commercial", [item])
+		self.assertEqual(result["done"], [])
+		self.assertIn("Lié à un devis", result["skipped"][0]["reason"])
+		self.assertTrue(frappe.db.exists("Ticket Commercial", item["name"]))
+
+	def test_suppression_demande_le_droit(self):
+		item = self._ticket()
+		with patch("frappe.model.document.Document.check_permission", side_effect=[None, frappe.PermissionError("Pas de droit")]), patch("frappe.delete_doc") as delete:
+			result = bureau_bulk.bulk_delete("Ticket Commercial", [item])
+		delete.assert_not_called()
+		self.assertEqual(result["done"], [])
+
+	def test_tags(self):
+		item = self._client()
+		tag = "test-bureau-bulk"
+		result = bureau_bulk.bulk_add_tags("Customer", [item], [tag, f" {tag} "])
+		self.assertEqual(result["done"], [item["name"]])
+		self.assertIn(tag, frappe.db.get_value("Customer", item["name"], "_user_tags"))
+		self.assertEqual(str(frappe.db.get_value("Customer", item["name"], "modified")), item["modified"])
+		rows = bureau_clients.get_clients(conditions=[{"field": "tag", "op": "contient", "value": tag}])
+		self.assertEqual(rows["names"], [item["name"]])
+		self.assertEqual(rows["clients"][0]["tags"], [tag])
+
+	def test_tag_refuse_avec_virgule_ou_vide(self):
+		for tags in (["a,b"], [" "], []):
+			with self.assertRaises(frappe.ValidationError):
+				bureau_bulk.bulk_add_tags("Customer", [self._client()], tags)
+
+	def test_tags_demandent_le_droit_d_ecriture(self):
+		item = self._client()
+		with patch("aurescrm.api.bureau_clients.get_customer_edit_status", return_value={"can_edit": False}):
+			result = bureau_bulk.bulk_add_tags("Customer", [item], ["test-bureau-bulk"])
+		self.assertEqual(result["done"], [])
+
+	def test_recherche_de_lien(self):
+		with self.assertRaises(frappe.ValidationError):
+			bureau_bulk.search_bulk_link("Ticket Commercial", "channel")
+		with self.assertRaises(frappe.PermissionError):
+			bureau_bulk.search_bulk_link("Ticket Commercial", "customer")
+		rows = bureau_bulk.search_bulk_link("Ticket Commercial", "site")
+		for row in rows:
+			self.assertEqual(set(row), {"value", "label"})

@@ -46,7 +46,6 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 - **Serveur** : `aurescrm/api/bureau_clients.py`. `get_clients` lit toute la vue, la trie, puis renvoie une page, le total, `names` et les compteurs des vues. Le tri se fait aussi sur la créance, la dernière visite et les tickets.
 - **Créance** : le solde vient de `Creance Client` (créances non soldées), comme dans la PWA, et non de `Suivi Creance`.
 - **Dernière visite** : la plus récente à la date du jour ou avant. Une visite à venir ne compte pas.
-- **Sans case à cocher** : aucune action groupée n'est définie pour les clients, la liste n'offre donc pas de sélection.
 - **Fiche** : six onglets, Aperçu, Affaires, Articles, Visites et appels, Informations, Activité. Un document lié que le rôle ne peut pas lire donne une liste vide, sans erreur.
 - **Droits** : ceux du Desk (`get_customer_edit_status`, `can_view_customer_activity`). Sans le droit, Modifier et l'onglet Activité disparaissent, et le serveur refuse l'écriture.
 - **Nouveau prospect** : raison sociale, forme juridique, catégorie, commune et commercial sont obligatoires. La wilaya découle de la commune, et le statut est toujours Prospect. Le commercial devient le principal de la société dans la table d'attributions.
@@ -63,9 +62,15 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 
 ## Actions groupées
 
-- Les cases à cocher sélectionnent des tickets de la vue affichée. Une ligne cachée par un filtre ou une recherche n'est jamais touchée, et changer de vue vide la sélection.
-- **Actions** : attribuer (`bulk_assign`), Démarrer et Mettre en pause (`bulk_action`). Terminer, Annuler et la créance restent ticket par ticket : ils dépendent d'une liste de contrôle ou d'un motif, ou sont difficiles à défaire.
-- **Au plus 100 tickets par action.** Chacun est traité et validé à part avec sa date `modified` : un refus n'empêche pas les autres, et l'écran liste les tickets non traités avec leur raison.
+Toute liste construite sur `DataList` les obtient en déclarant `bulk-doctype`, et son DocType dans `BULK_DOCTYPES` (`aurescrm/api/bureau_bulk.py`). C'est aujourd'hui le cas des tickets et des clients. Le serveur refuse tout autre DocType.
+
+- **Sélection** : cases à cocher, Tout cocher sur la page (jusqu'à 500 lignes), Shift + clic pour un intervalle, Ctrl + clic sur la ligne. Une action ne touche jamais une ligne cachée. Changer de vue, de page, de recherche, de filtre ou de tri vide la sélection.
+- **Actions communes** : Modifier (un champ, une valeur), Tags (ajout seulement), Exporter (CSV des lignes cochées, colonnes affichées), Supprimer (avec le droit `delete` et une confirmation).
+- **Actions des tickets** : attribuer (`bulk_assign`), Démarrer et Mettre en pause (`bulk_action`). Terminer, Annuler et la créance restent ticket par ticket : ils dépendent d'une liste de contrôle ou d'un motif, ou sont difficiles à défaire.
+- **Champs de Modifier** : ceux du Desk, recalculés par le serveur à chaque écriture. Ne sont pas proposés : un champ masqué, en lecture seule, virtuel, `set_only_once`, l'état du workflow, un champ sans droit de niveau, un champ recopié par `fetch_from`, et les types sans saisie ici (éditeur riche, fichier, signature). Chaque DocType exclut en plus les champs qui ont leurs propres règles : créance, rapprochement et liste de contrôle des tickets, raison sociale des clients. Le commercial d'un client passe par la table d'attributions.
+- **Envoi** : par lots de 50 depuis le navigateur, 100 lignes au plus par requête. Chaque ligne est validée à part avec sa date `modified` : un refus n'empêche pas les autres, et l'écran liste les lignes non traitées avec leur raison. Un lot en erreur arrête la suite, et l'écran indique ce qui n'est pas parti.
+- **Suppression** : un document soumis ou lié à d'autres est refusé. Le Desk garde une copie dans `Deleted Document`. Le dossier Nextcloud d'un client supprimé reste en place.
+- **Tags** : les mêmes que sur le Desk (`_user_tags`), avec une colonne optionnelle et un filtre sur les listes.
 
 ## Disposition et densité
 

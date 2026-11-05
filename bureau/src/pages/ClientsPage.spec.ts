@@ -96,6 +96,20 @@ describe('page Clients', () => {
 			'bureau.get_queue': { tickets: [], counts: { todo: 7 }, total: 0, start: 0, page_length: 1, names: [] },
 			'bureau.get_ticket_form_options': { types: [], channels: [], sites: [], commercials: [] },
 			'bureau.get_mention_candidates': [],
+			'bureau_bulk.get_bulk_options': {
+				can_delete: true,
+				fields: [
+					{ fieldname: 'custom_status', label: 'Statut Client', fieldtype: 'Select', options: ['Actif', 'Dormant'], required: true },
+					{ fieldname: 'custom_gps', label: 'GPS', fieldtype: 'Data', options: [], required: false },
+					{ fieldname: 'custom_grand_compte', label: 'Grand Compte', fieldtype: 'Check', options: [], required: false },
+					{ fieldname: 'customer_group', label: 'Catégorie Client', fieldtype: 'Link', options: [], required: true },
+				],
+			},
+			'bureau_bulk.bulk_update': { done: ['CLI-1'], skipped: [{ name: 'CLI-2', reason: 'Valeur refusée.' }] },
+			'bureau_bulk.bulk_add_tags': { done: ['CLI-1', 'CLI-2'], skipped: [] },
+			'bureau_bulk.bulk_delete': { done: ['CLI-1'], skipped: [] },
+			'bureau_bulk.get_bulk_tags': ['VIP'],
+			'bureau_bulk.search_bulk_link': [{ value: 'Commercial', label: 'Commercial' }],
 		}
 		fetchMock.mockClear()
 		vi.stubGlobal('fetch', fetchMock)
@@ -120,7 +134,7 @@ describe('page Clients', () => {
 		expect(wrapper.text()).toContain('Grand compte')
 		expect(wrapper.text()).toContain('Non attribué')
 		expect(wrapper.text()).toContain('Jamais')
-		expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)
+		expect(wrapper.findAll('.list-row input[type="checkbox"]')).toHaveLength(2)
 		await wrapper.findAll('.bureau-toolbar button').find((button) => button.text().startsWith('Filtres'))!.trigger('click')
 		expect(wrapper.findAll('select[aria-label="Afficher"] option').map((option) => option.text())).toContain('Avec créance (1)')
 		wrapper.unmount()
@@ -271,5 +285,137 @@ describe('page Clients', () => {
 		expect(wrapper.text()).toContain("Ce client n'existe pas ou n'existe plus.")
 		wrapper.unmount()
 		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
+	})
+
+	describe('actions groupées', () => {
+		const checkbox = (wrapper: Awaited<ReturnType<typeof open>>['wrapper'], index: number) => wrapper.findAll('.list-row input[type="checkbox"]')[index]
+		const barButton = (wrapper: Awaited<ReturnType<typeof open>>['wrapper'], label: string) => wrapper.find('.bureau-bulk').findAll('button').find((button) => button.text() === label)!
+		const dialogButton = (wrapper: Awaited<ReturnType<typeof open>>['wrapper'], text: string) => wrapper.find('.dialog').findAll('button').find((button) => button.text().startsWith(text))!
+
+		async function pickAll(wrapper: Awaited<ReturnType<typeof open>>['wrapper']) {
+			await wrapper.find('.list-head input[type="checkbox"]').setValue(true)
+			await flushPromises()
+		}
+
+		it('cocher propose les actions, sans ouvrir l\'aperçu', async () => {
+			const { wrapper, router } = await open('/clients')
+			await checkbox(wrapper, 0).setValue(true)
+			await flushPromises()
+			expect(router.currentRoute.value.query.apercu).toBeUndefined()
+			const bar = wrapper.find('.bureau-bulk').text()
+			expect(bar).toContain('1 client sélectionné')
+			for (const label of ['Modifier', 'Tags', 'Exporter', 'Supprimer']) expect(bar).toContain(label)
+		})
+
+		it('Shift + clic coche l\'intervalle, Ctrl + clic coche sans ouvrir l\'aperçu', async () => {
+			const { wrapper, router } = await open('/clients')
+			await checkbox(wrapper, 0).setValue(true)
+			await checkbox(wrapper, 1).trigger('click', { shiftKey: true })
+			await checkbox(wrapper, 1).setValue(true)
+			await flushPromises()
+			expect(wrapper.find('.bureau-bulk').text()).toContain('2 clients sélectionnés')
+			await wrapper.find('[aria-label="Désélectionner tout"]').trigger('click')
+			await wrapper.findAll('.list-row-main')[1].trigger('click', { ctrlKey: true })
+			await flushPromises()
+			expect(router.currentRoute.value.query.apercu).toBeUndefined()
+			expect(wrapper.find('.bureau-bulk').text()).toContain('1 client sélectionné')
+		})
+
+		it('une recherche vide la sélection', async () => {
+			const { wrapper } = await open('/clients')
+			await pickAll(wrapper)
+			expect(wrapper.find('.bureau-bulk').exists()).toBe(true)
+			await wrapper.find('.bureau-search input').setValue('atlas')
+			await flushPromises()
+			expect(wrapper.find('.bureau-bulk').exists()).toBe(false)
+		})
+
+		it('Modifier envoie champ et valeur, puis liste ce qui n\'a pas été traité', async () => {
+			const { wrapper } = await open('/clients')
+			await pickAll(wrapper)
+			await barButton(wrapper, 'Modifier').trigger('click')
+			const apply = () => dialogButton(wrapper, 'Modifier 2 clients')
+			expect(apply().attributes('disabled')).toBeDefined()
+			await wrapper.find('#bulk-field').setValue('custom_status')
+			// Champ obligatoire : pas d'envoi sans valeur.
+			expect(apply().attributes('disabled')).toBeDefined()
+			await wrapper.find('#bulk-value').setValue('Dormant')
+			await apply().trigger('click')
+			await flushPromises()
+			await flushPromises()
+			expect(posted('bulk_update')).toEqual({
+				doctype: 'Customer',
+				items: rows.map(({ name, modified }) => ({ name, modified })),
+				fieldname: 'custom_status',
+				value: 'Dormant',
+			})
+			const message = wrapper.find('.bureau-bulk').text()
+			expect(message).toContain('1 client modifié · 1 non traité')
+			expect(message).toContain('CLI-2 : Valeur refusée.')
+			expect(wrapper.findAll('.list-row input:checked')).toHaveLength(0)
+		})
+
+		it('prévient qu\'un champ facultatif laissé vide sera vidé', async () => {
+			const { wrapper } = await open('/clients')
+			await pickAll(wrapper)
+			await barButton(wrapper, 'Modifier').trigger('click')
+			await wrapper.find('#bulk-field').setValue('custom_gps')
+			expect(wrapper.find('.dialog').text()).toContain('Ce champ sera vidé sur 2 clients.')
+			expect(dialogButton(wrapper, 'Modifier 2 clients').attributes('disabled')).toBeUndefined()
+			await wrapper.find('#bulk-field').setValue('custom_grand_compte')
+			expect(dialogButton(wrapper, 'Modifier 2 clients').attributes('disabled')).toBeDefined()
+		})
+
+		it('un champ lien cherche ses valeurs sur le serveur', async () => {
+			const { wrapper } = await open('/clients')
+			await pickAll(wrapper)
+			await barButton(wrapper, 'Modifier').trigger('click')
+			await wrapper.find('#bulk-field').setValue('customer_group')
+			await wrapper.find('#bulk-value').trigger('focus')
+			await flushPromises()
+			await wrapper.find('.picker-menu button').trigger('click')
+			expect(wrapper.find('.picked').text()).toContain('Commercial')
+			await dialogButton(wrapper, 'Modifier 2 clients').trigger('click')
+			await flushPromises()
+			expect(posted('bulk_update').value).toBe('Commercial')
+		})
+
+		it('Tags ajoute la saisie en cours et ce qui a été validé', async () => {
+			const { wrapper } = await open('/clients')
+			await pickAll(wrapper)
+			await barButton(wrapper, 'Tags').trigger('click')
+			const input = wrapper.find('#bulk-tags')
+			await input.setValue('VIP')
+			await input.trigger('keydown', { key: 'Enter' })
+			await input.setValue('Salon 2026')
+			await dialogButton(wrapper, 'Ajouter à 2 clients').trigger('click')
+			await flushPromises()
+			await flushPromises()
+			expect(posted('bulk_add_tags').tags).toEqual(['VIP', 'Salon 2026'])
+			expect(wrapper.find('.bureau-bulk').text()).toContain('2 clients étiquetés')
+		})
+
+		it('Supprimer demande confirmation et ferme l\'aperçu de la ligne supprimée', async () => {
+			const { wrapper, router } = await open('/clients?apercu=CLI-1')
+			await checkbox(wrapper, 0).setValue(true)
+			await flushPromises()
+			await barButton(wrapper, 'Supprimer').trigger('click')
+			expect(posted('bulk_delete')).toBeUndefined()
+			expect(wrapper.find('.dialog').text()).toContain('CLI-1')
+			await dialogButton(wrapper, 'Supprimer 1 client').trigger('click')
+			await flushPromises()
+			await flushPromises()
+			expect(posted('bulk_delete').items[0].name).toBe('CLI-1')
+			expect(router.currentRoute.value.query.apercu).toBeUndefined()
+		})
+
+		it('sans le droit, Supprimer n\'apparaît pas', async () => {
+			current['bureau_bulk.get_bulk_options'] = { can_delete: false, fields: [] }
+			const { wrapper } = await open('/clients')
+			await pickAll(wrapper)
+			const bar = wrapper.find('.bureau-bulk').text()
+			expect(bar).not.toContain('Supprimer')
+			expect(barButton(wrapper, 'Modifier').attributes('disabled')).toBeDefined()
+		})
 	})
 })

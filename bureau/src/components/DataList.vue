@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="Row extends { name: string }">
+<script setup lang="ts" generic="Row extends { name: string; modified: string }">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, watch, type CSSProperties, type Ref } from 'vue'
 import LucideArrowDown from '~icons/lucide/arrow-down'
 import LucideArrowUp from '~icons/lucide/arrow-up'
@@ -14,8 +14,11 @@ import LucideSearch from '~icons/lucide/search'
 import LucideX from '~icons/lucide/x'
 import ListPager from '@shared/components/ListPager.vue'
 import ListState from '@shared/components/ListState.vue'
+import BulkBar from './BulkBar.vue'
+import { rangeToggle } from '@/lib/bulk'
 import { isComplete, type Condition } from '@/lib/filters'
 import { gridTemplate, minListWidth, nextSort, ticketsToCsv, type Column, type Sort } from '@/lib/list'
+import { useBulk } from '@/lib/useBulk'
 import { PAGE_SIZES } from '@/lib/useServerList'
 
 export interface ListView {
@@ -60,11 +63,10 @@ const props = defineProps<{
 	selected?: string
 	created?: string
 	loadError?: string
-	selectable?: boolean
-	checkAllLabel?: string
-	checkLabel?: (row: Row) => string
+	/** DocType des lignes : le déclarer ajoute les cases à cocher et les actions groupées. Il doit figurer dans `bureau_bulk.BULK_DOCTYPES`. */
+	bulkDoctype?: string
 }>()
-const emit = defineEmits<{ pick: [name: string]; open: [name: string]; create: [] }>()
+const emit = defineEmits<{ pick: [name?: string]; open: [name: string]; create: []; changed: [] }>()
 const checked = defineModel<Set<string>>('checked', { default: () => new Set<string>() })
 const slots = useSlots()
 const hasRowMenu = computed(() => Boolean(slots.rowMenu))
@@ -170,15 +172,34 @@ function sortLabel(key: string, label: string) {
 }
 
 // Sélection : seules les lignes visibles comptent, une action ne touche jamais une ligne cachée.
-const pickedCount = computed(() => props.rows.filter((row) => checked.value.has(row.name)).length)
+const selectable = computed(() => Boolean(props.bulkDoctype))
+const picked = computed(() => props.rows.filter((row) => checked.value.has(row.name)))
+const pickedCount = computed(() => picked.value.length)
 const allPicked = computed(() => props.rows.length > 0 && pickedCount.value === props.rows.length)
+let anchor: string | null = null
+let shiftHeld = false
+function clearPicked() {
+	checked.value = new Set()
+	anchor = null
+}
+/** Bascule une ligne ; avec Shift, tout l'intervalle depuis la dernière ligne cochée, comme sur le Desk. */
 function toggle(name: string) {
-	const next = new Set(checked.value)
-	if (!next.delete(name)) next.add(name)
-	checked.value = next
+	const from = shiftHeld ? anchor : null
+	shiftHeld = false
+	checked.value = rangeToggle(props.rows.map((row) => row.name), checked.value, from, name)
+	anchor = name
 }
 function toggleAll() {
 	checked.value = new Set(allPicked.value ? [] : props.rows.map((row) => row.name))
+}
+/** Ctrl + clic sur la ligne coche au lieu d'ouvrir l'aperçu. */
+function onRowClick(name: string, event: MouseEvent) {
+	if (selectable.value && (event.ctrlKey || event.metaKey)) toggle(name)
+	else emit('pick', name)
+}
+const bulk = useBulk({ clear: clearPicked, changed: () => emit('changed') })
+function onDeleted(names: string[]) {
+	if (props.selected && names.includes(props.selected)) emit('pick')
 }
 
 // La ligne ouverte reste visible. Les rechargements en arrière-plan ne bougent pas la liste.
@@ -194,16 +215,39 @@ watch(props.state.response, () => {
 		revealSelected()
 	}
 })
-// Changer de vue ou de page vide la sélection.
+// Changer de vue ou de page vide la sélection, et ramène en haut.
 watch([props.state.view, props.state.page], () => {
 	list.value?.scrollTo?.({ top: 0 })
-	if (props.selectable) checked.value = new Set()
+	if (selectable.value) clearPicked()
 })
+// Une recherche, un filtre ou un tri aussi : une ligne sortie de la vue ne doit pas revenir cochée.
+watch([props.state.search, props.state.conditions, props.state.sort, props.state.pageSize], () => {
+	if (selectable.value) clearPicked()
+})
+// Une ligne disparue après un rechargement (supprimée, sortie de la vue) ne reste pas dans la sélection.
+watch(
+	() => props.rows,
+	(rows) => {
+		if (!checked.value.size) return
+		const names = new Set(rows.map((row) => row.name))
+		const kept = [...checked.value].filter((name) => names.has(name))
+		if (kept.length !== checked.value.size) checked.value = new Set(kept)
+	},
+)
 async function revealCreated() {
 	await nextTick()
 	list.value?.querySelector('.list-row-created')?.scrollIntoView?.({ block: 'nearest' })
 }
 defineExpose({ revealCreated })
+
+function downloadCsv(rows: Row[], suffix: string) {
+	const url = URL.createObjectURL(new Blob([ticketsToCsv(rows, shown.value)], { type: 'text/csv;charset=utf-8' }))
+	const link = document.createElement('a')
+	link.href = url
+	link.download = `${props.noun}s-${suffix}.csv`
+	link.click()
+	URL.revokeObjectURL(url)
+}
 
 // Export : toute la vue, page après page, avec les colonnes affichées.
 async function exportView() {
@@ -218,12 +262,7 @@ async function exportView() {
 			rows.push(...response.rows)
 			if (rows.length >= response.total || !response.rows.length) break
 		}
-		const url = URL.createObjectURL(new Blob([ticketsToCsv(rows, shown.value)], { type: 'text/csv;charset=utf-8' }))
-		const link = document.createElement('a')
-		link.href = url
-		link.download = `${props.noun}s-${props.state.view.value}.csv`
-		link.click()
-		URL.revokeObjectURL(url)
+		downloadCsv(rows, props.state.view.value)
 	} catch (e) {
 		exportError.value = `L'export a échoué : ${(e as Error).message}`
 	} finally {
@@ -341,7 +380,7 @@ onBeforeUnmount(() => {
 					<div :style="innerStyle">
 						<div class="list-head" :class="!selectable && 'list-no-check'">
 							<label v-if="selectable" class="list-check">
-								<input type="checkbox" :aria-label="checkAllLabel" :checked="allPicked" :indeterminate="pickedCount > 0 && !allPicked" :disabled="!rows.length" @change="toggleAll" />
+								<input type="checkbox" :aria-label="`Sélectionner tous les ${noun}s de la page`" :checked="allPicked" :indeterminate="pickedCount > 0 && !allPicked" :disabled="!rows.length" @change="toggleAll" />
 							</label>
 							<div class="list-cols" :style="colsStyle">
 								<template v-for="column in shown" :key="column.key">
@@ -373,9 +412,9 @@ onBeforeUnmount(() => {
 
 							<div v-for="row in rows" :key="row.name" class="list-row" :class="{ 'list-no-check': !selectable, 'list-row-on list-row-created': row.name === created, 'list-row-on': row.name === selected, 'list-row-checked': checked.has(row.name) }">
 								<label v-if="selectable" class="list-check">
-									<input type="checkbox" :aria-label="checkLabel?.(row)" :checked="checked.has(row.name)" @change="toggle(row.name)" />
+									<input type="checkbox" :aria-label="`Sélectionner le ${noun} ${row.name}`" :checked="checked.has(row.name)" @click="shiftHeld = $event.shiftKey" @change="toggle(row.name)" />
 								</label>
-								<button type="button" class="list-cols list-row-main" :style="colsStyle" :aria-current="row.name === selected ? 'true' : undefined" @click="emit('pick', row.name)" @dblclick="emit('open', row.name)">
+								<button type="button" class="list-cols list-row-main" :style="colsStyle" :aria-current="row.name === selected ? 'true' : undefined" @click="onRowClick(row.name, $event)" @dblclick="emit('open', row.name)">
 									<slot name="cells" :row="row" :columns="shown"></slot>
 								</button>
 								<div v-if="hasRowMenu" class="list-more list-menu">
@@ -383,7 +422,7 @@ onBeforeUnmount(() => {
 										<LucideEllipsisVertical class="h-3.5 w-3.5" aria-hidden="true" />
 									</button>
 									<div v-if="rowMenu?.row.name === row.name" class="app-menu" role="menu" :style="rowMenu.style" @click="rowMenu = null">
-										<slot name="rowMenu" :row="row"></slot>
+										<slot name="rowMenu" :row="row" :bulk="bulk"></slot>
 									</div>
 								</div>
 							</div>
@@ -395,7 +434,9 @@ onBeforeUnmount(() => {
 				<ListPager :total="state.total.value" :page="state.page.value" :page-size="state.pageSize.value" :sizes="PAGE_SIZES" :sort-label="sortText" :disabled="state.loading.value" @update:page="state.goToPage" @update:page-size="state.setPageSize" />
 			</div>
 
-			<slot name="bulk"></slot>
+			<BulkBar v-if="bulkDoctype" :doctype="bulkDoctype" :noun="noun" :picked="picked" :bulk="bulk" @clear="clearPicked" @export="downloadCsv(picked, 'selection')" @deleted="onDeleted">
+				<template v-if="$slots.bulkActions" #default><slot name="bulkActions" :picked="picked" :bulk="bulk"></slot></template>
+			</BulkBar>
 			<slot name="drawer"></slot>
 		</div>
 

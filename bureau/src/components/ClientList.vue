@@ -8,10 +8,11 @@ import { getClientOptions, getClients } from '@/lib/api'
 import { CLIENT_COLUMNS, CLIENT_FILTER_FIELDS, CLIENT_VIEWS, clientConditionLabel, clientFilterChoices, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, visibleClientColumns, type ClientOptions, type ClientRow } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import type { Condition } from '@/lib/filters'
+import { tagsText } from '@/lib/list'
 import type { ClientsState } from '@/lib/useClients'
 
 const props = defineProps<{ state: ClientsState; selected?: string }>()
-const emit = defineEmits<{ pick: [name?: string]; open: [name: string, tab?: string] }>()
+const emit = defineEmits<{ pick: [name?: string]; open: [name: string, tab?: string]; changed: [] }>()
 
 const options = ref<ClientOptions | null>(null)
 const optionsError = ref('')
@@ -85,8 +86,10 @@ onBeforeUnmount(() => {
 		:selected="selected"
 		:created="created ?? undefined"
 		:load-error="optionsError"
+		bulk-doctype="Customer"
 		@pick="emit('pick', $event)"
 		@open="emit('open', $event)"
+		@changed="emit('changed')"
 		@create="creating = true"
 	>
 		<template #filters>
@@ -109,6 +112,7 @@ onBeforeUnmount(() => {
 				<span v-else-if="column.key === 'contact'" :title="row.contact || undefined">{{ row.contact || '—' }}</span>
 				<span v-else-if="column.key === 'telephone'" class="tabular-nums">{{ row.telephone || '—' }}</span>
 				<span v-else-if="column.key === 'name'" class="tabular-nums text-ink-gray-7">{{ row.name }}</span>
+				<span v-else-if="column.key === 'tags'" class="truncate" :title="tagsText(row) || undefined">{{ tagsText(row) }}</span>
 			</template>
 		</template>
 

@@ -1,7 +1,7 @@
 /** File, tickets et actions. Les règles restent côté serveur (aurescrm/api/bureau.py). */
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
 import { call, uploadFile } from '@shared/api'
-import type { BulkResult, CandidateDemande, ClientChoice, QueueResponse, QueueTicket, QueueView, References, TicketDetail, TicketFormOptions } from '@/types'
+import type { BulkItem, BulkOptions, BulkResult, CandidateDemande, ClientChoice, Option, QueueResponse, QueueTicket, QueueView, References, TicketDetail, TicketFormOptions } from '@/types'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { Condition } from './filters'
 import { conditionsForServer } from './filters'
@@ -54,15 +54,34 @@ export const setAssignee = (ticket: TicketDetail, user: string) => action('set_a
 
 export const removeDocument = (ticket: TicketDetail, file: string) => action('remove_document', { name: ticket.name, file })
 
-/** Une action groupée enregistre jusqu'à 100 tickets : elle a droit à plus de temps qu'une requête ordinaire. */
+/** Un lot d'action groupée enregistre plusieurs documents : il a droit à plus de temps qu'une requête ordinaire. */
 const BULK_TIMEOUT_MS = 120 * 1000
-const bulkItems = (tickets: QueueTicket[]) => tickets.map(({ name, modified }) => ({ name, modified }))
+const bulkItems = (rows: BulkItem[]) => rows.map(({ name, modified }) => ({ name, modified }))
 
-export const bulkAssign = (tickets: QueueTicket[], user: string) =>
+export const bulkAssign = (tickets: BulkItem[], user: string) =>
 	call<BulkResult>(`${BUREAU}.bulk_assign`, { items: bulkItems(tickets), user }, true, BULK_TIMEOUT_MS)
 
-export const bulkAction = (tickets: QueueTicket[], name: string) =>
+export const bulkAction = (tickets: BulkItem[], name: string) =>
 	call<BulkResult>(`${BUREAU}.bulk_action`, { items: bulkItems(tickets), action: name }, true, BULK_TIMEOUT_MS)
+
+/** Actions communes à toutes les listes : les droits et les champs permis sont décidés par le serveur. */
+const BULK = 'aurescrm.api.bureau_bulk'
+
+export const getBulkOptions = (doctype: string) => call<BulkOptions>(`${BULK}.get_bulk_options`, { doctype })
+
+export const bulkUpdate = (doctype: string, rows: BulkItem[], fieldname: string, value: string) =>
+	call<BulkResult>(`${BULK}.bulk_update`, { doctype, items: bulkItems(rows), fieldname, value }, true, BULK_TIMEOUT_MS)
+
+export const bulkDelete = (doctype: string, rows: BulkItem[]) =>
+	call<BulkResult>(`${BULK}.bulk_delete`, { doctype, items: bulkItems(rows) }, true, BULK_TIMEOUT_MS)
+
+export const bulkAddTags = (doctype: string, rows: BulkItem[], tags: string[]) =>
+	call<BulkResult>(`${BULK}.bulk_add_tags`, { doctype, items: bulkItems(rows), tags }, true, BULK_TIMEOUT_MS)
+
+export const getBulkTags = (search: string) => call<string[]>(`${BULK}.get_bulk_tags`, { search: search.trim() || undefined })
+
+export const searchBulkLink = (doctype: string, fieldname: string, search: string) =>
+	call<Option[]>(`${BULK}.search_bulk_link`, { doctype, fieldname, search: search.trim() || undefined })
 
 /** Joint les fichiers l'un après l'autre : un refus n'empêche pas de garder ceux déjà envoyés. */
 export async function attachFiles(ticket: TicketDetail, files: File[]) {
