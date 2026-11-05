@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
 			<span class="field-label">Pièces jointes</span>
 			<label class="dropzone" :data-over="draggingOver" @dragover.prevent="draggingOver = true" @dragleave="draggingOver = false" @drop.prevent="onDrop">
 				<LucideUpload class="h-3.5 w-3.5" aria-hidden="true" />
-				<span>Déposez des fichiers ici, ou <b class="font-medium text-accent">choisissez-les</b></span>
+				<span>Déposez des fichiers ici, ou <b class="text-link">choisissez-les</b></span>
 				<input class="sr-only" type="file" multiple aria-label="Choisir des pièces jointes" @change="onFileInput" />
 			</label>
 			<ul v-if="files.length" class="mt-1 flex flex-col gap-0.5">

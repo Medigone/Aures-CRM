@@ -61,6 +61,7 @@ export interface ClientVente {
 export interface ClientDetail {
 	name: string
 	modified: string
+	tags: string[]
 	client: string
 	status: string | null
 	forme_juridique: string | null
@@ -162,12 +163,12 @@ export const CLIENT_COLUMNS: Column<ClientRow>[] = [
 	{ key: 'visite', label: 'Dernière visite', width: 112, sortable: true, text: (row) => formatDay(row.visite) },
 	{ key: 'creance', label: 'Créance (DA)', width: 108, sortable: true, end: true, text: (row) => Math.round(row.creance) },
 	{ key: 'tickets', label: 'Tickets', width: 64, sortable: true, end: true, text: (row) => row.tickets },
+	{ key: 'tags', label: 'Tags', width: 190, grow: 1, sortable: false, text: (row) => tagsText(row) },
 	{ key: 'categorie', label: 'Catégorie', width: 110, sortable: true, optional: true, text: (row) => row.categorie || '' },
 	{ key: 'contact', label: 'Contact principal', width: 150, sortable: true, optional: true, text: (row) => row.contact || '' },
 	{ key: 'telephone', label: 'Téléphone', width: 112, sortable: true, optional: true, text: (row) => row.telephone || '' },
 	// Masquée par défaut : les codes actuels sont mélangés et n'aident pas à repérer un client.
 	{ key: 'name', label: 'Code', width: 110, sortable: true, optional: true, text: (row) => row.name },
-	{ key: 'tags', label: 'Tags', width: 120, grow: 1, sortable: false, optional: true, text: (row) => tagsText(row) },
 ]
 export const DEFAULT_CLIENT_COLUMNS = CLIENT_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 

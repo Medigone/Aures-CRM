@@ -35,7 +35,7 @@ export const COLUMNS: Column[] = [
 	{ key: 'comments', label: 'Comm.', width: 56, sortable: false, text: (ticket) => ticket.comments },
 	{ key: 'commercial', label: 'Commercial', width: 120, grow: 1.1, sortable: true, optional: true, text: (ticket) => ticket.commercial || '' },
 	{ key: 'creance', label: 'Créance', width: 104, sortable: true, optional: true, text: (ticket) => creanceText(ticket) },
-	{ key: 'tags', label: 'Tags', width: 120, grow: 1, sortable: false, optional: true, text: (ticket) => tagsText(ticket) },
+	{ key: 'tags', label: 'Tags', width: 144, grow: 1, sortable: false, optional: true, text: (ticket) => tagsText(ticket) },
 ]
 
 export const DEFAULT_COLUMNS = COLUMNS.filter((column) => !column.optional).map((column) => column.key)

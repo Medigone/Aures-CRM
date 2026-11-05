@@ -4,11 +4,11 @@ import StatusPill from '@shared/components/StatusPill.vue'
 import ClientDialog from './ClientDialog.vue'
 import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
+import TagCell from './TagCell.vue'
 import { getClientOptions, getClients } from '@/lib/api'
 import { CLIENT_COLUMNS, CLIENT_FILTER_FIELDS, CLIENT_VIEWS, clientConditionLabel, clientFilterChoices, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, visibleClientColumns, type ClientOptions, type ClientRow } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import type { Condition } from '@/lib/filters'
-import { tagsText } from '@/lib/list'
 import type { ClientsState } from '@/lib/useClients'
 
 const props = defineProps<{ state: ClientsState; selected?: string }>()
@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
 				<span v-else-if="column.key === 'contact'" :title="row.contact || undefined">{{ row.contact || '—' }}</span>
 				<span v-else-if="column.key === 'telephone'" class="tabular-nums">{{ row.telephone || '—' }}</span>
 				<span v-else-if="column.key === 'name'" class="tabular-nums text-ink-gray-7">{{ row.name }}</span>
-				<span v-else-if="column.key === 'tags'" class="truncate" :title="tagsText(row) || undefined">{{ tagsText(row) }}</span>
+				<TagCell v-else-if="column.key === 'tags'" :tags="row.tags" :max="2" />
 			</template>
 		</template>
 

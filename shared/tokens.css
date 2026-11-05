@@ -16,6 +16,8 @@
 		--accent-fonce-rgb: 21 51 158;
 		--accent: rgb(var(--accent-rgb));
 		--accent-fonce: rgb(var(--accent-fonce-rgb));
+		/* Liens : bleus sur la PWA, en encre sur le poste de bureau. */
+		--link-ink: var(--accent);
 
 		--page: #f8f8f8;
 		--control-border: #949494;
@@ -232,6 +234,7 @@
 		--btn-bg: var(--soft-bg);
 		--btn-hover: var(--soft-hover);
 		--btn-line: var(--soft-line);
+		--link-ink: var(--ink-gray-9);
 	}
 	/* Poste de bureau sur écran tactile : des contrôles assez grands pour le doigt. */
 	@media (pointer: coarse) {

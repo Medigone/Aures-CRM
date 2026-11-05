@@ -131,6 +131,7 @@ export interface CommentSummary {
 export interface TicketDetail {
 	name: string
 	modified: string
+	tags: string[]
 	can_write: boolean
 	actions: string[]
 	request_type: string

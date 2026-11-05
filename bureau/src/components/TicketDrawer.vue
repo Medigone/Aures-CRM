@@ -13,6 +13,7 @@ import { relativeTime, exactTime } from '@shared/activity'
 import CommentText from '@shared/components/CommentText.vue'
 import { htmlToText } from '@shared/text'
 import { formatDay, stepHelp } from '@/lib/display'
+import TagEditor from './TagEditor.vue'
 import { useTicket } from '@/lib/useTicket'
 
 const props = defineProps<{ id: string; position: string; noPrev: boolean; noNext: boolean }>()
@@ -23,6 +24,10 @@ const { ticket, error, notFound, actionError, notice, busy, load, perform, refre
 	() => emit('changed'),
 )
 defineExpose({ refresh })
+function onTags(tags: string[]) {
+	if (ticket.value) ticket.value.tags = tags
+	emit('changed')
+}
 </script>
 
 <template>
@@ -55,6 +60,7 @@ defineExpose({ refresh })
 						<span class="urgence" :class="`urgence-${ticket.niveau_urgence}`">{{ ticket.niveau_urgence }}</span>
 					</div>
 					<p class="mt-0.5 text-sm text-ink-gray-7">{{ ticket.client }} · {{ ticket.name }}</p>
+					<TagEditor class="mt-1.5" doctype="Ticket Commercial" :name="ticket.name" :modified="ticket.modified" :tags="ticket.tags" :can-edit="ticket.can_write" @changed="onTags" />
 				</div>
 
 				<p v-if="actionError" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">{{ actionError }}</p>
@@ -95,11 +101,11 @@ defineExpose({ refresh })
 							<time class="text-ink-gray-6" :datetime="ticket.comments.last.at" :title="exactTime(ticket.comments.last.at)">{{ relativeTime(ticket.comments.last.at) }}</time>
 						</p>
 						<CommentText class="line-clamp-3" :parts="ticket.comments.last.parts" />
-						<button type="button" class="text-sm font-medium text-accent hover:underline" @click="emit('open', undefined, true)">{{ ticket.comments.count > 1 ? `Voir les ${ticket.comments.count} commentaires` : 'Voir le fil' }}</button>
+						<button type="button" class="text-sm text-link" @click="emit('open', undefined, true)">{{ ticket.comments.count > 1 ? `Voir les ${ticket.comments.count} commentaires` : 'Voir le fil' }}</button>
 					</template>
 					<p v-else class="text-ink-gray-6">
 						Aucun commentaire.
-						<button type="button" class="font-medium text-accent hover:underline" @click="emit('open', undefined, true)">Écrire le premier</button>
+						<button type="button" class="text-link" @click="emit('open', undefined, true)">Écrire le premier</button>
 					</p>
 				</section>
 				<StepTimeline :steps="ticket.steps" :viewed="-1" :current="ticket.current_step" @pick="emit('open', $event)" />

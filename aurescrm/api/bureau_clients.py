@@ -462,6 +462,7 @@ def _client_payload(doc):
 	return {
 		"name": doc.name,
 		"modified": doc.modified,
+		"tags": row_tags(doc.as_dict()),
 		"client": doc.customer_name or doc.name,
 		"status": doc.custom_status,
 		"forme_juridique": doc.custom_forme_juridique,

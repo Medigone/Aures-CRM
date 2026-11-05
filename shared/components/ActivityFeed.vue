@@ -276,7 +276,7 @@ defineExpose({ refresh: load, root, focusInput })
 						<template v-else>
 							<strong v-if="item.who">{{ item.who }} </strong>{{ item.text }}
 							<template v-if="item.link">
-								<a v-if="item.link.url" :href="item.link.url" class="font-medium text-accent hover:underline" target="_blank" rel="noopener noreferrer">{{ item.link.label }}</a>
+								<a v-if="item.link.url" :href="item.link.url" class="text-link" target="_blank" rel="noopener noreferrer">{{ item.link.label }}</a>
 								<template v-else>{{ item.link.label }}</template>
 							</template>
 						</template>
@@ -288,6 +288,6 @@ defineExpose({ refresh: load, root, focusInput })
 				</li>
 			</template>
 		</ol>
-		<button v-if="hiddenCount > 0" type="button" class="ml-8 self-start text-sm font-medium text-accent hover:underline" @click="expanded = true">Afficher les {{ hiddenCount }} éléments plus anciens</button>
+		<button v-if="hiddenCount > 0" type="button" class="ml-8 self-start text-sm text-link" @click="expanded = true">Afficher les {{ hiddenCount }} éléments plus anciens</button>
 	</section>
 </template>

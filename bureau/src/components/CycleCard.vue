@@ -58,7 +58,7 @@ const groups = computed(() => {
 		<div v-for="group in groups" :key="group.key" class="flex flex-col gap-0.5 border-t border-outline-gray-1 pt-1.5">
 			<a :href="group.url" target="_blank" rel="noopener noreferrer" class="flex min-h-[var(--ctl)] items-center justify-between gap-2 rounded-control hover:bg-surface-gray-2">
 				<span class="min-w-0">
-					<span class="block font-semibold text-accent">{{ group.label }}</span>
+					<span class="block font-semibold text-link">{{ group.label }}</span>
 					<span class="block text-xs text-ink-gray-6">{{ group.name }}</span>
 				</span>
 				<StatusPill :status="group.status" />

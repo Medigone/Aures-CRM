@@ -54,6 +54,7 @@ const detail = {
 	can_edit: true,
 	can_view_activity: true,
 }
+const tagged = { ...detail, tags: ['Salon 2026'] }
 const options = { statuses: ['Prospect', 'Actif'], formes: ['SPA'], sensibilites: ['Forte'], categories: ['Commercial'], groupes: [], wilayas: ['Sétif'], commercials: [{ value: 's@example.com', label: 'Sofiane' }], nobody: '__nobody__' }
 
 let current: Record<string, unknown>
@@ -285,6 +286,70 @@ describe('page Clients', () => {
 		expect(wrapper.text()).toContain("Ce client n'existe pas ou n'existe plus.")
 		wrapper.unmount()
 		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
+	})
+
+	describe('tags', () => {
+		it('la liste montre les premiers tags puis le nombre restant', async () => {
+			current['bureau_clients.get_clients'] = { ...list, clients: [{ ...rows[0], tags: ['Salon 2026', 'VIP', 'Export'] }, rows[1]] }
+			const { wrapper } = await open('/clients')
+			const cell = wrapper.findAll('.list-row')[0].find('.tag-cell')
+			expect(cell.findAll('.tag-pill').map((pill) => pill.text())).toEqual(['Salon 2026', 'VIP'])
+			expect(cell.find('.tag-more').text()).toBe('+1')
+			expect(cell.attributes('title')).toBe('Salon 2026, VIP, Export')
+		})
+
+		it('la fiche retire et ajoute un tag, avec les tags existants proposés', async () => {
+			current['bureau_clients.get_client'] = tagged
+			current['bureau_bulk.get_bulk_tags'] = ['Salon 2026', 'Grand export']
+			current['bureau_bulk.remove_doc_tag'] = { tags: [] }
+			current['bureau_bulk.add_doc_tag'] = { tags: ['Grand export'] }
+			const { wrapper } = await open('/clients/CLI-1')
+			const side = wrapper.find('.client-side')
+			expect(side.find('.tag-pill').text()).toBe('Salon 2026')
+			await side.find('[aria-label="Retirer le tag Salon 2026"]').trigger('click')
+			await flushPromises()
+			expect(posted('remove_doc_tag')).toEqual({ doctype: 'Customer', name: 'CLI-1', modified: detail.modified, tag: 'Salon 2026' })
+			expect(side.find('.tag-pill').exists()).toBe(false)
+			await side.find('.tag-add').trigger('click')
+			await flushPromises()
+			await side.findAll('.picker-menu button').find((button) => button.text() === 'Grand export')!.trigger('click')
+			await flushPromises()
+			expect(posted('add_doc_tag').tag).toBe('Grand export')
+			expect(side.find('.tag-pill').text()).toBe('Grand export')
+		})
+
+		it('propose de créer un tag inconnu, sans virgule', async () => {
+			current['bureau_bulk.get_bulk_tags'] = []
+			current['bureau_bulk.add_doc_tag'] = { tags: ['Salon 2027'] }
+			const { wrapper } = await open('/clients/CLI-1')
+			await wrapper.find('.client-side .tag-add').trigger('click')
+			await flushPromises()
+			const input = wrapper.find('.tag-edit input')
+			await input.setValue('Salon, 2027')
+			expect(wrapper.find('.picker-menu').text()).toContain('Créer « Salon  2027 »')
+			await input.setValue('Salon 2027')
+			await input.trigger('keydown', { key: 'Enter' })
+			await flushPromises()
+			expect(posted('add_doc_tag').tag).toBe('Salon 2027')
+		})
+
+		it('sans le droit de modifier, les tags restent en lecture seule', async () => {
+			current['bureau_clients.get_client'] = { ...tagged, can_edit: false }
+			const { wrapper } = await open('/clients/CLI-1')
+			const side = wrapper.find('.client-side')
+			expect(side.find('.tag-pill').text()).toBe('Salon 2026')
+			expect(side.find('.tag-x').exists()).toBe(false)
+			expect(side.find('.tag-add').exists()).toBe(false)
+		})
+	})
+
+	it('la colonne d\'identité reste visible sur tous les onglets, avec une icône pour la carte', async () => {
+		current['bureau_clients.get_client'] = { ...detail, map_url: 'https://carte.exemple/1' }
+		const { wrapper } = await open('/clients/CLI-1?onglet=articles')
+		const side = wrapper.find('.client-side')
+		expect(side.text()).toContain('R. Saidi')
+		expect(side.find('a[aria-label="Voir sur la carte"]').attributes('href')).toBe('https://carte.exemple/1')
+		expect(wrapper.find('.client-main').text()).not.toContain('Dernière activité')
 	})
 
 	describe('actions groupées', () => {

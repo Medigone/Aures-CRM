@@ -641,6 +641,7 @@ def get_ticket(name):
 	return {
 		"name": doc.name,
 		"modified": str(doc.modified),
+		"tags": row_tags(doc.as_dict()),
 		"can_write": can_write,
 		"actions": _available_actions(doc) if can_write else [],
 		"request_type": doc.request_type,

@@ -4,12 +4,13 @@ import LucideMessageSquare from '~icons/lucide/message-square'
 import LucideX from '~icons/lucide/x'
 import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
+import TagCell from './TagCell.vue'
 import NewTicketDialog from './NewTicketDialog.vue'
 import TicketStatus from './TicketStatus.vue'
 import { bulkAction, bulkAssign, getQueue, getReferences } from '@/lib/api'
 import { echeanceLabel } from '@/lib/display'
 import { conditionLabel, type Condition } from '@/lib/filters'
-import { canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, isOpen, sortText, stepPercent, stepText, tagsText, visibleColumns } from '@/lib/list'
+import { canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, isOpen, sortText, stepPercent, stepText, visibleColumns } from '@/lib/list'
 import type { BulkState } from '@/lib/useBulk'
 import type { QueueState } from '@/lib/useQueue'
 import type { Option, QueueTicket, References } from '@/types'
@@ -175,7 +176,7 @@ onBeforeUnmount(() => {
 				</span>
 				<span v-else-if="column.key === 'commercial'" :title="ticket.commercial || undefined">{{ ticket.commercial || '—' }}</span>
 				<span v-else-if="column.key === 'creance'">{{ creanceText(ticket) }}</span>
-				<span v-else-if="column.key === 'tags'" class="truncate" :title="tagsText(ticket) || undefined">{{ tagsText(ticket) }}</span>
+				<TagCell v-else-if="column.key === 'tags'" :tags="ticket.tags" :max="1" />
 			</template>
 		</template>
 

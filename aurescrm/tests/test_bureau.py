@@ -1068,7 +1068,29 @@ class TestBulkCommun(FrappeTestCase):
 		self.assertEqual(str(frappe.db.get_value("Customer", item["name"], "modified")), item["modified"])
 		rows = bureau_clients.get_clients(conditions=[{"field": "tag", "op": "contient", "value": tag}])
 		self.assertEqual(rows["names"], [item["name"]])
-		self.assertEqual(rows["clients"][0]["tags"], [tag])
+		self.assertIn(tag, rows["clients"][0]["tags"])
+
+	def test_tag_depuis_la_fiche(self):
+		item = self._client()
+		tag = "test-bureau-fiche"
+		tags = bureau_bulk.add_doc_tag("Customer", item["name"], item["modified"], tag)["tags"]
+		self.assertIn(tag, tags)
+		self.assertIn(tag, bureau_clients.get_client(item["name"])["tags"])
+		self.assertNotIn(tag, bureau_bulk.remove_doc_tag("Customer", item["name"], item["modified"], tag)["tags"])
+		self.assertEqual(str(frappe.db.get_value("Customer", item["name"], "modified")), item["modified"])
+
+	def test_tag_de_ticket_dans_le_detail(self):
+		item = self._ticket()
+		bureau_bulk.add_doc_tag("Ticket Commercial", item["name"], item["modified"], "test-bureau-fiche")
+		self.assertIn("test-bureau-fiche", bureau.get_ticket(item["name"])["tags"])
+
+	def test_tag_depuis_la_fiche_demande_le_droit(self):
+		item = self._client()
+		with patch("aurescrm.api.bureau_clients.get_customer_edit_status", return_value={"can_edit": False}):
+			with self.assertRaises(frappe.PermissionError):
+				bureau_bulk.add_doc_tag("Customer", item["name"], item["modified"], "x")
+			with self.assertRaises(frappe.PermissionError):
+				bureau_bulk.remove_doc_tag("Customer", item["name"], item["modified"], "x")
 
 	def test_tag_refuse_avec_virgule_ou_vide(self):
 		for tags in (["a,b"], [" "], []):

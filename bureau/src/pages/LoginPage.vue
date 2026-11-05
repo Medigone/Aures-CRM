@@ -96,7 +96,7 @@ function goTo(next: 'login' | 'forgot') {
 				<div>
 					<div class="flex items-baseline justify-between">
 						<label for="login-pwd" class="field-label">Mot de passe</label>
-						<button type="button" class="mb-1 text-xs font-medium text-accent hover:underline" @click="goTo('forgot')">Oublié ?</button>
+						<button type="button" class="mb-1 text-xs text-link" @click="goTo('forgot')">Oublié ?</button>
 					</div>
 					<div class="relative">
 						<input

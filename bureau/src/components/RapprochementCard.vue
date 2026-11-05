@@ -64,7 +64,7 @@ const quantity = (value: number) => new Intl.NumberFormat('fr-FR').format(value)
 		<p v-else-if="!candidates.length" class="text-ink-gray-6">Aucune demande de faisabilité récente pour ce client.</p>
 		<div v-for="demande in candidates || []" :key="demande.name" class="flex flex-col gap-1.5 rounded-control border border-outline-gray-2 p-2.5">
 			<div class="flex flex-wrap items-center justify-between gap-2">
-				<a :href="deskUrl('Demande Faisabilite', demande.name)" target="_blank" rel="noopener noreferrer" class="font-semibold text-accent hover:underline">{{ demande.name }}</a>
+				<a :href="deskUrl('Demande Faisabilite', demande.name)" target="_blank" rel="noopener noreferrer" class="text-link">{{ demande.name }}</a>
 				<StatusPill :status="demande.demande_status" />
 			</div>
 			<p class="text-xs text-ink-gray-6">{{ demande.demande_type }} · {{ formatDay(demande.date_creation) }}</p>

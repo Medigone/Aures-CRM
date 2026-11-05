@@ -16,7 +16,7 @@ from frappe.desk.doctype.tag.tag import DocTags
 from frappe.model.workflow import get_workflow_name
 from frappe.utils import cint, cstr, flt, get_datetime, getdate
 
-from aurescrm.api.bureau import TICKET, _bulk_apply, _parse, _ticket_for_write, require_bureau
+from aurescrm.api.bureau import TICKET, _bulk_apply, _parse, _ticket_for_write, require_bureau, row_tags
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, _check_commercial, _client_for_write, _set_principal
 
 TEXT_TYPES = {"Data", "Small Text", "Text", "Long Text"}
@@ -230,6 +230,29 @@ def bulk_add_tags(doctype, items, tags):
 		return None
 
 	return _bulk_apply(items, apply, config["load"])
+
+
+def _current_tags(doctype, name):
+	return {"tags": row_tags({"_user_tags": frappe.db.get_value(doctype, name, "_user_tags")})}
+
+
+@frappe.whitelist(methods=["POST"])
+def add_doc_tag(doctype, name, modified, tag):
+	"""Ajoute un tag depuis le tiroir ou la fiche. Renvoie les tags du document."""
+	require_bureau()
+	doc = _config(doctype)["load"](cstr(name), modified)
+	for cleaned in _clean_tags([tag]):
+		DocTags(doc.doctype).add(doc.name, cleaned)
+	return _current_tags(doc.doctype, doc.name)
+
+
+@frappe.whitelist(methods=["POST"])
+def remove_doc_tag(doctype, name, modified, tag):
+	"""Retire un tag depuis le tiroir ou la fiche. Renvoie les tags du document."""
+	require_bureau()
+	doc = _config(doctype)["load"](cstr(name), modified)
+	DocTags(doc.doctype).remove(doc.name, cstr(tag))
+	return _current_tags(doc.doctype, doc.name)
 
 
 @frappe.whitelist()

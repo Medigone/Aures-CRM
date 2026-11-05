@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideMail from '~icons/lucide/mail'
+import LucideMap from '~icons/lucide/map'
 import LucidePhone from '~icons/lucide/phone'
 import LucideX from '~icons/lucide/x'
-import { relativeTime, type ActivityItem } from '@shared/activity'
 import ActivityFeed from '@shared/components/ActivityFeed.vue'
-import CommentText from '@shared/components/CommentText.vue'
 import ListState from '@shared/components/ListState.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import ClientDialog from './ClientDialog.vue'
 import ClientTicketsTable from './ClientTicketsTable.vue'
 import NewTicketDialog from './NewTicketDialog.vue'
+import TagEditor from './TagEditor.vue'
 import { attachClientPiece, clientActivity } from '@/lib/api'
 import { formatAmount, type ClientDetail } from '@/lib/clients'
 import { deskUrl, formatDay } from '@/lib/display'
@@ -35,26 +35,6 @@ function refreshAll(message = '') {
 	feed.value?.refresh()
 }
 defineExpose({ refresh: refreshAll, client })
-
-// Aperçu : les deux derniers éléments du fil. Sans eux, le reste de la fiche reste utilisable.
-const lastActivity = ref<ActivityItem[]>([])
-watch(
-	() => [client.value?.name, client.value?.modified, client.value?.comments.count, client.value?.can_view_activity],
-	async ([name, , , allowed]) => {
-		lastActivity.value = []
-		if (!name || !allowed) return
-		try {
-			const feedData = await clientActivity(String(name)).load()
-			if (client.value?.name === name) lastActivity.value = feedData.items.slice(0, 2)
-		} catch {
-			// L'onglet Activité dira ce qui ne va pas.
-		}
-	},
-)
-function activityText(item: ActivityItem) {
-	if (item.changes?.length) return `a changé ${item.changes.map((change) => change.label).join(', ')}`
-	return item.text || ''
-}
 
 const openTickets = computed(() => (client.value?.tickets ?? []).filter((ticket) => ticket.is_open))
 const blocked = computed(() => openTickets.value.filter((ticket) => ticket.status === 'Blocage Créance'))
@@ -113,11 +93,15 @@ function note(value: number | null) {
 	return value === null ? '' : `${String(value).replace('.', ',')} sur 5`
 }
 const SENSIBILITES = [
-	{ key: 'prix', label: 'Sensibilité prix' },
-	{ key: 'delais', label: 'Sensibilité délais' },
-	{ key: 'qualite', label: 'Sensibilité qualité' },
-	{ key: 'process', label: 'Sensibilité process' },
+	{ key: 'prix', label: 'Sensibilité prix', short: 'Prix' },
+	{ key: 'delais', label: 'Sensibilité délais', short: 'Délais' },
+	{ key: 'qualite', label: 'Sensibilité qualité', short: 'Qualité' },
+	{ key: 'process', label: 'Sensibilité process', short: 'Process' },
 ] as const
+function onTags(tags: string[]) {
+	if (client.value) client.value.tags = tags
+	emit('changed')
+}
 function newOnDesk(doctype: string, field: string) {
 	return `${deskUrl(doctype, 'new')}?${field}=${encodeURIComponent(props.id)}`
 }
@@ -170,19 +154,19 @@ function onPieceFile(piece: string, event: Event) {
 		<div v-else-if="!client" class="card p-8 text-center text-ink-gray-6">Chargement du client…</div>
 
 		<template v-else>
-			<div class="card flex flex-none flex-col gap-2 p-3.5">
-				<div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-					<div class="min-w-0">
-						<div class="flex flex-wrap items-center gap-1.5">
-							<h2 class="page-title">{{ client.client }}</h2>
-							<StatusPill :status="client.status" />
-							<span v-if="client.grand_compte" class="record-flag">Grand compte</span>
-						</div>
-						<p class="mt-0.5 text-sm text-ink-gray-7">{{ [client.forme_juridique, client.name, [client.commune_label, client.wilaya].filter(Boolean).join(', ')].filter(Boolean).join(' · ') }}</p>
-					</div>
+			<div class="client-dossier">
+			<aside class="card client-side" aria-label="Identité du client">
+				<div class="side-block gap-2">
+					<h2 class="page-title leading-tight">{{ client.client }}</h2>
 					<div class="flex flex-wrap items-center gap-1.5">
+						<StatusPill :status="client.status" />
+						<span v-if="client.grand_compte" class="record-flag">Grand compte</span>
+					</div>
+					<p class="text-sm text-ink-gray-7">{{ [client.forme_juridique, client.name, [client.commune_label, client.wilaya].filter(Boolean).join(', ')].filter(Boolean).join(' · ') }}</p>
+					<TagEditor doctype="Customer" :name="client.name" :modified="client.modified" :tags="client.tags" :can-edit="client.can_edit" @changed="onTags" />
+					<div class="mt-1 flex items-center gap-1.5">
+						<button type="button" class="btn-primary flex-auto" @click="newTicket = true">Nouveau ticket</button>
 						<button v-if="client.can_edit" type="button" class="btn-secondary" :disabled="busy" @click="editing = true">Modifier</button>
-						<button type="button" class="btn-primary" @click="newTicket = true">Nouveau ticket</button>
 						<MoreMenu>
 							<a class="app-menu-item" role="menuitem" :href="newOnDesk('Visite Commerciale', 'client')" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Nouvelle visite</a>
 							<a class="app-menu-item" role="menuitem" :href="newOnDesk('Rendez Vous Client', 'client')" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Nouveau rendez-vous</a>
@@ -193,16 +177,46 @@ function onPieceFile(piece: string, event: Event) {
 						</MoreMenu>
 					</div>
 				</div>
-				<dl class="ticket-facts">
-					<div class="ticket-fact"><dt>Commercial</dt><dd><span class="truncate" :title="client.commercial || undefined">{{ client.commercial || 'Non attribué' }}</span></dd></div>
-					<div class="ticket-fact"><dt>Wilaya</dt><dd>{{ client.wilaya || '—' }}</dd></div>
-					<div class="ticket-fact"><dt>Créance</dt><dd class="tabular-nums">{{ client.creance?.solde_restant ? `${formatAmount(client.creance.solde_restant)} DA` : 'Aucune' }}</dd></div>
-					<div class="ticket-fact"><dt>Dernière visite</dt><dd class="tabular-nums">{{ formatDay(client.visite) || 'Jamais' }}</dd></div>
-					<div class="ticket-fact"><dt>Catégorie</dt><dd>{{ client.categorie || '—' }}</dd></div>
-					<div class="ticket-fact"><dt>Client depuis</dt><dd class="tabular-nums">{{ formatDay(client.depuis) || '—' }}</dd></div>
-				</dl>
-			</div>
-
+				<div class="side-block">
+					<p class="side-label">Contact principal</p>
+					<template v-if="client.contacts[0]">
+						<p><span class="font-semibold text-ink-gray-9">{{ client.contacts[0].nom || 'Sans nom' }}</span><span v-if="client.contacts[0].fonction" class="text-ink-gray-6"> · {{ client.contacts[0].fonction }}</span></p>
+						<p class="contact-links">
+							<a v-if="client.contacts[0].telephone" class="ref-link tabular-nums" :href="`tel:${client.contacts[0].telephone}`"><LucidePhone class="h-3.5 w-3.5" aria-hidden="true" />{{ client.contacts[0].telephone }}</a>
+							<a v-if="client.contacts[0].email" class="ref-link" :href="`mailto:${client.contacts[0].email}`"><LucideMail class="h-3.5 w-3.5" aria-hidden="true" />{{ client.contacts[0].email }}</a>
+						</p>
+					</template>
+					<p v-else class="text-ink-gray-6">Aucun contact enregistré.</p>
+				</div>
+				<div class="side-block">
+					<dl class="side-kv">
+						<div><dt>Commercial</dt><dd>{{ client.commercial || 'Non attribué' }}</dd></div>
+						<div><dt>Catégorie</dt><dd>{{ client.categorie || '—' }}</dd></div>
+						<div><dt>Client depuis</dt><dd class="tabular-nums">{{ formatDay(client.depuis) || '—' }}</dd></div>
+						<div><dt>Dernière visite</dt><dd class="tabular-nums">{{ formatDay(client.visite) || 'Jamais' }}</dd></div>
+					</dl>
+				</div>
+				<div class="side-block">
+					<p class="side-label">Adresse</p>
+					<div class="flex items-center justify-between gap-2">
+						<p class="min-w-0">{{ client.adresses[0].texte || [client.commune_label, client.wilaya].filter(Boolean).join(', ') || 'Non renseignée' }}</p>
+						<a v-if="client.map_url" class="icon-btn" :href="client.map_url" target="_blank" rel="noopener noreferrer" aria-label="Voir sur la carte" title="Voir sur la carte"><LucideMap class="h-4 w-4" aria-hidden="true" /></a>
+					</div>
+				</div>
+				<div class="side-block">
+					<p class="side-label">Profil</p>
+					<p v-if="flags.length > (client.grand_compte ? 1 : 0)" class="font-medium text-ink-gray-9">{{ flags.filter((flag) => flag !== 'Grand compte').join(' · ') }}</p>
+					<dl class="side-kv">
+						<div><dt>Qualité client</dt><dd :class="client.qualite === null && 'font-normal text-ink-gray-6'">{{ note(client.qualite) || 'Non renseignée' }}</dd></div>
+						<div><dt>Satisfaction</dt><dd :class="client.satisfaction === null && 'font-normal text-ink-gray-6'">{{ note(client.satisfaction) || 'Non renseignée' }}</dd></div>
+					</dl>
+					<p class="side-label mt-1">Sensibilité</p>
+					<dl class="side-sens">
+						<div v-for="item in SENSIBILITES" :key="item.key"><dt>{{ item.short }}</dt><dd :class="!client.sensibilites[item.key] && 'text-ink-gray-6'">{{ client.sensibilites[item.key] || '—' }}</dd></div>
+					</dl>
+				</div>
+			</aside>
+			<div class="client-main">
 			<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
 			<p v-if="notice" role="status" class="flex-none rounded-control tone-blue px-3.5 py-2.5">{{ notice }}</p>
 			<div v-if="createdTicket" role="status" class="flex flex-none items-center gap-2 rounded-control tone-blue px-3.5 py-2.5">
@@ -219,8 +233,7 @@ function onPieceFile(piece: string, event: Event) {
 
 			<div class="bureau-detail">
 				<!-- Aperçu : il résume les autres onglets. -->
-				<template v-if="activeTab === 'apercu'">
-					<div class="bureau-center">
+				<div v-if="activeTab === 'apercu'" class="bureau-center">
 						<div v-if="blocked.length" role="status" class="rounded-control tone-red px-3.5 py-2.5">
 							<strong class="font-semibold">{{ blocked.length > 1 ? `${blocked.length} tickets bloqués` : '1 ticket bloqué' }} pour créance :</strong>
 							<template v-for="(ticket, index) in blocked" :key="ticket.name">{{ index ? ', ' : ' ' }}<RouterLink class="font-medium underline" :to="{ name: 'Ticket', params: { id: ticket.name } }">{{ ticket.name }}</RouterLink></template>.
@@ -230,11 +243,19 @@ function onPieceFile(piece: string, event: Event) {
 							<div class="ref-card-head"><h3>Tickets ouverts</h3><button v-if="openTickets.length > 5" type="button" class="ref-link" @click="emit('tab', 'affaires')">Voir les {{ openTickets.length }} tickets</button></div>
 							<ClientTicketsTable :tickets="openTickets.slice(0, 5)" empty="Aucun ticket ouvert." />
 						</section>
+						<div class="client-cards">
 						<section v-if="client.creance" class="card ref-card">
 							<div class="ref-card-head"><h3>Créance</h3><button type="button" class="ref-link" @click="emit('tab', 'affaires')">Voir les mouvements</button></div>
 							<div class="amount-row"><span class="amount tabular-nums">{{ formatAmount(client.creance.solde_restant) }} DA</span><StatusPill :status="client.creance.statut" /></div>
 							<dl class="kv"><div><dt>Prochaine relance</dt><dd class="tabular-nums">{{ formatDay(client.creance.date_prochaine_relance) || '—' }}</dd></div><div><dt>Dernier résultat</dt><dd>{{ client.creance.dernier_resultat_recouvrement || '—' }}</dd></div></dl>
 						</section>
+						<section class="card ref-card">
+							<div class="ref-card-head"><h3>Derniers échanges</h3><button type="button" class="ref-link" @click="emit('tab', 'relation')">Tout voir</button></div>
+							<p v-if="nextEchange"><span class="font-semibold text-ink-gray-9">À venir, {{ formatDay(nextEchange.date) }} :</span> {{ nextEchange.kind.toLowerCase() }}<template v-if="nextEchange.objet">, {{ nextEchange.objet }}</template>.</p>
+							<p v-if="lastEchange"><span class="font-semibold text-ink-gray-9">{{ lastEchange.kind }} du {{ formatDay(lastEchange.date) }} :</span> {{ lastEchange.note || lastEchange.objet || 'Sans compte rendu.' }}</p>
+							<p v-if="!nextEchange && !lastEchange" class="text-ink-gray-6">Aucun échange enregistré pour ce client.</p>
+						</section>
+						</div>
 						<section class="card ref-card">
 							<div class="ref-card-head"><h3>Derniers devis et commandes</h3><button type="button" class="ref-link" @click="emit('tab', 'affaires')">Tout voir</button></div>
 							<p v-if="!lastVentes.length" class="text-ink-gray-6">Aucun devis ni commande.</p>
@@ -243,51 +264,7 @@ function onPieceFile(piece: string, event: Event) {
 								<tbody><tr v-for="row in lastVentes" :key="row.name"><td>{{ row.piece }}</td><td><a class="ref-link" :href="deskUrl(row.doctype, row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td class="tabular-nums">{{ formatDay(row.date) }}</td><td><StatusPill :status="row.status" /></td><td class="end tabular-nums">{{ formatAmount(row.total) }}</td></tr></tbody>
 							</table></div>
 						</section>
-						<section class="card ref-card">
-							<div class="ref-card-head"><h3>Derniers échanges</h3><button type="button" class="ref-link" @click="emit('tab', 'relation')">Tout voir</button></div>
-							<p v-if="nextEchange"><span class="font-semibold text-ink-gray-9">À venir, {{ formatDay(nextEchange.date) }} :</span> {{ nextEchange.kind.toLowerCase() }}<template v-if="nextEchange.objet">, {{ nextEchange.objet }}</template>.</p>
-							<p v-if="lastEchange"><span class="font-semibold text-ink-gray-9">{{ lastEchange.kind }} du {{ formatDay(lastEchange.date) }} :</span> {{ lastEchange.note || lastEchange.objet || 'Sans compte rendu.' }}</p>
-							<p v-if="!nextEchange && !lastEchange" class="text-ink-gray-6">Aucun échange enregistré pour ce client.</p>
-						</section>
-					</div>
-					<div class="bureau-side">
-						<section class="card ref-card">
-							<h3>Contact principal</h3>
-							<div v-if="client.contacts[0]" class="contact">
-								<p class="font-semibold text-ink-gray-9">{{ client.contacts[0].nom || 'Sans nom' }}</p>
-								<p v-if="client.contacts[0].fonction" class="text-sm text-ink-gray-6">{{ client.contacts[0].fonction }}</p>
-								<p class="contact-links">
-									<a v-if="client.contacts[0].telephone" class="ref-link tabular-nums" :href="`tel:${client.contacts[0].telephone}`"><LucidePhone class="h-3.5 w-3.5" aria-hidden="true" />{{ client.contacts[0].telephone }}</a>
-									<a v-if="client.contacts[0].email" class="ref-link" :href="`mailto:${client.contacts[0].email}`"><LucideMail class="h-3.5 w-3.5" aria-hidden="true" />{{ client.contacts[0].email }}</a>
-								</p>
-							</div>
-							<p v-else class="text-ink-gray-6">Aucun contact enregistré.</p>
-						</section>
-						<section class="card ref-card">
-							<h3>Adresse</h3>
-							<p>{{ client.adresses[0].texte || [client.commune_label, client.wilaya].filter(Boolean).join(', ') || 'Non renseignée' }}</p>
-							<a v-if="client.map_url" class="ref-link self-start" :href="client.map_url" target="_blank" rel="noopener noreferrer">Voir sur la carte</a>
-						</section>
-						<section class="card ref-card">
-							<h3>Profil</h3>
-							<p v-if="flags.length" class="font-semibold text-ink-gray-9">{{ flags.join(' · ') }}</p>
-							<dl class="kv">
-								<div><dt>Qualité client</dt><dd :class="client.qualite === null && 'text-ink-gray-6'">{{ note(client.qualite) || 'Non renseignée' }}</dd></div>
-								<div><dt>Satisfaction</dt><dd :class="client.satisfaction === null && 'text-ink-gray-6'">{{ note(client.satisfaction) || 'Non renseignée' }}</dd></div>
-								<div v-for="item in SENSIBILITES" :key="item.key"><dt>{{ item.label }}</dt><dd :class="!client.sensibilites[item.key] && 'text-ink-gray-6'">{{ client.sensibilites[item.key] || 'Non renseignée' }}</dd></div>
-							</dl>
-						</section>
-						<section v-if="client.can_view_activity" class="card ref-card">
-							<div class="ref-card-head"><h3>Dernière activité</h3><button type="button" class="ref-link" @click="emit('tab', 'activite')">Tout voir</button></div>
-							<p v-if="!lastActivity.length" class="text-ink-gray-6">Rien pour le moment.</p>
-							<div v-for="item in lastActivity" :key="item.id" class="contact">
-								<p class="text-sm"><span class="font-semibold text-ink-gray-9">{{ item.who }}</span> <span class="text-ink-gray-6">· {{ relativeTime(item.at) }}</span></p>
-								<CommentText v-if="item.parts" class="line-clamp-3" :parts="item.parts" />
-								<p v-else class="text-ink-gray-7">{{ activityText(item) }}</p>
-							</div>
-						</section>
-					</div>
-				</template>
+				</div>
 
 				<!-- Affaires. -->
 				<div v-else-if="activeTab === 'affaires'" class="bureau-center">
@@ -411,6 +388,8 @@ function onPieceFile(piece: string, event: Event) {
 				<div v-else class="bureau-center">
 					<ActivityFeed ref="feed" :api="activityApi" :version="client.modified" :user-name="userName" @changed="refresh()" />
 				</div>
+			</div>
+			</div>
 			</div>
 		</template>
 

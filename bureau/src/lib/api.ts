@@ -107,6 +107,12 @@ export const bulkDelete = (doctype: string, rows: BulkItem[]) =>
 export const bulkAddTags = (doctype: string, rows: BulkItem[], tags: string[]) =>
 	call<BulkResult>(`${BULK}.bulk_add_tags`, { doctype, items: bulkItems(rows), tags }, true, BULK_TIMEOUT_MS)
 
+export const addDocTag = (doctype: string, row: BulkItem, tag: string) =>
+	call<{ tags: string[] }>(`${BULK}.add_doc_tag`, { doctype, name: row.name, modified: row.modified, tag }, true)
+
+export const removeDocTag = (doctype: string, row: BulkItem, tag: string) =>
+	call<{ tags: string[] }>(`${BULK}.remove_doc_tag`, { doctype, name: row.name, modified: row.modified, tag }, true)
+
 export const getBulkTags = (search: string) => call<string[]>(`${BULK}.get_bulk_tags`, { search: search.trim() || undefined })
 
 export const searchBulkLink = (doctype: string, fieldname: string, search: string) =>

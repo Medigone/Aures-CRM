@@ -10,18 +10,23 @@ import { exactTime, relativeTime } from '@shared/activity'
 import CommentText from '@shared/components/CommentText.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import ClientTicketsTable from './ClientTicketsTable.vue'
+import TagEditor from './TagEditor.vue'
 import { formatAmount } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import { useClient } from '@/lib/useClient'
 
 const props = defineProps<{ id: string; position: string; noPrev: boolean; noNext: boolean }>()
-const emit = defineEmits<{ prev: []; next: []; close: []; open: [tab?: string] }>()
+const emit = defineEmits<{ prev: []; next: []; close: []; open: [tab?: string]; changed: [] }>()
 
 const { client, error, notFound, load, refresh } = useClient(() => props.id)
 defineExpose({ refresh })
 
 const openTickets = computed(() => (client.value?.tickets ?? []).filter((ticket) => ticket.is_open))
 const contact = computed(() => client.value?.contacts[0])
+function onTags(tags: string[]) {
+	if (client.value) client.value.tags = tags
+	emit('changed')
+}
 </script>
 
 <template>
@@ -54,6 +59,7 @@ const contact = computed(() => client.value?.contacts[0])
 						<span v-if="client.grand_compte" class="record-flag">Grand compte</span>
 					</div>
 					<p class="mt-0.5 text-sm text-ink-gray-7">{{ [client.forme_juridique, client.name, client.commune_label, client.wilaya].filter(Boolean).join(' · ') }}</p>
+					<TagEditor class="mt-1.5" doctype="Customer" :name="client.name" :modified="client.modified" :tags="client.tags" :can-edit="client.can_edit" @changed="onTags" />
 				</div>
 
 				<dl class="bureau-drawer-facts">
@@ -78,7 +84,7 @@ const contact = computed(() => client.value?.contacts[0])
 				<section class="card flex flex-col gap-1">
 					<h3 class="text-base font-semibold">Tickets ouverts</h3>
 					<ClientTicketsTable :tickets="openTickets.slice(0, 5)" compact empty="Aucun ticket ouvert." />
-					<button v-if="openTickets.length > 5" type="button" class="self-start text-sm font-medium text-accent hover:underline" @click="emit('open', 'affaires')">Voir les {{ openTickets.length }} tickets</button>
+					<button v-if="openTickets.length > 5" type="button" class="self-start text-sm text-link" @click="emit('open', 'affaires')">Voir les {{ openTickets.length }} tickets</button>
 				</section>
 
 				<section v-if="client.can_view_activity" class="card flex flex-col items-start gap-1">
@@ -89,11 +95,11 @@ const contact = computed(() => client.value?.contacts[0])
 							<time class="text-ink-gray-6" :datetime="client.comments.last.at" :title="exactTime(client.comments.last.at)">{{ relativeTime(client.comments.last.at) }}</time>
 						</p>
 						<CommentText class="line-clamp-3" :parts="client.comments.last.parts" />
-						<button type="button" class="text-sm font-medium text-accent hover:underline" @click="emit('open', 'activite')">{{ client.comments.count > 1 ? `Voir les ${client.comments.count} commentaires` : 'Voir le fil' }}</button>
+						<button type="button" class="text-sm text-link" @click="emit('open', 'activite')">{{ client.comments.count > 1 ? `Voir les ${client.comments.count} commentaires` : 'Voir le fil' }}</button>
 					</template>
 					<p v-else class="text-ink-gray-6">
 						Aucun commentaire.
-						<button type="button" class="font-medium text-accent hover:underline" @click="emit('open', 'activite')">Écrire le premier</button>
+						<button type="button" class="text-link" @click="emit('open', 'activite')">Écrire le premier</button>
 					</p>
 				</section>
 			</template>

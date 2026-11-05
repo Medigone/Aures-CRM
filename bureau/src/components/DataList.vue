@@ -366,7 +366,7 @@ onBeforeUnmount(() => {
 				{{ conditionLabel(condition) }}
 				<LucideX class="h-3 w-3" aria-hidden="true" />
 			</button>
-			<button type="button" class="px-1 text-sm font-medium text-accent hover:underline" @click="clearFilters">Tout effacer</button>
+			<button type="button" class="px-1 text-sm text-link" @click="clearFilters">Tout effacer</button>
 		</div>
 
 		<p v-if="state.error.value || loadError || exportError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5 text-sm">

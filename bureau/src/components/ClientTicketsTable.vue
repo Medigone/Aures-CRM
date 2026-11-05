@@ -21,7 +21,7 @@ defineProps<{ tickets: ClientTicket[]; empty: string; compact?: boolean }>()
 					<td>{{ ticket.request_type }}</td>
 					<td><StatusPill :status="statusLabel(ticket.status)" /></td>
 					<td><span class="urgence" :class="`urgence-${ticket.niveau_urgence}`">{{ ticket.niveau_urgence }}</span></td>
-					<td v-if="!compact" class="tabular-nums" :class="ticket.is_late && 'font-semibold text-tone-red'">{{ shortDay(ticket.echeance) || '—' }}</td>
+					<td v-if="!compact" class="tabular-nums" :class="ticket.is_late && 'font-semibold !text-tone-red'">{{ shortDay(ticket.echeance) || '—' }}</td>
 				</tr>
 			</tbody>
 		</table>

@@ -16,6 +16,7 @@ import UrgenceCard from './UrgenceCard.vue'
 import { htmlToText } from '@shared/text'
 import { setAssignee, ticketActivity } from '@/lib/api'
 import { deskUrl, formatDay, missingChecklist, stepHelp } from '@/lib/display'
+import TagEditor from './TagEditor.vue'
 import { useTicket } from '@/lib/useTicket'
 
 const props = defineProps<{ id: string; step?: number | null; goToActivity?: boolean }>()
@@ -90,6 +91,10 @@ const menuActions = ['Annuler']
 const needsDesk = computed(() => !isClosed.value && ['doc', 'confirm'].includes(viewed.value?.key || ''))
 const finishHint = computed(() => (ticket.value ? missingChecklist(ticket.value) : ''))
 const window_user = window.user
+function onTags(tags: string[]) {
+	if (ticket.value) ticket.value.tags = tags
+	emit('changed')
+}
 </script>
 
 <template>
@@ -112,8 +117,9 @@ const window_user = window.user
 						</div>
 						<p class="mt-0.5 text-sm text-ink-gray-7">
 							{{ ticket.client }} · {{ ticket.name }} ·
-							<button type="button" class="font-medium text-accent hover:underline" @click="showActivity">{{ commentLabel }}</button>
+							<button type="button" class="text-link" @click="showActivity">{{ commentLabel }}</button>
 						</p>
+						<TagEditor class="mt-1.5" doctype="Ticket Commercial" :name="ticket.name" :modified="ticket.modified" :tags="ticket.tags" :can-edit="ticket.can_write" @changed="onTags" />
 					</div>
 					<div class="flex flex-wrap items-center gap-1.5">
 						<button v-if="canAssign && !ticket.mine" type="button" class="btn-secondary" :disabled="busy" @click="perform(() => setAssignee(ticket!, String(window_user)))">Me l'attribuer</button>
@@ -152,7 +158,7 @@ const window_user = window.user
 					<div v-if="viewed" class="step-hero">
 						<div class="flex flex-wrap items-baseline justify-between gap-2">
 							<span class="text-xs font-semibold text-selection-ink">Étape {{ viewIndex + 1 }} sur {{ ticket.steps.length }}</span>
-							<button v-if="viewIndex !== followIndex" type="button" class="min-h-[var(--ctl)] text-sm font-medium text-accent hover:underline" @click="viewStep = null">Revenir à l'étape en cours</button>
+							<button v-if="viewIndex !== followIndex" type="button" class="min-h-[var(--ctl)] text-sm text-link" @click="viewStep = null">Revenir à l'étape en cours</button>
 						</div>
 						<h3 class="text-xl font-semibold">{{ viewed.label }}</h3>
 						<p class="text-selection-ink">{{ stepHelp(viewed.key, ticket) }}</p>
