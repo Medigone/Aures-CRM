@@ -377,10 +377,8 @@
 	/* Lignes de la liste : la case à cocher est à part, le reste de la ligne ouvre l'aperçu. */
 	.list-head,
 	.list-row {
-		position: relative;
-		height: 44px;
-		border-radius: 9px;
-		@apply hover:bg-surface-gray-2;
+		display: flex;
+		align-items: center;
 	}
 	.list-row + .list-row::before {
 		content: '';
@@ -397,6 +395,8 @@
 		top: 0;
 		z-index: 2;
 		height: 40px;
+		/* L'épaisseur du contour du plateau : en-têtes et cellules restent alignés. */
+		padding-inline: 1px;
 		background-color: var(--surface-cards);
 	}
 	.list-tray {
@@ -419,6 +419,7 @@
 		padding-left: 0.875rem;
 	}
 	.list-col-end {
+		justify-self: end;
 		text-align: right;
 	}
 	.list-check {
@@ -448,6 +449,9 @@
 	}
 	.list-more-btn[aria-expanded='true'] {
 		@apply bg-surface-gray-4;
+	}
+	.list-head button > span:empty {
+		display: none;
 	}
 	.list-head-plain {
 		@apply inline-flex h-10 min-w-0 items-center whitespace-nowrap text-sm font-medium text-ink-gray-8;
@@ -483,9 +487,10 @@
 		background-image: var(--check-mixed);
 	}
 	.list-row {
-		height: 40px;
-		background-color: var(--surface-cards);
-		@apply border-b border-outline-gray-1 hover:bg-surface-gray-1;
+		position: relative;
+		height: 44px;
+		border-radius: 9px;
+		@apply hover:bg-surface-gray-2;
 	}
 	.list-row-checked {
 		background-color: var(--selection-checked);
