@@ -33,6 +33,8 @@ COMMERCIAL_ROLES = {
 }
 
 # Fiche technique d'un article : champs personnalisés de l'Item, hors identité, liens, fichiers et structure.
+# Abandonnés : le format se saisit et se lit dans Cotations Article. Restent sur le Desk tant que le doctype les porte.
+ARTICLE_ABANDONED_FIELDS = {"custom_largeur", "custom_hauteur", "custom_longueur"}
 ARTICLE_SKIPPED_FIELDS = {
 	"custom_client",
 	"custom_type_article",
@@ -45,6 +47,7 @@ ARTICLE_SKIPPED_FIELDS = {
 	"custom_sous_article",
 	"custom_quantite_sous_article",
 	"custom_html_liste_sous_articles",
+	*ARTICLE_ABANDONED_FIELDS,
 }
 ARTICLE_VALUE_TYPES = {"Data", "Select", "Int", "Float", "Check", "Link", "Small Text", "Color", "Percent"}
 # Section sans titre qui prolonge une section titrée (le texte des cotations suit les cotations).

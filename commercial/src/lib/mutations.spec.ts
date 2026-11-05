@@ -73,11 +73,16 @@ describe('applyMutation', () => {
 	it('ajoute un article client en attente, avec ses cotations Offset', () => {
 		const view = applyMutation(
 			bundle(),
-			m('art', 'article_create', { client: 'CL-1', designation: 'Étiquette 400 g', procede: 'Offset', largeur: 80, hauteur: 120, attachments: [{ filename: 'a.jpg', data: 'data:image/jpeg;base64,xx' }] }),
+			m('art', 'article_create', { client: 'CL-1', designation: 'Étiquette 400 g', procede: 'Offset', cotations: '80x120', attachments: [{ filename: 'a.jpg', data: 'data:image/jpeg;base64,xx' }] }),
 			user,
 		)
 		expect(view.articles[0]).toMatchObject({ name: 'local:art', _pending: true, client: 'CL-1', designation: 'ÉTIQUETTE 400 G', dimensions: '80x120', image: 'data:image/jpeg;base64,xx' })
 		expect(view.clients[0].nb_articles).toBe(1)
+	})
+
+	it('reprend une création encore en file avec largeur, hauteur et longueur', () => {
+		const view = applyMutation(bundle(), m('art', 'article_create', { client: 'CL-1', designation: 'Étui', procede: 'Offset', largeur: 80, hauteur: 120, longueur: 30 }), user)
+		expect(view.articles[0]).toMatchObject({ dimensions: '80x120x30', fiche: { custom_cotations_article: '80x120x30' } })
 	})
 
 	it('modifie un article : identité, fiche (valeur vidée retirée) et résumé selon le procédé', () => {

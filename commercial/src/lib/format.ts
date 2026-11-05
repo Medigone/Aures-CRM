@@ -73,3 +73,9 @@ export function normalizeSearch(value?: string | null) {
 		.replace(/[̀-ͯ]/g, '')
 		.toLowerCase()
 }
+
+/** Mêmes règles que `normalize_cotations_article` côté serveur : 1, 2 ou 3 cotes. `null` si vide ou mal écrit. */
+export function normalizeCotations(value: string): string | null {
+	const text = value.trim().replace(/\s*mm\s*$/i, '').replace(/\s+/g, '').replace(/[×X]/g, 'x')
+	return /^\d+(?:[.,]\d+)?(?:x\d+(?:[.,]\d+)?){0,2}$/.test(text) ? text.replace(/,/g, '.') : null
+}

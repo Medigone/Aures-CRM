@@ -404,15 +404,12 @@ export interface FicheCard {
 	fields: FicheField[]
 }
 
-/** Abandonnés : le format se saisit et se lit dans Cotations Article. */
-const ABANDONED_FIELDS = new Set(['custom_largeur', 'custom_hauteur', 'custom_longueur'])
-
 /** Champs visibles pour ce procédé, rangés par carte. Sert à la saisie, et de base à la lecture. */
 export function ficheCards(schema: FicheSchema | undefined, doc: FicheDoc): FicheCard[] {
 	const cards = new Map<string, FicheField[]>()
 	for (const group of schema?.groups ?? []) {
 		for (const field of group.fields) {
-			if (ABANDONED_FIELDS.has(field.fieldname) || !fieldVisible(field, doc)) continue
+			if (!fieldVisible(field, doc)) continue
 			const title = CARD_OF[field.fieldname] ?? GROUP_CARD[group.label] ?? group.label
 			cards.set(title, [...(cards.get(title) ?? []), field])
 		}

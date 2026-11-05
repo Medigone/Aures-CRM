@@ -283,7 +283,8 @@ export function applyMutation(bundle: Bundle, mutation: Mutation, user: { name: 
 		case 'article_create': {
 			const client = keyFrom(p, 'client')
 			const offset = p.procede === 'Offset'
-			const cotations = offset ? [p.largeur, p.hauteur, p.longueur].filter((v) => Number(v) > 0).join('x') : ''
+			// Les largeur, hauteur et longueur viennent d'une saisie encore en file, faite avant le champ unique.
+			const cotations = offset ? p.cotations || [p.largeur, p.hauteur, p.longueur].filter((v) => Number(v) > 0).join('x') : ''
 			const photo = (p.attachments || []).find((a: { data: string }) => a.data.startsWith('data:image'))
 			const article: Article = {
 				name: localKey(mutation.id),
@@ -304,18 +305,7 @@ export function applyMutation(bundle: Bundle, mutation: Mutation, user: { name: 
 				trace_decoupe: null,
 				consommation_annuelle: Number(p.consommation_annuelle) || null,
 				bat: null,
-				fiche: offset
-					? Object.fromEntries(
-							[
-								['custom_largeur', Number(p.largeur) || null],
-								['custom_hauteur', Number(p.hauteur) || null],
-								['custom_longueur', Number(p.longueur) || null],
-								['custom_cotations_article', cotations || null],
-							].filter(([, v]) => v),
-						)
-					: p.dimensions
-						? { custom_dimensions_h_x_l: p.dimensions }
-						: {},
+				fiche: offset ? (cotations ? { custom_cotations_article: cotations } : {}) : p.dimensions ? { custom_dimensions_h_x_l: p.dimensions } : {},
 				modified: now,
 			}
 			return {

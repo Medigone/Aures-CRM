@@ -62,11 +62,9 @@ describe('articles', () => {
 		expect(finishesSummary([])).toBe('')
 	})
 
-	it('ne propose ni n affiche plus Largeur, Hauteur et Longueur, même renseignées', () => {
-		const format = { groups: [{ label: 'Cotations', fields: ['custom_largeur', 'custom_hauteur', 'custom_longueur', 'custom_cotations_article'].map((fieldname) => ({ fieldname, label: fieldname, fieldtype: 'Data', conditions: [] })) }], fields: [] }
-		const doc = { custom_largeur: 100, custom_hauteur: 200, custom_longueur: 34, custom_cotations_article: '100x200x34' }
-		for (const cards of [ficheCards(format, doc), creationCards(format, doc)]) expect(cards.flatMap((card) => card.fields.map((field) => field.fieldname))).toEqual(['custom_cotations_article'])
-		expect(ficheCardValues(format, doc)).toEqual([{ title: 'Format', rows: [{ label: 'custom_cotations_article', value: '100x200x34' }], checks: [] }])
+	it('à la création, passe les champs communs après ceux du procédé', () => {
+		const format = { groups: [{ label: 'Général', fields: [{ fieldname: 'custom_tolérance_', label: 'Tolérance', fieldtype: 'Data', conditions: [] }] }, { label: 'Offset', fields: [{ fieldname: 'custom_support', label: 'Papier', fieldtype: 'Data', conditions: [] }] }], fields: [] }
+		expect(creationCards(format, {}).flatMap((card) => card.fields.map((field) => field.fieldname))).toEqual(['custom_support', 'custom_tolérance_'])
 	})
 
 	it('exige client, procédé, désignation et groupe selon le type', () => {

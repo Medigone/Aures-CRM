@@ -6,7 +6,7 @@ import ClientPicker from '@/components/ClientPicker.vue'
 import NotesField from '@/components/NotesField.vue'
 import AttachmentsPicker from '@/components/AttachmentsPicker.vue'
 import { useCommercialStore } from '@/stores/commercial'
-import { normalizeSearch } from '@/lib/format'
+import { normalizeCotations, normalizeSearch } from '@/lib/format'
 import { localKey, refTo } from '@/lib/mutations'
 import type { Attachment } from '@/types'
 
@@ -23,9 +23,7 @@ const form = reactive({
 	designation: '',
 	procede: '',
 	code_client: '',
-	largeur: null as number | null,
-	hauteur: null as number | null,
-	longueur: null as number | null,
+	cotations: '',
 	dimensions: '',
 	consommation_annuelle: null as number | null,
 	notes: '',
@@ -60,6 +58,7 @@ function save() {
 	else if (!form.designation.trim()) error.value = 'La désignation est obligatoire.'
 	else if (!form.procede) error.value = 'Choisissez le procédé.'
 	else if (duplicate.value) error.value = `Ce client a déjà l'article « ${duplicate.value.designation} ».`
+	else if (offset.value && form.cotations.trim() && !normalizeCotations(form.cotations)) error.value = 'Cotations : 1, 2 ou 3 cotes, par exemple 80x35x118.'
 	else error.value = null
 	if (error.value) return
 	const id = store.enqueue('article_create', {
@@ -67,7 +66,7 @@ function save() {
 		designation: form.designation.trim(),
 		procede: form.procede,
 		code_client: form.code_client.trim() || null,
-		...(offset.value ? { largeur: form.largeur, hauteur: form.hauteur, longueur: form.longueur } : { dimensions: form.dimensions.trim() || null }),
+		...(offset.value ? { cotations: normalizeCotations(form.cotations) } : { dimensions: form.dimensions.trim() || null }),
 		consommation_annuelle: form.consommation_annuelle,
 		notes: form.notes.trim() || null,
 		attachments: attachments.value,
@@ -100,20 +99,11 @@ function save() {
 
 			<section v-if="form.procede">
 				<h2 class="mb-2 text-[15px] font-semibold">{{ offset ? 'Cotations (mm)' : 'Dimensions' }}</h2>
-				<div v-if="offset" class="grid grid-cols-3 gap-2.5">
-					<label class="block">
-						<span class="field-label">Largeur</span>
-						<input v-model.number="form.largeur" type="number" inputmode="numeric" min="0" class="field-input" />
-					</label>
-					<label class="block">
-						<span class="field-label">Hauteur</span>
-						<input v-model.number="form.hauteur" type="number" inputmode="numeric" min="0" class="field-input" />
-					</label>
-					<label class="block">
-						<span class="field-label">Longueur</span>
-						<input v-model.number="form.longueur" type="number" inputmode="numeric" min="0" class="field-input" />
-					</label>
-				</div>
+				<label v-if="offset" class="block">
+					<span class="field-label">Cotations Article</span>
+					<input v-model="form.cotations" type="text" class="field-input" placeholder="Ex. 80x35x118" autocomplete="off" />
+					<span class="mt-1 block text-xs text-ink-gray-6">1, 2 ou 3 cotes séparées par x.</span>
+				</label>
 				<label v-else class="block">
 					<span class="field-label">Dimensions H x L</span>
 					<input v-model="form.dimensions" type="text" class="field-input" placeholder="Ex. 120 x 80" />

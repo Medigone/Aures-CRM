@@ -461,8 +461,10 @@ def article_create(user, payload):
 			"is_stock_item": 1,
 		}
 	)
-	# Offset : cotations largeur × hauteur × longueur (le texte « Cotations Article » en est déduit) ; sinon H x L libre.
+	# Offset : Cotations Article, contrôlée à l'enregistrement de l'Item ; sinon H x L libre.
 	if procede == "Offset":
+		doc.custom_cotations_article = cstr(payload.get("cotations")).strip() or None
+		# Saisie partie d'un appareil pas encore à jour : le texte des cotations en est déduit.
 		for field in ("largeur", "hauteur", "longueur"):
 			doc.set(f"custom_{field}", cint(payload.get(field)) or None)
 	else:
@@ -498,7 +500,7 @@ def _article_value(field, value):
 
 
 def article_update(user, payload):
-	from aurescrm.api.commercial_mobile import article_schema
+	from aurescrm.api.commercial_mobile import ARTICLE_ABANDONED_FIELDS, article_schema
 
 	doc = frappe.get_doc("Item", resolve(user, payload, "article", "Item"))
 	if doc.custom_type_article != "Client" or not doc.custom_client:
@@ -525,6 +527,10 @@ def article_update(user, payload):
 	# Seuls les champs modifiés partent de l'appareil : une modification faite entre-temps dans le Desk sur un autre champ est gardée.
 	fields = {f["fieldname"]: f for g in article_schema()["groups"] for f in g["fields"]}
 	for fieldname, value in (payload.get("fiche") or {}).items():
+		# Modification partie d'un appareil pas encore à jour : elle n'est pas refusée après coup.
+		if fieldname in ARTICLE_ABANDONED_FIELDS:
+			doc.set(fieldname, cint(value) or None)
+			continue
 		if fieldname not in fields:
 			raise Refused(_("Le champ {0} ne se modifie pas depuis l'application.").format(fieldname))
 		doc.set(fieldname, _article_value(fields[fieldname], value))

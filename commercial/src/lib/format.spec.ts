@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { parseServerDate, relativeDays } from './format'
+import { parseServerDate, relativeDays, normalizeCotations } from './format'
 
 describe('parseServerDate', () => {
 	it('lit une date sans heure en heure locale', () => {
@@ -50,5 +50,17 @@ describe('relativeDays', () => {
 		at('2026-11-04T15:00:00')
 		expect(relativeDays('2026-11-05')).toBe("Aujourd'hui")
 		expect(relativeDays(null)).toBe('Jamais')
+	})
+})
+
+describe('normalizeCotations', () => {
+	it('suit les règles du serveur', () => {
+		expect(normalizeCotations('75')).toBe('75')
+		expect(normalizeCotations('75 mm')).toBe('75')
+		expect(normalizeCotations('56,3×280')).toBe('56.3x280')
+		expect(normalizeCotations(' 80 X 35 x 118 MM')).toBe('80x35x118')
+	})
+	it('refuse ce qui est vide ou mal écrit', () => {
+		for (const value of ['', 'sans', '56x', '1x2x3x4', '80 sur 35']) expect(normalizeCotations(value)).toBeNull()
 	})
 })
