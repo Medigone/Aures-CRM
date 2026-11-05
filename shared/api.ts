@@ -105,6 +105,32 @@ export async function call<T = any>(
 	return body.message as T
 }
 
+/** Envoie un formulaire avec son fichier, pour une méthode qui lit ce fichier sans passer par `upload_file`. */
+export async function callForm<T = any>(method: string, form: FormData, timeoutMs = 2 * 60 * 1000): Promise<T> {
+	let response: Response
+	const controller = typeof AbortController === 'undefined' ? null : new AbortController()
+	const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null
+	try {
+		response = await fetch(`/api/method/${method}`, {
+			method: 'POST',
+			headers: { Accept: 'application/json', 'X-Frappe-CSRF-Token': window.csrf_token || '' },
+			body: form,
+			credentials: 'same-origin',
+			signal: controller?.signal,
+		})
+	} catch {
+		throw new ApiError('Pas de connexion réseau.', 0, true)
+	} finally {
+		if (timer) clearTimeout(timer)
+	}
+	const body = await response.json().catch(() => ({}))
+	if (!response.ok) {
+		checkSession(response.status, body)
+		throw new ApiError(response.status === 413 ? 'Le serveur refuse ce fichier : il est trop lourd.' : serverMessage(body) || `Erreur serveur (${response.status}).`, response.status)
+	}
+	return body.message as T
+}
+
 export interface UploadedFile {
 	name: string
 	file_name: string

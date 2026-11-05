@@ -12,6 +12,7 @@ import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import ArticleDialog from './ArticleDialog.vue'
 import ArticleColors from './ArticleColors.vue'
+import BatImportDialog from './BatImportDialog.vue'
 import ArticleDocuments from './ArticleDocuments.vue'
 import ArticleImage from './ArticleImage.vue'
 import ArticlePrepresse from './ArticlePrepresse.vue'
@@ -188,6 +189,15 @@ function onSaved(updated: ArticleDetail) {
 	notice.value = 'Article enregistré.'
 	emit('changed')
 }
+// Un article composé n'a pas de fiche technique : son BAT se joint sans analyse.
+const canImportBat = computed(() => Boolean(article.value?.can_edit && !general.value && !article.value?.compose))
+const importingBat = ref(false)
+function onBatSaved(updated: ArticleDetail, message: string) {
+	article.value = updated
+	notice.value = message
+	feed.value?.refresh()
+	emit('changed')
+}
 const newSous = ref(false)
 function onSousCreated(updated: ArticleDetail, name: string) {
 	article.value = updated
@@ -273,11 +283,12 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 								<dt>{{ piece.label }}</dt>
 								<dd>
 									<a v-if="piece.url" class="ref-link" :href="piece.url" target="_blank" rel="noopener noreferrer">Ouvrir</a>
-									<button v-else-if="article.can_edit" type="button" class="ref-link" :disabled="busy" :aria-label="`Joindre : ${piece.label}`" @click="joinPiece(piece.key)">Joindre</button>
-									<span v-else class="font-normal text-ink-gray-6">Aucun</span>
+									<button v-if="!piece.url && article.can_edit && !(piece.key === 'fiche_technique' && canImportBat)" type="button" class="ref-link" :disabled="busy" :aria-label="`Joindre : ${piece.label}`" @click="joinPiece(piece.key)">Joindre</button>
+									<span v-else-if="!piece.url" class="font-normal text-ink-gray-6">Aucun</span>
 								</dd>
 							</div>
 						</dl>
+						<button v-if="canImportBat" type="button" class="btn-secondary mt-1" :disabled="busy" @click="importingBat = true">{{ article.fichiers.fiche_technique ? 'Importer un autre BAT' : 'Joindre le BAT' }}</button>
 						<button v-if="article.can_edit" type="button" class="btn-secondary mt-1" @click="uploader?.pick()">Joindre des fichiers</button>
 					</div>
 				</aside>
@@ -444,6 +455,7 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 		</template>
 
 		<ArticleDialog v-if="editing && article" :article="article" @close="editing = false" @saved="onSaved" />
+		<BatImportDialog v-if="importingBat && article" :article="article" :options="options" @close="importingBat = false" @saved="onBatSaved" />
 		<SousArticleDialog v-if="newSous && article" :article="article" @close="newSous = false" @created="onSousCreated" />
 		<NewTicketDialog v-if="newTicket && ticketClient" :initial-client="ticketClient" @close="newTicket = false" @created="onTicketCreated" />
 		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />

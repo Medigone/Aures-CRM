@@ -24,17 +24,27 @@ class TestPantoneRegles(unittest.TestCase):
 		self.assertEqual(normalize_code(None), "")
 
 	def test_cmjn_code(self):
-		self.assertEqual(cmjn_code(100, 50, 0, 20), "C100 M50 J0 N20")
+		self.assertEqual(cmjn_code(100, 50, 0, 20), "C100 M50 N20")
+		self.assertEqual(cmjn_code(0, 0, 0, 100), "N100")
+		self.assertEqual(cmjn_code(100, 100, 100, 100), "C100 M100 J100 N100")
+		self.assertEqual(cmjn_code(0, 0, 0, 0), "C0 M0 J0 N0")
 
 	def test_derive_impression_et_passages(self):
+		pantone = {"type_couleur": "Pantone"}
+		noir = {"type_couleur": "CMJN", "n": 100}
+		teinte = {"type_couleur": "CMJN", "c": 100, "m": 50, "n": 20}
 		cases = [
-			(["CMJN"], "Quadri", "CMJN", 4),
-			(["CMJN", "CMJN"], "Quadri", "CMJN", 4),
-			(["Pantone", "Pantone"], "Pantone", "2", 2),
-			(["CMJN", "CMJN", "Pantone", "Pantone"], "Quadri +Pantone", "CMJN + 2", 6),
+			([teinte], "Quadri", "CMJN", 4),
+			([teinte, teinte], "Quadri", "CMJN", 4),
+			([teinte, noir], "Quadri", "CMJN", 4),
+			([pantone, pantone], "Pantone", "2", 2),
+			([teinte, teinte, pantone, pantone], "Quadri +Pantone", "CMJN + 2", 6),
+			([pantone, pantone, pantone, noir], "Pantone", "4", 4),
+			([noir], None, "1", 1),
+			([noir, noir], None, "1", 1),
 		]
-		for types, impression, couleurs, total in cases:
-			derived = derive_impression(types)
+		for rows, impression, couleurs, total in cases:
+			derived = derive_impression(rows)
 			self.assertEqual((derived["impression"], derived["couleurs"], derived["total"]), (impression, couleurs, total))
 			# Le calcul des passages lit cette forme sans changement.
 			self.assertEqual(_parse_couleurs_item(derived["couleurs"]), total)

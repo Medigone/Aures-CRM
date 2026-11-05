@@ -763,6 +763,48 @@
 		font-weight: 500;
 		line-height: 1.125rem;
 	}
+	/* Import d'un BAT : une ligne par champ, cochée ou non, avec la valeur en place. */
+	.bat-rows {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.bat-row {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		column-gap: 0.625rem;
+	}
+	.bat-current {
+		margin-top: 0.25rem;
+		color: var(--ink-gray-6);
+		font-size: 0.75rem;
+		line-height: 1rem;
+		overflow-wrap: anywhere;
+	}
+	.bat-gap {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.bat-info {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.5rem 1rem;
+	}
+	.bat-info dt {
+		color: var(--ink-gray-6);
+		font-size: 0.75rem;
+	}
+	.bat-info dd {
+		color: var(--ink-gray-9);
+		font-size: 0.8125rem;
+		overflow-wrap: anywhere;
+	}
+	@media (max-width: 640px) {
+		.bat-info {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
 	/* Couleurs d'un article : le code, et un carré dont la teinte est une donnée, pas une couleur de l'interface. */
 	.color-lines {
 		display: grid;

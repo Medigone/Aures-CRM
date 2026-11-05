@@ -1,7 +1,8 @@
 /** File, tickets et actions. Les règles restent côté serveur (aurescrm/api/bureau.py). */
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
-import { call } from '@shared/api'
+import { call, callForm } from '@shared/api'
 import type { BulkItem, BulkOptions, BulkResult, CandidateDemande, ClientChoice, Option, QueueResponse, QueueTicket, QueueView, References, TicketDetail, TicketFormOptions } from '@/types'
+import type { BatAnalysis } from './batImport'
 import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView, PantoneMatch } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { Condition } from './filters'
@@ -195,6 +196,13 @@ export const getArticle = (name: string) => call<ArticleDetail>(`${ARTICLES}.get
 export const getArticleOptions = () => call<ArticleOptions>(`${ARTICLES}.get_article_options`)
 
 export const checkArticleDesignation = (designation: string, client?: string) => call<{ message: string | null }>(`${ARTICLES}.check_article_designation`, { designation, client })
+
+export function analyzeBat(name: string, file: File) {
+	const form = new FormData()
+	form.append('name', name)
+	form.append('file', file, file.name)
+	return callForm<BatAnalysis>(`${ARTICLES}.analyze_bat`, form)
+}
 
 export const searchPantone = (query: string) => call<{ exact: PantoneMatch | null; suggestions: PantoneMatch[] }>(`${ARTICLES}.search_pantone`, { query })
 
