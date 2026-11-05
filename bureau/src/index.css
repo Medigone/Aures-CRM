@@ -5,16 +5,6 @@
 	body {
 		@apply text-base;
 	}
-	/* Cases à cocher natives : leur coche suit le thème, y compris sur la couleur d'action claire du thème sombre. */
-	input[type='checkbox'] {
-		appearance: auto;
-		background: none;
-		border: revert;
-		accent-color: var(--primary);
-	}
-	input[type='checkbox']:checked {
-		background: none;
-	}
 	/* Liste déroulante : garder la place de sa flèche malgré le padding resserré. */
 	select.field-input {
 		padding-right: 1.75rem;
@@ -652,27 +642,7 @@
 		@apply text-xs text-ink-gray-6;
 	}
 	.list-check input {
-		width: 16px;
-		height: 16px;
 		margin: 0;
-		appearance: none;
-		border: 1.5px solid var(--control-border);
-		border-radius: 5px;
-		background: var(--surface-cards) center / 12px no-repeat;
-		cursor: pointer;
-	}
-	.list-check input:hover {
-		border-color: var(--accent);
-	}
-	.list-check input:checked {
-		border-color: var(--accent);
-		background-color: var(--accent);
-		background-image: var(--check-mark);
-	}
-	.list-check input:indeterminate {
-		border-color: var(--accent);
-		background-color: var(--accent);
-		background-image: var(--check-mixed);
 	}
 	.list-row {
 		position: relative;
