@@ -81,8 +81,8 @@ const lastVentes = computed(() => (client.value ? ventes(client.value).sort((a, 
 const today = new Date().toISOString().slice(0, 10)
 // Le prochain échange : le plus proche à venir qui n'est pas clos. La liste va du plus récent au plus ancien.
 const CLOSED_ECHANGES = ['Terminé', 'Terminée', 'Annulé', 'Annulée', 'Non Honoré', 'Non Honorée']
-const nextEchange = computed(() => (client.value?.relation ?? []).filter((item) => item.date.slice(0, 10) >= today && !CLOSED_ECHANGES.includes(item.status ?? '')).pop())
-const lastEchange = computed(() => (client.value?.relation ?? []).find((item) => item.date.slice(0, 10) <= today && CLOSED_ECHANGES.includes(item.status ?? '')))
+const nextEchange = computed(() => (client.value?.relation ?? []).filter((item) => item.date && item.date.slice(0, 10) >= today && !CLOSED_ECHANGES.includes(item.status ?? '')).pop())
+const lastEchange = computed(() => (client.value?.relation ?? []).find((item) => item.date && item.date.slice(0, 10) <= today && CLOSED_ECHANGES.includes(item.status ?? '')))
 
 const relationFilter = ref('all')
 const RELATION_FILTERS = [
@@ -325,7 +325,7 @@ function onPieceUploaded(file: UploadedFile) {
 						<p v-else-if="!shownRelation.length" class="text-ink-gray-6">Aucun échange pour ce filtre.</p>
 						<div v-else class="ref-scroll"><table class="ref-table">
 							<thead><tr><th>Date</th><th>Type</th><th>Objet et compte rendu</th><th>Commercial</th><th>Statut</th></tr></thead>
-							<tbody><tr v-for="row in shownRelation" :key="`${row.doctype}-${row.name}`"><td class="tabular-nums"><a class="ref-link" :href="deskUrl(row.doctype, row.name)" target="_blank" rel="noopener noreferrer">{{ formatDay(row.date) }}</a></td><td>{{ row.kind }}</td><td><span v-if="row.objet" class="block font-semibold text-ink-gray-9">{{ row.objet }}</span><span class="text-ink-gray-7">{{ row.note }}</span></td><td>{{ row.who || '—' }}</td><td><StatusPill :status="row.status" /></td></tr></tbody>
+							<tbody><tr v-for="row in shownRelation" :key="`${row.doctype}-${row.name}`"><td class="tabular-nums"><a class="ref-link" :href="deskUrl(row.doctype, row.name)" target="_blank" rel="noopener noreferrer">{{ formatDay(row.date) || 'Sans date' }}</a></td><td>{{ row.kind }}</td><td><span v-if="row.objet" class="block font-semibold text-ink-gray-9">{{ row.objet }}</span><span class="text-ink-gray-7">{{ row.note }}</span></td><td>{{ row.who || '—' }}</td><td><StatusPill :status="row.status" /></td></tr></tbody>
 						</table></div>
 					</section>
 				</div>

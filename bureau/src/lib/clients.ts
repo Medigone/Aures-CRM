@@ -101,7 +101,7 @@ export interface ClientDetail {
 	devis: ClientVente[]
 	commandes: ClientVente[]
 	articles: { name: string; designation: string; reference: string | null; procede: string | null; bat: string | null; derniere_commande: string | null }[]
-	relation: { name: string; doctype: string; kind: string; date: string; objet: string | null; who: string | null; status: string | null; note: string }[]
+	relation: { name: string; doctype: string; kind: string; date: string | null; objet: string | null; who: string | null; status: string | null; note: string }[]
 	comments: CommentSummary
 	can_edit: boolean
 	can_view_activity: boolean
