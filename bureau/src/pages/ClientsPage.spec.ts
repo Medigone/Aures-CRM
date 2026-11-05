@@ -195,6 +195,18 @@ describe('page Clients', () => {
 		wrapper.unmount()
 	})
 
+	it('un échange sans date ne vide pas la fiche', async () => {
+		const relation = [{ ...detail.relation[0], name: 'V-2', date: null }, detail.relation[1]]
+		current['bureau_clients.get_client'] = { ...detail, relation }
+		const { wrapper } = await open('/clients/CLI-1')
+		expect(wrapper.text()).toContain('LAITERIE ATLAS')
+		expect(wrapper.text()).toContain('Derniers échanges')
+		wrapper.unmount()
+		const onglet = await open('/clients/CLI-1?onglet=relation')
+		expect(onglet.wrapper.find('.ref-table tbody tr a').text()).toBe('Sans date')
+		onglet.wrapper.unmount()
+	})
+
 	it('une pièce part avec son avancement, puis se range dans son champ', async () => {
 		const requests: { upload: { onprogress?: (event: { lengthComputable: boolean; loaded: number }) => void }; responseText: string; status: number; onload?: () => void }[] = []
 		vi.stubGlobal(
