@@ -55,7 +55,7 @@ describe('page de connexion', () => {
 	it("s'affiche pour un visiteur sans session, sans le refus d'accès", async () => {
 		const wrapper = await openLogin()
 		expect(wrapper.find('h1').text()).toBe('Bonjour,')
-		expect(wrapper.text()).not.toContain('Accès réservé au back office')
+		expect(wrapper.text()).not.toContain('Accès non autorisé')
 	})
 
 	it("demande les deux champs sans appeler le serveur", async () => {
@@ -163,7 +163,7 @@ describe("compte connecté sans accès", () => {
 
 	it('nomme le compte et propose de changer de compte', async () => {
 		const wrapper = await openLogin('/')
-		expect(wrapper.find('h1').text()).toBe('Accès réservé au back office')
+		expect(wrapper.find('h1').text()).toBe('Accès non autorisé')
 		expect(wrapper.text()).toContain('commercial@example.com')
 		expect(wrapper.find('a[href="/app"]').text()).toBe('Retour au Desk')
 	})

@@ -80,7 +80,7 @@ function goTo(next: 'login' | 'forgot') {
 				<BrandMark size="lg" />
 				<div class="flex flex-col gap-1.5">
 					<h1 class="text-[24px] font-bold leading-tight tracking-tight text-ink-gray-9">Bonjour,</h1>
-					<p class="text-ink-gray-7">Connectez-vous pour retrouver vos tickets et vos clients.</p>
+					<p class="text-ink-gray-7">Connectez-vous pour retrouver votre espace de travail.</p>
 				</div>
 			</header>
 

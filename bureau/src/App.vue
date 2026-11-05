@@ -17,7 +17,7 @@ if (account) onSessionExpired(redirectToLogin)
 		<header class="flex flex-col items-start gap-5 px-1">
 			<BrandMark size="lg" />
 			<div class="flex flex-col gap-1.5">
-				<h1 class="text-[24px] font-bold leading-tight tracking-tight text-ink-gray-9">Accès réservé au back office</h1>
+				<h1 class="text-[24px] font-bold leading-tight tracking-tight text-ink-gray-9">Accès non autorisé</h1>
 				<p class="text-ink-gray-7">Le compte {{ account }} n'a pas accès au poste de bureau. Contactez votre administrateur si vous pensez que c'est une erreur.</p>
 			</div>
 		</header>

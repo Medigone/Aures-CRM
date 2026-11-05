@@ -196,7 +196,7 @@ describe('poste de bureau', () => {
 	it("refuse l'accès sans le bon rôle, sans appeler l'API", async () => {
 		window.can_access = false
 		const { wrapper } = await open('/')
-		expect(wrapper.text()).toContain('Accès réservé au back office')
+		expect(wrapper.text()).toContain('Accès non autorisé')
 		expect(fetchMock).not.toHaveBeenCalled()
 	})
 
