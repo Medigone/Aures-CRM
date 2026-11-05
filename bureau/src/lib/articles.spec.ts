@@ -134,3 +134,12 @@ describe('prepresseState', () => {
 		expect(activationConsequence(article, 'M-2')).toBe('M-1 passe en obsolète. B devient obsolète.')
 	})
 })
+
+describe('lecture de la fiche technique', () => {
+	it('range la tolérance et les passages après les champs du procédé, comme à la saisie', () => {
+		const field = (fieldname: string, label: string) => ({ fieldname, label, fieldtype: 'Data', conditions: [], options: [] })
+		const schema = { groups: [{ label: 'Offset', fields: [field('custom_tolérance_', 'Tolérance Grammage'), field('custom_support', 'Papier'), field('custom_grammage', 'Grammage')] }], fields: [] }
+		const [card] = ficheCardValues(schema, { 'custom_tolérance_': '± 5 %', custom_support: 'BBTB', custom_grammage: '275' })
+		expect(card.rows.map((row) => row.label)).toEqual(['Papier', 'Grammage', 'Tolérance Grammage'])
+	})
+})

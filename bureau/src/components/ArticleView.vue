@@ -350,13 +350,13 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 
 						<!-- Fiche technique : les champs du procédé de l'article, seuls ceux qui sont renseignés. -->
 						<div v-else-if="activeTab === 'technique'" class="bureau-center">
-							<div v-if="cards.length" class="article-cards">
-								<section v-for="card in cards" :key="card.title" class="card ref-card">
+							<div v-if="cards.length" class="card fiche-releve">
+								<section v-for="card in cards" :key="card.title" class="fiche-rubrique">
 									<h3>{{ card.title }}</h3>
-									<dl v-if="card.rows.length" class="kv">
+									<dl v-if="card.rows.length" class="fiche-champs">
 										<div v-for="row in card.rows" :key="row.label"><dt>{{ row.label }}</dt><dd>{{ row.value }}</dd></div>
 									</dl>
-									<p v-if="card.checks.length" class="font-medium text-ink-gray-9">{{ card.checks.join(' · ') }}</p>
+									<p v-if="card.checks.length" class="fiche-coches">{{ card.checks.join(' · ') }}</p>
 								</section>
 							</div>
 							<section v-else class="card ref-card">

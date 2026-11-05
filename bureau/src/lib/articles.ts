@@ -429,7 +429,7 @@ export interface FicheCardValues {
 
 /** Lecture : seuls les champs renseignés. Une carte sans valeur disparaît. */
 export function ficheCardValues(schema: FicheSchema | undefined, doc: FicheDoc): FicheCardValues[] {
-	return ficheCards(schema, doc)
+	return creationCards(schema, doc)
 		.map(({ title, fields }) => ({
 			title,
 			rows: fields.filter((field) => field.fieldtype !== 'Check' && !isEmptyValue(doc[field.fieldname])).map((field) => ({ label: field.label, value: String(doc[field.fieldname]) })),
@@ -460,7 +460,7 @@ export function finishesSummary(cards: FicheCardValues[]) {
 
 const CREATION_LAST_FIELDS = new Set(['custom_tolérance_', 'custom_nombre_passages'])
 
-/** Fiche technique de la phase 2 : les cartes du procédé. */
+/** Fiche technique de la phase 2 et de la lecture : les cartes du procédé, dans le même ordre. */
 export function creationCards(schema: FicheSchema | undefined, doc: FicheDoc): FicheCard[] {
 	return ficheCards(schema, doc)
 		// Ces champs communs à tous les procédés passent après ceux du procédé, comme dans la maquette.

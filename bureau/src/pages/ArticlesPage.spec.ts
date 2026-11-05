@@ -246,6 +246,11 @@ describe('page Articles', () => {
 		expect(main).toContain('Papier')
 		expect(main).toContain('UV')
 		expect(main).not.toContain('Champ Flexo')
+		// Une seule carte : le titre, puis ses champs ou ses cases cochées.
+		expect(wrapper.findAll('.client-main .fiche-releve')).toHaveLength(1)
+		expect(wrapper.find('.fiche-rubrique > h3').exists()).toBe(true)
+		expect(wrapper.find('.fiche-champs dt').text()).toBeTruthy()
+		expect(wrapper.find('.fiche-coches').text()).toContain('UV')
 		wrapper.unmount()
 	})
 
