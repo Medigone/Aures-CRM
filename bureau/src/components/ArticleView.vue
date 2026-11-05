@@ -283,12 +283,12 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 								<dt>{{ piece.label }}</dt>
 								<dd>
 									<a v-if="piece.url" class="ref-link" :href="piece.url" target="_blank" rel="noopener noreferrer">Ouvrir</a>
-									<button v-if="piece.key === 'fiche_technique' && canImportBat" type="button" class="ref-link" :class="piece.url && 'ml-2'" :disabled="busy" :aria-label="piece.url ? 'Importer un autre BAT' : 'Joindre le BAT'" @click="importingBat = true">{{ piece.url ? 'Importer' : 'Joindre' }}</button>
-									<button v-else-if="!piece.url && article.can_edit" type="button" class="ref-link" :disabled="busy" :aria-label="`Joindre : ${piece.label}`" @click="joinPiece(piece.key)">Joindre</button>
+									<button v-if="!piece.url && article.can_edit && !(piece.key === 'fiche_technique' && canImportBat)" type="button" class="ref-link" :disabled="busy" :aria-label="`Joindre : ${piece.label}`" @click="joinPiece(piece.key)">Joindre</button>
 									<span v-else-if="!piece.url" class="font-normal text-ink-gray-6">Aucun</span>
 								</dd>
 							</div>
 						</dl>
+						<button v-if="canImportBat" type="button" class="btn-secondary mt-1" :disabled="busy" @click="importingBat = true">{{ article.fichiers.fiche_technique ? 'Importer un autre BAT' : 'Joindre le BAT' }}</button>
 						<button v-if="article.can_edit" type="button" class="btn-secondary mt-1" @click="uploader?.pick()">Joindre des fichiers</button>
 					</div>
 				</aside>
