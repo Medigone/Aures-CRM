@@ -1,6 +1,6 @@
 /** File, tickets et actions. Les règles restent côté serveur (aurescrm/api/bureau.py). */
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
-import { call, uploadFile } from '@shared/api'
+import { call } from '@shared/api'
 import type { BulkItem, BulkOptions, BulkResult, CandidateDemande, ClientChoice, Option, QueueResponse, QueueTicket, QueueView, References, TicketDetail, TicketFormOptions } from '@/types'
 import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
@@ -162,11 +162,8 @@ export const createProspect = (values: ClientValues) => call<{ name: string }>(`
 
 export const updateClient = (client: ClientDetail, values: ClientValues) => call<ClientDetail>(`${CLIENTS}.update_client`, { name: client.name, modified: client.modified, values }, true)
 
-/** Envoie le fichier, puis le range dans la pièce administrative : un échec laisse le fichier joint au client. */
-export async function attachClientPiece(client: ClientDetail, piece: string, file: File) {
-	const uploaded = await uploadFile(file, 'Customer', client.name)
-	return call<ClientDetail>(`${CLIENTS}.set_client_piece`, { name: client.name, modified: client.modified, piece, file_url: uploaded.file_url }, true)
-}
+/** Range un fichier déjà joint dans la pièce administrative choisie. */
+export const setClientPiece = (client: ClientDetail, piece: string, fileUrl: string) => call<ClientDetail>(`${CLIENTS}.set_client_piece`, { name: client.name, modified: client.modified, piece, file_url: fileUrl }, true)
 
 /** Commentaires et activité d'un client, pour le fil commun. */
 export function clientActivity(name: string): ActivityApi {

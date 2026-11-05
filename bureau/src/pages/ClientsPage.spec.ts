@@ -195,10 +195,46 @@ describe('page Clients', () => {
 		wrapper.unmount()
 	})
 
+	it('une pièce part avec son avancement, puis se range dans son champ', async () => {
+		const requests: { upload: { onprogress?: (event: { lengthComputable: boolean; loaded: number }) => void }; responseText: string; status: number; onload?: () => void }[] = []
+		vi.stubGlobal(
+			'XMLHttpRequest',
+			class {
+				upload = {}
+				status = 200
+				responseText = ''
+				onload?: () => void
+				open() {}
+				setRequestHeader() {}
+				abort() {}
+				send() {
+					requests.push(this)
+				}
+			},
+		)
+		const { wrapper } = await open('/clients/CLI-1?onglet=infos')
+		await wrapper.find('[aria-label="Joindre le fichier Nº NIF"]').trigger('click')
+		const input = wrapper.find('.uploader input')
+		Object.defineProperty(input.element, 'files', { value: [new File(['1234'], 'nif.pdf')], configurable: true })
+		await input.trigger('change')
+		await flushPromises()
+		requests[0].upload.onprogress?.({ lengthComputable: true, loaded: 2 })
+		await flushPromises()
+		expect(wrapper.find('.upload-item').text()).toContain('50 %')
+		requests[0].responseText = JSON.stringify({ message: { name: 'F', file_name: 'nif.pdf', file_url: '/private/files/nif.pdf' } })
+		requests[0].onload?.()
+		await flushPromises()
+		const call = fetchMock.mock.calls.find((item) => String(item[0]).includes('set_client_piece'))
+		expect(JSON.parse(String((call as unknown as [unknown, RequestInit])[1].body))).toMatchObject({ name: 'CLI-1', file_url: '/private/files/nif.pdf' })
+		vi.unstubAllGlobals()
+		vi.stubGlobal('fetch', fetchMock)
+		wrapper.unmount()
+	})
+
 	it('montre les pièces à joindre, et un article absent en état vide', async () => {
 		const { wrapper } = await open('/clients/CLI-1?onglet=infos')
 		expect(wrapper.text()).toContain('1 manquante')
-		expect(wrapper.find('input[type="file"]').attributes('aria-label')).toBe('Joindre le fichier Nº NIF')
+		expect(wrapper.find('[aria-label="Joindre le fichier Nº NIF"]').text()).toBe('Joindre')
 		await wrapper.findAll('.record-tab')[2].trigger('click')
 		await flushPromises()
 		wrapper.unmount()

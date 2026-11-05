@@ -105,37 +105,6 @@ export async function call<T = any>(
 	return body.message as T
 }
 
-/** Joint un fichier privé à un document, par l'API de fichiers de Frappe. */
-export async function uploadFile(file: File, doctype: string, docname: string, timeoutMs = 120 * 1000) {
-	const form = new FormData()
-	form.append('file', file, file.name)
-	form.append('doctype', doctype)
-	form.append('docname', docname)
-	form.append('is_private', '1')
-	const controller = typeof AbortController === 'undefined' ? null : new AbortController()
-	const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null
-	let response: Response
-	try {
-		response = await fetch('/api/method/upload_file', {
-			method: 'POST',
-			headers: { Accept: 'application/json', 'X-Frappe-CSRF-Token': window.csrf_token || '' },
-			body: form,
-			credentials: 'same-origin',
-			signal: controller?.signal,
-		})
-	} catch {
-		throw new ApiError("L'envoi du fichier a échoué : vérifiez votre connexion.", 0, true)
-	} finally {
-		if (timer) clearTimeout(timer)
-	}
-	const body = await response.json().catch(() => ({}))
-	if (!response.ok) {
-		checkSession(response.status, body)
-		throw new ApiError(serverMessage(body) || `Envoi refusé (${response.status}).`, response.status)
-	}
-	return body.message
-}
-
 export interface UploadedFile {
 	name: string
 	file_name: string
@@ -144,7 +113,7 @@ export interface UploadedFile {
 
 const UPLOAD_TIMEOUT_MS = 15 * 60 * 1000
 
-/** Comme `uploadFile`, avec l'avancement et l'annulation : `fetch` ne sait pas suivre un envoi. */
+/** Joint un fichier privé à un document, avec l'avancement et l'annulation : `fetch` ne sait pas suivre un envoi. */
 export function sendFile(file: File, doctype: string, docname: string, options: { onProgress?: (loaded: number) => void; signal?: AbortSignal } = {}) {
 	return new Promise<UploadedFile>((resolve, reject) => {
 		const form = new FormData()

@@ -6,7 +6,9 @@ import LucideMail from '~icons/lucide/mail'
 import LucideMap from '~icons/lucide/map'
 import LucidePhone from '~icons/lucide/phone'
 import LucideX from '~icons/lucide/x'
+import type { UploadedFile } from '@shared/api'
 import ActivityFeed from '@shared/components/ActivityFeed.vue'
+import FileUploader from '@shared/components/FileUploader.vue'
 import ListState from '@shared/components/ListState.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
@@ -15,7 +17,7 @@ import ClientDialog from './ClientDialog.vue'
 import ClientTicketsTable from './ClientTicketsTable.vue'
 import NewTicketDialog from './NewTicketDialog.vue'
 import TagEditor from './TagEditor.vue'
-import { attachClientPiece, clientActivity } from '@/lib/api'
+import { clientActivity, setClientPiece } from '@/lib/api'
 import { formatAmount, type ClientDetail } from '@/lib/clients'
 import { deskUrl, formatDay } from '@/lib/display'
 import { useClient } from '@/lib/useClient'
@@ -145,12 +147,16 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 	emit('changed')
 }
 
-function onPieceFile(piece: string, event: Event) {
-	const input = event.target as HTMLInputElement
-	const file = input.files?.[0]
-	input.value = ''
+// La pièce choisie : le fichier part avec son avancement, puis se range dans son champ.
+const pieceUploader = ref<InstanceType<typeof FileUploader> | null>(null)
+let pendingPiece = ''
+function joinPiece(piece: string) {
+	pendingPiece = piece
+	pieceUploader.value?.pick()
+}
+function onPieceUploaded(file: UploadedFile) {
 	const current = client.value
-	if (file && current) perform(() => attachClientPiece(current, piece, file))
+	if (current && pendingPiece) perform(() => setClientPiece(current, pendingPiece, file.file_url))
 }
 </script>
 
@@ -242,6 +248,7 @@ function onPieceFile(piece: string, event: Event) {
 			</div>
 
 			<div class="bureau-detail">
+				<FileUploader ref="pieceUploader" class="w-full" doctype="Customer" :docname="client.name" :zone="false" :multiple="false" @uploaded="onPieceUploaded" />
 				<!-- Aperçu : il résume les autres onglets. -->
 				<div v-if="activeTab === 'apercu'" class="bureau-center">
 						<div v-if="blocked.length" role="status" class="rounded-control tone-red px-3.5 py-2.5">
@@ -350,7 +357,7 @@ function onPieceFile(piece: string, event: Event) {
 								<td class="tabular-nums" :class="!piece.numero && 'text-ink-gray-6'">{{ piece.numero || 'Non renseigné' }}</td>
 								<td>
 									<a v-if="piece.fichier" class="ref-link" :href="piece.fichier" target="_blank" rel="noopener noreferrer">Ouvrir</a>
-									<label v-else-if="client.can_edit" class="ref-link cursor-pointer">Joindre<input class="sr-only" type="file" :disabled="busy" :aria-label="`Joindre le fichier ${piece.label}`" @change="onPieceFile(piece.key, $event)" /></label>
+									<button v-else-if="client.can_edit" type="button" class="ref-link" :disabled="busy" :aria-label="`Joindre le fichier ${piece.label}`" @click="joinPiece(piece.key)">Joindre</button>
 									<span v-else class="text-ink-gray-6">Aucun</span>
 								</td>
 							</tr></tbody>
