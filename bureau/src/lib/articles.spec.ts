@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activationConsequence, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSortText, changedFields, createFields, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
+import { activationConsequence, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSigle, articleSortText, changedFields, clientTone, createFields, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
 
 const offset = "eval: doc.custom_procédé == 'Offset'"
 const flexo = "eval: doc.custom_procédé == 'Flexo'"
@@ -80,6 +80,25 @@ describe('articles', () => {
 		expect(initial.custom_nombre_de_poses).toBe('')
 		expect(changedFields(initial, { ...initial, custom_uv: '0' })).toEqual({ custom_uv: '0' })
 		expect(changedFields({ a: ' x ' }, { a: 'x' })).toEqual({})
+	})
+})
+
+describe('repères de couleur', () => {
+	it('chaque procédé a sa teinte et son sigle, et le rouge reste réservé à ce qui bloque', () => {
+		expect(procedeTone('Offset')).toBe('tone-blue')
+		expect(procedeTone('Flexo')).toBe('tone-green')
+		expect(procedeTone('Salle Blanche Pharma')).toBe('tone-violet')
+		expect(procedeTone('Numérique')).toBe('tone-amber')
+		expect(procedeTone(null)).toBe('tone-gray')
+		expect(procedeLabel('Salle Blanche Pharma')).toBe('Salle blanche')
+		expect(articleSigle({ procede: 'Salle Blanche Pharma', designation: 'TEST' })).toBe('SB')
+		expect(articleSigle({ procede: null, designation: 'encre bleu' })).toBe('EN')
+	})
+	it('un client garde toujours la même teinte, jamais le rouge', () => {
+		for (const client of ['IFRI', 'ITT', 'AURES EMBALLAGES', 'BISCUITERIE SAI', 'TEST 100']) {
+			expect(clientTone(client)).toBe(clientTone(client))
+			expect(clientTone(client)).not.toBe('tone-red')
+		}
 	})
 })
 

@@ -147,15 +147,15 @@ export interface ArticleValues {
 }
 
 export const ARTICLE_COLUMNS: Column<ArticleRow>[] = [
-	{ key: 'designation', label: 'Article', width: 230, grow: 2, sortable: true, text: (row) => row.designation },
-	{ key: 'name', label: 'Code', width: 122, sortable: true, text: (row) => row.name },
-	{ key: 'client_label', label: 'Client', width: 140, grow: 1, sortable: true, text: (row) => row.client_label || '' },
-	{ key: 'procede', label: 'Procédé', width: 88, sortable: true, text: (row) => row.procede || '' },
+	{ key: 'designation', label: 'Article', width: 250, grow: 2, sortable: true, text: (row) => row.designation },
+	{ key: 'name', label: 'Code', width: 118, sortable: true, text: (row) => row.name },
+	{ key: 'client_label', label: 'Client', width: 152, grow: 1, sortable: true, text: (row) => row.client_label || '' },
+	{ key: 'procede', label: 'Procédé', width: 100, sortable: true, text: (row) => row.procede || '' },
 	{ key: 'support', label: 'Support', width: 110, sortable: true, text: (row) => row.support || '' },
-	{ key: 'format', label: 'Format (mm)', width: 104, sortable: true, text: (row) => row.format || '' },
+	{ key: 'format', label: 'Format (mm)', width: 96, sortable: true, text: (row) => row.format || '' },
 	{ key: 'bat', label: 'Dernier BAT', width: 112, sortable: true, text: (row) => row.bat || '' },
 	{ key: 'commande', label: 'Commande', width: 92, sortable: true, text: (row) => formatDay(row.commande) },
-	{ key: 'tags', label: 'Tags', width: 130, sortable: false, text: (row) => tagsText(row) },
+	{ key: 'tags', label: 'Tags', width: 100, sortable: false, text: (row) => tagsText(row) },
 	{ key: 'reference', label: 'Réf. client', width: 100, sortable: true, optional: true, text: (row) => row.reference || '' },
 	{ key: 'commercial', label: 'Commercial', width: 130, sortable: true, optional: true, text: (row) => row.commercial || '' },
 	{ key: 'groupe', label: 'Groupe', width: 110, sortable: true, optional: true, text: (row) => row.groupe || '' },
@@ -167,6 +167,32 @@ export const DEFAULT_ARTICLE_COLUMNS = ARTICLE_COLUMNS.filter((column) => !colum
 /** La colonne Article reste toujours affichée ; une clé inconnue, venue d'un ancien réglage, est ignorée. */
 export function visibleArticleColumns(keys: string[]) {
 	return ARTICLE_COLUMNS.filter((column) => column.key === 'designation' || keys.includes(column.key))
+}
+
+/** Repères de couleur de la liste : les teintes d'Aures Pli, sans le rouge, réservé à ce qui bloque. */
+const PROCEDE_REPERES: Record<string, { tone: string; sigle: string; label?: string }> = {
+	Offset: { tone: 'tone-blue', sigle: 'OF' },
+	Flexo: { tone: 'tone-green', sigle: 'FL' },
+	'Salle Blanche Pharma': { tone: 'tone-violet', sigle: 'SB', label: 'Salle blanche' },
+	Numérique: { tone: 'tone-amber', sigle: 'NU' },
+}
+const CLIENT_TONES = ['tone-blue', 'tone-green', 'tone-violet', 'tone-amber', 'tone-gray']
+
+export function procedeTone(procede?: string | null) {
+	return PROCEDE_REPERES[procede || '']?.tone ?? 'tone-gray'
+}
+export function procedeLabel(procede?: string | null) {
+	return PROCEDE_REPERES[procede || '']?.label ?? procede ?? ''
+}
+/** Le carré d'une ligne : le sigle du procédé, sinon les deux premières lettres de la désignation. */
+export function articleSigle(row: Pick<ArticleRow, 'procede' | 'designation'>) {
+	return PROCEDE_REPERES[row.procede || '']?.sigle ?? (row.designation || '').slice(0, 2).toUpperCase()
+}
+/** Un client garde sa teinte d'une ligne et d'une page à l'autre. */
+export function clientTone(client: string) {
+	let sum = 0
+	for (const letter of client) sum = (sum * 31 + letter.charCodeAt(0)) % 9973
+	return CLIENT_TONES[sum % CLIENT_TONES.length]
 }
 
 export function articleSortText(sort: Sort | null) {

@@ -1233,6 +1233,40 @@
 	.list-client {
 		@apply text-base font-semibold text-ink-gray-9;
 	}
+	/* Repères de catégorie : une teinte, sans contour ni icône, pour ne pas se lire comme un statut. */
+	.list-tag {
+		display: inline-block;
+		padding: 0.125rem 0.5rem;
+		border-radius: 6px;
+		font-size: var(--text-sm);
+		font-weight: 500;
+		white-space: nowrap;
+	}
+	.list-tag-small {
+		padding: 0.0625rem 0.375rem;
+		border-radius: 4px;
+		font-size: var(--text-xs);
+	}
+	.list-tile {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.625rem;
+		height: 1.625rem;
+		border-radius: 6px;
+		font-size: 10px;
+		font-weight: 600;
+	}
+	.list-mono {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.125rem;
+		height: 1.125rem;
+		border-radius: 50%;
+		font-size: 9px;
+		font-weight: 600;
+	}
 	.list-row-main > .list-urgence,
 	.list-row-main > .list-step,
 	.list-row-main > .list-comments {

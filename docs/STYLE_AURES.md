@@ -25,6 +25,7 @@ Les surfaces, encres et contours gris (`--surface-*`, `--ink-*`, `--outline-*`) 
 - **Une case à cocher n'est pas bleue.** Contour fin de 1 px en `--control-border`, fond et coche en `primary` une fois cochée. La règle est dans `shared/styles.css` et vaut pour toutes les cases : aucune page ne la redéfinit.
 - **Un lien n'est pas bleu sur le poste de bureau.** Il est en encre (`--link-ink`, classes `.ref-link` et `.text-link`), souligné au survol. Ce qui ouvre le Desk porte `↗`, et « Tout voir » en tête de carte est une petite pilule neutre. La PWA garde des liens bleus jusqu'à son étape.
 - **Un tag n'est ni une action ni un état** : rectangle gris sans contour, coins de 4 px (`.tag-pill`).
+- **Un repère de catégorie reprend une teinte sans ressembler à un état** (liste des articles : procédé, type, client). Il a un fond plein, sans contour ni icône, et jamais le rouge, réservé à ce qui bloque. Seuls les statuts sont en pilule.
 - **Une action est neutre, un état porte une teinte.** En densité Poste, boutons et recherche sont en pilule grise (`--radius-action`, `--btn-*`) ; les statuts et urgences ont un fond léger, un contour fin et une icône ou un point. Champs de formulaire et messages gardent 8 px.
 
 ## État de la bascule

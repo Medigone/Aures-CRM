@@ -7,7 +7,7 @@ import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getArticleOptions, getArticles } from '@/lib/api'
-import { ARTICLE_COLUMNS, ARTICLE_FILTER_FIELDS, ARTICLE_VIEWS, articleConditionLabel, articleFilterChoices, articleSortText, DEFAULT_ARTICLE_COLUMNS, TYPE_GENERAL, visibleArticleColumns, type ArticleOptions, type ArticleRow } from '@/lib/articles'
+import { ARTICLE_COLUMNS, ARTICLE_FILTER_FIELDS, ARTICLE_VIEWS, articleConditionLabel, articleFilterChoices, articleSigle, articleSortText, clientTone, DEFAULT_ARTICLE_COLUMNS, procedeLabel, procedeTone, TYPE_GENERAL, visibleArticleColumns, type ArticleOptions, type ArticleRow } from '@/lib/articles'
 import { formatAmount } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import type { Condition } from '@/lib/filters'
@@ -105,13 +105,17 @@ onBeforeUnmount(() => {
 
 		<template #cells="{ row, columns }">
 			<template v-for="column in columns" :key="column.key">
-				<span v-if="column.key === 'designation'" class="flex min-w-0 items-baseline gap-1.5" :title="row.designation">
+				<span v-if="column.key === 'designation'" class="flex min-w-0 items-center gap-2" :title="row.designation">
+					<span class="list-tile flex-none" :class="procedeTone(row.procede)" aria-hidden="true">{{ articleSigle(row) }}</span>
 					<span class="list-client truncate">{{ row.designation }}</span>
-					<span v-if="flagOf(row)" class="record-flag flex-none">{{ flagOf(row) }}</span>
+					<span v-if="flagOf(row)" class="list-tag list-tag-small flex-none" :class="flagOf(row) === 'Article général' ? 'tone-gray' : 'tone-amber'">{{ flagOf(row) }}</span>
 				</span>
 				<span v-else-if="column.key === 'name'" class="tabular-nums" :title="row.name">{{ row.name }}</span>
-				<span v-else-if="column.key === 'client_label'" :title="row.client_label || undefined">{{ row.client_label || '—' }}</span>
-				<span v-else-if="column.key === 'procede'">{{ row.procede === 'Salle Blanche Pharma' ? 'Salle blanche' : row.procede || '—' }}</span>
+				<span v-else-if="column.key === 'client_label'" class="flex min-w-0 items-center gap-1.5" :title="row.client_label || undefined">
+					<span v-if="row.client_label" class="list-mono flex-none" :class="clientTone(row.client_label)" aria-hidden="true">{{ row.client_label.charAt(0) }}</span>
+					<span class="truncate">{{ row.client_label || '—' }}</span>
+				</span>
+				<span v-else-if="column.key === 'procede'"><span v-if="row.procede" class="list-tag" :class="procedeTone(row.procede)">{{ procedeLabel(row.procede) }}</span><template v-else>—</template></span>
 				<span v-else-if="column.key === 'support'" :title="row.support || undefined">{{ row.support || '—' }}</span>
 				<span v-else-if="column.key === 'format'" class="tabular-nums">{{ row.format || '—' }}</span>
 				<span v-else-if="column.key === 'bat'"><StatusPill v-if="row.bat" :status="row.bat" /><span v-else class="text-ink-gray-6">Aucun</span></span>
