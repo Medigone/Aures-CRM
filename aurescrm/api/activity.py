@@ -9,13 +9,14 @@ rôle de la méthode qui l'appelle. Il contrôle en revanche la lecture du docum
 
 import json
 import re
+from urllib.parse import unquote
 
 import frappe
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.desk.form import utils as form_utils
 from frappe.desk.search import get_names_for_mentions
-from frappe.utils import cstr, escape_html, formatdate, get_fullname, strip_html
+from frappe.utils import cstr, escape_html, formatdate, get_fullname, strip_html, time_diff_in_seconds
 
 MAX_COMMENTS = 200
 MAX_VERSIONS = 100
@@ -37,6 +38,11 @@ MENTION_START, MENTION_END = "\x00", "\x01"
 HIDDEN_FIELDTYPES = {"Section Break", "Column Break", "Tab Break", "HTML", "Button"}
 # Champs masqués du formulaire dont le changement compte quand même : leur valeur s'affiche ailleurs, en pastille.
 SHOWN_HIDDEN_FIELDS = {"Ticket Commercial": {"status"}}
+# Libellés du Desk que le métier nomme autrement.
+FIELD_LABELS = {"Item": {"custom_fiche_technique_article": "BAT"}}
+ATTACH_FIELDTYPES = {"Attach", "Attach Image"}
+# Frappe enregistre un envoi en plusieurs temps : ces lignes-là ne font qu'un seul événement.
+SAME_UPLOAD_SECONDS = 30
 
 
 def parse_comment(content):
@@ -90,6 +96,8 @@ def _format_value(df, value):
 		return _("Oui") if str(value) == "1" else _("Non")
 	if df.fieldtype == "Date":
 		return formatdate(value, "dd/MM/yyyy")
+	if df.fieldtype in ATTACH_FIELDTYPES:
+		return unquote(cstr(value).rsplit("/", 1)[-1])
 	text = strip_html(cstr(value)).strip()
 	return text if len(text) <= MAX_VALUE_LENGTH else f"{text[:MAX_VALUE_LENGTH]}…"
 
@@ -121,7 +129,15 @@ def _version_items(doc):
 				continue
 			if df.hidden and fieldname not in shown_hidden:
 				continue
-			changes.append({"label": _(df.label or fieldname), "old": _format_value(df, old), "new": _format_value(df, new)})
+			before, after = _format_value(df, old), _format_value(df, new)
+			# Une valeur vide devenue une autre valeur vide : rien n'a changé pour le lecteur.
+			if before == after:
+				continue
+			label = FIELD_LABELS.get(doc.doctype, {}).get(fieldname) or _(df.label or fieldname)
+			change = {"label": label, "old": before, "new": after}
+			if df.fieldtype in ATTACH_FIELDTYPES:
+				change["file"] = True
+			changes.append(change)
 		if changes:
 			items.append({"id": version.name, "kind": "change", "changes": changes, **base})
 		tables = {row[0] for key in ("added", "removed", "row_changed") for row in data.get(key) or []}
@@ -152,6 +168,44 @@ def _log_item(comment):
 		return {**base, "who": who, "text": _("a passé ce document à {0}").format(strip_html(cstr(comment.content)))}
 	# Attributions et informations : la phrase de Frappe nomme déjà son auteur.
 	return {**base, "who": "", "text": strip_html(cstr(comment.content)).strip()}
+
+
+def _same_upload(first, second):
+	if first["who"] != second["who"]:
+		return False
+	return abs(time_diff_in_seconds(first["at"], second["at"])) <= SAME_UPLOAD_SECONDS
+
+
+def merge_uploads(items):
+	"""Un fichier joint fait une seule ligne, qui dit à quoi il sert, au lieu d'une ligne par trace laissée par Frappe."""
+	joined = []
+	merged = []
+	for item in items:
+		if item["kind"] == "file" and item.get("link") and item.get("text") == _("a joint"):
+			if any(other["link"]["label"] == item["link"]["label"] and _same_upload(other, item) for other in joined):
+				continue
+			joined.append(item)
+		merged.append(item)
+	result = []
+	for item in merged:
+		if item["kind"] != "change":
+			result.append(item)
+			continue
+		kept = []
+		for change in item["changes"]:
+			is_file = change.pop("file", False)
+			target = next((row for row in joined if is_file and row["link"]["label"] == change["new"] and _same_upload(row, item)), None)
+			if target:
+				target.setdefault("roles", []).append(change["label"].lower())
+			else:
+				kept.append(change)
+		if kept:
+			result.append({**item, "changes": kept})
+	for item in joined:
+		roles = item.pop("roles", None)
+		if roles:
+			item["after"] = _("comme {0}").format(", ".join(roles))
+	return result
 
 
 def get_feed(doctype, name):
@@ -210,6 +264,7 @@ def get_feed(doctype, name):
 		)
 
 	items.sort(key=lambda item: item["at"], reverse=True)
+	items = merge_uploads(items)
 	items.append(
 		{"id": f"{doc.name}-creation", "kind": "create", "who": get_fullname(doc.owner), "at": str(doc.creation), "text": _("a créé ce document")}
 	)

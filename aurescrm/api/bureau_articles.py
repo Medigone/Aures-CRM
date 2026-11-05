@@ -10,12 +10,13 @@ liste vide. La fiche technique suit `article_schema`, c'est-à-dire les sections
 
 import frappe
 from frappe import _
-from frappe.utils import cint, cstr, flt
+from frappe.utils import cint, cstr, flt, get_fullname
 
 from aurescrm.api import activity
 from aurescrm.api.bureau import TICKET, _parse, condition_filters, page_bounds, require_bureau, row_tags
-from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, ticket_rows
+from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, bind_file, ticket_rows
 from aurescrm.api.commercial_mobile import article_fiche, article_schema
+from aurescrm.aures_crm.doctype.etude_technique.etude_technique import create_new_bat_from_etude
 from aurescrm.api.commercial_mutations import ARTICLE_ITEM_GROUP, ARTICLE_UOM, Refused, _article_default, _article_value
 from aurescrm.utils import create_sous_article
 
@@ -277,7 +278,7 @@ def _prepresse(name):
 	maquettes = _list_or_empty(
 		"Maquette",
 		{"article": name},
-		["name", "status", "ver", "resume_couleurs", "date_creation", "desc_changements", "fichier_maquette"],
+		["name", "status", "ver", "resume_couleurs", "date_creation", "date_activation", "desc_changements", "fichier_maquette", "nom_reference_par"],
 		"creation desc",
 	)
 	# Champ à mise en forme sur le Desk : le texte seul quitte le serveur.
@@ -298,10 +299,36 @@ def _prepresse(name):
 		"etudes_techniques": _list_or_empty(
 			"Etude Technique",
 			{"article": name, "docstatus": ["<", 2]},
-			["name", "status", "date", "nom_utilisateur", "machine", "nb_passages"],
+			["name", "status", "date", "nom_utilisateur", "machine", "nb_passages", "maquette", "bat"],
 			"creation desc",
 		),
 	}
+
+
+def _documents(doc):
+	"""Fichiers de l'article, une ligne par fichier : le même peut servir de visuel et de tracé."""
+	roles = {}
+	for key, fieldname in ARTICLE_FILES.items():
+		if doc.get(fieldname):
+			roles.setdefault(doc.get(fieldname), []).append(key)
+	rows = {}
+	for file in frappe.get_all(
+		"File",
+		filters={"attached_to_doctype": ITEM, "attached_to_name": doc.name, "is_folder": 0},
+		fields=["file_name", "file_url", "file_size", "owner", "creation"],
+		order_by="creation desc",
+	):
+		if file.file_url in rows:
+			continue
+		rows[file.file_url] = {
+			"file_name": file.file_name or file.file_url,
+			"file_url": file.file_url,
+			"file_size": cint(file.file_size),
+			"owner_name": get_fullname(file.owner),
+			"creation": str(file.creation),
+			"roles": roles.get(file.file_url, []),
+		}
+	return list(rows.values())
 
 
 def bat_gap(bats, maquettes):
@@ -416,6 +443,7 @@ def _article_payload(doc):
 		"image": doc.image or last.get("image"),
 		"own_image": bool(doc.image),
 		"fichiers": {key: doc.get(fieldname) for key, fieldname in ARTICLE_FILES.items()},
+		"documents": _documents(doc),
 		"fiche": article_fiche(doc, schema["fields"]),
 		"prepresse": prepresse,
 		"ecart_bat": bat_gap(prepresse["bats"], prepresse["maquettes"]),
@@ -426,6 +454,11 @@ def _article_payload(doc):
 		"sous_articles": _sous_articles(doc.name) if cint(doc.custom_article_compose) else [],
 		"comments": activity.comment_summary(ITEM, doc.name),
 		"can_edit": bool(doc.has_permission("write")),
+		"droits_prepresse": {
+			"maquette": bool(frappe.has_permission("Maquette", "write")),
+			"nouvelle_version": bool(frappe.has_permission("Maquette", "create")),
+			"bat": bool(frappe.has_permission("BAT", "create")),
+		},
 	}
 
 
@@ -552,15 +585,108 @@ def update_article(name, modified, values=None):
 
 @frappe.whitelist(methods=["POST"])
 def set_article_file(name, modified, piece, file_url):
-	"""Range un fichier déjà envoyé dans le champ choisi : visuel, fiche technique ou tracé de découpe."""
+	"""Range un fichier déjà joint dans le champ choisi : visuel, BAT ou tracé de découpe. Sans fichier, le champ se vide."""
 	doc = _article_for_write(name, modified)
 	if piece not in ARTICLE_FILES:
 		frappe.throw(_("Pièce inconnue."))
-	if not frappe.db.exists("File", {"file_url": file_url, "attached_to_doctype": ITEM, "attached_to_name": name}):
-		frappe.throw(_("Ce fichier n'est pas joint à cet article."))
-	doc.set(ARTICLE_FILES[piece], file_url)
+	if file_url:
+		if not frappe.db.exists("File", {"file_url": file_url, "attached_to_doctype": ITEM, "attached_to_name": name}):
+			frappe.throw(_("Ce fichier n'est pas joint à cet article."))
+		bind_file(ITEM, name, ARTICLE_FILES[piece], file_url)
+	doc.set(ARTICLE_FILES[piece], file_url or None)
 	doc.save()
 	return _article_payload(doc)
+
+
+@frappe.whitelist(methods=["POST"])
+def remove_article_file(name, modified, file_url):
+	"""Retire le fichier de l'article, et des champs qui s'en servent."""
+	doc = _article_for_write(name, modified)
+	files = frappe.get_all("File", filters={"file_url": file_url, "attached_to_doctype": ITEM, "attached_to_name": name}, pluck="name")
+	if not files:
+		frappe.throw(_("Ce fichier n'est pas joint à cet article."))
+	used = [fieldname for fieldname in ARTICLE_FILES.values() if doc.get(fieldname) == file_url]
+	for fieldname in used:
+		doc.set(fieldname, None)
+	if used:
+		doc.save()
+	# Droits contrôlés ci-dessus : le rôle n'a pas forcément de droit direct sur le DocType File.
+	for file in files:
+		frappe.delete_doc("File", file, ignore_permissions=True)
+	return _article_payload(frappe.get_doc(ITEM, name))
+
+
+def _maquette_for_write(name, maquette):
+	require_bureau()
+	doc = frappe.get_doc("Maquette", maquette)
+	if doc.article != name:
+		frappe.throw(_("Cette maquette n'appartient pas à cet article."))
+	doc.check_permission("write")
+	return doc
+
+
+def _refreshed(name):
+	frappe.get_doc(ITEM, name).check_permission("read")
+	return _article_payload(frappe.get_doc(ITEM, name))
+
+
+@frappe.whitelist(methods=["POST"])
+def reference_maquette(name, maquette):
+	"""Même règle que le bouton Référencée du Desk."""
+	if not _maquette_for_write(name, maquette).set_status_referenced():
+		frappe.throw(_("Seule une maquette à référencer peut être référencée."))
+	return _refreshed(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def activate_maquette(name, maquette):
+	"""Même règle que le bouton Activer du Desk : l'ancienne version et ses BAT deviennent obsolètes."""
+	if not _maquette_for_write(name, maquette).activate_version():
+		frappe.throw(_("Seule une maquette référencée ou obsolète peut être activée."))
+	return _refreshed(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def new_maquette_version(name, maquette, changes):
+	"""Même règle que le bouton Nouvelle Version du Desk : un PV de destruction part en brouillon."""
+	doc = _maquette_for_write(name, maquette)
+	frappe.has_permission("Maquette", "create", throw=True)
+	if doc.status != MAQUETTE_ACTIVE:
+		frappe.throw(_("Une nouvelle version part de la version activée."))
+	if not cstr(changes).strip():
+		frappe.throw(_("Décrivez ce qui change."))
+	result = doc.create_new_version(cstr(changes).strip())
+	created = result["new_version"] if isinstance(result, dict) else result
+	return {"name": created, "article": _refreshed(name)}
+
+
+@frappe.whitelist(methods=["POST"])
+def set_maquette_file(name, maquette, file_url):
+	"""Range le fichier déjà joint à la maquette dans son champ."""
+	doc = _maquette_for_write(name, maquette)
+	if not frappe.db.exists("File", {"file_url": file_url, "attached_to_doctype": "Maquette", "attached_to_name": maquette}):
+		frappe.throw(_("Ce fichier n'est pas joint à cette maquette."))
+	bind_file("Maquette", maquette, "fichier_maquette", file_url)
+	doc.fichier_maquette = file_url
+	doc.save()
+	return _refreshed(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def create_article_bat(name, etude):
+	"""Même règle que le bouton du Desk sur l'étude technique : l'éventuel ancien BAT de l'étude devient obsolète."""
+	require_bureau()
+	frappe.has_permission("BAT", "create", throw=True)
+	doc = frappe.get_doc("Etude Technique", etude)
+	if doc.article != name:
+		frappe.throw(_("Cette étude technique n'appartient pas à cet article."))
+	doc.check_permission("write")
+	if not doc.maquette:
+		frappe.throw(_("L'étude technique {0} n'a pas de maquette : renseignez-la d'abord.").format(etude))
+	result = create_new_bat_from_etude(etude)
+	if result.get("status") != "success":
+		frappe.throw(result.get("message") or _("Le BAT n'a pas pu être créé."))
+	return _refreshed(name)
 
 
 @frappe.whitelist(methods=["POST"])

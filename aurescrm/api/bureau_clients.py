@@ -632,6 +632,18 @@ def update_client(name, modified, values=None):
 	return _client_payload(doc)
 
 
+def bind_file(doctype, name, fieldname, file_url):
+	"""Rattache au champ le fichier déjà joint au document.
+
+	Sans cela, Frappe crée une seconde ligne `File` à l'enregistrement, et le fil annonce le fichier deux fois.
+	"""
+	free = frappe.db.get_value(
+		"File", {"file_url": file_url, "attached_to_doctype": doctype, "attached_to_name": name, "attached_to_field": ["is", "not set"]}, "name"
+	)
+	if free:
+		frappe.db.set_value("File", free, "attached_to_field", fieldname, update_modified=False)
+
+
 @frappe.whitelist(methods=["POST"])
 def set_client_piece(name, modified, piece, file_url):
 	"""Range un fichier déjà envoyé dans la pièce administrative choisie."""
@@ -640,6 +652,7 @@ def set_client_piece(name, modified, piece, file_url):
 		frappe.throw(_("Pièce inconnue."))
 	if not frappe.db.exists("File", {"file_url": file_url, "attached_to_doctype": CUSTOMER, "attached_to_name": name}):
 		frappe.throw(_("Ce fichier n'est pas joint à ce client."))
+	bind_file(CUSTOMER, name, ADMIN_PIECES[piece][2], file_url)
 	doc.set(ADMIN_PIECES[piece][2], file_url)
 	doc.save()
 	return _client_payload(doc)

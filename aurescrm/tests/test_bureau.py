@@ -1157,6 +1157,28 @@ class TestConnexion(FrappeTestCase):
 		self.assertEqual(self.open_page("/bureau/connexion", "Administrator", "redirect-to=/bureau/clients"), "/bureau/clients")
 
 
+class TestFilAllege(FrappeTestCase):
+	"""Le fil annonce un fichier joint une seule fois, sans chemin et sans changement vide."""
+
+	def test_un_fichier_joint_fait_une_seule_ligne(self):
+		base = {"who": "A", "kind": "file", "text": activity._("a joint"), "link": {"label": "plan.png", "url": None}}
+		items = [
+			{"id": "v", "who": "A", "kind": "change", "at": "2026-11-05 10:00:02", "changes": [{"label": "Image", "old": "—", "new": "plan.png", "file": True}, {"label": "Unité", "old": "a", "new": "b"}]},
+			{**base, "id": "2", "at": "2026-11-05 10:00:01"},
+			{**base, "id": "1", "at": "2026-11-05 10:00:00"},
+			{**base, "id": "0", "at": "2026-11-05 09:00:00"},
+		]
+		merged = activity.merge_uploads(items)
+		self.assertEqual([item["id"] for item in merged], ["v", "2", "0"])
+		self.assertEqual(merged[0]["changes"], [{"label": "Unité", "old": "a", "new": "b"}])
+		self.assertEqual(merged[1]["after"], activity._("comme {0}").format("image"))
+		self.assertNotIn("after", merged[2])
+
+	def test_chemin_remplace_par_le_nom_du_fichier(self):
+		df = frappe._dict(fieldtype="Attach Image")
+		self.assertEqual(activity._format_value(df, "/private/files/Group%20198.png"), "Group 198.png")
+
+
 class TestArticles(FrappeTestCase):
 	"""Liste, fiche, création et modification des articles du poste de bureau."""
 
@@ -1169,6 +1191,62 @@ class TestArticles(FrappeTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback(save_point="test_articles")
+
+	def _attach(self, name, file_name="plan.png"):
+		return frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name,
+				"attached_to_doctype": "Item",
+				"attached_to_name": name,
+				"is_private": 1,
+				"content": b"\x89PNG" + frappe.generate_hash(length=12).encode(),
+			}
+		).insert(ignore_permissions=True)
+
+	def test_ranger_un_fichier_ne_le_duplique_pas(self):
+		name = bureau_articles.create_article({"type": "Client", "designation": "ESSAI FICHIER", "client": self.client, "procede": "Offset", "groupe": self.groupe})["name"]
+		file = self._attach(name)
+		modified = frappe.db.get_value("Item", name, "modified")
+		article = bureau_articles.set_article_file(name, modified, "image", file.file_url)
+		self.assertEqual(frappe.db.count("File", {"attached_to_doctype": "Item", "attached_to_name": name}), 1)
+		self.assertEqual(article["documents"][0]["roles"], ["image"])
+		article = bureau_articles.set_article_file(name, article["modified"], "image", "")
+		self.assertIsNone(article["fichiers"]["image"])
+		self.assertEqual(article["documents"][0]["roles"], [])
+
+	def test_retirer_un_fichier_vide_les_champs(self):
+		name = bureau_articles.create_article({"type": "Client", "designation": "ESSAI RETRAIT", "client": self.client, "procede": "Offset", "groupe": self.groupe})["name"]
+		file = self._attach(name)
+		article = bureau_articles.set_article_file(name, frappe.db.get_value("Item", name, "modified"), "trace_decoupe", file.file_url)
+		article = bureau_articles.remove_article_file(name, article["modified"], file.file_url)
+		self.assertEqual(article["documents"], [])
+		self.assertIsNone(article["fichiers"]["trace_decoupe"])
+
+	def test_actions_de_maquette(self):
+		name = bureau_articles.create_article({"type": "Client", "designation": "ESSAI MAQUETTE", "client": self.client, "procede": "Offset", "groupe": self.groupe})["name"]
+		first = frappe.get_doc({"doctype": "Maquette", "client": self.client, "article": name, "ver": 1, "status": "A référencer"}).insert()
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.activate_maquette(name, first.name)
+		bureau_articles.reference_maquette(name, first.name)
+		article = bureau_articles.activate_maquette(name, first.name)
+		self.assertEqual(article["prepresse"]["maquettes"][0]["status"], "Version Activée")
+		created = bureau_articles.new_maquette_version(name, first.name, "Nouveau poids net")
+		statuses = {row["name"]: row["status"] for row in created["article"]["prepresse"]["maquettes"]}
+		self.assertEqual(statuses[first.name], "Version Activée")
+		self.assertEqual(statuses[created["name"]], "A référencer")
+		self.assertTrue(frappe.db.get_value("Maquette", first.name, "pv_destruction"))
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.activate_maquette("AUTRE", first.name)
+
+	def test_bat_exige_la_maquette_de_l_etude(self):
+		name = bureau_articles.create_article({"type": "Client", "designation": "ESSAI BAT", "client": self.client, "procede": "Offset", "groupe": self.groupe})["name"]
+		etude = frappe.db.get_value("Etude Technique", {"maquette": ["is", "not set"], "docstatus": 0}, "name")
+		if not etude:
+			self.skipTest("Aucune étude sans maquette sur ce site.")
+		frappe.db.set_value("Etude Technique", etude, "article", name, update_modified=False)
+		with self.assertRaises(frappe.ValidationError):
+			bureau_articles.create_article_bat(name, etude)
 
 	def _create(self, **changes):
 		values = {"designation": f"zzz test {frappe.generate_hash(length=8)}", "client": self.client, "procede": "Offset", "groupe": self.groupe}

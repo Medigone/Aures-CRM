@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucidePlus from '~icons/lucide/plus'
+import FileUploader from '@shared/components/FileUploader.vue'
 import LucideX from '~icons/lucide/x'
 import { fileUrl } from '@shared/text'
-import { attachFiles, removeDocument } from '@/lib/api'
+import { getTicket, removeDocument } from '@/lib/api'
 import { fileExtension, formatDay } from '@/lib/display'
 import type { Perform, TicketDetail, TicketDocument } from '@/types'
 
@@ -13,11 +14,9 @@ const props = defineProps<{ ticket: TicketDetail; busy: boolean; perform: Perfor
 const documents = computed(() => props.ticket.documents)
 const canAttach = computed(() => props.ticket.can_write && !['Terminé', 'Annulé'].includes(props.ticket.status))
 
-function attach(event: Event) {
-	const input = event.target as HTMLInputElement
-	const files = Array.from(input.files || [])
-	input.value = ''
-	if (files.length) props.perform(() => attachFiles(props.ticket, files))
+const uploader = ref<InstanceType<typeof FileUploader> | null>(null)
+function onSettled() {
+	props.perform(() => getTicket(props.ticket.name))
 }
 
 function remove(document: TicketDocument) {
@@ -45,12 +44,12 @@ function remove(document: TicketDocument) {
 				<LucideX class="h-4 w-4" aria-hidden="true" />
 			</button>
 		</div>
-		<div v-if="canAttach" class="relative flex">
-			<input id="joindre-fichier" class="absolute h-px w-px opacity-0" type="file" multiple :disabled="busy" @change="attach" />
-			<label for="joindre-fichier" class="btn-secondary flex-auto cursor-pointer">
+		<template v-if="canAttach">
+			<FileUploader ref="uploader" doctype="Ticket Commercial" :docname="ticket.name" :zone="false" @settled="onSettled" />
+			<button type="button" class="btn-secondary" @click="uploader?.pick()">
 				<LucidePlus class="h-3.5 w-3.5" aria-hidden="true" />
-				{{ busy ? 'Enregistrement…' : 'Joindre un fichier' }}
-			</label>
-		</div>
+				Joindre des fichiers
+			</button>
+		</template>
 	</section>
 </template>

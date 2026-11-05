@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { articleConditionLabel, articleDoc, articleFilterChoices, articleSortText, changedFields, createFields, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
+import { activationConsequence, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSortText, changedFields, createFields, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
 
 const offset = "eval: doc.custom_procédé == 'Offset'"
 const flexo = "eval: doc.custom_procédé == 'Flexo'"
@@ -80,5 +80,38 @@ describe('articles', () => {
 		expect(initial.custom_nombre_de_poses).toBe('')
 		expect(changedFields(initial, { ...initial, custom_uv: '0' })).toEqual({ custom_uv: '0' })
 		expect(changedFields({ a: ' x ' }, { a: 'x' })).toEqual({})
+	})
+})
+
+describe('prepresseState', () => {
+	const base = { procede: 'Offset', name: 'A-1', ecart_bat: null, prepresse: { maquettes: [], bats: [], traces: [], impositions: [], cliches: [], plans_flexo: [], etudes_techniques: [] } }
+	const maquette = { name: 'M-1', status: 'Version Activée', ver: 1, resume_couleurs: null, date_creation: null, desc_changements: null, fichier_maquette: null }
+	const complete = { maquettes: [maquette], traces: [{ name: 'T', dimensions: '100x100', fichier_trace: null }], impositions: [{ name: 'I', machine_impression: null, nbr_poses: 1, taux_chutes: 10, defaut: 1, fichier_imp: null }] }
+	const state = (prepresse: object, extra: object = {}) => prepresseState({ ...base, ...extra, prepresse: { ...base.prepresse, ...prepresse } } as unknown as ArticleDetail)
+
+	it('demande le premier maillon manquant', () => {
+		expect(state({}).next?.title).toBe('Créer le tracé')
+		expect(state({ traces: complete.traces, maquettes: [{ ...maquette, status: 'A référencer' }] }).next?.title).toBe('Référencer la maquette')
+		expect(state({ traces: complete.traces, maquettes: [{ ...maquette, status: 'Obsolète' }] }).next?.title).toBe('Activer une maquette')
+	})
+	it('crée le BAT depuis une étude qui a sa maquette, sinon envoie sur l’étude', () => {
+		const etude = { name: 'E', status: 'En Cours', date: '2025-10-29', nom_utilisateur: null, machine: null, nb_passages: 0, maquette: 'M-1', bat: null }
+		const ready = state({ ...complete, etudes_techniques: [etude] })
+		expect(ready.next).toMatchObject({ title: 'Créer le BAT', action: 'bat', etude: 'E' })
+		expect(ready.steps.map((step) => step.done)).toEqual([true, true, true, false])
+		expect(state({ ...complete, etudes_techniques: [{ ...etude, maquette: null }] }).next?.action).toBeUndefined()
+		expect(state(complete).next?.text).toContain('Il manque une étude technique')
+	})
+	it('ne propose rien quand le BAT validé couvre la maquette en service', () => {
+		const bat = { name: 'B', status: 'BAT-P Validé', date: null, maquette: 'M-1', valide_par_nom: null, fichier_valide: null, image: null }
+		const done = state({ ...complete, bats: [bat, { ...bat, name: 'B0', status: 'Obsolète' }] })
+		expect(done.next).toBeNull()
+		expect(done.batCovers).toBe(true)
+		expect(done.oldBats.map((row) => row.name)).toEqual(['B0'])
+	})
+	it('annonce ce que l’activation rend obsolète', () => {
+		const bat = { name: 'B', status: 'BAT-P Validé', date: null, maquette: 'M-1', valide_par_nom: null, fichier_valide: null, image: null }
+		const article = { ...base, prepresse: { ...base.prepresse, maquettes: [maquette, { ...maquette, name: 'M-2', status: 'Obsolète' }], bats: [bat] } } as unknown as ArticleDetail
+		expect(activationConsequence(article, 'M-2')).toBe('M-1 passe en obsolète. B devient obsolète.')
 	})
 })

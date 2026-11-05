@@ -120,11 +120,6 @@ export const searchBulkLink = (doctype: string, fieldname: string, search: strin
 	call<Option[]>(`${BULK}.search_bulk_link`, { doctype, fieldname, search: search.trim() || undefined })
 
 /** Joint les fichiers l'un après l'autre : un refus n'empêche pas de garder ceux déjà envoyés. */
-export async function attachFiles(ticket: TicketDetail, files: File[]) {
-	for (const file of files) await uploadFile(file, 'Ticket Commercial', ticket.name)
-	return getTicket(ticket.name)
-}
-
 /** Commentaires et activité d'un ticket, pour le fil commun. */
 export function ticketActivity(name: string): ActivityApi {
 	return {
@@ -210,11 +205,20 @@ export const makeComposed = (article: ArticleDetail) => call<ArticleDetail>(`${A
 
 export const addSousArticle = (article: ArticleDetail, designation: string, quantite: number) => call<{ name: string; article: ArticleDetail }>(`${ARTICLES}.add_sous_article`, { name: article.name, designation, quantite }, true)
 
-/** Envoie le fichier, puis le range sur l'article : un échec laisse le fichier joint à l'article. */
-export async function attachArticleFile(article: ArticleDetail, piece: string, file: File) {
-	const uploaded = await uploadFile(file, 'Item', article.name)
-	return call<ArticleDetail>(`${ARTICLES}.set_article_file`, { name: article.name, modified: article.modified, piece, file_url: uploaded.file_url }, true)
-}
+/** Range un fichier déjà joint dans le champ choisi. Sans fichier, le champ se vide. */
+export const setArticleFile = (article: ArticleDetail, piece: string, fileUrl: string) => call<ArticleDetail>(`${ARTICLES}.set_article_file`, { name: article.name, modified: article.modified, piece, file_url: fileUrl }, true)
+
+export const removeArticleFile = (article: ArticleDetail, fileUrl: string) => call<ArticleDetail>(`${ARTICLES}.remove_article_file`, { name: article.name, modified: article.modified, file_url: fileUrl }, true)
+
+export const referenceMaquette = (article: ArticleDetail, maquette: string) => call<ArticleDetail>(`${ARTICLES}.reference_maquette`, { name: article.name, maquette }, true)
+
+export const activateMaquette = (article: ArticleDetail, maquette: string) => call<ArticleDetail>(`${ARTICLES}.activate_maquette`, { name: article.name, maquette }, true)
+
+export const newMaquetteVersion = (article: ArticleDetail, maquette: string, changes: string) => call<{ name: string; article: ArticleDetail }>(`${ARTICLES}.new_maquette_version`, { name: article.name, maquette, changes }, true)
+
+export const setMaquetteFile = (article: ArticleDetail, maquette: string, fileUrl: string) => call<ArticleDetail>(`${ARTICLES}.set_maquette_file`, { name: article.name, maquette, file_url: fileUrl }, true)
+
+export const createArticleBat = (article: ArticleDetail, etude: string) => call<ArticleDetail>(`${ARTICLES}.create_article_bat`, { name: article.name, etude }, true)
 
 /** Commentaires et activité d'un article, pour le fil commun. */
 export function articleActivity(name: string): ActivityApi {

@@ -27,3 +27,26 @@ export function htmlToText(value?: string | null): string {
 		.replace(/\n{3,}/g, '\n\n')
 		.trim()
 }
+
+/** Extension d'un fichier pour sa vignette, depuis son nom ou son adresse. */
+export function fileExtension(name: string) {
+	const parts = name.split(/[?#]/)[0].split('.')
+	return parts.length > 1 ? parts[parts.length - 1].slice(0, 4).toUpperCase() : 'FIC'
+}
+
+/** Nom lisible d'un fichier depuis son adresse. */
+export function fileName(url: string) {
+	const last = url.split(/[?#]/)[0].split('/').pop() ?? url
+	try {
+		return decodeURIComponent(last)
+	} catch {
+		return last
+	}
+}
+
+/** Taille d'un fichier, en français. */
+export function formatFileSize(bytes: number) {
+	if (!bytes) return '0 Ko'
+	if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} Ko`
+	return `${(bytes / (1024 * 1024)).toFixed(1).replace('.0', '').replace('.', ',')} Mo`
+}

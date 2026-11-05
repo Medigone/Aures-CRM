@@ -530,14 +530,22 @@ describe('poste de bureau', () => {
 		})
 
 		it('signale un fichier non envoyé sans perdre le ticket', async () => {
-			fetchMock.mockImplementation((input) => {
-				const url = String(input)
-				if (url.includes('upload_file')) return Promise.reject(new Error('réseau'))
-				return respond(url)
-			})
+			vi.stubGlobal(
+				'XMLHttpRequest',
+				class {
+					upload = {}
+					onerror?: () => void
+					open() {}
+					setRequestHeader() {}
+					abort() {}
+					send() {
+						this.onerror?.()
+					}
+				},
+			)
 			const { wrapper } = await openDialog()
 			await fill(wrapper)
-			const input = wrapper.find('.dropzone input')
+			const input = wrapper.find('.uploader input')
 			Object.defineProperty(input.element, 'files', { value: [new File(['x'], 'bc.pdf')], configurable: true })
 			await input.trigger('change')
 			expect(wrapper.find('.dialog').text()).toContain('bc.pdf')
@@ -545,7 +553,6 @@ describe('poste de bureau', () => {
 			await flushPromises()
 			await flushPromises()
 			expect(wrapper.find('.toast-action').text()).toContain("Un fichier n'a pas été envoyé")
-			fetchMock.mockImplementation((input2) => respond(String(input2)))
 		})
 
 		it('demande confirmation avant de perdre une saisie, pas si la fenêtre est vide', async () => {
@@ -906,6 +913,6 @@ describe('poste de bureau', () => {
 	it('propose de joindre un fichier sur un ticket ouvert', async () => {
 		const { wrapper } = await open('/ticket/TC-1')
 		expect(wrapper.find('input[type="file"]').exists()).toBe(true)
-		expect(wrapper.text()).toContain('Joindre un fichier')
+		expect(wrapper.text()).toContain('Joindre des fichiers')
 	})
 })

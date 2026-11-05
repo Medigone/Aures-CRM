@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import type { UploadedFile } from '@shared/api'
+import FileUploader from '@shared/components/FileUploader.vue'
 import { RouterLink, useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideX from '~icons/lucide/x'
@@ -8,12 +10,15 @@ import ListState from '@shared/components/ListState.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import ArticleDialog from './ArticleDialog.vue'
+import ArticleDocuments from './ArticleDocuments.vue'
+import ArticleImage from './ArticleImage.vue'
+import ArticlePrepresse from './ArticlePrepresse.vue'
 import ClientTicketsTable from './ClientTicketsTable.vue'
 import NewTicketDialog from './NewTicketDialog.vue'
 import SousArticleDialog from './SousArticleDialog.vue'
 import TagEditor from './TagEditor.vue'
-import { articleActivity, attachArticleFile, getArticleOptions, makeComposed } from '@/lib/api'
-import { articleDoc, ficheCards, ficheCardValues, finishesSummary, formatQuantity, formatRate, posesLabel, PROCEDE_FLEXO, TYPE_GENERAL, type ArticleDetail, type ArticleOptions } from '@/lib/articles'
+import { articleActivity, getArticleOptions, makeComposed, setArticleFile } from '@/lib/api'
+import { articleDoc, ficheCards, ficheCardValues, finishesSummary, formatQuantity, formatRate, posesLabel, prepresseState, PROCEDE_FLEXO, TYPE_GENERAL, type ArticleDetail, type ArticleOptions } from '@/lib/articles'
 import { formatAmount } from '@/lib/clients'
 import { deskUrl, formatDay } from '@/lib/display'
 import { useArticle } from '@/lib/useArticle'
@@ -56,10 +61,7 @@ function fieldValue(card: string, label: string) {
 }
 
 const openTickets = computed(() => (article.value?.tickets ?? []).filter((ticket) => ticket.is_open))
-const prepresseCount = computed(() => {
-	const current = article.value?.prepresse
-	return current ? current.maquettes.length + current.bats.length + current.traces.length + current.impositions.length + current.cliches.length + current.plans_flexo.length + current.etudes_techniques.length : 0
-})
+const prepresseTodo = computed(() => Boolean(article.value && !general.value && prepresseState(article.value).next))
 const affairesCount = computed(() => {
 	const current = article.value
 	return current ? current.commandes.length + current.devis.length + current.etudes.length + current.tickets.length : 0
@@ -67,10 +69,11 @@ const affairesCount = computed(() => {
 const tabs = computed(() => {
 	const current = article.value
 	if (!current) return []
-	const list: { key: string; label: string; count?: number }[] = [{ key: 'apercu', label: 'Aperçu' }]
+	const list: { key: string; label: string; count?: number; todo?: boolean }[] = [{ key: 'apercu', label: 'Aperçu' }]
 	if (hasFiche.value) list.push({ key: 'technique', label: 'Fiche technique' })
 	if (current.compose) list.push({ key: 'sous-articles', label: 'Sous-articles', count: current.sous_articles.length })
-	if (!general.value) list.push({ key: 'prepresse', label: 'Prépresse', count: prepresseCount.value })
+	if (!general.value) list.push({ key: 'prepresse', label: 'Prépresse', todo: prepresseTodo.value })
+	list.push({ key: 'documents', label: 'Documents', count: current.documents.length })
 	list.push({ key: 'affaires', label: 'Affaires', count: affairesCount.value })
 	return list
 })
@@ -123,12 +126,43 @@ function onTags(tags: string[]) {
 	if (article.value) article.value.tags = tags
 	emit('changed')
 }
-function onFile(piece: string, event: Event) {
-	const input = event.target as HTMLInputElement
-	const file = input.files?.[0]
-	input.value = ''
+// Envoi : la barre reste visible quel que soit l'onglet, et un dépôt marche partout sur la fiche.
+const uploader = ref<InstanceType<typeof FileUploader> | null>(null)
+const pieceUploader = ref<InstanceType<typeof FileUploader> | null>(null)
+const dragging = ref(false)
+let dragDepth = 0
+function hasFiles(event: DragEvent) {
+	return Boolean(article.value?.can_edit && event.dataTransfer?.types.includes('Files'))
+}
+function onDragEnter(event: DragEvent) {
+	if (!hasFiles(event)) return
+	dragDepth += 1
+	dragging.value = true
+}
+function onDragLeave(event: DragEvent) {
+	if (!hasFiles(event)) return
+	dragDepth = Math.max(0, dragDepth - 1)
+	if (!dragDepth) dragging.value = false
+}
+function onDrop(event: DragEvent) {
+	dragDepth = 0
+	dragging.value = false
+	if (hasFiles(event) && event.dataTransfer?.files.length) uploader.value?.add(event.dataTransfer.files)
+}
+function onUploadsSettled(sent: number) {
+	load()
+	feed.value?.refresh()
+	if (sent) notice.value = sent > 1 ? `${sent} fichiers joints à l'article.` : "Fichier joint à l'article."
+}
+// Une pièce précise : le fichier part, puis se range dans son champ.
+let pendingPiece = ''
+function joinPiece(piece: string) {
+	pendingPiece = piece
+	pieceUploader.value?.pick()
+}
+function onPieceUploaded(file: UploadedFile) {
 	const current = article.value
-	if (file && current) perform(() => attachArticleFile(current, piece, file))
+	if (current && pendingPiece) perform(() => setArticleFile(current, pendingPiece, file.file_url))
 }
 async function copyLink() {
 	try {
@@ -181,13 +215,10 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 		<div v-else-if="!article" class="card p-8 text-center text-ink-gray-6">Chargement de l'article…</div>
 
 		<template v-else>
-			<div class="client-dossier with-activity">
+			<div class="client-dossier with-activity" @dragenter="onDragEnter" @dragover.prevent @dragleave="onDragLeave" @drop.prevent="onDrop">
+				<div v-if="dragging" class="record-drop" aria-hidden="true"><div><b>Déposer pour joindre à {{ article.designation }}</b><span>Ils arrivent dans Documents.</span></div></div>
 				<aside class="card client-side" aria-label="Identité de l'article">
-					<div class="article-visual">
-						<img v-if="article.image" :src="article.image" alt="Visuel de l'article" />
-						<svg v-else class="dieline" viewBox="0 0 120 84" aria-hidden="true"><path class="cut" d="M8 24 L8 60 L20 60 L24 76 L52 76 L56 60 L92 60 L96 76 L108 76 L112 60 L112 24 L108 8 L96 8 L92 24 L56 24 L52 8 L24 8 L20 24 Z" /><path class="fold" d="M20 24 L20 60 M56 24 L56 60 M92 24 L92 60 M20 24 L56 24 M92 24 L112 24 M20 60 L56 60 M92 60 L112 60" /></svg>
-						<label v-if="article.can_edit && !article.image" class="ref-link cursor-pointer">Joindre un visuel<input class="sr-only" type="file" accept="image/*" :disabled="busy" aria-label="Joindre un visuel" @change="onFile('image', $event)" /></label>
-					</div>
+					<ArticleImage :article="article" :busy="busy" :perform="perform" />
 					<div class="side-block gap-2 !border-t-0">
 						<h2 class="page-title leading-tight">{{ article.designation }}</h2>
 						<div class="flex flex-wrap items-center gap-1.5">
@@ -234,15 +265,16 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 					<div v-if="!general" class="side-block">
 						<p class="side-label">Documents</p>
 						<dl class="side-kv">
-							<div v-for="piece in [{ key: 'fiche_technique', label: 'Fiche technique', url: article.fichiers.fiche_technique }, { key: 'trace_decoupe', label: 'Tracé forme de découpe', url: article.fichiers.trace_decoupe }]" :key="piece.key">
+							<div v-for="piece in [{ key: 'fiche_technique', label: 'BAT', url: article.fichiers.fiche_technique }, { key: 'trace_decoupe', label: 'Tracé forme de découpe', url: article.fichiers.trace_decoupe }]" :key="piece.key">
 								<dt>{{ piece.label }}</dt>
 								<dd>
 									<a v-if="piece.url" class="ref-link" :href="piece.url" target="_blank" rel="noopener noreferrer">Ouvrir</a>
-									<label v-else-if="article.can_edit" class="ref-link cursor-pointer">Joindre<input class="sr-only" type="file" :disabled="busy" :aria-label="`Joindre : ${piece.label}`" @change="onFile(piece.key, $event)" /></label>
+									<button v-else-if="article.can_edit" type="button" class="ref-link" :disabled="busy" :aria-label="`Joindre : ${piece.label}`" @click="joinPiece(piece.key)">Joindre</button>
 									<span v-else class="font-normal text-ink-gray-6">Aucun</span>
 								</dd>
 							</div>
 						</dl>
+						<button v-if="article.can_edit" type="button" class="btn-secondary mt-1" @click="uploader?.pick()">Joindre des fichiers</button>
 					</div>
 				</aside>
 
@@ -257,11 +289,13 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 
 					<div class="record-tabs" role="tablist">
 						<button v-for="item in tabs" :key="item.key" type="button" class="record-tab" role="tab" :aria-selected="activeTab === item.key" @click="emit('tab', item.key)">
-							{{ item.label }}<span v-if="item.count" class="ml-1 tabular-nums text-ink-gray-6">{{ item.count }}</span>
+							{{ item.label }}<span v-if="item.count" class="ml-1 tabular-nums text-ink-gray-6">{{ item.count }}</span><span v-if="item.todo" class="tab-todo" title="Une étape à faire"><span class="sr-only">, une étape à faire</span></span>
 						</button>
 					</div>
 
 					<div class="bureau-detail">
+						<FileUploader ref="uploader" class="w-full" doctype="Item" :docname="article.name" :zone="activeTab === 'documents' && article.can_edit" @settled="onUploadsSettled" />
+						<FileUploader ref="pieceUploader" class="w-full" doctype="Item" :docname="article.name" :zone="false" :multiple="false" @uploaded="onPieceUploaded" />
 						<!-- Aperçu : il résume les autres onglets. -->
 						<div v-if="activeTab === 'apercu'" class="bureau-center">
 							<p v-if="article.ecart_bat" role="status" class="rounded-control tone-amber px-3.5 py-2.5">
@@ -354,64 +388,11 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 						</div>
 
 						<!-- Prépresse. -->
-						<div v-else-if="activeTab === 'prepresse'" class="bureau-center">
-							<section class="card ref-card">
-								<h3>Maquettes</h3>
-								<p v-if="!article.prepresse.maquettes.length" class="text-ink-gray-6">Aucune maquette pour cet article.</p>
-								<div v-else class="ref-scroll"><table class="ref-table">
-									<thead><tr><th>Numéro</th><th>Statut</th><th>Couleurs</th><th>Créée le</th><th>Changements</th><th>Fichier</th></tr></thead>
-									<tbody><tr v-for="row in article.prepresse.maquettes" :key="row.name"><td><a class="ref-link" :href="deskUrl('Maquette', row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td><StatusPill :status="row.status" /></td><td>{{ row.resume_couleurs || '—' }}</td><td class="tabular-nums">{{ formatDay(row.date_creation) || '—' }}</td><td class="max-w-64 truncate" :title="row.desc_changements || undefined">{{ row.desc_changements || '—' }}</td><td><a v-if="row.fichier_maquette" class="ref-link" :href="row.fichier_maquette" target="_blank" rel="noopener noreferrer">Ouvrir</a><span v-else class="text-ink-gray-6">Aucun</span></td></tr></tbody>
-								</table></div>
-							</section>
-							<section class="card ref-card">
-								<h3>BAT</h3>
-								<p v-if="!article.prepresse.bats.length" class="text-ink-gray-6">Aucun BAT pour cet article.</p>
-								<div v-else class="ref-scroll"><table class="ref-table">
-									<thead><tr><th>Numéro</th><th>Statut</th><th>Date</th><th>Maquette</th><th>Validé par</th><th>Fichier</th></tr></thead>
-									<tbody><tr v-for="row in article.prepresse.bats" :key="row.name"><td><a class="ref-link" :href="deskUrl('BAT', row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td><StatusPill :status="row.status" /></td><td class="tabular-nums">{{ formatDay(row.date) || '—' }}</td><td>{{ row.maquette || '—' }}</td><td>{{ row.valide_par_nom || '—' }}</td><td><a v-if="row.fichier_valide" class="ref-link" :href="row.fichier_valide" target="_blank" rel="noopener noreferrer">Ouvrir</a><span v-else class="text-ink-gray-6">Aucun</span></td></tr></tbody>
-								</table></div>
-							</section>
-							<div class="client-cards">
-								<section class="card ref-card">
-									<h3>Tracé</h3>
-									<p v-if="!article.prepresse.traces.length" class="text-ink-gray-6">Aucun tracé pour cet article.</p>
-									<div v-else class="ref-scroll"><table class="ref-table">
-										<thead><tr><th>Numéro</th><th>Dimensions</th><th>Fichier</th></tr></thead>
-										<tbody><tr v-for="row in article.prepresse.traces" :key="row.name"><td><a class="ref-link" :href="deskUrl('Trace', row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td class="tabular-nums">{{ row.dimensions || '—' }}</td><td><a v-if="row.fichier_trace" class="ref-link" :href="row.fichier_trace" target="_blank" rel="noopener noreferrer">Ouvrir</a><span v-else class="text-ink-gray-6">Aucun</span></td></tr></tbody>
-									</table></div>
-								</section>
-								<section v-if="flexo" class="card ref-card">
-									<h3>Clichés</h3>
-									<p v-if="!article.prepresse.cliches.length" class="text-ink-gray-6">Aucun cliché pour cet article.</p>
-									<div v-else class="ref-scroll"><table class="ref-table">
-										<thead><tr><th>Numéro</th><th>Statut</th><th>Date</th><th class="end">Version</th></tr></thead>
-										<tbody><tr v-for="row in article.prepresse.cliches" :key="row.name"><td><a class="ref-link" :href="deskUrl('Cliche', row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td><StatusPill :status="row.status" /></td><td class="tabular-nums">{{ formatDay(row.date) || '—' }}</td><td class="end tabular-nums">{{ row.version || '—' }}</td></tr></tbody>
-									</table></div>
-								</section>
-								<section v-else class="card ref-card">
-									<h3>Imposition</h3>
-									<p v-if="!article.prepresse.impositions.length" class="text-ink-gray-6">Aucune imposition pour cet article.</p>
-									<div v-else class="ref-scroll"><table class="ref-table">
-										<thead><tr><th>Numéro</th><th>Machine</th><th class="end">Poses</th><th class="end">Chutes</th></tr></thead>
-										<tbody><tr v-for="row in article.prepresse.impositions" :key="row.name"><td><a class="ref-link" :href="deskUrl('Imposition', row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td>{{ row.machine_impression || '—' }}</td><td class="end tabular-nums">{{ row.nbr_poses || '—' }}</td><td class="end tabular-nums">{{ row.taux_chutes ? `${String(row.taux_chutes).replace('.', ',')} %` : '—' }}</td></tr></tbody>
-									</table></div>
-								</section>
-							</div>
-							<section v-if="article.prepresse.plans_flexo.length" class="card ref-card">
-								<h3>Plans Flexo</h3>
-								<div class="ref-scroll"><table class="ref-table">
-									<thead><tr><th>Numéro</th><th>Date</th><th>Dimensions</th><th>Laize</th><th>Fichier</th></tr></thead>
-									<tbody><tr v-for="row in article.prepresse.plans_flexo" :key="row.name"><td><a class="ref-link" :href="deskUrl('Plan Flexo', row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td class="tabular-nums">{{ formatDay(row.date) || '—' }}</td><td class="tabular-nums">{{ row.dimensions || '—' }}</td><td class="tabular-nums">{{ row.laize || '—' }}</td><td><a v-if="row.fichier" class="ref-link" :href="row.fichier" target="_blank" rel="noopener noreferrer">Ouvrir</a><span v-else class="text-ink-gray-6">Aucun</span></td></tr></tbody>
-								</table></div>
-							</section>
-							<section class="card ref-card">
-								<h3>Études techniques</h3>
-								<p v-if="!article.prepresse.etudes_techniques.length" class="text-ink-gray-6">Aucune étude technique pour cet article.</p>
-								<div v-else class="ref-scroll"><table class="ref-table">
-									<thead><tr><th>Numéro</th><th>Statut</th><th>Date</th><th>Technicien</th><th>Machine</th><th class="end">Passages</th></tr></thead>
-									<tbody><tr v-for="row in article.prepresse.etudes_techniques" :key="row.name"><td><a class="ref-link" :href="deskUrl('Etude Technique', row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td><StatusPill :status="row.status" /></td><td class="tabular-nums">{{ formatDay(row.date) || '—' }}</td><td>{{ row.nom_utilisateur || '—' }}</td><td>{{ row.machine || '—' }}</td><td class="end tabular-nums">{{ row.nb_passages || '—' }}</td></tr></tbody>
-								</table></div>
-							</section>
+						<ArticlePrepresse v-else-if="activeTab === 'prepresse'" :article="article" :busy="busy" :perform="perform" @notice="notice = $event" />
+
+						<!-- Documents : la zone de dépôt est au-dessus, avec l'envoi en cours. -->
+						<div v-else-if="activeTab === 'documents'" class="bureau-center">
+							<ArticleDocuments :article="article" :busy="busy" :perform="perform" />
 						</div>
 
 						<!-- Affaires. -->

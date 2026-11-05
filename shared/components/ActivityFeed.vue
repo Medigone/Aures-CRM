@@ -180,6 +180,19 @@ async function confirmDelete(item: ActivityItem) {
 	if (await write(() => props.api.remove(item.id))) deleting.value = null
 }
 
+// Plusieurs champs ou un long texte : le détail s'ouvre à la demande, pour que le fil reste lisible.
+const LONG_VALUE = 40
+function isLong(item: ActivityItem) {
+	const changes = item.changes ?? []
+	return changes.length !== 1 || changes[0].old.length > LONG_VALUE || changes[0].new.length > LONG_VALUE
+}
+const opened = ref(new Set<string>())
+function toggle(id: string) {
+	const next = new Set(opened.value)
+	if (!next.delete(id)) next.add(id)
+	opened.value = next
+}
+
 const MARKS = { change: LucideArrowRightLeft, assign: LucideUserPlus, file: LucidePaperclip, mail: LucideMail, create: LucidePlus, info: LucideCircleDot }
 const markOf = (item: ActivityItem) => MARKS[item.kind as keyof typeof MARKS] ?? LucideCircleDot
 
@@ -268,11 +281,11 @@ defineExpose({ refresh: load, root, focusInput })
 				<li v-else class="act-item">
 					<span class="act-mark"><component :is="markOf(item)" class="h-3 w-3" aria-hidden="true" /></span>
 					<div class="act-text">
-						<template v-if="item.kind === 'change' && item.changes?.length === 1">
-							<strong>{{ item.who }}</strong> a changé <b>{{ item.changes[0].label }}</b> de <span class="old">{{ item.changes[0].old }}</span> à <span class="new">{{ item.changes[0].new }}</span>
+						<template v-if="item.kind === 'change' && !isLong(item)">
+							<strong>{{ item.who }}</strong> a changé <b>{{ item.changes![0].label }}</b> de <span class="old">{{ item.changes![0].old }}</span> à <span class="new">{{ item.changes![0].new }}</span>
 						</template>
 						<template v-else-if="item.kind === 'change'">
-							<strong>{{ item.who }}</strong> a changé {{ item.changes?.length }} champs
+							<strong>{{ item.who }}</strong> a changé <b>{{ item.changes?.map((change) => change.label).join(', ') }}</b>
 						</template>
 						<template v-else>
 							<strong v-if="item.who">{{ item.who }}</strong>{{ item.who ? ' ' : '' }}{{ item.text }}
@@ -280,9 +293,13 @@ defineExpose({ refresh: load, root, focusInput })
 								<a v-if="item.link.url" :href="item.link.url" class="text-link" target="_blank" rel="noopener noreferrer">{{ item.link.label }}</a>
 								<template v-else>{{ item.link.label }}</template>
 							</template>
+							<template v-if="item.after">{{ ' ' }}{{ item.after }}</template>
 						</template>
 						{{ ' ' }}<time :datetime="item.at" :title="exactTime(item.at)">{{ relativeTime(item.at) }}</time>
-						<ul v-if="item.kind === 'change' && (item.changes?.length ?? 0) > 1" class="mt-0.5">
+						<template v-if="item.kind === 'change' && isLong(item)">
+							{{ ' ' }}<button type="button" class="text-link" :aria-expanded="opened.has(item.id)" @click="toggle(item.id)">{{ opened.has(item.id) ? 'Masquer le détail' : 'Voir le détail' }}</button>
+						</template>
+						<ul v-if="item.kind === 'change' && isLong(item) && opened.has(item.id)" class="mt-0.5">
 							<li v-for="change in item.changes" :key="change.label"><b>{{ change.label }}</b> : <span class="old">{{ change.old }}</span> → <span class="new">{{ change.new }}</span></li>
 						</ul>
 					</div>

@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import LucideFileText from '~icons/lucide/file-text'
 import LucideInfo from '~icons/lucide/info'
 import LucideSearch from '~icons/lucide/search'
-import LucideUpload from '~icons/lucide/upload'
 import LucideX from '~icons/lucide/x'
-import { uploadFile } from '@shared/api'
+import FileUploader from '@shared/components/FileUploader.vue'
 import FormDialog from '@shared/components/FormDialog.vue'
 import { createTicket, getTicketFormOptions, searchClients } from '@/lib/api'
 import { typeGuide, validateNewTicket, type NewTicketErrors } from '@/lib/newTicket'
@@ -24,18 +22,17 @@ const commercial = ref(props.initialClient?.commercial ?? '')
 const channel = ref('')
 const echeance = ref('')
 const description = ref('')
-const files = ref<File[]>([])
+const uploader = ref<InstanceType<typeof FileUploader> | null>(null)
 const errors = ref<NewTicketErrors>({})
 const serverError = ref('')
 const busy = ref(false)
-const draggingOver = ref(false)
 const clientInput = ref<HTMLInputElement | null>(null)
 const descriptionInput = ref<HTMLTextAreaElement | null>(null)
 const siteInput = ref<HTMLSelectElement | null>(null)
 
 const urgence = computed(() => options.value?.types.find((item) => item.value === type.value)?.urgence)
 const guide = computed(() => typeGuide(type.value))
-const dirty = computed(() => Boolean((client.value && client.value.name !== props.initialClient?.name) || query.value || type.value || site.value || channel.value || echeance.value || description.value.trim() || files.value.length))
+const dirty = computed(() => Boolean((client.value && client.value.name !== props.initialClient?.name) || query.value || type.value || site.value || channel.value || echeance.value || description.value.trim() || uploader.value?.items.length))
 // Le commercial du client peut ne pas figurer parmi les commerciaux actifs : il reste proposé.
 const commercialOptions = computed(() => {
 	const list = [...(options.value?.commercials ?? [])]
@@ -117,19 +114,6 @@ function onClientBlur(event: FocusEvent) {
 	if (!(event.relatedTarget as HTMLElement | null)?.closest?.('.picker-menu')) resultsOpen.value = false
 }
 
-function addFiles(list: FileList | null | undefined) {
-	files.value = [...files.value, ...Array.from(list ?? [])]
-}
-function onFileInput(event: Event) {
-	const input = event.target as HTMLInputElement
-	addFiles(input.files)
-	input.value = ''
-}
-function onDrop(event: DragEvent) {
-	draggingOver.value = false
-	addFiles(event.dataTransfer?.files)
-}
-
 async function focusFirstError() {
 	await nextTick()
 	if (errors.value.client) clientInput.value?.focus()
@@ -166,14 +150,7 @@ async function submit(again = false) {
 		return
 	}
 	// Le ticket existe : un fichier refusé ne doit pas le faire oublier.
-	let failedFiles = 0
-	for (const file of files.value) {
-		try {
-			await uploadFile(file, 'Ticket Commercial', name)
-		} catch {
-			failedFiles += 1
-		}
-	}
+	const failedFiles = uploader.value?.items.length ? await uploader.value.start({ doctype: 'Ticket Commercial', docname: name }) : 0
 	busy.value = false
 	emit('created', { name, failedFiles })
 	if (!again) {
@@ -184,7 +161,7 @@ async function submit(again = false) {
 	type.value = ''
 	echeance.value = ''
 	description.value = ''
-	files.value = []
+	uploader.value?.clear()
 	await nextTick()
 	descriptionInput.value?.focus()
 }
@@ -304,18 +281,7 @@ onBeforeUnmount(() => {
 
 		<div class="form-field">
 			<span class="field-label">Pièces jointes</span>
-			<label class="dropzone" :data-over="draggingOver" @dragover.prevent="draggingOver = true" @dragleave="draggingOver = false" @drop.prevent="onDrop">
-				<LucideUpload class="h-3.5 w-3.5" aria-hidden="true" />
-				<span>Déposez des fichiers ici, ou <b class="text-link">choisissez-les</b></span>
-				<input class="sr-only" type="file" multiple aria-label="Choisir des pièces jointes" @change="onFileInput" />
-			</label>
-			<ul v-if="files.length" class="mt-1 flex flex-col gap-0.5">
-				<li v-for="(file, index) in files" :key="`${file.name}-${index}`" class="flex min-w-0 items-center gap-1.5">
-					<LucideFileText class="h-3.5 w-3.5 flex-none" aria-hidden="true" />
-					<span class="min-w-0 flex-auto truncate">{{ file.name }}</span>
-					<button type="button" class="comment-tool" :aria-label="`Retirer ${file.name}`" @click="files.splice(index, 1)"><LucideX class="h-3.5 w-3.5" aria-hidden="true" /></button>
-				</li>
-			</ul>
+			<FileUploader ref="uploader" deferred />
 		</div>
 
 		<p v-if="serverError" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">{{ serverError }}</p>

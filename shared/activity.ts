@@ -27,6 +27,8 @@ export interface ActivityItem {
 	mentions?: Mention[]
 	changes?: ActivityChange[]
 	link?: { label: string; url: string | null }
+	/** Fin de phrase après le lien : ce à quoi le fichier joint sert. */
+	after?: string
 }
 
 export interface ActivityFeedData {

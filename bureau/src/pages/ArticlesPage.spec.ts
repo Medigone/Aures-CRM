@@ -41,6 +41,8 @@ const detail = {
 	image: null,
 	own_image: false,
 	fichiers: { image: null, fiche_technique: '/private/files/ft.pdf', trace_decoupe: null },
+	documents: [{ file_name: 'ft.pdf', file_url: '/private/files/ft.pdf', file_size: 2048, owner_name: 'Back Office', creation: '2026-11-04 10:00:00', roles: ['fiche_technique'] }],
+	droits_prepresse: { maquette: true, nouvelle_version: true, bat: true },
 	fiche: { custom_support: 'BBTB', custom_uv: 1 },
 	prepresse: {
 		maquettes: [{ name: 'MAQ-V3', status: 'Version Activée', ver: 3, resume_couleurs: 'CMJN', date_creation: '2026-10-20', desc_changements: 'Poids net', fichier_maquette: '/files/m.pdf' }],
@@ -152,7 +154,7 @@ describe('page Articles', () => {
 		expect(main).toContain('8 poses · chutes 12 %')
 		expect(main).toContain('12,40 DA')
 		expect(wrapper.find('.client-side').text()).toContain('BISCUITERIE NUMIDIA')
-		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Fiche technique', 'Prépresse4', 'Affaires4'])
+		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Fiche technique', 'Prépresse, une étape à faire', 'Documents1', 'Affaires4'])
 		wrapper.unmount()
 	})
 
@@ -163,6 +165,58 @@ describe('page Articles', () => {
 			expect(wrapper.find('.client-main .activity').exists()).toBe(false)
 			wrapper.unmount()
 		}
+	})
+
+	it('la prépresse dit la prochaine étape, et l’historique reste replié', async () => {
+		const { wrapper } = await open('/articles/CLI-1-003?onglet=prepresse')
+		expect(wrapper.find('.step-hero h3').text()).toBe('Refaire le BAT')
+		expect(wrapper.findAll('.pp-step b').map((step) => step.text())).toEqual(['Tracé', 'Maquette', 'Imposition', 'BAT'])
+		expect(wrapper.find('.pp-name').text()).toBe('MAQ-V3')
+		expect(wrapper.find('.pp-rows').exists()).toBe(false)
+		wrapper.unmount()
+	})
+
+	it('la visionneuse annonce la conséquence de l’activation, puis l’envoie', async () => {
+		const older = { name: 'MAQ-V2', status: 'Obsolète', ver: 2, resume_couleurs: null, date_creation: '2026-05-02', desc_changements: 'Pantone', fichier_maquette: null }
+		const prepresse = { ...detail.prepresse, maquettes: [detail.prepresse.maquettes[0], older] }
+		current['bureau_articles.get_article'] = { ...detail, prepresse }
+		current['bureau_articles.activate_maquette'] = detail
+		const { wrapper } = await open('/articles/CLI-1-003?onglet=prepresse')
+		await wrapper.find('.pp-toggle').trigger('click')
+		await wrapper.find('.pp-row').trigger('click')
+		const dialog = wrapper.find('.pp-dialog')
+		expect(dialog.text()).toContain('MAQ-V3 passe en obsolète')
+		await dialog.findAll('button').find((button) => button.text().startsWith('Activer la version'))!.trigger('click')
+		await flushPromises()
+		expect(posted('activate_maquette')).toEqual({ name: 'CLI-1-003', maquette: 'MAQ-V2' })
+		wrapper.unmount()
+	})
+
+	it('l’onglet Documents liste les fichiers et les range sans nouvel envoi', async () => {
+		current['bureau_articles.set_article_file'] = detail
+		const { wrapper } = await open('/articles/CLI-1-003?onglet=documents')
+		expect(wrapper.find('.upload-zone').text()).toContain('Glissez vos fichiers ici')
+		expect(wrapper.find('.upload-item').text()).toContain('ft.pdf')
+		expect(wrapper.find('.upload-item .tag-pill').text()).toBe('BAT')
+		await wrapper.find('.upload-item .icon-btn').trigger('click')
+		const items = wrapper.findAll('.upload-item .app-menu-item').map((item) => item.text())
+		expect(items).toEqual(['Utiliser comme tracé de découpe', 'Télécharger', 'Retirer le fichier'])
+		await wrapper.find('.upload-item .app-menu-item').trigger('click')
+		await flushPromises()
+		expect(posted('set_article_file')).toMatchObject({ piece: 'trace_decoupe', file_url: '/private/files/ft.pdf' })
+		wrapper.unmount()
+	})
+
+	it('l’image se change depuis le visuel, et un fichier qui n’en est pas une est refusé', async () => {
+		current['bureau_articles.get_article'] = { ...detail, image: '/files/v.png', own_image: true }
+		const { wrapper } = await open('/articles/CLI-1-003')
+		await wrapper.find('.article-visual-change').trigger('click')
+		expect(wrapper.findAll('.article-visual .app-menu-item').map((item) => item.text())).toEqual(['Importer une image', 'Voir en grand', "Retirer l'image"])
+		const input = wrapper.find('.article-visual input[type="file"]')
+		Object.defineProperty(input.element, 'files', { value: [new File(['x'], 'note.pdf', { type: 'application/pdf' })], configurable: true })
+		await input.trigger('change')
+		expect(wrapper.find('.client-side [role="alert"]').text()).toContain("n'est pas une image")
+		wrapper.unmount()
 	})
 
 	it('la fiche technique n’affiche que les champs du procédé', async () => {
@@ -186,7 +240,7 @@ describe('page Articles', () => {
 		current['bureau_articles.get_article'] = { ...detail, type: 'Général', client: null, client_label: null, procede: null, ecart_bat: null, fiche: {} }
 		const { wrapper } = await open('/articles/CLI-1-003')
 		expect(wrapper.find('.client-side .btn-primary').text()).toBe('Modifier')
-		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Affaires4'])
+		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Documents1', 'Affaires4'])
 		wrapper.unmount()
 	})
 

@@ -26,10 +26,7 @@ export function deskUrl(doctype: string, name: string) {
 	return `/app/${doctype.toLowerCase().replace(/ /g, '-')}/${encodeURIComponent(name)}`
 }
 
-export function fileExtension(fileName: string) {
-	const parts = fileName.split('.')
-	return parts.length > 1 ? parts[parts.length - 1].slice(0, 4).toUpperCase() : 'FIC'
-}
+export { fileExtension } from '@shared/text'
 
 export function initials(name?: string | null) {
 	const words = (name || '').trim().split(/\s+/).filter(Boolean)

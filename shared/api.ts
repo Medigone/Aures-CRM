@@ -136,6 +136,75 @@ export async function uploadFile(file: File, doctype: string, docname: string, t
 	return body.message
 }
 
+export interface UploadedFile {
+	name: string
+	file_name: string
+	file_url: string
+}
+
+const UPLOAD_TIMEOUT_MS = 15 * 60 * 1000
+
+/** Comme `uploadFile`, avec l'avancement et l'annulation : `fetch` ne sait pas suivre un envoi. */
+export function sendFile(file: File, doctype: string, docname: string, options: { onProgress?: (loaded: number) => void; signal?: AbortSignal } = {}) {
+	return new Promise<UploadedFile>((resolve, reject) => {
+		const form = new FormData()
+		form.append('file', file, file.name)
+		form.append('doctype', doctype)
+		form.append('docname', docname)
+		form.append('is_private', '1')
+		const request = new XMLHttpRequest()
+		const failed = () => reject(new ApiError("L'envoi du fichier a échoué : vérifiez votre connexion.", 0, true))
+		request.open('POST', '/api/method/upload_file')
+		request.timeout = UPLOAD_TIMEOUT_MS
+		request.setRequestHeader('Accept', 'application/json')
+		request.setRequestHeader('X-Frappe-CSRF-Token', window.csrf_token || '')
+		request.upload.onprogress = (event) => {
+			// L'en-tête du formulaire compte dans `loaded` : la barre ne dépasse jamais la taille du fichier.
+			if (event.lengthComputable) options.onProgress?.(Math.min(file.size, event.loaded))
+		}
+		request.onerror = failed
+		request.ontimeout = failed
+		request.onabort = () => reject(new ApiError("L'envoi a été annulé.", 0))
+		request.onload = () => {
+			let body: Record<string, any> = {}
+			try {
+				body = JSON.parse(request.responseText)
+			} catch {
+				// Une réponse illisible vient d'un intermédiaire, comme nginx quand le fichier dépasse sa limite.
+			}
+			if (request.status >= 200 && request.status < 300) {
+				resolve(body.message as UploadedFile)
+				return
+			}
+			try {
+				checkSession(request.status, body)
+			} catch (e) {
+				reject(e)
+				return
+			}
+			const tooLarge = request.status === 413 ? 'Le serveur refuse ce fichier : il est trop lourd.' : ''
+			reject(new ApiError(tooLarge || serverMessage(body) || `Envoi refusé (${request.status}).`, request.status))
+		}
+		if (options.signal?.aborted) {
+			reject(new ApiError("L'envoi a été annulé.", 0))
+			return
+		}
+		options.signal?.addEventListener('abort', () => request.abort())
+		request.send(form)
+	})
+}
+
+const DEFAULT_MAX_FILE_SIZE = 25 * 1024 * 1024
+let maxFileSize: Promise<number> | null = null
+
+/** Taille maximale d'un fichier selon le serveur, demandée une seule fois. */
+export function getMaxFileSize() {
+	maxFileSize ??= call<number>('frappe.core.api.file.get_max_file_size')
+		.then((value) => Number(value) || DEFAULT_MAX_FILE_SIZE)
+		.catch(() => DEFAULT_MAX_FILE_SIZE)
+	return maxFileSize
+}
+
 export function isAuthError(error: unknown) {
 	return error instanceof ApiError && (error.status === 401 || error.status === 403)
 }

@@ -64,8 +64,11 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 - **Tickets** : un ticket ne porte pas d'article. Il se retrouve par sa demande de faisabilité, son dossier d'essai ou son devis rapproché. Un ticket sans aucune de ces pièces n'apparaît donc pas sur la fiche, et Nouveau ticket ne préremplit que le client.
 - **Devis et commandes** : une ligne par ligne d'article : la quantité et le prix sont ceux de l'article, pas le total de la pièce.
 - **Nouvel article** : désignation, groupe, et pour un article client, le client et le procédé. Le code vient de `custom_item_naming`. Un client n'a qu'un article de ce nom.
+- **Envoi de fichiers** : `shared/components/FileUploader.vue`, commun aux fiches et à la création de ticket. Plusieurs fichiers à la fois (trois en parallèle), avancement par fichier, annulation et reprise. La limite vient du serveur (`get_max_file_size`, 25 Mo par défaut ; nginx bloque au-delà de 50 Mo).
 - **Modifier** : seuls les champs changés partent, avec la date `modified` affichée. Le client et le type d'article ne se changent pas depuis /bureau, car ils décident du code.
-- **Encore sur le Desk** : l'étude de faisabilité, depuis la fiche de l'article sur le Desk.
+- **Prépresse** : une chaîne (tracé, maquette, imposition ou cliché, BAT) et la prochaine étape, puis la maquette en service, le BAT en vigueur et les historiques repliés. Référencer, activer, créer une nouvelle version et créer le BAT passent par les mêmes méthodes que les boutons du Desk, avec le droit d'écriture sur le document, et leurs conséquences s'annoncent avant.
+- **Documents** : tous les fichiers de l'article, une ligne par fichier. Le menu d'une ligne le range comme image, BAT (le champ `custom_fiche_technique_article`) ou tracé. Un dépôt marche partout sur la fiche, et l'envoi reste visible d'un onglet à l'autre.
+- **Encore sur le Desk** : l'étude de faisabilité, la création du tracé, de la maquette, de l'imposition et de l'étude technique, et la validation du BAT.
 
 ## Commentaires et activité
 

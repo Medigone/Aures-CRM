@@ -3,7 +3,7 @@ import { fieldVisible, isEmptyValue, type FicheDoc, type FicheField, type FicheS
 import type { CommentSummary, Option } from '@/types'
 import type { ClientTicket } from './clients'
 import { isComplete, needsValue, operatorsOf, type Condition, type FilterField } from './filters'
-import { formatDay } from './display'
+import { deskUrl, formatDay } from './display'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
 
@@ -62,13 +62,22 @@ export interface ArticleVente {
 }
 
 export interface ArticlePrepresse {
-	maquettes: { name: string; status: string; ver: number | null; resume_couleurs: string | null; date_creation: string | null; desc_changements: string | null; fichier_maquette: string | null }[]
+	maquettes: { name: string; status: string; ver: number | null; resume_couleurs: string | null; date_creation: string | null; date_activation?: string | null; desc_changements: string | null; fichier_maquette: string | null; nom_reference_par?: string | null }[]
 	bats: { name: string; status: string; date: string | null; maquette: string | null; valide_par_nom: string | null; fichier_valide: string | null; image: string | null }[]
 	traces: { name: string; dimensions: string | null; fichier_trace: string | null }[]
 	impositions: { name: string; machine_impression: string | null; nbr_poses: number | null; taux_chutes: number | null; defaut: number; fichier_imp: string | null }[]
 	cliches: { name: string; status: string; date: string | null; version: number | null; version_active: number; nbr_couleurs: string | null }[]
 	plans_flexo: { name: string; date: string | null; dimensions: string | null; laize: string | null; fichier: string | null }[]
-	etudes_techniques: { name: string; status: string; date: string | null; nom_utilisateur: string | null; machine: string | null; nb_passages: number | null }[]
+	etudes_techniques: { name: string; status: string; date: string | null; nom_utilisateur: string | null; machine: string | null; nb_passages: number | null; maquette?: string | null; bat?: string | null }[]
+}
+
+export interface ArticleDocument {
+	file_name: string
+	file_url: string
+	file_size: number
+	owner_name: string
+	creation: string
+	roles: string[]
 }
 
 export interface ArticleDetail {
@@ -100,6 +109,8 @@ export interface ArticleDetail {
 	image: string | null
 	own_image: boolean
 	fichiers: { image: string | null; fiche_technique: string | null; trace_decoupe: string | null }
+	documents: ArticleDocument[]
+	droits_prepresse: { maquette: boolean; nouvelle_version: boolean; bat: boolean }
 	fiche: Record<string, string | number>
 	prepresse: ArticlePrepresse
 	ecart_bat: { bat: string; maquette_bat: string; maquette_active: string } | null
@@ -206,6 +217,115 @@ export function formatQuantity(value?: number | null) {
 	const amount = value ?? 0
 	const [whole, decimals] = String(amount).split('.')
 	return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}${decimals ? `,${decimals}` : ''}`
+}
+
+/** Ce qu'un fichier joint représente pour l'article. */
+export const ROLE_LABELS: Record<string, string> = { image: "Image de l'article", fiche_technique: 'BAT', trace_decoupe: 'Tracé de découpe' }
+
+export function isImageFile(name: string) {
+	return /\.(png|jpe?g|gif|webp|svg|bmp|avif)(\?|#|$)/i.test(name)
+}
+export function isPdfFile(name: string) {
+	return /\.pdf(\?|#|$)/i.test(name)
+}
+
+const BAT_VALIDES = ['BAT-E Validé', 'BAT-P Validé']
+const MAQUETTE_ACTIVE = 'Version Activée'
+const ETUDES_EN_COURS = ['Nouveau', 'En Cours']
+
+export interface PrepresseStep {
+	key: string
+	label: string
+	sub: string
+	done: boolean
+	lineTodo: boolean
+}
+export interface PrepresseNext {
+	title: string
+	text: string
+	action?: 'bat' | 'maquette'
+	actionLabel?: string
+	etude?: string
+	maquette?: string
+	desk?: string
+	deskLabel?: string
+}
+
+/** L'état de la chaîne de prépresse, et la prochaine chose à faire. */
+export function prepresseState(article: ArticleDetail) {
+	const { maquettes, bats, traces, impositions, cliches, etudes_techniques: etudesRaw } = article.prepresse
+	const flexo = article.procede === PROCEDE_FLEXO
+	const trace = traces[0]
+	const active = maquettes.find((row) => row.status === MAQUETTE_ACTIVE)
+	const older = maquettes.filter((row) => row !== active)
+	const waiting = maquettes.find((row) => row.status === 'A référencer')
+	const ready = maquettes.find((row) => row.status === 'Référencée')
+	const imposition = impositions.find((row) => row.defaut) ?? impositions[0]
+	const otherImpositions = impositions.filter((row) => row !== imposition)
+	const cliche = cliches.find((row) => row.version_active) ?? cliches[0]
+	const currentBat = bats.find((row) => row.status !== 'Obsolète')
+	const oldBats = bats.filter((row) => row !== currentBat)
+	const batValidated = Boolean(currentBat && BAT_VALIDES.includes(currentBat.status))
+	const batCovers = Boolean(currentBat && active && currentBat.maquette === active.name)
+	const activeBat = active ? bats.find((row) => row.maquette === active.name && row.status !== 'Obsolète') : undefined
+	const etudes = [...etudesRaw].sort((a, b) => Number(ETUDES_EN_COURS.includes(b.status)) - Number(ETUDES_EN_COURS.includes(a.status)))
+	const usableEtudes = etudes.filter((row) => row.status !== 'Annulée')
+	const etude = usableEtudes.find((row) => row.maquette && row.maquette === active?.name) ?? usableEtudes[0]
+	const batDone = batValidated && !article.ecart_bat
+
+	const toolDone = flexo ? Boolean(cliche) : Boolean(imposition)
+	const toolSub = flexo
+		? cliche?.version
+			? `Version ${cliche.version}`
+			: cliche?.name ?? 'À créer'
+		: imposition
+			? [imposition.nbr_poses ? posesLabel(imposition.nbr_poses) : '', imposition.taux_chutes ? `chutes ${String(imposition.taux_chutes).replace('.', ',')} %` : ''].filter(Boolean).join(' · ') || imposition.name
+			: 'À créer'
+	const batSub = batDone ? (currentBat?.status === 'BAT-P Validé' ? 'BAT-P validé' : 'BAT-E validé') : article.ecart_bat ? 'À refaire' : currentBat ? 'À valider' : 'À créer'
+	const steps: PrepresseStep[] = [
+		{ key: 'trace', label: 'Tracé', sub: trace?.dimensions ? `${trace.dimensions} mm` : trace?.name ?? 'À créer', done: Boolean(trace), lineTodo: false },
+		{ key: 'maquette', label: 'Maquette', sub: active ? `Version ${active.ver ?? '?'} activée` : waiting ? 'À référencer' : ready || maquettes.length ? 'À activer' : 'À créer', done: Boolean(active), lineTodo: false },
+		{ key: 'outil', label: flexo ? 'Cliché' : 'Imposition', sub: toolSub, done: toolDone, lineTodo: false },
+		{ key: 'bat', label: 'BAT', sub: batSub, done: batDone, lineTodo: false },
+	]
+	// Le trait qui mène à une étape à faire reste gris.
+	steps.forEach((step, index) => {
+		step.lineTodo = !step.done || !steps[index + 1]?.done
+	})
+
+	const deskNew = (doctype: string) => `${deskUrl(doctype, 'new')}?article=${encodeURIComponent(article.name)}`
+	function nextStep(): PrepresseNext | null {
+		if (!trace) return { title: 'Créer le tracé', text: "Aucun tracé pour cet article : il sert à la maquette et à l'imposition.", desk: deskNew('Trace'), deskLabel: 'Créer sur le Desk' }
+		if (!active) {
+			if (waiting) return { title: 'Référencer la maquette', text: `${waiting.name} attend d'être référencée avant de pouvoir être activée.`, action: 'maquette', actionLabel: 'Ouvrir la maquette', maquette: waiting.name }
+			const candidate = ready ?? maquettes[0]
+			if (candidate) return { title: 'Activer une maquette', text: `Aucune version n'est en service. ${candidate.name} peut être activée.`, action: 'maquette', actionLabel: 'Ouvrir la maquette', maquette: candidate.name }
+			return { title: 'Créer la maquette', text: 'Aucune maquette pour cet article.', desk: deskNew('Maquette'), deskLabel: 'Créer sur le Desk' }
+		}
+		if (!toolDone) return { title: flexo ? 'Créer le cliché' : "Créer l'imposition", text: flexo ? 'Aucun cliché pour cet article.' : 'Aucune imposition pour cet article.', desk: deskNew(flexo ? 'Cliche' : 'Imposition'), deskLabel: 'Créer sur le Desk' }
+		if (batDone) return null
+		if (currentBat && !batValidated && !article.ecart_bat) return { title: 'Valider le BAT', text: `${currentBat.name} attend sa validation.`, desk: deskUrl('BAT', currentBat.name), deskLabel: 'Valider sur le Desk' }
+		const title = article.ecart_bat ? 'Refaire le BAT' : 'Créer le BAT'
+		const reason = article.ecart_bat
+			? `${article.ecart_bat.bat} porte sur ${article.ecart_bat.maquette_bat}, la version activée est ${article.ecart_bat.maquette_active}.`
+			: `Le tracé, la maquette et ${flexo ? 'le cliché' : "l'imposition"} sont en place.`
+		if (!etude) return { title, text: `${reason} Il manque une étude technique pour lancer le BAT.`, desk: deskNew('Etude Technique'), deskLabel: "Créer l'étude sur le Desk" }
+		const since = ETUDES_EN_COURS.includes(etude.status) && etude.date ? `, en cours depuis le ${formatDay(etude.date)},` : ''
+		if (!etude.maquette) return { title, text: `${reason} L'étude technique ${etude.name} n'a pas de maquette : renseignez-la pour lancer le BAT.`, desk: deskUrl('Etude Technique', etude.name), deskLabel: "Ouvrir l'étude" }
+		return { title, text: `${reason} L'étude technique ${etude.name}${since} sert à lancer le BAT.`, action: 'bat', actionLabel: title, etude: etude.name, desk: deskUrl('Etude Technique', etude.name), deskLabel: "Ouvrir l'étude" }
+	}
+
+	return { flexo, trace, active, older, imposition, otherImpositions, cliche, currentBat, oldBats, batCovers, activeBat, etudes, steps, next: nextStep() }
+}
+
+/** Ce que l'activation d'une version entraîne, à annoncer avant. */
+export function activationConsequence(article: ArticleDetail, maquette: string) {
+	const { maquettes, bats } = article.prepresse
+	const active = maquettes.find((row) => row.status === MAQUETTE_ACTIVE && row.name !== maquette)
+	if (!active) return "Elle devient la version en service."
+	const linked = bats.filter((row) => row.maquette === active.name && row.status !== 'Obsolète')
+	const effect = linked.length ? `${linked.map((row) => row.name).join(', ')} ${linked.length > 1 ? 'deviennent obsolètes' : 'devient obsolète'}.` : "Aucun BAT n'est concerné."
+	return `${active.name} passe en obsolète. ${effect}`
 }
 
 export function posesLabel(count: number) {
