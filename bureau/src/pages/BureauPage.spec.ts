@@ -500,7 +500,7 @@ describe('poste de bureau', () => {
 			expect(wrapper.find('.dialog').exists()).toBe(false)
 			expect(router.currentRoute.value.path).toBe('/')
 			expect(wrapper.find('.list-row-created').exists()).toBe(true)
-			await wrapper.find('.toast-action button').trigger('click')
+			await wrapper.find('.app-toast-action').trigger('click')
 			await flushPromises()
 			expect(router.currentRoute.value.params.id).toBe('TC-NEW')
 			fetchMock.mockImplementation((input) => respond(String(input)))
@@ -552,7 +552,7 @@ describe('poste de bureau', () => {
 			await button(wrapper, 'Créer le ticket').trigger('click')
 			await flushPromises()
 			await flushPromises()
-			expect(wrapper.find('.toast-action').text()).toContain("Un fichier n'a pas été envoyé")
+			expect(wrapper.find('.app-toast').text()).toContain("Un fichier n'a pas été envoyé")
 		})
 
 		it('demande confirmation avant de perdre une saisie, pas si la fenêtre est vide', async () => {

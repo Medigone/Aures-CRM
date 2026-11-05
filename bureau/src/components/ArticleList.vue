@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import StatusPill from '@shared/components/StatusPill.vue'
+import AppToast from './AppToast.vue'
 import ArticleDialog from './ArticleDialog.vue'
 import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
@@ -133,9 +134,8 @@ onBeforeUnmount(() => {
 		<template #drawer><slot name="drawer"></slot></template>
 
 		<ArticleDialog v-if="creating" @close="creating = false" @created="onCreated" />
-		<div v-if="created" class="toast-action" role="status">
-			<span>Article créé.</span>
-			<button type="button" @click="openCreated">Ouvrir la fiche</button>
-		</div>
+		<AppToast :message="created ? 'Article créé.' : ''" :duration="0" @close="created = null">
+			<button type="button" class="app-toast-action" @click="openCreated">Ouvrir la fiche</button>
+		</AppToast>
 	</DataList>
 </template>

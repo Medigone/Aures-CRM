@@ -287,7 +287,7 @@ describe('page Clients', () => {
 		await flushPromises()
 		expect(posted('create_prospect').values).toMatchObject({ customer_name: 'sarl atlas', forme_juridique: 'SPA', categorie: 'Commercial', commune: 'Akbou', commercial: 's@example.com' })
 		expect(wrapper.find('.dialog').exists()).toBe(false)
-		expect(wrapper.find('.toast-action').text()).toContain('Prospect créé.')
+		expect(wrapper.find('.app-toast').text()).toContain('Prospect créé.')
 		expect(router.currentRoute.value.name).toBe('Clients')
 		wrapper.unmount()
 	})

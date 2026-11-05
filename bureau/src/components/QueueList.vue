@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import LucideMessageSquare from '~icons/lucide/message-square'
 import LucideX from '~icons/lucide/x'
+import AppToast from './AppToast.vue'
 import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
@@ -201,10 +202,8 @@ onBeforeUnmount(() => {
 		<template #drawer><slot name="drawer"></slot></template>
 
 		<NewTicketDialog v-if="creating" @close="creating = false" @created="onCreated" />
-		<div v-if="created" class="toast-action" role="status">
-			<span>{{ createdMessage }}</span>
-			<button type="button" @click="openCreated">Ouvrir la fiche</button>
-			<button v-if="created.failedFiles" type="button" aria-label="Fermer ce message" @click="dismissCreated"><LucideX class="h-3.5 w-3.5" aria-hidden="true" /></button>
-		</div>
+		<AppToast :message="createdMessage" :tone="created?.failedFiles ? 'warning' : 'success'" :duration="0" @close="dismissCreated">
+			<button type="button" class="app-toast-action" @click="openCreated">Ouvrir la fiche</button>
+		</AppToast>
 	</DataList>
 </template>

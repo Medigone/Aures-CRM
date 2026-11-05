@@ -12,6 +12,7 @@ import FileUploader from '@shared/components/FileUploader.vue'
 import ListState from '@shared/components/ListState.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
+import AppToast from './AppToast.vue'
 import ArticleDialog from './ArticleDialog.vue'
 import ClientDialog from './ClientDialog.vue'
 import ClientTicketsTable from './ClientTicketsTable.vue'
@@ -26,7 +27,7 @@ import type { ClientChoice } from '@/types'
 const props = defineProps<{ id: string; tab?: string }>()
 const emit = defineEmits<{ tab: [tab: string]; changed: [] }>()
 
-const { client, error, notFound, actionError, notice, busy, load, perform, refresh } = useClient(
+const { client, error, notFound, actionError, notice, noticeTone, busy, load, perform, refresh } = useClient(
 	() => props.id,
 	() => emit('changed'),
 )
@@ -234,12 +235,6 @@ function onPieceUploaded(file: UploadedFile) {
 			</aside>
 			<div class="client-main">
 			<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
-			<p v-if="notice" role="status" class="flex-none rounded-control tone-blue px-3.5 py-2.5">{{ notice }}</p>
-			<div v-if="createdTicket" role="status" class="flex flex-none items-center gap-2 rounded-control tone-blue px-3.5 py-2.5">
-				<span class="flex-auto">Ticket {{ createdTicket }} créé.</span>
-				<button type="button" class="font-semibold underline" @click="router.push({ name: 'Ticket', params: { id: createdTicket } })">Ouvrir la fiche</button>
-				<button type="button" aria-label="Fermer ce message" @click="createdTicket = null"><LucideX class="h-3.5 w-3.5" aria-hidden="true" /></button>
-			</div>
 
 			<div class="record-tabs" role="tablist">
 				<button v-for="item in tabs" :key="item.key" type="button" class="record-tab" role="tab" :aria-selected="activeTab === item.key" @click="emit('tab', item.key)">
@@ -412,5 +407,9 @@ function onPieceUploaded(file: UploadedFile) {
 		<ClientDialog v-if="editing && client" :client="client" @close="editing = false" @saved="onSaved" />
 		<ArticleDialog v-if="newArticle && ticketClient" :initial-client="ticketClient" @close="newArticle = false" @created="onArticleCreated" />
 		<NewTicketDialog v-if="newTicket && ticketClient" :initial-client="ticketClient" @close="newTicket = false" @created="onTicketCreated" />
+		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />
+		<AppToast :message="createdTicket ? `Ticket ${createdTicket} créé.` : ''" :duration="0" @close="createdTicket = null">
+			<button type="button" class="app-toast-action" @click="router.push({ name: 'Ticket', params: { id: createdTicket! } })">Ouvrir la fiche</button>
+		</AppToast>
 	</main>
 </template>

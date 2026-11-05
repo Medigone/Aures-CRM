@@ -3,6 +3,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import ActivityFeed from '@shared/components/ActivityFeed.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
+import AppToast from './AppToast.vue'
 import ActionButtons from './ActionButtons.vue'
 import AssigneeField from './AssigneeField.vue'
 import ChecklistCard from './ChecklistCard.vue'
@@ -22,7 +23,7 @@ import { useTicket } from '@/lib/useTicket'
 const props = defineProps<{ id: string; step?: number | null; goToActivity?: boolean }>()
 const emit = defineEmits<{ changed: [] }>()
 
-const { ticket, error, notFound, actionError, notice, busy, load, perform, refresh, isClosed, followIndex, urgencePending, banner, assigneeOptions, canAssign, assign } = useTicket(
+const { ticket, error, notFound, actionError, notice, noticeTone, busy, load, perform, refresh, isClosed, followIndex, urgencePending, banner, assigneeOptions, canAssign, assign } = useTicket(
 	() => props.id,
 	() => emit('changed'),
 )
@@ -150,7 +151,6 @@ function onTags(tags: string[]) {
 			</div>
 
 			<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
-			<p v-if="notice" role="status" class="flex-none rounded-control tone-blue px-3.5 py-2.5">{{ notice }}</p>
 
 			<div class="ticket-dossier">
 			<div class="bureau-detail">
@@ -196,5 +196,6 @@ function onTags(tags: string[]) {
 			</aside>
 			</div>
 		</template>
+		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />
 	</main>
 </template>

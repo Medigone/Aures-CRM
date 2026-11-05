@@ -219,6 +219,26 @@ describe('page Articles', () => {
 		wrapper.unmount()
 	})
 
+	it('confirme un enregistrement par un message en bas à droite, qui s’en va seul', async () => {
+		const { wrapper } = await open('/articles/CLI-1-003')
+		const timers = vi.spyOn(window, 'setTimeout')
+		await wrapper.findAll('.client-side button').find((button) => button.text() === 'Modifier')!.trigger('click')
+		await flushPromises()
+		const input = wrapper.find('#article-reference')
+		await input.setValue('H300')
+		await wrapper.findAll('.dialog button').find((button) => button.text() === 'Enregistrer')!.trigger('click')
+		await flushPromises()
+		const toast = wrapper.find('.app-toast')
+		expect(toast.text()).toContain('Article enregistré.')
+		expect(toast.attributes('data-tone')).toBe('success')
+		expect(wrapper.find('.client-main').text()).not.toContain('Article enregistré.')
+		expect(timers.mock.calls.some((call) => call[1] === 4000)).toBe(true)
+		timers.mockRestore()
+		await toast.find('[aria-label="Fermer ce message"]').trigger('click')
+		expect(wrapper.find('.app-toast').exists()).toBe(false)
+		wrapper.unmount()
+	})
+
 	it('la fiche technique n’affiche que les champs du procédé', async () => {
 		const { wrapper } = await open('/articles/CLI-1-003?onglet=technique')
 		const main = wrapper.find('.client-main').text()
@@ -256,7 +276,7 @@ describe('page Articles', () => {
 		const body = posted('bureau_articles.update_article')
 		expect(body.values).toEqual({ reference: 'H300', fiche: { custom_support: 'Bristol' } })
 		expect(body.modified).toBe(detail.modified)
-		expect(wrapper.find('.client-main').text()).toContain('Article enregistré.')
+		expect(wrapper.find('.app-toast').text()).toContain('Article enregistré.')
 		wrapper.unmount()
 	})
 

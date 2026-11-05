@@ -732,6 +732,54 @@
 		font-weight: 500;
 		@apply text-ink-gray-9;
 	}
+	/* Message passager : en bas à droite, au-dessus du fil. */
+	.app-toast {
+		position: fixed;
+		right: 1rem;
+		bottom: 1rem;
+		z-index: 60;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		width: fit-content;
+		max-width: min(26rem, calc(100vw - 2rem));
+		padding: 0.625rem 0.5rem 0.625rem 0.75rem;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: var(--radius-control);
+		background-color: var(--surface-modal);
+		box-shadow: var(--shadow-overlay);
+		font-weight: 500;
+		@apply text-ink-gray-9;
+	}
+	.app-toast-icon {
+		flex: none;
+		width: 1.125rem;
+		height: 1.125rem;
+		color: var(--tone-blue-ink);
+	}
+	.app-toast[data-tone='success'] .app-toast-icon {
+		color: var(--tone-green-ink);
+	}
+	.app-toast[data-tone='warning'] .app-toast-icon {
+		color: var(--tone-amber-ink);
+	}
+	.app-toast-action {
+		flex: none;
+		font-weight: 600;
+		white-space: nowrap;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	/* Sur téléphone, il reste au-dessus de la barre de navigation. */
+	@media (max-width: 900px) {
+		.app-toast {
+			right: 1rem;
+			bottom: calc(var(--bottom-nav, 0px) + 0.75rem);
+			left: 1rem;
+			width: auto;
+			max-width: none;
+		}
+	}
 	/* Fichiers déposés n'importe où sur une fiche. */
 	.client-dossier {
 		position: relative;

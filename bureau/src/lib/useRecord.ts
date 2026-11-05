@@ -1,5 +1,5 @@
 /** Chargement et écritures d'un document, communs à l'aperçu et à la fiche. */
-import { ref, watch, type Ref } from 'vue'
+import { computed, ref, watch, type Ref } from 'vue'
 
 export function useRecord<Detail>(id: () => string, fetch: (name: string) => Promise<Detail>, changed: () => void = () => {}) {
 	const record = ref(null) as Ref<Detail | null>
@@ -7,6 +7,9 @@ export function useRecord<Detail>(id: () => string, fetch: (name: string) => Pro
 	const notFound = ref(false)
 	const actionError = ref('')
 	const notice = ref('')
+	const infoMessage = ref('')
+	// Ce qui arrive par le temps réel informe ; le reste confirme une action de l'utilisateur.
+	const noticeTone = computed(() => (notice.value && notice.value === infoMessage.value ? 'info' : 'success'))
 	const busy = ref(false)
 
 	let lastRequest = 0
@@ -62,9 +65,12 @@ export function useRecord<Detail>(id: () => string, fetch: (name: string) => Pro
 	/** Changement arrivé par le temps réel. Pendant une écriture, c'est sa réponse qui fera foi. */
 	function refresh(message = '') {
 		if (busy.value) return
-		if (message) notice.value = message
+		if (message) {
+			infoMessage.value = message
+			notice.value = message
+		}
 		load()
 	}
 
-	return { record, error, notFound, actionError, notice, busy, load, perform, refresh }
+	return { record, error, notFound, actionError, notice, noticeTone, busy, load, perform, refresh }
 }

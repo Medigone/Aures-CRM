@@ -9,6 +9,9 @@ export function useTicket(id: () => string, changed: () => void) {
 	const notFound = ref(false)
 	const actionError = ref('')
 	const notice = ref('')
+	const infoMessage = ref('')
+	// Ce qui arrive par le temps réel informe ; le reste confirme une action de l'utilisateur.
+	const noticeTone = computed(() => (notice.value && notice.value === infoMessage.value ? 'info' : 'success'))
 	const busy = ref(false)
 	const assignees = ref<Option[]>([])
 
@@ -74,7 +77,10 @@ export function useTicket(id: () => string, changed: () => void) {
 	/** Changement arrivé par le temps réel. Pendant une écriture, c'est sa réponse qui fera foi. */
 	function refresh(message = '') {
 		if (busy.value) return
-		if (message) notice.value = message
+		if (message) {
+			infoMessage.value = message
+			notice.value = message
+		}
 		load()
 	}
 
@@ -115,5 +121,5 @@ export function useTicket(id: () => string, changed: () => void) {
 		if (value && user && user !== value.assigne_a) perform(() => setAssignee(value, user))
 	}
 
-	return { ticket, error, notFound, actionError, notice, busy, load, perform, refresh, isClosed, followIndex, urgencePending, banner, assigneeOptions, canAssign, assign }
+	return { ticket, error, notFound, actionError, notice, noticeTone, busy, load, perform, refresh, isClosed, followIndex, urgencePending, banner, assigneeOptions, canAssign, assign }
 }

@@ -15,7 +15,7 @@ import { deskUrl, formatDay } from '@/lib/display'
 
 /** Où en est l'article et quoi faire ensuite. L'historique reste replié. */
 const props = defineProps<{ article: ArticleDetail; busy: boolean; perform: (action: () => Promise<ArticleDetail>) => Promise<boolean> }>()
-const emit = defineEmits<{ notice: [message: string] }>()
+const emit = defineEmits<{ notice: [message: string]; problem: [message: string] }>()
 
 const state = computed(() => prepresseState(props.article))
 const droits = computed(() => props.article.droits_prepresse)
@@ -50,7 +50,8 @@ function canRunNext() {
 	return false
 }
 function onCreated(article: ArticleDetail, name: string, failed: boolean) {
-	emit('notice', failed ? `Version ${name} créée, mais son fichier n'a pas été envoyé : joignez-le sur le Desk.` : `Version ${name} créée. Elle reste à référencer, puis à activer.`)
+	if (failed) emit('problem', `Version ${name} créée, mais son fichier n'a pas été envoyé : joignez-le sur le Desk.`)
+	else emit('notice', `Version ${name} créée. Elle reste à référencer, puis à activer.`)
 	viewing.value = name
 	void article
 }

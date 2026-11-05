@@ -3,6 +3,7 @@ import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideChevronDown from '~icons/lucide/chevron-down'
 import LucideChevronUp from '~icons/lucide/chevron-up'
 import LucideX from '~icons/lucide/x'
+import AppToast from './AppToast.vue'
 import ActionButtons from './ActionButtons.vue'
 import AssigneeField from './AssigneeField.vue'
 import CycleCard from './CycleCard.vue'
@@ -19,7 +20,7 @@ import { useTicket } from '@/lib/useTicket'
 const props = defineProps<{ id: string; position: string; noPrev: boolean; noNext: boolean }>()
 const emit = defineEmits<{ prev: []; next: []; close: []; open: [step?: number, activity?: boolean]; changed: [] }>()
 
-const { ticket, error, notFound, actionError, notice, busy, load, perform, refresh, followIndex, urgencePending, banner, assigneeOptions, canAssign, assign } = useTicket(
+const { ticket, error, notFound, actionError, notice, noticeTone, busy, load, perform, refresh, followIndex, urgencePending, banner, assigneeOptions, canAssign, assign } = useTicket(
 	() => props.id,
 	() => emit('changed'),
 )
@@ -64,7 +65,6 @@ function onTags(tags: string[]) {
 				</div>
 
 				<p v-if="actionError" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">{{ actionError }}</p>
-				<p v-if="notice" role="status" class="rounded-control tone-blue px-3 py-2 text-sm">{{ notice }}</p>
 				<p v-if="urgencePending" class="tone-amber rounded-control px-3 py-2 text-sm">Urgence {{ ticket.niveau_urgence_demande }} à décider : ouvrez la fiche pour répondre.</p>
 				<p v-if="banner" class="rounded-control px-3 py-2 text-sm" :class="banner.style">{{ banner.text }}</p>
 
@@ -113,5 +113,6 @@ function onTags(tags: string[]) {
 				<CycleCard :ticket="ticket" />
 			</template>
 		</div>
+		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />
 	</aside>
 </template>
