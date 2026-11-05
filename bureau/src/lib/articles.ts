@@ -370,9 +370,6 @@ const CARD_OF: Record<string, string> = {
 	custom_grammage_support: 'Support',
 	custom_epaisseur_2: 'Support',
 	custom_autre_epaisseur: 'Support',
-	custom_largeur: 'Format',
-	custom_hauteur: 'Format',
-	custom_longueur: 'Format',
 	custom_cotations_article: 'Format',
 	custom_dimensions_h_x_l: 'Format',
 	custom_impression: 'Impression',
@@ -407,12 +404,15 @@ export interface FicheCard {
 	fields: FicheField[]
 }
 
+/** Abandonnés : le format se saisit et se lit dans Cotations Article. */
+const ABANDONED_FIELDS = new Set(['custom_largeur', 'custom_hauteur', 'custom_longueur'])
+
 /** Champs visibles pour ce procédé, rangés par carte. Sert à la saisie, et de base à la lecture. */
 export function ficheCards(schema: FicheSchema | undefined, doc: FicheDoc): FicheCard[] {
 	const cards = new Map<string, FicheField[]>()
 	for (const group of schema?.groups ?? []) {
 		for (const field of group.fields) {
-			if (!fieldVisible(field, doc)) continue
+			if (ABANDONED_FIELDS.has(field.fieldname) || !fieldVisible(field, doc)) continue
 			const title = CARD_OF[field.fieldname] ?? GROUP_CARD[group.label] ?? group.label
 			cards.set(title, [...(cards.get(title) ?? []), field])
 		}
@@ -461,19 +461,13 @@ export function finishesSummary(cards: FicheCardValues[]) {
 	return [pelliculage && `Pelliculage ${pelliculage.toLowerCase()}`, ...vernis.map((label) => `Vernis ${label.toLowerCase()}`)].filter(Boolean).join(' · ')
 }
 
-/** Largeur, Hauteur et Longueur sont abandonnées : à la création, le format se saisit dans Cotations Article. */
-const CREATION_HIDDEN_FIELDS = new Set(['custom_largeur', 'custom_hauteur', 'custom_longueur'])
 const CREATION_LAST_FIELDS = new Set(['custom_tolérance_', 'custom_nombre_passages'])
 
-/** Fiche technique de la phase 2 : les cartes du procédé, sans les champs abandonnés. */
+/** Fiche technique de la phase 2 : les cartes du procédé. */
 export function creationCards(schema: FicheSchema | undefined, doc: FicheDoc): FicheCard[] {
 	return ficheCards(schema, doc)
-		.map(({ title, fields }) => {
-			const kept = fields.filter((field) => !CREATION_HIDDEN_FIELDS.has(field.fieldname))
-			// Ces champs communs à tous les procédés passent après ceux du procédé, comme dans la maquette.
-			return { title, fields: [...kept.filter((field) => !CREATION_LAST_FIELDS.has(field.fieldname)), ...kept.filter((field) => CREATION_LAST_FIELDS.has(field.fieldname))] }
-		})
-		.filter((card) => card.fields.length)
+		// Ces champs communs à tous les procédés passent après ceux du procédé, comme dans la maquette.
+		.map(({ title, fields }) => ({ title, fields: [...fields.filter((field) => !CREATION_LAST_FIELDS.has(field.fieldname)), ...fields.filter((field) => CREATION_LAST_FIELDS.has(field.fieldname))] }))
 }
 
 export type ArticleField = 'designation' | 'client' | 'procede' | 'groupe'

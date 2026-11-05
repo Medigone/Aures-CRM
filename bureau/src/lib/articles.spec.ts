@@ -62,10 +62,11 @@ describe('articles', () => {
 		expect(finishesSummary([])).toBe('')
 	})
 
-	it('à la création, propose toute la fiche du procédé sauf les dimensions abandonnées', () => {
-		const format = { groups: [{ label: 'Cotations', fields: ['custom_largeur', 'custom_hauteur', 'custom_longueur', 'custom_cotations_article'].map((fieldname) => ({ fieldname, label: fieldname, fieldtype: 'Data', conditions: [] })) }, { label: 'Autre', fields: [{ fieldname: 'custom_largeur', label: 'Largeur', fieldtype: 'Data', conditions: [] }] }], fields: [] }
-		const fields = creationCards(format, {}).flatMap((card) => card.fields.map((field) => field.fieldname))
-		expect(fields).toEqual(['custom_cotations_article'])
+	it('ne propose ni n affiche plus Largeur, Hauteur et Longueur, même renseignées', () => {
+		const format = { groups: [{ label: 'Cotations', fields: ['custom_largeur', 'custom_hauteur', 'custom_longueur', 'custom_cotations_article'].map((fieldname) => ({ fieldname, label: fieldname, fieldtype: 'Data', conditions: [] })) }], fields: [] }
+		const doc = { custom_largeur: 100, custom_hauteur: 200, custom_longueur: 34, custom_cotations_article: '100x200x34' }
+		for (const cards of [ficheCards(format, doc), creationCards(format, doc)]) expect(cards.flatMap((card) => card.fields.map((field) => field.fieldname))).toEqual(['custom_cotations_article'])
+		expect(ficheCardValues(format, doc)).toEqual([{ title: 'Format', rows: [{ label: 'custom_cotations_article', value: '100x200x34' }], checks: [] }])
 	})
 
 	it('exige client, procédé, désignation et groupe selon le type', () => {
