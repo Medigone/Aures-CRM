@@ -2,6 +2,7 @@
  * Brouillon de la fenêtre Nouvel article, gardé dans ce navigateur : il survit à une fermeture par erreur,
  * à une page rechargée, à une session expirée et à une coupure réseau. Rien n'est créé sur le serveur.
  */
+import type { ArticleTeinte } from './articles'
 import type { ClientChoice } from '@/types'
 
 const PREFIX = 'bureau-article-brouillon'
@@ -14,6 +15,7 @@ export interface ArticleDraft {
 	client: ClientChoice | null
 	fiche: Record<string, string>
 	ficheProcede: string
+	teintes?: ArticleTeinte[]
 }
 
 function currentUser() {

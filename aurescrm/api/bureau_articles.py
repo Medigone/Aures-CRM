@@ -12,6 +12,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt, get_fullname
 
+from aurescrm import pantone
 from aurescrm.api import activity
 from aurescrm.api.bureau import TICKET, _parse, condition_filters, page_bounds, require_bureau, row_tags
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, bind_file, ticket_rows
@@ -445,6 +446,7 @@ def _article_payload(doc):
 		"fichiers": {key: doc.get(fieldname) for key, fieldname in ARTICLE_FILES.items()},
 		"documents": _documents(doc),
 		"fiche": article_fiche(doc, schema["fields"]),
+		"teintes": pantone.item_colors(doc),
 		"prepresse": prepresse,
 		"ecart_bat": bat_gap(prepresse["bats"], prepresse["maquettes"]),
 		"commandes": _ventes("Sales Order", "Sales Order Item", doc.name),
@@ -473,7 +475,9 @@ def get_article(name):
 def _clean_values(values):
 	values = _parse(values) or {}
 	fiche = values.pop("fiche", None) or {}
-	return {key: cstr(value).strip() for key, value in values.items()}, fiche
+	# Absentes : les couleurs n'ont pas changé. Vides : elles sont retirées.
+	teintes = values.pop("teintes", None)
+	return {key: cstr(value).strip() for key, value in values.items()}, fiche, teintes
 
 
 def _require(values, keys):
@@ -513,6 +517,13 @@ def check_article_designation(designation, client=None):
 	return {"message": _duplicate_message(cstr(designation).strip(), client or None)}
 
 
+@frappe.whitelist()
+def search_pantone(query=None):
+	"""Codes Pantone proposés à la saisie d'une fiche technique."""
+	require_bureau()
+	return pantone.search(query)
+
+
 def _apply_fiche(doc, fiche):
 	"""Seuls les champs de la fiche technique du Desk passent, chacun contrôlé selon son type."""
 	fields = {field["fieldname"]: field for group in article_schema()["groups"] for field in group["fields"]}
@@ -529,7 +540,7 @@ def _apply_fiche(doc, fiche):
 def create_article(values=None):
 	"""Crée un article client ou général. Le code vient du hook de nommage, la description des hooks de l'Item."""
 	require_bureau()
-	values, fiche = _clean_values(values)
+	values, fiche, teintes = _clean_values(values)
 	kind = values.get("type") or TYPE_CLIENT
 	_check_choice(kind, _select_options("custom_type_article"), _("Type d'article inconnu."))
 	general = kind == TYPE_GENERAL
@@ -554,6 +565,7 @@ def create_article(values=None):
 		doc.set(PROCEDE_FIELD, values["procede"])
 		doc.custom_code_client = values.get("reference") or None
 		_apply_fiche(doc, fiche)
+		pantone.set_item_colors(doc, teintes)
 	doc.insert()
 	return {"name": doc.name}
 
@@ -575,7 +587,7 @@ def _article_for_write(name, modified):
 def update_article(name, modified, values=None):
 	"""Seuls les champs changés arrivent : ce qu'un autre a modifié sur le Desk entre-temps sur un autre champ reste."""
 	doc = _article_for_write(name, modified)
-	values, fiche = _clean_values(values)
+	values, fiche, teintes = _clean_values(values)
 	_require(values, [key for key in ("designation", "groupe") if key in values])
 	if "designation" in values:
 		_check_unique(values["designation"], doc.custom_client, doc.name)
@@ -593,6 +605,8 @@ def update_article(name, modified, values=None):
 	if "consommation" in values:
 		doc.custom_consommation_annuelle = cint(values["consommation"]) or None
 	_apply_fiche(doc, fiche)
+	if teintes is not None:
+		pantone.set_item_colors(doc, teintes)
 	doc.save()
 	return _article_payload(doc)
 

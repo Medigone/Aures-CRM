@@ -4,12 +4,13 @@ import LucideCheck from '~icons/lucide/check'
 import LucideInfo from '~icons/lucide/info'
 import { ApiError } from '@shared/api'
 import FormDialog from '@shared/components/FormDialog.vue'
-import { fieldVisible } from '@shared/fiche'
+import { fieldVisible, type FicheField } from '@shared/fiche'
+import ArticleColorsInput from './ArticleColorsInput.vue'
 import ClientPicker from './ClientPicker.vue'
 import FicheInput from './FicheInput.vue'
 import { clearDraft, loadDraft, saveDraft } from '@/lib/articleDraft'
 import { checkArticleDesignation, createArticle, getArticleOptions, updateArticle } from '@/lib/api'
-import { changedFields, creationCards, ficheCards, ficheFormValues, procedeLabel, TYPE_GENERAL, validateArticle, type ArticleDetail, type ArticleField, type ArticleOptions } from '@/lib/articles'
+import { changedFields, COLOR_DERIVED_FIELDS, colorsAfterCard, creationCards, ficheCards, ficheFormValues, procedeLabel, teintesForEdit, teintesPayload, TYPE_GENERAL, validateArticle, type ArticleDetail, type ArticleField, type ArticleOptions, type ArticleTeinte } from '@/lib/articles'
 import type { ClientChoice } from '@/types'
 
 /**
@@ -42,6 +43,8 @@ let initialFiche: Record<string, string> = {}
 const fiche = ref<Record<string, string>>({ ...draft?.fiche })
 const phase = ref<1 | 2>(draft?.phase ?? 1)
 const ficheProcede = ref(draft?.ficheProcede ?? '')
+const initialTeintes = teintesForEdit(props.article?.teintes)
+const teintes = ref<ArticleTeinte[]>(draft?.teintes ? teintesForEdit(draft.teintes) : initialTeintes)
 const restoredAt = ref(draft?.savedAt ?? 0)
 const confirmingReset = ref(false)
 
@@ -80,16 +83,22 @@ const doc = computed(() => {
 		...checks,
 	}
 })
-const cards = computed(() => (editing.value && !general.value ? ficheCards(schema.value, doc.value) : []))
+// Une ligne de couleur suffit pour que le serveur calcule ces champs : ils ne se saisissent plus à la main.
+const hideDerived = (fields: FicheField[]) => (teintes.value.length ? fields.filter((field) => !COLOR_DERIVED_FIELDS.has(field.fieldname)) : fields)
+const cards = computed(() => (editing.value && !general.value ? ficheCards(schema.value, doc.value).map((card) => ({ ...card, fields: hideDerived(card.fields) })).filter((card) => card.fields.length) : []))
 const phaseCards = computed(() =>
 	onFiche.value
 		? creationCards(schema.value, doc.value).map(({ title, fields }) => ({
 				title,
-				inputs: fields.filter((field) => field.fieldtype !== 'Check'),
+				inputs: hideDerived(fields).filter((field) => field.fieldtype !== 'Check'),
 				checks: fields.filter((field) => field.fieldtype === 'Check'),
 			}))
+			.filter((card) => card.inputs.length || card.checks.length)
 		: [],
 )
+// Un article composé n'a pas de fiche technique, donc pas de couleurs.
+const showColors = computed(() => !general.value && !props.article?.compose && Boolean(schema.value))
+const colorsAfter = computed(() => colorsAfterCard((onFiche.value ? phaseCards.value : cards.value).map((card) => card.title)))
 const savedName = computed(() => values.designation.trim().toUpperCase())
 // Le groupe en place reste proposé, même s'il a quitté la liste.
 const groupes = computed(() => {
@@ -99,7 +108,8 @@ const groupes = computed(() => {
 
 const changes = computed(() => changedFields(initial, values))
 const ficheChanges = computed(() => changedFields(initialFiche, fiche.value))
-const dirty = computed(() => Object.keys(changes.value).length > 0 || Object.keys(ficheChanges.value).length > 0 || (!editing.value && client.value?.name !== props.initialClient?.name))
+const teintesChanged = computed(() => JSON.stringify(teintesPayload(teintes.value)) !== JSON.stringify(teintesPayload(initialTeintes)))
+const dirty = computed(() => Object.keys(changes.value).length > 0 || Object.keys(ficheChanges.value).length > 0 || teintesChanged.value || (!editing.value && client.value?.name !== props.initialClient?.name))
 
 /** Seuls les champs proposés pour le procédé retenu partent au serveur. */
 const creationFiche = computed(() => {
@@ -135,11 +145,11 @@ watch(
 )
 // À chaque saisie, sans attendre : une coupure ou une page fermée ne perd que la dernière frappe.
 watch(
-	[values, client, fiche, phase, ficheProcede],
+	[values, client, fiche, phase, ficheProcede, teintes],
 	() => {
 		if (editing.value) return
 		if (!dirty.value) clearDraft(draftClient)
-		else saveDraft({ savedAt: Date.now(), phase: phase.value, values: { ...values }, client: client.value, fiche: fiche.value, ficheProcede: ficheProcede.value }, draftClient)
+		else saveDraft({ savedAt: Date.now(), phase: phase.value, values: { ...values }, client: client.value, fiche: fiche.value, ficheProcede: ficheProcede.value, teintes: teintes.value }, draftClient)
 	},
 	{ deep: true },
 )
@@ -196,6 +206,7 @@ function startOver() {
 	fiche.value = { ...initialFiche }
 	phase.value = 1
 	ficheProcede.value = ''
+	teintes.value = initialTeintes
 	errors.value = {}
 	serverError.value = ''
 	restoredAt.value = 0
@@ -213,18 +224,18 @@ async function save() {
 		if (phased.value) phase.value = 1
 		return focusInvalid()
 	}
-	if (props.article && !Object.keys(changes.value).length && !Object.keys(ficheChanges.value).length) {
+	if (props.article && !Object.keys(changes.value).length && !Object.keys(ficheChanges.value).length && !teintesChanged.value) {
 		emit('close')
 		return
 	}
 	busy.value = true
 	try {
 		if (props.article) {
-			emit('saved', await updateArticle(props.article, { ...changes.value, fiche: ficheChanges.value as Record<string, string> }))
+			emit('saved', await updateArticle(props.article, { ...changes.value, fiche: ficheChanges.value as Record<string, string>, ...(teintesChanged.value ? { teintes: teintesPayload(teintes.value) } : {}) }))
 		} else {
 			const payload = general.value
 				? { type: values.type, designation: values.designation, groupe: values.groupe, ancien_code: values.ancien_code }
-				: { type: values.type, designation: values.designation, client: client.value?.name, procede: values.procede, reference: values.reference, groupe: values.groupe, fiche: creationFiche.value }
+				: { type: values.type, designation: values.designation, client: client.value?.name, procede: values.procede, reference: values.reference, groupe: values.groupe, fiche: creationFiche.value, teintes: teintesPayload(teintes.value) }
 			const { name } = await createArticle(payload)
 			clearDraft(draftClient)
 			emit('created', name)
@@ -274,6 +285,10 @@ async function save() {
 		<p v-if="loadError" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">{{ loadError }}</p>
 
 		<template v-if="onFiche">
+			<template v-if="showColors && !colorsAfter">
+				<h3 class="form-section mt-0 border-t-0 pt-0">Couleurs</h3>
+				<ArticleColorsInput v-model="teintes" @error="serverError = $event" />
+			</template>
 			<template v-for="(card, index) in phaseCards" :key="card.title">
 				<h3 class="form-section" :class="index === 0 && 'mt-0 border-t-0 pt-0'">{{ card.title }}</h3>
 				<div v-if="card.inputs.length" class="form-grid form-grid-3">
@@ -282,6 +297,10 @@ async function save() {
 				<div v-if="card.checks.length" class="form-checks">
 					<FicheInput v-for="field in card.checks" :key="field.fieldname" v-model="fiche[field.fieldname]" :field="field" />
 				</div>
+				<template v-if="showColors && colorsAfter === card.title">
+					<h3 class="form-section">Couleurs</h3>
+					<ArticleColorsInput v-model="teintes" @error="serverError = $event" />
+				</template>
 			</template>
 		</template>
 
@@ -340,11 +359,19 @@ async function save() {
 				</div>
 			</div>
 
+			<template v-if="editing && showColors && !colorsAfter">
+				<h3 class="form-section">Couleurs</h3>
+				<ArticleColorsInput v-model="teintes" @error="serverError = $event" />
+			</template>
 			<template v-for="card in cards" :key="card.title">
 				<h3 class="form-section">{{ card.title }}</h3>
 				<div class="form-grid">
 					<FicheInput v-for="field in card.fields" :key="field.fieldname" v-model="fiche[field.fieldname]" :field="field" />
 				</div>
+				<template v-if="showColors && colorsAfter === card.title">
+					<h3 class="form-section">Couleurs</h3>
+					<ArticleColorsInput v-model="teintes" @error="serverError = $event" />
+				</template>
 			</template>
 
 			<p v-if="serverError" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">{{ serverError }}</p>

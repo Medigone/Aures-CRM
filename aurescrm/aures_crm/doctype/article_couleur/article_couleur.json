@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "creation": "2026-11-05 20:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type_couleur",
+  "code",
+  "nom",
+  "c",
+  "m",
+  "j",
+  "n"
+ ],
+ "fields": [
+  {
+   "fieldname": "type_couleur",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Pantone\nCMJN",
+   "reqd": 1
+  },
+  {
+   "description": "Référence Pantone. Pour une teinte CMJN, il se calcule à l'enregistrement.",
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Code"
+  },
+  {
+   "fieldname": "nom",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nom"
+  },
+  {"depends_on": "eval: doc.type_couleur == 'CMJN'", "fieldname": "c", "fieldtype": "Int", "in_list_view": 1, "label": "C %", "non_negative": 1},
+  {"depends_on": "eval: doc.type_couleur == 'CMJN'", "fieldname": "m", "fieldtype": "Int", "in_list_view": 1, "label": "M %", "non_negative": 1},
+  {"depends_on": "eval: doc.type_couleur == 'CMJN'", "fieldname": "j", "fieldtype": "Int", "in_list_view": 1, "label": "J %", "non_negative": 1},
+  {"depends_on": "eval: doc.type_couleur == 'CMJN'", "fieldname": "n", "fieldtype": "Int", "in_list_view": 1, "label": "N %", "non_negative": 1}
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-05 20:00:00",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Article Couleur",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

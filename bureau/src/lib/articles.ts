@@ -112,6 +112,7 @@ export interface ArticleDetail {
 	documents: ArticleDocument[]
 	droits_prepresse: { maquette: boolean; nouvelle_version: boolean; bat: boolean }
 	fiche: Record<string, string | number>
+	teintes?: ArticleTeinte[]
 	prepresse: ArticlePrepresse
 	ecart_bat: { bat: string; maquette_bat: string; maquette_active: string } | null
 	commandes: ArticleVente[]
@@ -134,6 +135,65 @@ export interface ArticleOptions {
 	schema: FicheSchema
 }
 
+export const CMJN_CHANNELS = ['c', 'm', 'j', 'n'] as const
+
+export interface PantoneMatch {
+	code: string
+	label: string
+	hex: string | null
+	approximative: number
+	needs_suffix: number
+}
+
+export interface TeintePayload {
+	type_couleur: 'Pantone' | 'CMJN'
+	code: string
+	nom: string
+	c: number
+	m: number
+	j: number
+	n: number
+}
+
+/** Ligne de couleur d'un article. Pour une ligne Pantone, le serveur ajoute le libellé et le carré. */
+export interface ArticleTeinte extends TeintePayload, Partial<Omit<PantoneMatch, 'code'>> {
+	/** Repère d'affichage dans la fenêtre de saisie, jamais envoyé au serveur. */
+	key?: number
+}
+
+let teinteKey = 0
+export function newTeinte(type_couleur: TeintePayload['type_couleur']): ArticleTeinte {
+	return { key: ++teinteKey, type_couleur, code: '', nom: '', c: 0, m: 0, j: 0, n: 0 }
+}
+export function teintesForEdit(teintes: ArticleTeinte[] | undefined) {
+	return (teintes ?? []).map((teinte) => ({ ...teinte, key: ++teinteKey }))
+}
+
+/** Couleur d'écran d'une teinte CMJN, calculée sans profil : indicative seulement. */
+export function cmjnHex(c: number, m: number, j: number, n: number) {
+	const channel = (ink: number) => Math.round(255 * (1 - ink / 100) * (1 - n / 100)).toString(16).padStart(2, '0')
+	return `#${channel(c)}${channel(m)}${channel(j)}`
+}
+
+export function teinteHex(teinte: ArticleTeinte) {
+	return teinte.type_couleur === 'CMJN' ? cmjnHex(teinte.c, teinte.m, teinte.j, teinte.n) : (teinte.hex ?? null)
+}
+
+/** Ce qui part au serveur : sans les lignes laissées vides ni ce qui ne sert qu'à l'affichage. */
+export function teintesPayload(teintes: ArticleTeinte[]): TeintePayload[] {
+	return teintes
+		.filter((teinte) => (teinte.type_couleur === 'Pantone' ? teinte.code.trim() : CMJN_CHANNELS.some((channel) => teinte[channel])))
+		.map(({ type_couleur, code, nom, c, m, j, n }) => ({ type_couleur, code: type_couleur === 'Pantone' ? code.trim() : '', nom: nom.trim(), c, m, j, n }))
+}
+
+/** La rubrique Couleurs suit l'impression ; un procédé sans cette rubrique la range après le format, puis après le support. */
+export function colorsAfterCard(titles: string[]) {
+	return ['Impression', 'Format', 'Support'].find((title) => titles.includes(title)) ?? null
+}
+
+/** Champs que le serveur déduit des lignes de couleur : plus de saisie à la main tant qu'il y en a. */
+export const COLOR_DERIVED_FIELDS = new Set(['custom_impression', 'custom_nbr_couleurs', 'custom_nombre_de_couleurs'])
+
 export interface ArticleValues {
 	type?: string
 	designation?: string
@@ -144,6 +204,7 @@ export interface ArticleValues {
 	ancien_code?: string
 	consommation?: string
 	fiche?: Record<string, string>
+	teintes?: TeintePayload[]
 }
 
 export const ARTICLE_COLUMNS: Column<ArticleRow>[] = [

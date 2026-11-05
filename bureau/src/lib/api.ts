@@ -2,7 +2,7 @@
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
 import { call } from '@shared/api'
 import type { BulkItem, BulkOptions, BulkResult, CandidateDemande, ClientChoice, Option, QueueResponse, QueueTicket, QueueView, References, TicketDetail, TicketFormOptions } from '@/types'
-import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView } from './articles'
+import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView, PantoneMatch } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { Condition } from './filters'
 import { conditionsForServer } from './filters'
@@ -195,6 +195,8 @@ export const getArticle = (name: string) => call<ArticleDetail>(`${ARTICLES}.get
 export const getArticleOptions = () => call<ArticleOptions>(`${ARTICLES}.get_article_options`)
 
 export const checkArticleDesignation = (designation: string, client?: string) => call<{ message: string | null }>(`${ARTICLES}.check_article_designation`, { designation, client })
+
+export const searchPantone = (query: string) => call<{ exact: PantoneMatch | null; suggestions: PantoneMatch[] }>(`${ARTICLES}.search_pantone`, { query })
 
 export const createArticle = (values: ArticleValues) => call<{ name: string }>(`${ARTICLES}.create_article`, { values }, true)
 

@@ -11,6 +11,7 @@ import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import ArticleDialog from './ArticleDialog.vue'
+import ArticleColors from './ArticleColors.vue'
 import ArticleDocuments from './ArticleDocuments.vue'
 import ArticleImage from './ArticleImage.vue'
 import ArticlePrepresse from './ArticlePrepresse.vue'
@@ -19,7 +20,7 @@ import NewTicketDialog from './NewTicketDialog.vue'
 import SousArticleDialog from './SousArticleDialog.vue'
 import TagEditor from './TagEditor.vue'
 import { articleActivity, getArticleOptions, makeComposed, setArticleFile } from '@/lib/api'
-import { articleDoc, ficheCards, ficheCardValues, finishesSummary, formatQuantity, formatRate, posesLabel, prepresseState, PROCEDE_FLEXO, TYPE_GENERAL, type ArticleDetail, type ArticleOptions } from '@/lib/articles'
+import { articleDoc, colorsAfterCard, ficheCards, ficheCardValues, finishesSummary, formatQuantity, formatRate, posesLabel, prepresseState, PROCEDE_FLEXO, TYPE_GENERAL, type ArticleDetail, type ArticleOptions } from '@/lib/articles'
 import { formatAmount } from '@/lib/clients'
 import { deskUrl, formatDay } from '@/lib/display'
 import { useArticle } from '@/lib/useArticle'
@@ -57,6 +58,8 @@ const doc = computed(() => (article.value ? articleDoc(article.value) : {}))
 const hasFiche = computed(() => !general.value && ficheCards(options.value?.schema, doc.value).length > 0)
 const cards = computed(() => ficheCardValues(options.value?.schema, doc.value))
 const finishes = computed(() => finishesSummary(cards.value))
+const teintes = computed(() => (article.value?.compose ? [] : article.value?.teintes ?? []))
+const colorsAfter = computed(() => colorsAfterCard(cards.value.map((card) => card.title)))
 function fieldValue(card: string, label: string) {
 	return cards.value.find((item) => item.title === card)?.rows.find((row) => row.label === label)?.value
 }
@@ -350,14 +353,24 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 
 						<!-- Fiche technique : les champs du procédé de l'article, seuls ceux qui sont renseignés. -->
 						<div v-else-if="activeTab === 'technique'" class="bureau-center">
-							<div v-if="cards.length" class="card fiche-releve">
-								<section v-for="card in cards" :key="card.title" class="fiche-rubrique">
-									<h3>{{ card.title }}</h3>
-									<dl v-if="card.rows.length" class="fiche-champs">
-										<div v-for="row in card.rows" :key="row.label"><dt>{{ row.label }}</dt><dd>{{ row.value }}</dd></div>
-									</dl>
-									<p v-if="card.checks.length" class="fiche-coches">{{ card.checks.join(' · ') }}</p>
+							<div v-if="cards.length || teintes.length" class="card fiche-releve">
+								<section v-if="teintes.length && !colorsAfter" class="fiche-rubrique">
+									<h3>Couleurs</h3>
+									<ArticleColors :teintes="teintes" />
 								</section>
+								<template v-for="card in cards" :key="card.title">
+									<section class="fiche-rubrique">
+										<h3>{{ card.title }}</h3>
+										<dl v-if="card.rows.length" class="fiche-champs">
+											<div v-for="row in card.rows" :key="row.label"><dt>{{ row.label }}</dt><dd>{{ row.value }}</dd></div>
+										</dl>
+										<p v-if="card.checks.length" class="fiche-coches">{{ card.checks.join(' · ') }}</p>
+									</section>
+									<section v-if="teintes.length && colorsAfter === card.title" class="fiche-rubrique">
+										<h3>Couleurs</h3>
+										<ArticleColors :teintes="teintes" />
+									</section>
+								</template>
 							</div>
 							<section v-else class="card ref-card">
 								<ListState dieline title="Fiche technique non renseignée" text="Complétez-la pour qu'elle serve aux études et à la prépresse.">

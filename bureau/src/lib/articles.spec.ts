@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activationConsequence, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSigle, articleSortText, changedFields, clientTone, creationCards, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
+import { activationConsequence, cmjnHex, colorsAfterCard, newTeinte, teinteHex, teintesPayload, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSigle, articleSortText, changedFields, clientTone, creationCards, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
 
 const offset = "eval: doc.custom_procédé == 'Offset'"
 const flexo = "eval: doc.custom_procédé == 'Flexo'"
@@ -23,6 +23,33 @@ const options = { procedes: ['Offset'], types: ['Client'], groupes: ['Produits']
 const article = (procede: string, fiche: Record<string, string | number>) => ({ type: 'Client', procede, compose: 0, sous_article: 0, designation: 'ETUI', fiche })
 
 describe('articles', () => {
+	it('calcule le carré d’une teinte CMJN', () => {
+		expect(cmjnHex(0, 0, 0, 0)).toBe('#ffffff')
+		expect(cmjnHex(0, 0, 0, 100)).toBe('#000000')
+		expect(cmjnHex(100, 50, 0, 20)).toBe('#0066cc')
+		expect(teinteHex({ ...newTeinte('CMJN'), c: 100 })).toBe('#00ffff')
+	})
+
+	it('laisse un carré neutre à un code Pantone inconnu', () => {
+		expect(teinteHex({ ...newTeinte('Pantone'), code: 'C1' })).toBeNull()
+		expect(teinteHex({ ...newTeinte('Pantone'), code: '286 C', hex: '#112233' })).toBe('#112233')
+	})
+
+	it('n’envoie ni les lignes vides ni ce qui sert à l’affichage', () => {
+		const lines = [newTeinte('Pantone'), newTeinte('CMJN'), { ...newTeinte('Pantone'), code: ' 286 C ', hex: '#112233', label: 'PANTONE 286 C', nom: ' Logo ' }, { ...newTeinte('CMJN'), m: 40, code: 'ancien' }]
+		expect(teintesPayload(lines)).toEqual([
+			{ type_couleur: 'Pantone', code: '286 C', nom: 'Logo', c: 0, m: 0, j: 0, n: 0 },
+			{ type_couleur: 'CMJN', code: '', nom: '', c: 0, m: 40, j: 0, n: 0 },
+		])
+	})
+
+	it('range les couleurs après l’impression, sinon après le format ou le support', () => {
+		expect(colorsAfterCard(['Support', 'Format', 'Impression', 'Finitions'])).toBe('Impression')
+		expect(colorsAfterCard(['Support', 'Format', 'Bobine'])).toBe('Format')
+		expect(colorsAfterCard(['Support', 'Salle blanche'])).toBe('Support')
+		expect(colorsAfterCard(['Finitions'])).toBeNull()
+	})
+
 	it('écrit les prix et les quantités à la française', () => {
 		expect(formatRate(1240.5)).toBe('1 240,50')
 		expect(formatRate(null)).toBe('0,00')
