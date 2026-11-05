@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import App from '@/App.vue'
+import NewTicketDialog from '@/components/NewTicketDialog.vue'
 import { routes } from '@/router'
 
 vi.mock('@shared/realtime', async (original) => ({
@@ -295,19 +296,110 @@ describe('poste de bureau', () => {
 		expect(crumbs.find('a').text()).toBe('Tickets')
 	})
 
-	it('la recherche globale trouve un ticket, y compris clos, et ouvre sa fiche', async () => {
+	const pressShortcut = async () => {
+		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))
+		await flushPromises()
+	}
+
+	it('le raccourci ouvre et referme la palette', async () => {
+		const { wrapper } = await open('/')
+		await pressShortcut()
+		expect(wrapper.find('.command-palette').exists()).toBe(true)
+		expect(wrapper.find('.command-palette').text()).toContain('Nouveau ticket')
+		await pressShortcut()
+		expect(wrapper.find('.command-palette').exists()).toBe(false)
+		await wrapper.find('.global-search-trigger').trigger('click')
+		expect(wrapper.find('.command-palette').exists()).toBe(true)
+		await wrapper.find('.command-palette-input').trigger('keydown', { key: 'Escape' })
+		expect(wrapper.find('.command-palette').exists()).toBe(false)
+		wrapper.unmount()
+	})
+
+	it('la palette trouve un ticket, y compris clos, et ouvre sa fiche', async () => {
 		const { wrapper, router } = await open('/')
+		await pressShortcut()
 		fetchMock.mockClear()
-		await wrapper.find('.global-search input').setValue('Client')
+		await wrapper.find('.command-palette-input').setValue('Client Un')
 		await new Promise((resolve) => setTimeout(resolve, 300))
 		await flushPromises()
 		const views = fetchMock.mock.calls.map(([url]) => new URL(String(url), 'http://x').searchParams.get('view'))
 		expect(views).toEqual(expect.arrayContaining(['todo', 'closed']))
-		const results = wrapper.findAll('.global-search-results .app-menu-item')
+		const tickets = wrapper.findAll('.command-palette-list [role="group"]').find((group) => group.attributes('aria-label') === 'Tickets')!
+		const results = tickets.findAll('.app-menu-item')
 		expect(results).toHaveLength(2)
 		await results[1].trigger('click')
 		await flushPromises()
 		expect(router.currentRoute.value.path).toBe('/ticket/TC-2')
+		expect(wrapper.find('.command-palette').exists()).toBe(false)
+		wrapper.unmount()
+	})
+
+	it('une recherche en erreur ne masque pas les autres résultats', async () => {
+		const { wrapper } = await open('/')
+		await pressShortcut()
+		fetchMock.mockImplementation((input: RequestInfo | URL) => (String(input).includes('get_clients') ? Promise.resolve(new Response(JSON.stringify({ exception: 'Refusé' }), { status: 403 })) : respond(String(input))))
+		await wrapper.find('.command-palette-input').setValue('Client Un')
+		await new Promise((resolve) => setTimeout(resolve, 300))
+		await flushPromises()
+		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
+		expect(wrapper.find('.command-palette [role="alert"]').exists()).toBe(true)
+		expect(wrapper.find('.command-palette [aria-label="Tickets"] .app-menu-item').exists()).toBe(true)
+		wrapper.unmount()
+	})
+
+	it('la palette crée un ticket sans quitter la page et recharge la liste', async () => {
+		const { wrapper, router } = await open('/')
+		await pressShortcut()
+		await wrapper.find('.command-palette-input').setValue('nouveau ticket')
+		await wrapper.find('.command-palette-input').trigger('keydown', { key: 'Enter' })
+		await flushPromises()
+		expect(wrapper.find('.command-palette').exists()).toBe(false)
+		const dialog = wrapper.findComponent(NewTicketDialog)
+		expect(dialog.exists()).toBe(true)
+		fetchMock.mockClear()
+		dialog.vm.$emit('created', { name: 'TC-NEW', failedFiles: 0 })
+		await flushPromises()
+		expect(wrapper.findComponent(NewTicketDialog).exists()).toBe(false)
+		expect(wrapper.find('.app-toast').text()).toContain('Ticket TC-NEW créé.')
+		expect(fetchMock.mock.calls.some(([url]) => String(url).includes('get_queue'))).toBe(true)
+		expect(router.currentRoute.value.path).toBe('/')
+		await wrapper.find('.app-toast-action').trigger('click')
+		await flushPromises()
+		expect(router.currentRoute.value.path).toBe('/ticket/TC-NEW')
+		wrapper.unmount()
+	})
+
+	it('le raccourci ne recouvre pas un dialogue déjà ouvert', async () => {
+		const other = document.createElement('div')
+		other.className = 'dialog-scrim'
+		document.body.append(other)
+		const { wrapper } = await open('/')
+		await pressShortcut()
+		expect(wrapper.find('.command-palette').exists()).toBe(false)
+		other.remove()
+		wrapper.unmount()
+	})
+
+	it("l'adresse commande la vue de la liste, sans la perdre depuis une fiche", async () => {
+		const { wrapper, router } = await open('/')
+		fetchMock.mockClear()
+		await router.push({ name: 'Home', query: { vue: 'closed' } })
+		await flushPromises()
+		const lastView = () => {
+			const urls = fetchMock.mock.calls.map(([url]) => String(url)).filter((url) => url.includes('get_queue'))
+			return new URL(urls[urls.length - 1], 'http://x').searchParams.get('view')
+		}
+		expect(lastView()).toBe('closed')
+		await router.push({ name: 'Ticket', params: { id: 'TC-1' } })
+		await flushPromises()
+		fetchMock.mockClear()
+		await router.push({ name: 'Home', query: { vue: 'closed' } })
+		await flushPromises()
+		expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('get_queue'))).toHaveLength(0)
+		await router.push({ name: 'Home' })
+		await flushPromises()
+		expect(lastView()).toBe('todo')
+		wrapper.unmount()
 	})
 
 	it('va au ticket voisin depuis la fiche', async () => {

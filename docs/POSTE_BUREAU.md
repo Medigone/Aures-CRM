@@ -102,7 +102,7 @@ Toute liste construite sur `DataList` les obtient en déclarant `bulk-doctype`, 
 - Le thème suit celui de l'appareil. Le menu du compte force clair ou sombre, sous la clé `bureau-theme`.
 - **Coquille** (`shared/components/AppShell.vue`) : barre du haut et menu de gauche. Le menu démarre replié sous 1 440 px de large, pour laisser la place au tableau, et garde ensuite le choix de l'utilisateur (clé `bureau-menu`). Sur téléphone, il devient une barre en bas de l'écran.
 - **Menu** : les entrées sans écran dans le poste de bureau (Commandes, Devis, Créances, Articles) ouvrent le Desk dans une nouvelle fenêtre.
-- **Recherche globale** (`Ctrl K`) : tickets ouverts et clos, par client ou numéro, avec `get_queue`.
+- **Palette de commandes** (`Cmd K` ou `Ctrl K`, ou clic sur la barre du haut) : créer un ticket, un article ou un prospect depuis n'importe quelle page, ouvrir une liste ou l'une de ses vues, et chercher les tickets (ouverts et clos), les clients et les articles. Les listes de commandes sont dans `bureau/src/lib/palette.ts`. L'adresse commande la vue : `/clients?vue=prospect` ouvre les prospects, même depuis la page Clients.
 - Une classe dont le nom est composé à l'exécution (`urgence-${niveau}`) doit figurer dans `safelist`, sinon le build la retire.
 
 ## Organisation du code

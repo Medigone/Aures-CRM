@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideBuilding2 from '~icons/lucide/building-2'
@@ -14,14 +14,21 @@ import LucideWallet from '~icons/lucide/wallet'
 import AppShell from '@shared/components/AppShell.vue'
 import { realtimeConnected } from '@shared/realtime'
 import type { Crumb, NavGroup } from '@shared/shell'
+import AppToast from './AppToast.vue'
+import ArticleDialog from './ArticleDialog.vue'
+import ClientDialog from './ClientDialog.vue'
+import CommandPalette from './CommandPalette.vue'
 import GlobalSearch from './GlobalSearch.vue'
+import NewTicketDialog from './NewTicketDialog.vue'
 import { logout } from '@/lib/api'
 import { initials } from '@/lib/display'
+import type { CreateKind } from '@/lib/palette'
 import { useAppTheme } from '@/lib/theme'
-import { todoCount } from '@/lib/todoCount'
+import { loadTodoCount, todoCount } from '@/lib/todoCount'
 
 /** Coquille du poste de bureau : la même barre et le même menu sur toutes ses pages. */
 const props = defineProps<{ crumbs: Crumb[]; active: 'tickets' | 'clients' | 'articles' }>()
+const emit = defineEmits<{ created: [kind: CreateKind] }>()
 
 const router = useRouter()
 const userName = window.user_fullname || window.user || ''
@@ -50,12 +57,52 @@ const navGroups = computed<NavGroup[]>(() => [
 		],
 	},
 ])
+
+// Palette de commandes : elle crée depuis n'importe quelle page, sans quitter celle-ci.
+const searchBar = ref<InstanceType<typeof GlobalSearch> | null>(null)
+const paletteOpen = ref(false)
+const creating = ref<CreateKind | null>(null)
+const created = ref<{ kind: CreateKind; name: string; failedFiles: number } | null>(null)
+
+function dismissPalette() {
+	paletteOpen.value = false
+	nextTick(() => searchBar.value?.focus())
+}
+function togglePalette() {
+	if (paletteOpen.value) dismissPalette()
+	else paletteOpen.value = true
+}
+function startCreating(kind: CreateKind) {
+	paletteOpen.value = false
+	creating.value = kind
+}
+function onCreated(kind: CreateKind, name: string, failedFiles = 0) {
+	creating.value = null
+	created.value = { kind, name, failedFiles }
+	if (kind === 'ticket') loadTodoCount()
+	emit('created', kind)
+}
+const createdMessage = computed(() => {
+	if (!created.value) return ''
+	const { kind, name, failedFiles } = created.value
+	if (kind === 'article') return 'Article créé.'
+	if (kind === 'client') return 'Prospect créé.'
+	const files = !failedFiles ? '' : failedFiles > 1 ? ` ${failedFiles} fichiers n'ont pas été envoyés : joignez-les depuis la fiche.` : " Un fichier n'a pas été envoyé : joignez-le depuis la fiche."
+	return `Ticket ${name} créé.${files}`
+})
+function openCreated() {
+	const record = created.value
+	created.value = null
+	if (!record) return
+	const route = { ticket: 'Ticket', article: 'Article', client: 'Client' }[record.kind]
+	router.push({ name: route, params: { id: record.name } })
+}
 </script>
 
 <template>
 	<AppShell poste="Back office" :groups="navGroups" :crumbs="crumbs" :user-name="userName" :initials="initials(userName)" storage-key="bureau-menu">
 		<template #search>
-			<GlobalSearch @open="(name) => router.push({ name: 'Ticket', params: { id: name } })" />
+			<GlobalSearch ref="searchBar" @toggle="togglePalette" />
 		</template>
 		<template #status>
 			<span class="live-status" :data-live="realtimeConnected" :title="realtimeConnected ? 'Les changements faits ailleurs arrivent seuls' : 'Les changements faits ailleurs n\'arrivent plus seuls : actualisez la liste'">
@@ -80,5 +127,12 @@ const navGroups = computed<NavGroup[]>(() => [
 			</button>
 		</template>
 		<slot />
+		<CommandPalette v-if="paletteOpen" @close="dismissPalette" @done="paletteOpen = false" @create="startCreating" />
+		<NewTicketDialog v-if="creating === 'ticket'" @close="creating = null" @created="(result) => onCreated('ticket', result.name, result.failedFiles)" />
+		<ArticleDialog v-else-if="creating === 'article'" @close="creating = null" @created="(name) => onCreated('article', name)" />
+		<ClientDialog v-else-if="creating === 'client'" @close="creating = null" @created="(name) => onCreated('client', name)" />
+		<AppToast :message="createdMessage" :tone="created?.failedFiles ? 'warning' : 'success'" :duration="created?.failedFiles ? 0 : 8000" @close="created = null">
+			<button type="button" class="app-toast-action" @click="openCreated">Ouvrir la fiche</button>
+		</AppToast>
 	</AppShell>
 </template>

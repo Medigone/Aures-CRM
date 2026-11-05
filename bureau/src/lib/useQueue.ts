@@ -6,6 +6,14 @@ import type { QueueResponse, QueueView } from '@/types'
 
 export { DEFAULT_PAGE_SIZE, PAGE_SIZES } from './useServerList'
 
+export const TICKET_VIEWS: { key: QueueView; label: string }[] = [
+	{ key: 'todo', label: 'À traiter' },
+	{ key: 'mine', label: 'À moi' },
+	{ key: 'urgent', label: 'Urgences à décider' },
+	{ key: 'creance', label: 'Créance bloquée' },
+	{ key: 'closed', label: 'Clos' },
+]
+
 export function useQueue(initial: { view?: QueueView; page?: number } = {}) {
 	const list = useServerList<QueueResponse, QueueView>({ view: initial.view ?? 'todo', page: initial.page, pageSizeKey: 'bureau-tickets-par-page', fetch: getQueue })
 	const tickets = computed(() => list.response.value?.tickets ?? [])

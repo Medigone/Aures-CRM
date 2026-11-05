@@ -55,6 +55,11 @@ watch([state.view, state.page], () => {
 	if (!props.id) router.replace({ name: 'Articles', query: listQuery(preview.value ? { apercu: preview.value } : {}) })
 })
 
+// L'adresse commande aussi la vue : la palette ou le menu y mènent sans recharger la page. Une fiche garde la vue de la liste qu'elle a quittée.
+watch([() => route.name, () => route.query.vue], () => {
+	if (route.name === 'Articles') state.view.value = viewFromRoute() ?? 'all'
+})
+
 const fiche = ref<InstanceType<typeof ArticleView> | null>(null)
 const drawer = ref<InstanceType<typeof ArticleDrawer> | null>(null)
 const crumbs = computed<Crumb[]>(() => {
@@ -103,7 +108,7 @@ onBeforeUnmount(closeRealtime)
 </script>
 
 <template>
-	<BureauShell :crumbs="crumbs" active="articles">
+	<BureauShell :crumbs="crumbs" active="articles" @created="state.load()">
 		<div class="bureau-work">
 			<!-- Masquée et non retirée : la liste garde son défilement pendant qu'une fiche est ouverte. -->
 			<ArticleList v-show="!id" :state="state" :selected="id ? undefined : preview" @pick="showPreview" @open="openFiche" @changed="state.load(); drawer?.refresh()">

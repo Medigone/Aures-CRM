@@ -13,19 +13,11 @@ import { echeanceLabel } from '@/lib/display'
 import { conditionLabel, type Condition } from '@/lib/filters'
 import { canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, isOpen, sortText, stepPercent, stepText, visibleColumns } from '@/lib/list'
 import type { BulkState } from '@/lib/useBulk'
-import type { QueueState } from '@/lib/useQueue'
+import { TICKET_VIEWS, type QueueState } from '@/lib/useQueue'
 import type { Option, QueueTicket, References } from '@/types'
 
 const props = defineProps<{ state: QueueState; selected?: string }>()
 const emit = defineEmits<{ pick: [name?: string]; open: [name: string]; changed: [] }>()
-
-const VIEWS = [
-	{ key: 'todo', label: 'À traiter' },
-	{ key: 'mine', label: 'À moi' },
-	{ key: 'urgent', label: 'Urgences à décider' },
-	{ key: 'creance', label: 'Créance bloquée' },
-	{ key: 'closed', label: 'Clos' },
-]
 
 const references = ref<References | null>(null)
 const referencesError = ref('')
@@ -137,7 +129,7 @@ onBeforeUnmount(() => {
 		:visible-of="visibleColumns"
 		:default-columns="DEFAULT_COLUMNS"
 		columns-key="bureau-tickets-colonnes"
-		:views="VIEWS"
+		:views="TICKET_VIEWS"
 		:counts="state.queue.value?.counts"
 		default-sort-label="Urgence, puis échéance"
 		:sort-text="sortText(state.sort.value)"

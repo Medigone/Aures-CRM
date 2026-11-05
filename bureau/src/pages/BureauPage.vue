@@ -11,17 +11,16 @@ import QueueList from '@/components/QueueList.vue'
 import TicketDrawer from '@/components/TicketDrawer.vue'
 import TicketView from '@/components/TicketView.vue'
 import { todoCount } from '@/lib/todoCount'
-import { useQueue } from '@/lib/useQueue'
+import { TICKET_VIEWS, useQueue } from '@/lib/useQueue'
 import type { QueueView } from '@/types'
 
 const props = defineProps<{ id?: string }>()
 const route = useRoute()
 const router = useRouter()
 // La vue et la page restent dans l'adresse : un rechargement ramène au même endroit.
-const QUEUE_VIEWS: QueueView[] = ['todo', 'mine', 'urgent', 'creance', 'closed']
 function viewFromRoute() {
 	const value = route.query.vue
-	return QUEUE_VIEWS.includes(value as QueueView) ? (value as QueueView) : undefined
+	return TICKET_VIEWS.some((view) => view.key === value) ? (value as QueueView) : undefined
 }
 function pageFromRoute() {
 	const value = Number(route.query.page)
@@ -60,6 +59,11 @@ function backToList() {
 }
 watch([state.view, state.page], () => {
 	if (!props.id) router.replace({ name: 'Home', query: listQuery(preview.value ? { apercu: preview.value } : {}) })
+})
+
+// L'adresse commande aussi la vue : la palette ou le menu y mènent sans recharger la page. Une fiche garde la vue de la liste qu'elle a quittée.
+watch([() => route.name, () => route.query.vue], () => {
+	if (route.name === 'Home') state.view.value = viewFromRoute() ?? 'todo'
 })
 
 // Le compteur du menu reste affiché sur les autres pages du poste.
@@ -126,7 +130,7 @@ onBeforeUnmount(closeRealtime)
 </script>
 
 <template>
-	<BureauShell :crumbs="crumbs" active="tickets">
+	<BureauShell :crumbs="crumbs" active="tickets" @created="state.load()">
 		<div class="bureau-work">
 			<!-- Masquée et non retirée : la liste garde sa sélection et son défilement pendant qu'une fiche est ouverte. -->
 			<QueueList v-show="!id" :state="state" :selected="id ? undefined : preview" @pick="showPreview" @open="openFiche" @changed="state.load(); refreshOpenTicket()">
