@@ -2,8 +2,9 @@
 # For license information, please see license.txt
 """Page du poste de bureau Aures, servie sous /bureau.
 
-Un visiteur sans session passe par la page de connexion du site. Un utilisateur connecté sans le bon
-rôle reçoit la page : l'application affiche alors un refus, et l'API refuse de toute façon ses appels.
+Un visiteur sans session passe par la page de connexion du poste, /bureau/connexion. Un utilisateur
+connecté sans le bon rôle reçoit la page : l'application affiche alors un refus, et l'API refuse de
+toute façon ses appels.
 """
 
 import re
@@ -17,18 +18,29 @@ from aurescrm.api.bureau import can_access_bureau
 no_cache = 1
 
 HOME_PATH = "/bureau"
+LOGIN_PATH = "/bureau/connexion"
 
 
 def safe_redirect(target):
-	"""Retour après connexion : une page du poste de bureau seulement."""
+	"""Retour après connexion : une page du poste de bureau seulement (même règle que `safeRedirect` côté client)."""
 	value = (target or "").strip()
-	return value if re.match(r"^/bureau(?:[/?#]|$)", value) else HOME_PATH
+	if not re.match(r"^/bureau(?:[/?#]|$)", value) or value.startswith(LOGIN_PATH):
+		return HOME_PATH
+	return value
 
 
 def get_context(context=None):
-	if frappe.session.user == "Guest":
-		target = safe_redirect(frappe.local.request.full_path.rstrip("?"))
-		frappe.local.flags.redirect_location = f"/login?redirect-to={quote(target, safe='/')}"
+	request = frappe.local.request
+	on_login = "/" + (request.path or "").strip("/") == LOGIN_PATH
+	if frappe.session.user == "Guest" and not on_login:
+		# Page de connexion du poste, avec la page demandée pour y revenir ensuite.
+		target = safe_redirect(request.full_path.rstrip("?"))
+		frappe.local.flags.redirect_location = (
+			LOGIN_PATH if target == HOME_PATH else f"{LOGIN_PATH}?redirect-to={quote(target, safe='/')}"
+		)
+		raise frappe.Redirect
+	if frappe.session.user != "Guest" and on_login:
+		frappe.local.flags.redirect_location = safe_redirect(frappe.form_dict.get("redirect-to"))
 		raise frappe.Redirect
 	frappe.db.commit()
 	context = frappe._dict()

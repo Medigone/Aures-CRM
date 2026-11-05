@@ -6,6 +6,7 @@ Exécuter avec : bench --site [site] run-tests --module aurescrm.tests.test_bure
 """
 
 from unittest.mock import patch
+from urllib.parse import parse_qsl
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -15,6 +16,7 @@ from frappe.desk.notifications import extract_mentions
 from aurescrm.api import activity, bureau, bureau_bulk, bureau_clients
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import generate_etude_faisabilite
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import update_assigne_a
+from aurescrm.www import bureau as bureau_page
 
 
 def states(result):
@@ -1087,3 +1089,46 @@ class TestBulkCommun(FrappeTestCase):
 		rows = bureau_bulk.search_bulk_link("Ticket Commercial", "site")
 		for row in rows:
 			self.assertEqual(set(row), {"value", "label"})
+
+
+class TestConnexion(FrappeTestCase):
+	"""Page de connexion du poste : qui la reçoit, et où mène la redirection."""
+
+	def tearDown(self):
+		frappe.local.flags.pop("redirect_location", None)
+		frappe.form_dict.pop("redirect-to", None)
+		frappe.set_user("Administrator")
+
+	def open_page(self, path, user, query=""):
+		"""Ouvre la page et renvoie la redirection demandée, ou None si la page est servie."""
+		frappe.set_user(user)
+		frappe.form_dict.update(parse_qsl(query))
+		request = frappe._dict(path=path, full_path=f"{path}?{query}")
+		with patch.object(frappe.local, "request", request, create=True):
+			try:
+				bureau_page.get_context()
+			except frappe.Redirect:
+				return frappe.local.flags.redirect_location
+		return None
+
+	def test_retour_limite_au_poste(self):
+		self.assertEqual(bureau_page.safe_redirect("/bureau/clients?page=2"), "/bureau/clients?page=2")
+		for target in ("https://exemple.com/bureau", "//exemple.com", "/app/customer", "/bureaux", None):
+			self.assertEqual(bureau_page.safe_redirect(target), "/bureau")
+
+	def test_retour_jamais_vers_la_connexion(self):
+		self.assertEqual(bureau_page.safe_redirect("/bureau/connexion?redirect-to=/bureau"), "/bureau")
+
+	def test_visiteur_envoye_vers_la_connexion(self):
+		self.assertEqual(self.open_page("/bureau", "Guest"), "/bureau/connexion")
+
+	def test_visiteur_garde_la_page_demandee(self):
+		self.assertEqual(
+			self.open_page("/bureau/ticket/TC-1", "Guest"), "/bureau/connexion?redirect-to=/bureau/ticket/TC-1"
+		)
+
+	def test_visiteur_recoit_la_page_de_connexion(self):
+		self.assertIsNone(self.open_page("/bureau/connexion", "Guest", "redirect-to=/bureau/clients"))
+
+	def test_utilisateur_connecte_quitte_la_connexion(self):
+		self.assertEqual(self.open_page("/bureau/connexion", "Administrator", "redirect-to=/bureau/clients"), "/bureau/clients")

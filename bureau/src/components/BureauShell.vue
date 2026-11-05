@@ -11,11 +11,11 @@ import LucideShoppingCart from '~icons/lucide/shopping-cart'
 import LucideSun from '~icons/lucide/sun'
 import LucideTicket from '~icons/lucide/ticket'
 import LucideWallet from '~icons/lucide/wallet'
-import { call } from '@shared/api'
 import AppShell from '@shared/components/AppShell.vue'
 import { realtimeConnected } from '@shared/realtime'
 import type { Crumb, NavGroup } from '@shared/shell'
 import GlobalSearch from './GlobalSearch.vue'
+import { logout } from '@/lib/api'
 import { initials } from '@/lib/display'
 import { useAppTheme } from '@/lib/theme'
 import { todoCount } from '@/lib/todoCount'
@@ -29,10 +29,6 @@ const theme = useAppTheme()
 const nextThemeLabel = computed(() => (theme.resolved.value === 'dark' ? 'Passer en thème clair' : 'Passer en thème sombre'))
 function toggleTheme() {
 	theme.setPreference(theme.resolved.value === 'dark' ? 'light' : 'dark')
-}
-async function logout() {
-	await call('logout', {}, true)
-	window.location.href = '/login'
 }
 
 // Menu : les écrans pas encore repris dans le poste de bureau s'ouvrent sur le Desk.

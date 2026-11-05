@@ -88,6 +88,7 @@ Toute liste construite sur `DataList` les obtient en déclarant `bulk-doctype`, 
 | Application Vue | `bureau/` |
 | Socle partagé avec la PWA commerciale | `shared/` |
 | Page et informations de démarrage | `aurescrm/www/bureau.py` |
+| Connexion | `bureau/src/pages/LoginPage.vue`, `bureau/src/components/LoginLayout.vue` |
 | API et calcul des étapes | `aurescrm/api/bureau.py` |
 | API des clients | `aurescrm/api/bureau_clients.py` |
 | Temps réel | `aurescrm/bureau_events.py` |
@@ -106,3 +107,9 @@ cd bureau && yarn test && yarn typecheck
 ```
 
 `aurescrm/public/bureau/` et `aurescrm/www/bureau.html` sont générés et ne sont pas commités.
+
+## Connexion
+
+Le poste a sa page, `/bureau/connexion`, sur la même base que celle de `/commercial`. Un visiteur sans session y est envoyé avec la page demandée (`?redirect-to=`), et la déconnexion y ramène. La session reste celle du site : se connecter ici connecte aussi au Desk, et se déconnecter déconnecte des deux. `/login` reste la page du Desk.
+
+Un compte connecté sans le rôle voit le refus d'accès dans `App.vue`, avec « Changer de compte ».
