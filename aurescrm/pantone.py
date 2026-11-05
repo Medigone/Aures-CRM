@@ -39,15 +39,17 @@ def cmjn_code(c, m, j, n):
 	return f"C{cint(c)} M{cint(m)} J{cint(j)} N{cint(n)}"
 
 
-def derive_impression(types):
-	"""Impression et nombre de couleurs de l'article. Plusieurs teintes CMJN comptent toujours pour les 4 mêmes encres."""
-	quadri = CMJN in types
-	spots = sum(1 for kind in types if kind == PANTONE)
-	if quadri and spots:
-		return {"impression": "Quadri +Pantone", "couleurs": f"CMJN + {spots}", "total": 4 + spots}
-	if quadri:
+def derive_impression(rows):
+	"""Impression et nombre de couleurs de l'article. Une teinte qui utilise C, M ou J est une quadri : 4 encres, quel que
+	soit le nombre de ses lignes. Une teinte faite du seul noir compte pour 1 encre."""
+	spots = sum(1 for row in rows if row.get("type_couleur") == PANTONE)
+	process = [row for row in rows if row.get("type_couleur") == CMJN]
+	if any(cint(row.get(channel)) for row in process for channel in "cmj"):
+		if spots:
+			return {"impression": "Quadri +Pantone", "couleurs": f"CMJN + {spots}", "total": 4 + spots}
 		return {"impression": "Quadri", "couleurs": "CMJN", "total": 4}
-	return {"impression": "Pantone", "couleurs": str(spots), "total": spots}
+	total = spots + (1 if any(cint(row.get("n")) for row in process) else 0)
+	return {"impression": "Pantone" if spots else None, "couleurs": str(total), "total": total}
 
 
 def _clean_row(row):
@@ -77,7 +79,9 @@ def sync_item_colors(doc, method=None):
 		return
 	for row in rows:
 		_clean_row(row)
-	derived = derive_impression([row.type_couleur for row in rows])
+	derived = derive_impression(rows)
+	if not derived["total"]:
+		return
 	doc.custom_impression = derived["impression"]
 	doc.custom_nbr_couleurs = derived["couleurs"]
 	# Cette liste du Desk s'arrête à 8 : au-delà, la valeur en place reste.

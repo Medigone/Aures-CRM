@@ -11,8 +11,9 @@ liste vide. La fiche technique suit `article_schema`, c'est-à-dire les sections
 import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt, get_fullname
+from frappe.utils.file_manager import get_max_file_size
 
-from aurescrm import pantone
+from aurescrm import bat_import, pantone
 from aurescrm.api import activity
 from aurescrm.api.bureau import TICKET, _parse, condition_filters, page_bounds, require_bureau, row_tags
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, bind_file, ticket_rows
@@ -522,6 +523,22 @@ def search_pantone(query=None):
 	"""Codes Pantone proposés à la saisie d'une fiche technique."""
 	require_bureau()
 	return pantone.search(query)
+
+
+@frappe.whitelist(methods=["POST"])
+def analyze_bat(name):
+	"""Lit un BAT envoyé par la fenêtre d'import, sans rien enregistrer : le résultat est une proposition à vérifier."""
+	require_bureau()
+	doc = frappe.get_doc(ITEM, name)
+	doc.check_permission("write")
+	upload = frappe.request.files.get("file") if frappe.request else None
+	if not upload:
+		frappe.throw(_("Aucun fichier reçu."))
+	limit = get_max_file_size()
+	data = upload.stream.read(limit + 1)
+	if len(data) > limit:
+		frappe.throw(_("Ce fichier est trop lourd."))
+	return bat_import.analyze(data, article_schema(), frappe.get_all("Type Papier", pluck="name", limit_page_length=0), frappe.get_all("Grammage Papier", pluck="name", limit_page_length=0))
 
 
 def _apply_fiche(doc, fiche):

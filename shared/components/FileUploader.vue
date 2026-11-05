@@ -85,7 +85,7 @@ function meta(item: UploadItem) {
 	return item.error
 }
 
-defineExpose({ pick, add: addFiles, start, clear, items, sending })
+defineExpose({ pick, add: addFiles, start, retryAll, clear, items, sending })
 </script>
 
 <template>
