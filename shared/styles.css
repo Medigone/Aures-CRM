@@ -759,6 +759,12 @@
 	.act-avatar-me {
 		@apply bg-primary text-on-primary;
 	}
+	.act-scroll {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		min-height: 0;
+	}
 	.act-list {
 		position: relative;
 		display: flex;

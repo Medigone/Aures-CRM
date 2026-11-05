@@ -166,7 +166,7 @@ describe('page Clients', () => {
 
 	it('la fiche résume les affaires et signale un ticket bloqué', async () => {
 		const { wrapper } = await open('/clients/CLI-1')
-		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Affaires3', 'Articles', 'Visites et appels2', 'Informations', 'Activité'])
+		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Affaires3', 'Articles', 'Visites et appels2', 'Informations'])
 		expect(wrapper.find('.record-tab[aria-selected="true"]').text()).toBe('Aperçu')
 		expect(wrapper.text()).toContain('1 ticket bloqué pour créance')
 		expect(wrapper.text()).toContain('4,5 sur 5')
@@ -207,10 +207,20 @@ describe('page Clients', () => {
 		articles.wrapper.unmount()
 	})
 
-	it('cache Modifier et Activité sans le droit', async () => {
+	it('le fil reste visible hors des onglets, et un ancien lien vers Activité ouvre l’aperçu', async () => {
+		for (const tab of ['', '?onglet=infos', '?onglet=activite']) {
+			const { wrapper } = await open(`/clients/CLI-1${tab}`)
+			expect(wrapper.find('.record-activity .activity').exists()).toBe(true)
+			expect(wrapper.find('.client-main .activity').exists()).toBe(false)
+			if (tab === '?onglet=activite') expect(wrapper.find('.record-tab[aria-selected="true"]').text()).toBe('Aperçu')
+			wrapper.unmount()
+		}
+	})
+
+	it('cache Modifier et le fil sans le droit', async () => {
 		current['bureau_clients.get_client'] = { ...detail, can_edit: false, can_view_activity: false }
 		const { wrapper } = await open('/clients/CLI-1')
-		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).not.toContain('Activité')
+		expect(wrapper.find('.record-activity').exists()).toBe(false)
 		expect(wrapper.text()).not.toContain('Modifier')
 		expect(wrapper.text()).not.toContain('Dernière activité')
 		wrapper.unmount()

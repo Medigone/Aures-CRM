@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideX from '~icons/lucide/x'
@@ -72,10 +72,15 @@ const tabs = computed(() => {
 	if (current.compose) list.push({ key: 'sous-articles', label: 'Sous-articles', count: current.sous_articles.length })
 	if (!general.value) list.push({ key: 'prepresse', label: 'Prépresse', count: prepresseCount.value })
 	list.push({ key: 'affaires', label: 'Affaires', count: affairesCount.value })
-	list.push({ key: 'activite', label: 'Activité', count: current.comments.count })
 	return list
 })
 const activeTab = computed(() => (tabs.value.some((tab) => tab.key === props.tab) ? props.tab! : 'apercu'))
+// Depuis l'aperçu, « Voir le fil » amène au fil ; sans commentaire, le curseur est déjà prêt pour écrire.
+watch(feed, (current) => {
+	if (!current || props.tab !== 'activite') return
+	current.root?.scrollIntoView?.({ block: 'nearest' })
+	if (!article.value?.comments.count) current.focusInput()
+})
 
 const chain = computed(() => {
 	const current = article.value?.prepresse
@@ -176,7 +181,7 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 		<div v-else-if="!article" class="card p-8 text-center text-ink-gray-6">Chargement de l'article…</div>
 
 		<template v-else>
-			<div class="client-dossier">
+			<div class="client-dossier with-activity">
 				<aside class="card client-side" aria-label="Identité de l'article">
 					<div class="article-visual">
 						<img v-if="article.image" :src="article.image" alt="Visuel de l'article" />
@@ -440,13 +445,12 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 								<ClientTicketsTable :tickets="article.tickets" empty="Aucun ticket rattaché à cet article." />
 							</section>
 						</div>
-
-						<!-- Activité. -->
-						<div v-else class="bureau-center">
-							<ActivityFeed ref="feed" :api="activityApi" :version="article.modified" :user-name="userName" @changed="refresh()" />
-						</div>
 					</div>
 				</div>
+				<!-- Le fil reste visible, quel que soit l'onglet. -->
+				<aside class="record-activity" aria-label="Commentaires et activité de l'article">
+					<ActivityFeed ref="feed" :api="activityApi" :version="article.modified" :user-name="userName" @changed="refresh()" />
+				</aside>
 			</div>
 		</template>
 

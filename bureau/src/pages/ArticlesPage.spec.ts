@@ -152,8 +152,17 @@ describe('page Articles', () => {
 		expect(main).toContain('8 poses · chutes 12 %')
 		expect(main).toContain('12,40 DA')
 		expect(wrapper.find('.client-side').text()).toContain('BISCUITERIE NUMIDIA')
-		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Fiche technique', 'Prépresse4', 'Affaires4', 'Activité'])
+		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Fiche technique', 'Prépresse4', 'Affaires4'])
 		wrapper.unmount()
+	})
+
+	it('le fil reste visible hors des onglets, quel que soit l’onglet', async () => {
+		for (const tab of ['', '?onglet=technique', '?onglet=affaires']) {
+			const { wrapper } = await open(`/articles/CLI-1-003${tab}`)
+			expect(wrapper.find('.record-activity .activity').exists()).toBe(true)
+			expect(wrapper.find('.client-main .activity').exists()).toBe(false)
+			wrapper.unmount()
+		}
 	})
 
 	it('la fiche technique n’affiche que les champs du procédé', async () => {
@@ -177,7 +186,7 @@ describe('page Articles', () => {
 		current['bureau_articles.get_article'] = { ...detail, type: 'Général', client: null, client_label: null, procede: null, ecart_bat: null, fiche: {} }
 		const { wrapper } = await open('/articles/CLI-1-003')
 		expect(wrapper.find('.client-side .btn-primary').text()).toBe('Modifier')
-		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Affaires4', 'Activité'])
+		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Affaires4'])
 		wrapper.unmount()
 	})
 

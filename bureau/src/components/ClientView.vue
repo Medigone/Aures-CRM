@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideMail from '~icons/lucide/mail'
@@ -50,10 +50,15 @@ const tabs = computed(() => {
 		{ key: 'relation', label: 'Visites et appels', count: current.relation.length },
 		{ key: 'infos', label: 'Informations' },
 	]
-	if (current.can_view_activity) list.push({ key: 'activite', label: 'Activité', count: current.comments.count })
 	return list
 })
 const activeTab = computed(() => (tabs.value.some((tab) => tab.key === props.tab) ? props.tab! : 'apercu'))
+// Depuis l'aperçu, « Voir le fil » amène au fil ; sans commentaire, le curseur est déjà prêt pour écrire.
+watch(feed, (current) => {
+	if (!current || props.tab !== 'activite') return
+	current.root?.scrollIntoView?.({ block: 'nearest' })
+	if (!client.value?.comments.count) current.focusInput()
+})
 
 interface Vente {
 	piece: string
@@ -159,7 +164,7 @@ function onPieceFile(piece: string, event: Event) {
 		<div v-else-if="!client" class="card p-8 text-center text-ink-gray-6">Chargement du client…</div>
 
 		<template v-else>
-			<div class="client-dossier">
+			<div class="client-dossier" :class="client.can_view_activity && 'with-activity'">
 			<aside class="card client-side" aria-label="Identité du client">
 				<div class="side-block gap-2">
 					<h2 class="page-title leading-tight">{{ client.client }}</h2>
@@ -388,13 +393,12 @@ function onPieceFile(piece: string, event: Event) {
 						</dl>
 					</section>
 				</div>
-
-				<!-- Activité. -->
-				<div v-else class="bureau-center">
-					<ActivityFeed ref="feed" :api="activityApi" :version="client.modified" :user-name="userName" @changed="refresh()" />
-				</div>
 			</div>
 			</div>
+			<!-- Le fil reste visible, quel que soit l'onglet. -->
+			<aside v-if="client.can_view_activity" class="record-activity" aria-label="Commentaires et activité du client">
+				<ActivityFeed ref="feed" :api="activityApi" :version="client.modified" :user-name="userName" @changed="refresh()" />
+			</aside>
 			</div>
 		</template>
 

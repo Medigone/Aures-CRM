@@ -152,6 +152,7 @@ function onTags(tags: string[]) {
 			<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
 			<p v-if="notice" role="status" class="flex-none rounded-control tone-blue px-3.5 py-2.5">{{ notice }}</p>
 
+			<div class="ticket-dossier">
 			<div class="bureau-detail">
 				<div class="bureau-center">
 					<p v-if="banner" class="rounded-control px-3.5 py-2.5" :class="banner.style">{{ banner.text }}</p>
@@ -181,7 +182,6 @@ function onTags(tags: string[]) {
 					<CreanceCard v-if="showCreance" :ticket="ticket" :busy="busy" :perform="perform" />
 					<RapprochementCard v-if="showRappro" :ticket="ticket" :busy="busy" :perform="perform" />
 					<ChecklistCard v-if="showChecks" :ticket="ticket" :busy="busy" :perform="perform" />
-					<ActivityFeed ref="feed" :api="activityApi" :version="ticket.modified" :user-name="userName" @changed="refresh(); emit('changed')" />
 				</div>
 
 				<div class="bureau-side">
@@ -189,6 +189,11 @@ function onTags(tags: string[]) {
 					<DocumentsCard :ticket="ticket" :busy="busy" :perform="perform" />
 					<CycleCard :ticket="ticket" />
 				</div>
+			</div>
+			<!-- Le fil reste visible, quelle que soit l'étape regardée. -->
+			<aside class="record-activity" aria-label="Commentaires et activité du ticket">
+				<ActivityFeed ref="feed" :api="activityApi" :version="ticket.modified" :user-name="userName" @changed="refresh(); emit('changed')" />
+			</aside>
 			</div>
 		</template>
 	</main>

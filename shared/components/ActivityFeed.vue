@@ -234,7 +234,8 @@ defineExpose({ refresh: load, root, focusInput })
 		</p>
 		<p v-else-if="loading" class="py-3 text-center text-ink-gray-6">Chargement du fil…</p>
 		<p v-else-if="!shown.length" class="py-3 text-center text-ink-gray-6">{{ filter === 'comments' ? 'Aucun commentaire pour le moment. Écrivez le premier.' : 'Rien dans cet historique pour le moment.' }}</p>
-		<ol v-else class="act-list">
+		<div v-else class="act-scroll">
+		<ol class="act-list">
 			<template v-for="item in shown" :key="item.id">
 				<li v-if="item.kind === 'comment'" class="act-item">
 					<span class="act-avatar" aria-hidden="true">{{ initialsOf(item.who) }}</span>
@@ -274,7 +275,7 @@ defineExpose({ refresh: load, root, focusInput })
 							<strong>{{ item.who }}</strong> a changé {{ item.changes?.length }} champs
 						</template>
 						<template v-else>
-							<strong v-if="item.who">{{ item.who }} </strong>{{ item.text }}
+							<strong v-if="item.who">{{ item.who }}</strong>{{ item.who ? ' ' : '' }}{{ item.text }}
 							<template v-if="item.link">
 								<a v-if="item.link.url" :href="item.link.url" class="text-link" target="_blank" rel="noopener noreferrer">{{ item.link.label }}</a>
 								<template v-else>{{ item.link.label }}</template>
@@ -289,5 +290,6 @@ defineExpose({ refresh: load, root, focusInput })
 			</template>
 		</ol>
 		<button v-if="hiddenCount > 0" type="button" class="ml-8 self-start text-sm text-link" @click="expanded = true">Afficher les {{ hiddenCount }} éléments plus anciens</button>
+		</div>
 	</section>
 </template>

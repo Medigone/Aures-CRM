@@ -457,31 +457,52 @@
 		outline: 0;
 	}
 
-	/* Fiche client : l'identité reste à gauche sur tous les onglets. */
-	.client-dossier {
-		display: flex;
+	/* Fiches : l'identité à gauche et le fil à droite restent en place sur tous les onglets. */
+	.client-dossier,
+	.ticket-dossier {
+		display: grid;
 		flex: 1 1 auto;
-		align-items: flex-start;
+		grid-template-rows: minmax(0, 1fr);
 		gap: 0.75rem;
 		min-height: 0;
 	}
+	.client-dossier {
+		grid-template-columns: 19rem minmax(0, 1fr);
+	}
+	.client-dossier.with-activity {
+		grid-template-columns: 19rem minmax(0, 1fr) 20rem;
+	}
+	.ticket-dossier {
+		grid-template-columns: minmax(0, 1fr) 20rem;
+	}
 	.client-side {
 		display: flex;
-		flex: none;
 		flex-direction: column;
-		width: 19rem;
+		align-self: start;
 		max-height: 100%;
 		overflow-y: auto;
 		scrollbar-width: thin;
 	}
 	.client-main {
 		display: flex;
-		flex: 1 1 0;
 		flex-direction: column;
-		align-self: stretch;
 		gap: 0.625rem;
 		min-width: 0;
 		min-height: 0;
+	}
+	/* Le fil défile sous la zone de saisie, qui reste à portée de main. */
+	.record-activity {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		min-height: 0;
+	}
+	.record-activity .activity {
+		min-height: 0;
+	}
+	.record-activity .act-scroll {
+		overflow-y: auto;
+		scrollbar-width: thin;
 	}
 	.side-block {
 		display: flex;
@@ -536,16 +557,66 @@
 		align-items: start;
 		gap: 0.625rem;
 	}
-	@media (max-width: 900px) {
-		.client-dossier {
-			flex: none;
-			flex-direction: column;
-			align-items: stretch;
+	/* Trois colonnes ne tiennent plus : le fil passe sous le contenu et la fiche défile d'un seul tenant. */
+	@media (max-width: 1279px) {
+		.client-dossier.with-activity,
+		.ticket-dossier {
+			grid-template-rows: auto auto;
+			overflow-y: auto;
+			scrollbar-width: thin;
 		}
-		.client-side {
-			width: auto;
+		.client-dossier.with-activity {
+			grid-template-columns: 19rem minmax(0, 1fr);
+		}
+		.ticket-dossier {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.client-dossier.with-activity .client-side {
+			position: sticky;
+			top: 0;
+			grid-row: 1 / span 2;
 			max-height: none;
 			overflow: visible;
+		}
+		.client-dossier.with-activity .client-main,
+		.ticket-dossier .bureau-detail {
+			min-height: auto;
+		}
+		.client-dossier.with-activity .bureau-detail,
+		.ticket-dossier .bureau-detail {
+			flex: none;
+			overflow: visible;
+		}
+		.client-dossier.with-activity .record-activity {
+			grid-column: 2;
+		}
+		.record-activity,
+		.record-activity .activity,
+		.record-activity .act-scroll {
+			min-height: auto;
+		}
+		.record-activity .act-scroll {
+			overflow: visible;
+		}
+	}
+	@media (max-width: 900px) {
+		.client-dossier,
+		.client-dossier.with-activity,
+		.ticket-dossier {
+			flex: none;
+			grid-template-columns: minmax(0, 1fr);
+			grid-template-rows: none;
+			overflow: visible;
+		}
+		.client-dossier.with-activity .client-side,
+		.client-side {
+			position: static;
+			grid-row: auto;
+			max-height: none;
+			overflow: visible;
+		}
+		.client-dossier.with-activity .record-activity {
+			grid-column: auto;
 		}
 		.client-main {
 			flex: none;

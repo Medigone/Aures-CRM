@@ -46,8 +46,8 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 - **Serveur** : `aurescrm/api/bureau_clients.py`. `get_clients` lit toute la vue, la trie, puis renvoie une page, le total, `names` et les compteurs des vues. Le tri se fait aussi sur la créance, la dernière visite et les tickets.
 - **Créance** : le solde vient de `Creance Client` (créances non soldées), comme dans la PWA, et non de `Suivi Creance`.
 - **Dernière visite** : la plus récente à la date du jour ou avant. Une visite à venir ne compte pas.
-- **Fiche** : une colonne d'identité à gauche, visible sur tous les onglets (tags, actions, contact, commercial, adresse, profil), et six onglets à droite : Aperçu, Affaires, Articles, Visites et appels, Informations, Activité. Un document lié que le rôle ne peut pas lire donne une liste vide, sans erreur.
-- **Droits** : ceux du Desk (`get_customer_edit_status`, `can_view_customer_activity`). Sans le droit, Modifier et l'onglet Activité disparaissent, et le serveur refuse l'écriture.
+- **Fiche** : une colonne d'identité à gauche, visible sur tous les onglets (tags, actions, contact, commercial, adresse, profil), cinq onglets au centre (Aperçu, Affaires, Articles, Visites et appels, Informations), et le fil Commentaires et activité à droite, hors des onglets. Sous 1280 px, le fil passe sous le contenu. Un document lié que le rôle ne peut pas lire donne une liste vide, sans erreur.
+- **Droits** : ceux du Desk (`get_customer_edit_status`, `can_view_customer_activity`). Sans le droit, Modifier et le fil disparaissent, et le serveur refuse l'écriture.
 - **Nouveau prospect** : raison sociale, forme juridique, catégorie, commune et commercial sont obligatoires. La wilaya découle de la commune, et le statut est toujours Prospect. Le commercial devient le principal de la société dans la table d'attributions.
 - **Modifier** : seuls les champs changés partent, avec la date `modified` affichée. Si le client a changé entre-temps, l'enregistrement est refusé.
 - **Commune** : le nom d'une commune est un identifiant. Le serveur renvoie aussi `commune_label`, seul affiché à l'écran.
@@ -60,7 +60,7 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 - **Statut** : un article n'a pas de champ de statut. La pastille montre son dernier BAT : le plus récent encore en vigueur, sinon le plus récent devenu obsolète. La vue « Sans BAT validé » écarte les articles généraux.
 - **Écart de BAT** : une alerte signale un BAT validé dont la maquette n'est plus la version activée (`bat_gap`). Sans maquette renseignée sur le BAT, rien n'est signalé.
 - **Fiche technique** : les champs viennent d'`article_schema`, avec les conditions du Desk évaluées par `shared/fiche.ts`, commun avec la PWA. Un article Offset ne montre que les champs Offset, et seuls les champs renseignés apparaissent à la lecture. `CARD_OF` (`bureau/src/lib/articles.ts`) les range par sujet.
-- **Onglets** : Aperçu, Fiche technique, Sous-articles (article composé), Prépresse, Affaires, Activité. Un article général n'a ni fiche technique ni prépresse, et son action principale est Modifier.
+- **Onglets** : Aperçu, Fiche technique, Sous-articles (article composé), Prépresse, Affaires. Le fil Commentaires et activité reste à droite, hors des onglets. Un article général n'a ni fiche technique ni prépresse, et son action principale est Modifier.
 - **Tickets** : un ticket ne porte pas d'article. Il se retrouve par sa demande de faisabilité, son dossier d'essai ou son devis rapproché. Un ticket sans aucune de ces pièces n'apparaît donc pas sur la fiche, et Nouveau ticket ne préremplit que le client.
 - **Devis et commandes** : une ligne par ligne d'article : la quantité et le prix sont ceux de l'article, pas le total de la pièce.
 - **Nouvel article** : désignation, groupe, et pour un article client, le client et le procédé. Le code vient de `custom_item_naming`. Un client n'a qu'un article de ce nom.
