@@ -2,12 +2,9 @@
 # For license information, please see license.txt
 """Couleurs de la fiche article : références Pantone et leur carré d'écran, teintes CMJN.
 
-La table `Couleur Pantone` se charge une fois avec `import_reference`, depuis un fichier gardé hors du dépôt, qui est
-public. Sans cette table, tout fonctionne avec des carrés neutres. Ces couleurs sont indicatives : le nuancier fait foi.
+La table `Couleur Pantone` s'installe par sa fixture, à chaque migration. Ces couleurs sont indicatives : le nuancier fait foi.
 """
 
-import json
-import os
 import re
 
 import frappe
@@ -160,29 +157,3 @@ def search(query):
 	names = sorted(names, key=lambda name: (len(name), name))[:SEARCH_LIMIT]
 	details = describe([code, *names])
 	return {"exact": details[code], "suggestions": [details[name] for name in names]}
-
-
-def import_reference(path=None):
-	"""Charge la table depuis le fichier hors dépôt. Une ligne corrigée à la main (`Manuel`) n'est jamais remplacée.
-	bench --site <site> execute aurescrm.pantone.import_reference"""
-	path = path or frappe.get_site_path("private", "pantone_reference.json")
-	if not os.path.exists(path):
-		frappe.throw(_("Fichier de référence introuvable : {0}").format(path))
-	with open(path, encoding="utf-8") as handle:
-		rows = json.load(handle)
-	existing = {row.name: row for row in frappe.get_all(DOCTYPE, fields=["name", "hex", "source", "approximative"], limit_page_length=0)}
-	counts = {"ajoutees": 0, "mises_a_jour": 0, "manuelles_gardees": 0, "inchangees": 0}
-	for row in rows:
-		current = existing.get(row["code"])
-		if not current:
-			frappe.get_doc({"doctype": DOCTYPE, **row}).insert(ignore_permissions=True)
-			counts["ajoutees"] += 1
-		elif current.source == "Manuel":
-			counts["manuelles_gardees"] += 1
-		elif (current.hex, current.source, cint(current.approximative)) == (row["hex"], row["source"], cint(row["approximative"])):
-			counts["inchangees"] += 1
-		else:
-			frappe.db.set_value(DOCTYPE, row["code"], {"hex": row["hex"], "source": row["source"], "approximative": row["approximative"]})
-			counts["mises_a_jour"] += 1
-	frappe.db.commit()
-	return counts

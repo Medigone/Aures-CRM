@@ -1,14 +1,16 @@
 # Copyright (c) 2026, Medigo and contributors
 # For license information, please see license.txt
 
+import json
+import re
 import unittest
-from unittest.mock import patch
 
 import frappe
+from frappe.modules.import_file import import_doc
 from frappe.tests.utils import FrappeTestCase
 
 from aurescrm.passages import _parse_couleurs_item
-from aurescrm.pantone import DOCTYPE, cmjn_code, derive_impression, describe, import_reference, normalize_code
+from aurescrm.pantone import DOCTYPE, cmjn_code, derive_impression, describe, normalize_code
 
 
 class TestPantoneRegles(unittest.TestCase):
@@ -69,24 +71,18 @@ class TestPantoneBase(FrappeTestCase):
 		self.assertEqual(details["9997"]["needs_suffix"], 1)
 		self.assertEqual((details["C1"]["hex"], details["C1"]["needs_suffix"], details["C1"]["label"]), (None, 0, "C1"))
 
-	def test_import_garde_les_lignes_manuelles(self):
-		import json
-		import tempfile
-
+	def test_fixture_garde_les_corrections(self):
 		self._add("9996 C", "#000000", "Manuel")
 		self._add("9995 C", "#000000", "pantonr")
-		rows = [
-			{"code": "9996 C", "hex": "#ffffff", "source": "pantonr", "approximative": 0},
-			{"code": "9995 C", "hex": "#ffffff", "source": "pantonr", "approximative": 0},
-			{"code": "9994 C", "hex": "#ffffff", "source": "colors.csv", "approximative": 1},
-		]
-		with tempfile.NamedTemporaryFile("w", suffix=".json") as handle:
-			json.dump(rows, handle)
-			handle.flush()
-			# L'import valide son travail : ici, le test doit rester annulable.
-			with patch.object(frappe.db, "commit"):
-				counts = import_reference(handle.name)
-		self.assertEqual(frappe.db.get_value(DOCTYPE, "9996 C", "hex"), "#000000")
+		for code in ("9996 C", "9995 C"):
+			import_doc({"doctype": DOCTYPE, "name": code, "code": code, "hex": "#ffffff", "source": "pantonr", "approximative": 0})
+		self.assertEqual(frappe.db.get_value(DOCTYPE, "9996 C", ["hex", "source"]), ("#000000", "Manuel"))
 		self.assertEqual(frappe.db.get_value(DOCTYPE, "9995 C", "hex"), "#ffffff")
-		self.assertEqual(frappe.db.get_value(DOCTYPE, "9994 C", "approximative"), 1)
-		self.assertEqual((counts["manuelles_gardees"], counts["mises_a_jour"], counts["ajoutees"]), (1, 1, 1))
+
+	def test_fixture_complete(self):
+		path = frappe.get_app_path("aurescrm", "fixtures", "couleur_pantone.json")
+		with open(path, encoding="utf-8") as handle:
+			rows = json.load(handle)
+		self.assertTrue(rows)
+		self.assertTrue(all(row["name"] == row["code"] == normalize_code(row["code"]) and re.fullmatch(r"#[0-9a-f]{6}", row["hex"]) for row in rows))
+		self.assertEqual(len({row["name"] for row in rows}), len(rows))
