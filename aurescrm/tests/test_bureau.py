@@ -318,6 +318,14 @@ class TestActions(FrappeTestCase):
 	def _bc_en_cours(self):
 		return self._ticket(request_type="Bon de commande", status="En Cours", docstatus=0)
 
+	def _bc_sans_demande(self):
+		rows = frappe.get_all(bureau.TICKET, filters={"request_type": "Bon de commande", "status": "En Cours", "docstatus": 0}, pluck="name", limit_page_length=0)
+		linked = set(frappe.get_all("Demande Faisabilite", filters={"ticket_commercial": ["in", rows or [""]]}, pluck="ticket_commercial"))
+		name = next((row for row in rows if row not in linked), None)
+		if not name:
+			self.skipTest("Aucun bon de commande en cours sans demande.")
+		return bureau.get_ticket(name)
+
 	def test_version_perimee_refusee(self):
 		ticket = self._bc_en_cours()
 		with self.assertRaises(frappe.TimestampMismatchError):
@@ -343,8 +351,44 @@ class TestActions(FrappeTestCase):
 		self.assertEqual(started["status"], "En Cours")
 		self.assertEqual(started["assigne_a"], "Administrator")
 
+	def _demande(self, ticket_name, status="Brouillon"):
+		name = frappe.generate_hash(length=10)
+		frappe.db.sql(
+			"insert into `tabDemande Faisabilite` (name, ticket_commercial, status, creation, modified) values (%s, %s, %s, now(), now())",
+			(name, ticket_name, status),
+		)
+		return name
+
+	def test_la_demande_coche_la_liste_de_controle(self):
+		from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import sync_demande_checklist
+
+		ticket = self._bc_sans_demande()
+		field = "checklist_bc_demande_faisabilite"
+		frappe.db.set_value(bureau.TICKET, ticket["name"], field, 0, update_modified=False)
+		demande = self._demande(ticket["name"])
+		sync_demande_checklist(ticket["name"])
+		self.assertEqual(frappe.db.get_value(bureau.TICKET, ticket["name"], field), 1)
+		item = next(row for row in bureau.get_ticket(ticket["name"])["checklist"] if row["fieldname"] == field)
+		self.assertTrue(item["checked"])
+		self.assertEqual(item["detected"], [demande])
+		with self.assertRaises(frappe.ValidationError):
+			fresh = bureau.get_ticket(ticket["name"])
+			bureau.set_checklist(fresh["name"], fresh["modified"], field, 0)
+		frappe.clear_messages()
+		frappe.db.set_value("Demande Faisabilite", demande, "status", "Annulée", update_modified=False)
+		sync_demande_checklist(ticket["name"])
+		self.assertEqual(frappe.db.get_value(bureau.TICKET, ticket["name"], field), 0)
+
+	def test_sans_demande_rien_n_est_detecte(self):
+		from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import active_demandes_of_ticket
+
+		ticket = self._bc_sans_demande()
+		self.assertEqual(active_demandes_of_ticket(ticket["name"]), [])
+		item = next(row for row in ticket["checklist"] if row["fieldname"] == "checklist_bc_demande_faisabilite")
+		self.assertEqual(item["detected"], [])
+
 	def test_terminer_exige_la_liste_de_controle(self):
-		ticket = self._bc_en_cours()
+		ticket = self._bc_sans_demande()
 		for item in ticket["checklist"]:
 			ticket = bureau.set_checklist(ticket["name"], ticket["modified"], item["fieldname"], 0)
 		with self.assertRaises(frappe.ValidationError):
@@ -381,7 +425,7 @@ class TestActions(FrappeTestCase):
 			bureau.set_checklist(ticket["name"], ticket["modified"], "status", 1)
 
 	def test_coche_liste_de_controle(self):
-		ticket = self._bc_en_cours()
+		ticket = self._bc_sans_demande()
 		field = ticket["checklist"][0]["fieldname"]
 		checked = bureau.set_checklist(ticket["name"], ticket["modified"], field, 1)
 		self.assertTrue(checked["checklist"][0]["checked"])

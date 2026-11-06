@@ -126,6 +126,7 @@ Règle commune à tout `/bureau` : les actions d'un document sont dans la barre 
   - **Urgence** : Refuser l'urgence et Valider. Valider devient l'action principale tant que la décision est en attente.
   - **Créance** : menu `Créance` (`HeaderMenu`). Bloquée ouvre le motif dans la carte, puis Bloquer le ticket ou Annuler le blocage dans la barre.
   - **Rapprochement** : on choisit un devis ou une autre issue et on commente dans la carte, puis Enregistrer la décision. Rien n'est écrit avant ce clic.
+- **Liste de contrôle** : sur un bon de commande, « Demande de faisabilité » se coche seule dès qu'une demande non annulée est rattachée au ticket, et reste verrouillée tant qu'elle existe. Si la dernière demande est annulée ou supprimée, la case se décoche. Sans demande, la case se coche à la main, notamment quand un devis existant est retenu. Tout cela vit dans `sync_demande_checklist` (`ticket_commercial.py`), appelée par la demande.
 - **Restent dans leur carte** : les cases de la liste de contrôle, et les ajouts propres à une carte (joindre un fichier, créer un sous-article).
 
 ## Colonnes et vues

@@ -165,7 +165,8 @@ export interface TicketDetail {
 	commentaire_rapprochement: string | null
 	devis_rapproche: string | null
 	demande_faisabilite_rapprochee: string | null
-	checklist: { fieldname: string; label: string; checked: boolean }[]
+	/** `detected` : demandes qui cochent l'élément d'elles-mêmes. */
+	checklist: { fieldname: string; label: string; checked: boolean; detected?: string[] }[]
 	comments: CommentSummary
 	steps: Step[]
 	current_step: number | null

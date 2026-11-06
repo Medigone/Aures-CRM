@@ -1090,6 +1090,20 @@ describe('poste de bureau', () => {
 		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
 	})
 
+	it('coche et verrouille la demande de faisabilité détectée', async () => {
+		const detecte = { ...ticket, status: 'En Cours', actions: ['Pause', 'Terminer'], checklist: [{ fieldname: 'checklist_bc_demande_faisabilite', label: 'Demande de faisabilité', checked: true, detected: ['DF-1'] }] }
+		fetchMock.mockImplementation((input: RequestInfo | URL) =>
+			String(input).includes('get_ticket') ? Promise.resolve(new Response(JSON.stringify({ message: detecte }))) : respond(String(input)),
+		)
+		const { wrapper } = await open('/ticket/TC-1')
+		await wrapper.findAll('.step-button').at(-1)!.trigger('click')
+		await flushPromises()
+		const box = wrapper.find('input[type="checkbox"]:disabled')
+		expect((box.element as HTMLInputElement).checked).toBe(true)
+		expect(wrapper.text()).toContain('Détectée : DF-1')
+		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
+	})
+
 	it('grise Terminer tant que la liste de contrôle est incomplète', async () => {
 		const enCours = { ...ticket, status: 'En Cours', statut_demande_urgence: 'Aucune', actions: ['Pause', 'Terminer'] }
 		fetchMock.mockImplementation((input: RequestInfo | URL) =>

@@ -44,3 +44,4 @@ aurescrm.patches.backfill_modele_postes_devis_status_dates
 aurescrm.patches.backfill_bareme_cout_fixe_status
 aurescrm.patches.rename_bareme_cout_fixe_to_series
 aurescrm.patches.migrate_calcul_imposition_depuis_etude
+aurescrm.patches.check_demande_on_ticket_checklist

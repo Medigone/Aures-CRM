@@ -28,6 +28,8 @@ from openpyxl.utils import get_column_letter
 from aurescrm.api import activity
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import FAISABILITE_PROCEDES, get_expected_procede_from_ticket
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
+	DEMANDE_CHECKLIST_FIELD,
+	active_demandes_of_ticket,
 	CHECKLIST_TERMINE_FIELDS,
 	default_niveau_urgence_pour_creation,
 	get_cycle_documents,
@@ -1180,6 +1182,10 @@ def get_ticket(name):
 
 	cycle = get_cycle_documents(doc.name)
 	commande = _commande_for_devis(doc.devis_rapproche) if doc.request_type == "Bon de commande" else None
+	# La demande fait foi, même sur un ticket pas encore réenregistré depuis sa création.
+	detected = [demande["name"] for demande in _active_demandes(cycle)] if doc.request_type == "Bon de commande" else []
+	if detected:
+		doc.set(DEMANDE_CHECKLIST_FIELD, 1)
 	timeline = compute_steps(doc.as_dict(), cycle, commande)
 	meta = frappe.get_meta(TICKET)
 	echeance = str(doc.echeance) if doc.echeance else None
@@ -1222,6 +1228,7 @@ def get_ticket(name):
 				"fieldname": fieldname,
 				"label": _(meta.get_label(fieldname)),
 				"checked": bool(cint(doc.get(fieldname))),
+				"detected": detected if fieldname == DEMANDE_CHECKLIST_FIELD else [],
 			}
 			for fieldname in CHECKLIST_TERMINE_FIELDS.get(cstr(doc.request_type), ())
 		],
@@ -1298,6 +1305,8 @@ def set_checklist(name, modified, fieldname, checked):
 	doc = _ticket_for_write(name, modified)
 	if fieldname not in CHECKLIST_TERMINE_FIELDS.get(cstr(doc.request_type), ()):
 		frappe.throw(_("Cet élément n'appartient pas à la liste de contrôle de ce ticket."))
+	if fieldname == DEMANDE_CHECKLIST_FIELD and not cint(checked) and active_demandes_of_ticket(doc.name):
+		frappe.throw(_("Ce ticket a une demande de faisabilité active : cet élément reste coché tant qu'elle n'est pas annulée."))
 	doc.set(fieldname, 1 if cint(checked) else 0)
 	doc.save()
 	return get_ticket(name)
