@@ -47,6 +47,9 @@ export async function logout() {
 	window.location.href = LOGIN_PATH
 }
 
+/** Classeur Excel des lignes données, en base 64. */
+export const exportXlsx = (title: string, headers: string[], rows: (string | number)[][]) => call<string>(`${BUREAU}.export_xlsx`, { title, headers, rows }, true)
+
 export const getQueue = (view: QueueView, conditions: Condition[], search: string, paging: QueuePaging = {}) =>
 	call<QueueResponse>(`${BUREAU}.get_queue`, {
 		view,

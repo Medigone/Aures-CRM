@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import LucideChevronDown from '~icons/lucide/chevron-down'
-import LucideSearch from '~icons/lucide/search'
-import { COMMON_GROUP, groupFields, searchFields, type FilterField } from '@/lib/filters'
+import { searchFields, type FilterField } from '@/lib/filters'
 
-/** Choix du champ d'un filtre : un doctype en compte plus de cent, on les cherche par leur nom. */
-const props = defineProps<{ modelValue: string; fields: FilterField[] }>()
+/** Choix du champ d'un filtre : on tape dans le champ, la liste se réduit à chaque lettre. Elle montre dix lignes, par ordre alphabétique. */
+const props = defineProps<{ modelValue: string; fields: FilterField[]; autofocus?: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const open = ref(false)
@@ -16,39 +15,47 @@ const list = ref<HTMLElement | null>(null)
 
 const current = computed(() => props.fields.find((field) => field.value === props.modelValue)?.label ?? props.modelValue)
 const found = computed(() => searchFields(props.fields, query.value))
-// En recherche, la liste suit la pertinence : la rubrique passe à côté du nom.
-const searching = computed(() => Boolean(query.value.trim()))
-const groups = computed(() => (searching.value ? [{ label: '', fields: found.value }] : groupFields(found.value)))
 
-async function show() {
-	open.value = true
-	query.value = ''
-	cursor.value = Math.max(found.value.findIndex((field) => field.value === props.modelValue), 0)
-	await nextTick()
-	input.value?.focus()
-	reveal()
-}
 function reveal() {
 	list.value?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest' })
 }
-function choose(field: FilterField) {
+async function show() {
+	if (open.value) return
+	open.value = true
+	query.value = ''
+	cursor.value = 0
+	await nextTick()
+	list.value?.scrollTo?.({ top: 0 })
+}
+function hide() {
 	open.value = false
+	query.value = ''
+}
+function choose(field: FilterField) {
+	hide()
+	input.value?.blur()
 	if (field.value !== props.modelValue) emit('update:modelValue', field.value)
 }
-function onInput() {
+function onInput(event: Event) {
+	query.value = (event.target as HTMLInputElement).value
+	open.value = true
 	cursor.value = 0
+	list.value?.scrollTo?.({ top: 0 })
 }
 async function onKeydown(event: KeyboardEvent) {
 	if (event.key === 'Escape') {
+		if (!open.value) return
 		event.preventDefault()
 		event.stopPropagation()
-		open.value = false
+		hide()
 	} else if (event.key === 'Enter') {
+		if (!open.value) return
 		event.preventDefault()
 		const field = found.value[cursor.value]
 		if (field) choose(field)
 	} else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
 		event.preventDefault()
+		if (!open.value) return show()
 		const count = found.value.length
 		if (!count) return
 		cursor.value = (cursor.value + (event.key === 'ArrowDown' ? 1 : count - 1)) % count
@@ -56,29 +63,39 @@ async function onKeydown(event: KeyboardEvent) {
 		reveal()
 	}
 }
+onMounted(() => {
+	if (props.autofocus) input.value?.focus()
+})
 </script>
 
 <template>
 	<div class="filter-field min-w-0 flex-1">
-		<button v-if="!open" type="button" class="field-input filter-field-button" aria-label="Champ du filtre" aria-haspopup="listbox" @click="show">
-			<span class="truncate">{{ current }}</span>
-			<LucideChevronDown class="h-3.5 w-3.5 flex-none text-ink-gray-6" aria-hidden="true" />
-		</button>
-		<template v-else>
-			<label class="filter-field-search field-input">
-				<LucideSearch class="h-3.5 w-3.5 flex-none text-ink-gray-6" aria-hidden="true" />
-				<input ref="input" v-model="query" type="text" role="combobox" aria-expanded="true" aria-label="Chercher un champ" placeholder="Chercher un champ" autocomplete="off" @input="onInput" @keydown="onKeydown" @blur="open = false" />
-			</label>
-			<div ref="list" class="filter-field-list" role="listbox" aria-label="Champs">
-				<p v-if="!found.length" class="filter-field-empty">Aucun champ ne porte ce nom.</p>
-				<template v-for="(group, position) in groups" :key="position">
-					<p v-if="group.label" class="filter-field-group">{{ group.label }}</p>
-					<button v-for="field in group.fields" :key="field.value" type="button" tabindex="-1" class="filter-field-option" role="option" :aria-selected="found[cursor]?.value === field.value" @pointerdown.prevent="choose(field)">
-						{{ field.label }}
-						<span v-if="searching" class="filter-field-hint">{{ field.group ?? COMMON_GROUP }}</span>
-					</button>
-				</template>
-			</div>
-		</template>
+		<div class="filter-field-box">
+			<input
+				ref="input"
+				class="field-input"
+				type="text"
+				role="combobox"
+				autocomplete="off"
+				aria-label="Champ du filtre"
+				aria-autocomplete="list"
+				:aria-expanded="open"
+				:value="open ? query : current"
+				:placeholder="open ? current : 'Chercher un champ'"
+				@focus="show"
+				@click="show"
+				@input="onInput"
+				@keydown="onKeydown"
+				@blur="hide"
+			/>
+			<LucideChevronDown class="filter-field-chevron h-3.5 w-3.5 text-ink-gray-6" aria-hidden="true" />
+		</div>
+		<div v-if="open" ref="list" class="filter-field-list" role="listbox" aria-label="Champs">
+			<p v-if="!found.length" class="filter-field-empty">Aucun champ ne porte ce nom.</p>
+			<button v-for="(field, position) in found" :key="field.value" type="button" tabindex="-1" class="filter-field-option" role="option" :aria-selected="position === cursor" @pointerdown.prevent="choose(field)">
+				<span class="truncate" :title="field.label">{{ field.label }}</span>
+				<span v-if="field.group" class="filter-field-hint truncate">{{ field.group }}</span>
+			</button>
+		</div>
 	</div>
 </template>

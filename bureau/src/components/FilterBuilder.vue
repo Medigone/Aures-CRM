@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import LucideX from '~icons/lucide/x'
 import FilterFieldPicker from './FilterFieldPicker.vue'
 import { FIELDS, kindOf, needsValue, newCondition, operatorsOf, withField, type Condition, type FilterField } from '@/lib/filters'
@@ -42,8 +42,11 @@ function setValue(condition: Condition, event: Event) {
 function remove(id: number) {
 	emit('update:modelValue', props.modelValue.filter((condition) => condition.id !== id))
 }
+// Un filtre qu'on ajoute s'ouvre sur son champ, prêt à la saisie.
+const added = ref<number | null>(null)
 function add() {
 	const id = props.modelValue.reduce((max, condition) => Math.max(max, condition.id), 0) + 1
+	added.value = id
 	emit('update:modelValue', [...props.modelValue, newCondition(id, props.firstField, fieldList.value)])
 }
 </script>
@@ -53,7 +56,7 @@ function add() {
 		<p v-if="!modelValue.length" class="text-ink-gray-6">Aucun filtre. Chaque filtre ajouté s'ajoute aux précédents.</p>
 		<div v-for="condition in modelValue" :key="condition.id" class="flex flex-col gap-1.5 rounded-control border border-outline-gray-2 p-2">
 			<div class="flex items-start gap-1.5">
-				<FilterFieldPicker :model-value="condition.field" :fields="fieldList" @update:model-value="setField(condition, $event)" />
+				<FilterFieldPicker :model-value="condition.field" :fields="fieldList" :autofocus="condition.id === added" @update:model-value="setField(condition, $event)" />
 				<button type="button" class="icon-btn" aria-label="Retirer ce filtre" @click="remove(condition.id)">
 					<LucideX class="h-4 w-4" aria-hidden="true" />
 				</button>

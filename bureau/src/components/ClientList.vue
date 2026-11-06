@@ -7,9 +7,10 @@ import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getClientOptions, getClients } from '@/lib/api'
-import { CLIENT_COLUMNS, CLIENT_FILTER_FIELDS, CLIENT_VIEWS, clientConditionLabel, clientFilterChoices, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, visibleClientColumns, type ClientOptions, type ClientRow } from '@/lib/clients'
+import { CLIENT_COLUMNS, CLIENT_FILTER_FIELDS, CLIENT_VIEWS, clientConditionLabel, clientFilterChoices, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, visibleClientColumns, type ClientOptions, type ClientRow, type ClientView } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import { withDoctypeFields, type Condition } from '@/lib/filters'
+import type { ExportQuery } from '@/lib/exports'
 import type { ClientsState } from '@/lib/useClients'
 
 const props = defineProps<{ state: ClientsState; selected?: string }>()
@@ -19,9 +20,9 @@ const options = ref<ClientOptions | null>(null)
 const optionsError = ref('')
 const dataList = ref<{ revealCreated: () => Promise<void> } | null>(null)
 const labelOf = (condition: Condition) => clientConditionLabel(condition, options.value)
-async function fetchAll(start: number, pageLength: number) {
+async function fetchRows(query: ExportQuery, start: number, pageLength: number) {
 	const state = props.state
-	const response = await getClients(state.view.value, state.conditions.value, state.search.value, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
+	const response = await getClients(query.view as ClientView, query.conditions, query.search, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
 	return { rows: response.clients as ClientRow[], total: response.total }
 }
 
@@ -83,7 +84,7 @@ onBeforeUnmount(() => {
 		default-sort-label="Ordre par nom"
 		:sort-text="clientSortText(state.sort.value)"
 		:condition-label="labelOf"
-		:fetch-all="fetchAll"
+		:fetch-rows="fetchRows"
 		:selected="selected"
 		:created="created ?? undefined"
 		:load-error="optionsError"
@@ -93,8 +94,8 @@ onBeforeUnmount(() => {
 		@changed="emit('changed')"
 		@create="creating = true"
 	>
-		<template #filters>
-			<FilterBuilder v-model="state.conditions.value" :fields="withDoctypeFields(CLIENT_FILTER_FIELDS, options?.filter_fields)" first-field="status" :choices-of="(field) => clientFilterChoices(field, options)" />
+		<template #filters="{ conditions, update }">
+			<FilterBuilder :model-value="conditions" @update:model-value="update" :fields="withDoctypeFields(CLIENT_FILTER_FIELDS, options?.filter_fields)" first-field="status" :choices-of="(field) => clientFilterChoices(field, options)" />
 		</template>
 
 		<template #cells="{ row, columns }">

@@ -12,6 +12,7 @@ import { bulkAction, bulkAssign, getQueue, getReferences } from '@/lib/api'
 import { echeanceLabel } from '@/lib/display'
 import { conditionLabel, FIELDS, withDoctypeFields, type Condition } from '@/lib/filters'
 import { canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, isOpen, sortText, stepPercent, stepText, visibleColumns } from '@/lib/list'
+import type { ExportQuery } from '@/lib/exports'
 import type { BulkState } from '@/lib/useBulk'
 import { TICKET_VIEWS, type QueueState } from '@/lib/useQueue'
 import type { Option, QueueTicket, References } from '@/types'
@@ -23,9 +24,9 @@ const references = ref<References | null>(null)
 const referencesError = ref('')
 const dataList = ref<{ revealCreated: () => Promise<void> } | null>(null)
 const labelOf = (condition: Condition) => conditionLabel(condition, references.value)
-async function fetchAll(start: number, pageLength: number) {
+async function fetchRows(query: ExportQuery, start: number, pageLength: number) {
 	const state = props.state
-	const response = await getQueue(state.view.value, state.conditions.value, state.search.value, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
+	const response = await getQueue(query.view as QueueState['view']['value'], query.conditions, query.search, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
 	return { rows: response.tickets, total: response.total }
 }
 
@@ -134,7 +135,7 @@ onBeforeUnmount(() => {
 		default-sort-label="Urgence, puis échéance"
 		:sort-text="sortText(state.sort.value)"
 		:condition-label="labelOf"
-		:fetch-all="fetchAll"
+		:fetch-rows="fetchRows"
 		:selected="selected"
 		:created="created?.name"
 		:load-error="referencesError"
@@ -144,8 +145,8 @@ onBeforeUnmount(() => {
 		@changed="emit('changed')"
 		@create="creating = true"
 	>
-		<template #filters>
-			<FilterBuilder v-model="state.conditions.value" :references="references" :fields="withDoctypeFields(FIELDS, references?.filter_fields)" />
+		<template #filters="{ conditions, update }">
+			<FilterBuilder :model-value="conditions" @update:model-value="update" :references="references" :fields="withDoctypeFields(FIELDS, references?.filter_fields)" />
 		</template>
 
 		<template #cells="{ row: ticket, columns }">

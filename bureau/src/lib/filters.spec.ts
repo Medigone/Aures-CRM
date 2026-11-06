@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COMMON_GROUP, conditionLabel, conditionsForServer, describeCondition, groupFields, isComplete, kindOf, newCondition, operatorsOf, searchFields, withDoctypeFields, withField, type FilterField } from './filters'
+import { conditionLabel, conditionsForServer, describeCondition, isComplete, kindOf, newCondition, operatorsOf, searchFields, withDoctypeFields, withField, type FilterField } from './filters'
 
 describe('filtres de la file', () => {
 	it('décrit un filtre actif en clair', () => {
@@ -47,15 +47,16 @@ describe('filtres sur tous les champs du doctype', () => {
 	]
 	const fields = withDoctypeFields([{ value: 'tag', label: 'Tag', kind: 'text' }], extra)
 
-	it('cherche sans tenir compte des accents ni des majuscules', () => {
+	it('cherche sans tenir compte des accents ni des majuscules, par ordre alphabétique', () => {
 		expect(searchFields(fields, 'PROCEDE').map((field) => field.label)).toEqual(['Procédé détaillé'])
 		expect(searchFields(fields, 'detaille proc').map((field) => field.label)).toEqual(['Procédé détaillé'])
-		expect(searchFields(fields, '').length).toBe(4)
+		expect(searchFields(fields, '').map((field) => field.label)).toEqual(['Créé le', 'Grammage', 'Procédé détaillé', 'Tag'])
 		expect(searchFields(fields, 'introuvable')).toEqual([])
-		expect(searchFields([{ value: 'a', label: 'Tolérance Grammage', kind: 'text' }, { value: 'b', label: 'Grammage', kind: 'text' }], 'gramm').map((field) => field.label)).toEqual(['Grammage', 'Tolérance Grammage'])
 	})
-	it('range les champs par rubrique, les filtres courants en tête', () => {
-		expect(groupFields(fields).map((group) => [group.label, group.fields.length])).toEqual([[COMMON_GROUP, 1], ['Support', 2], ['Suivi', 1]])
+	it('range un accent à sa lettre, sans changer la liste reçue', () => {
+		const list: FilterField[] = [{ value: 'a', label: 'Zone', kind: 'text' }, { value: 'b', label: 'Échéance', kind: 'text' }, { value: 'c', label: 'Date', kind: 'text' }]
+		expect(searchFields(list, '').map((field) => field.label)).toEqual(['Date', 'Échéance', 'Zone'])
+		expect(list[0].label).toBe('Zone')
 	})
 	it('propose les conditions de chiffres et les décrit dans la pastille', () => {
 		expect(operatorsOf('champ:custom_grammage', fields).map((op) => op.value)).toEqual(['egal', 'plus', 'moins'])

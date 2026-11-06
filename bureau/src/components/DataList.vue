@@ -14,10 +14,13 @@ import LucideSearch from '~icons/lucide/search'
 import LucideX from '~icons/lucide/x'
 import ListPager from '@shared/components/ListPager.vue'
 import ListState from '@shared/components/ListState.vue'
+import AppToast from './AppToast.vue'
 import BulkBar from './BulkBar.vue'
+import ExportDialog from './ExportDialog.vue'
 import { rangeToggle } from '@/lib/bulk'
+import { saveCsv, type ExportQuery } from '@/lib/exports'
 import { isComplete, type Condition } from '@/lib/filters'
-import { gridTemplate, minListWidth, nextSort, ticketsToCsv, type Column, type Sort } from '@/lib/list'
+import { gridTemplate, minListWidth, nextSort, type Column, type Sort } from '@/lib/list'
 import { useBulk } from '@/lib/useBulk'
 import { PAGE_SIZES } from '@/lib/useServerList'
 
@@ -59,7 +62,7 @@ const props = defineProps<{
 	defaultSortLabel: string
 	sortText: string
 	conditionLabel: (condition: Condition) => string
-	fetchAll: (start: number, pageLength: number) => Promise<{ rows: Row[]; total: number }>
+	fetchRows: (query: ExportQuery, start: number, pageLength: number) => Promise<{ rows: Row[]; total: number }>
 	selected?: string
 	created?: string
 	loadError?: string
@@ -73,8 +76,6 @@ const hasRowMenu = computed(() => Boolean(slots.rowMenu))
 
 const list = ref<HTMLElement | null>(null)
 const filtersOpen = ref(false)
-const exporting = ref(false)
-const exportError = ref('')
 const defaultView = computed(() => props.views[0].key)
 
 // Colonnes affichées : le choix reste sur cet appareil.
@@ -244,35 +245,15 @@ async function revealCreated() {
 }
 defineExpose({ revealCreated })
 
-function downloadCsv(rows: Row[], suffix: string) {
-	const url = URL.createObjectURL(new Blob([ticketsToCsv(rows, shown.value)], { type: 'text/csv;charset=utf-8' }))
-	const link = document.createElement('a')
-	link.href = url
-	link.download = `${props.noun}s-${suffix}.csv`
-	link.click()
-	URL.revokeObjectURL(url)
+/** Export des lignes cochées, sans passer par la fenêtre : elles sont déjà choisies. */
+function downloadSelection(rows: Row[], suffix: string) {
+	saveCsv(rows, shown.value, `${props.noun}s-${suffix}.csv`)
 }
 
-// Export : toute la vue, page après page, avec les colonnes affichées.
-async function exportView() {
-	if (exporting.value) return
-	exporting.value = true
-	exportError.value = ''
-	try {
-		const rows: Row[] = []
-		const pageLength = Math.max(...PAGE_SIZES)
-		for (let start = 0; ; start += pageLength) {
-			const response = await props.fetchAll(start, pageLength)
-			rows.push(...response.rows)
-			if (rows.length >= response.total || !response.rows.length) break
-		}
-		downloadCsv(rows, props.state.view.value)
-	} catch (e) {
-		exportError.value = `L'export a échoué : ${(e as Error).message}`
-	} finally {
-		exporting.value = false
-	}
-}
+// Export : une fenêtre dédiée, ouverte sur la vue, les filtres et la recherche de la liste.
+const exportOpen = ref(false)
+const exported = ref('')
+const exportFiltered = computed(() => viewFiltered.value || activeConditions.value.length > 0 || Boolean(props.state.search.value.trim()))
 
 onMounted(() => {
 	document.addEventListener('pointerdown', onPointerDown)
@@ -336,9 +317,9 @@ onBeforeUnmount(() => {
 					</button>
 				</div>
 			</div>
-			<button type="button" class="btn-secondary" :disabled="exporting || !state.total.value" @click="exportView">
+			<button type="button" class="btn-secondary" @click="exportOpen = true">
 				<LucideDownload class="h-3.5 w-3.5" aria-hidden="true" />
-				{{ exporting ? 'Export…' : 'Exporter' }}
+				Exporter
 			</button>
 			<button type="button" class="icon-btn" aria-label="Actualiser la liste" title="Actualiser" :disabled="state.loading.value" @click="state.load()">
 				<LucideRefreshCw class="h-4 w-4" :class="state.loading.value && 'animate-spin'" aria-hidden="true" />
@@ -355,7 +336,7 @@ onBeforeUnmount(() => {
 						<option v-for="view in views" :key="view.key" :value="view.key">{{ viewOption(view) }}</option>
 					</select>
 				</label>
-				<slot name="filters"></slot>
+				<slot name="filters" :conditions="state.conditions.value" :update="(value: Condition[]) => (state.conditions.value = value)"></slot>
 				<button type="button" class="btn-primary self-end" @click="filtersOpen = false">Fermer</button>
 			</div>
 		</div>
@@ -372,8 +353,8 @@ onBeforeUnmount(() => {
 			<button type="button" class="px-1 text-sm text-link" @click="clearFilters">Tout effacer</button>
 		</div>
 
-		<p v-if="state.error.value || loadError || exportError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5 text-sm">
-			{{ state.error.value || loadError || exportError }}
+		<p v-if="state.error.value || loadError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5 text-sm">
+			{{ state.error.value || loadError }}
 			<button v-if="state.error.value" type="button" class="ml-1 font-semibold underline" @click="state.load()">Réessayer</button>
 		</p>
 
@@ -443,12 +424,27 @@ onBeforeUnmount(() => {
 				<ListPager :total="state.total.value" :page="state.page.value" :page-size="state.pageSize.value" :sizes="PAGE_SIZES" :sort-label="sortText" :disabled="state.loading.value" @update:page="state.goToPage" @update:page-size="state.setPageSize" />
 			</div>
 
-			<BulkBar v-if="bulkDoctype" :doctype="bulkDoctype" :noun="noun" :picked="picked" :bulk="bulk" @clear="clearPicked" @export="downloadCsv(picked, 'selection')" @deleted="onDeleted">
+			<BulkBar v-if="bulkDoctype" :doctype="bulkDoctype" :noun="noun" :picked="picked" :bulk="bulk" @clear="clearPicked" @export="downloadSelection(picked, 'selection')" @deleted="onDeleted">
 				<template v-if="$slots.bulkActions" #default><slot name="bulkActions" :picked="picked" :bulk="bulk"></slot></template>
 			</BulkBar>
 			<slot name="drawer"></slot>
 		</div>
 
+		<ExportDialog
+			v-if="exportOpen"
+			:title="title"
+			:noun="noun"
+			:views="views"
+			:columns="shown"
+			:initial="{ view: state.view.value, conditions: state.conditions.value, search: state.search.value }"
+			:filtered="exportFiltered"
+			:fetch-rows="fetchRows"
+			@close="exportOpen = false"
+			@done="exported = $event; exportOpen = false"
+		>
+			<template #filters="slotProps"><slot name="filters" v-bind="slotProps"></slot></template>
+		</ExportDialog>
+		<AppToast :message="exported" @close="exported = ''" />
 		<slot></slot>
 	</section>
 </template>

@@ -1292,6 +1292,31 @@ class TestArticles(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			bureau.condition_filters([{"field": "champ:custom_grammage", "op": "contient", "value": "x"}], bureau_articles.FILTER_FIELDS)
 
+	def test_l_export_excel_garde_le_texte_sans_formule(self):
+		import base64
+		import io
+
+		from openpyxl import load_workbook
+
+		from aurescrm.api import bureau
+
+		frappe.set_user("Administrator")
+		encoded = bureau.export_xlsx("Articles: 11/2026", ["Article", "Prix"], [["=1+1", "12,40"], ["ÉTUI", 240000]])
+		sheet = load_workbook(io.BytesIO(base64.b64decode(encoded))).active
+		self.assertEqual(sheet.title, "Articles  11 2026")
+		self.assertEqual([cell.value for cell in sheet[1]], ["Article", "Prix"])
+		self.assertEqual(sheet["A2"].value, "=1+1")
+		self.assertEqual(sheet["A2"].data_type, "s")
+		self.assertEqual(sheet["A3"].value, "ÉTUI")
+		self.assertEqual(sheet["B3"].value, 240000)
+
+	def test_la_vue_all_compte_tous_les_tickets(self):
+		from aurescrm.api import bureau
+
+		frappe.set_user("Administrator")
+		self.assertEqual(bureau.view_filters("all", "Administrator"), [])
+		self.assertEqual(bureau.get_queue(view="all", page_length=1)["total"], frappe.db.count(bureau.TICKET))
+
 	def test_le_resume_technique_separe_le_support_de_sa_mesure(self):
 		from aurescrm.api import bureau_articles
 

@@ -21,9 +21,6 @@ export interface FilterField {
 	choices?: Option[]
 }
 
-/** La rubrique des filtres que chaque liste propose d'emblée. */
-export const COMMON_GROUP = 'Filtres courants'
-
 /** Les filtres de la liste d'abord, puis tous les champs du doctype envoyés par le serveur. */
 export function withDoctypeFields(common: FilterField[], doctypeFields: FilterField[] = []): FilterField[] {
 	return [...common, ...doctypeFields]
@@ -31,27 +28,15 @@ export function withDoctypeFields(common: FilterField[], doctypeFields: FilterFi
 
 const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
-/** Recherche d'un champ, sans tenir compte des accents ni des majuscules. Tous les mots doivent se retrouver, et un nom qui commence par la recherche passe devant. */
+/** Les champs dont le nom contient tous les mots tapés, sans tenir compte des accents ni des majuscules, par ordre alphabétique. */
 export function searchFields(fields: FilterField[], query: string) {
 	const words = fold(query).split(/\s+/).filter(Boolean)
-	const found = fields.filter((field) => {
-		const label = fold(field.label)
-		return words.every((word) => label.includes(word))
-	})
-	const first = words[0]
-	return first ? [...found.filter((field) => fold(field.label).startsWith(first)), ...found.filter((field) => !fold(field.label).startsWith(first))] : found
-}
-
-/** Regroupe les champs consécutifs d'une même rubrique, dans l'ordre de la fiche. */
-export function groupFields(fields: FilterField[]) {
-	const groups: { label: string; fields: FilterField[] }[] = []
-	for (const field of fields) {
-		const label = field.group ?? COMMON_GROUP
-		const last = groups[groups.length - 1]
-		if (last?.label === label) last.fields.push(field)
-		else groups.push({ label, fields: [field] })
-	}
-	return groups
+	return fields
+		.filter((field) => {
+			const label = fold(field.label)
+			return words.every((word) => label.includes(word))
+		})
+		.sort((a, b) => a.label.localeCompare(b.label, 'fr', { sensitivity: 'base' }))
 }
 
 export const FIELDS: FilterField[] = [

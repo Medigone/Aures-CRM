@@ -72,7 +72,7 @@ onMounted(async () => {
 					<button type="button" class="btn-danger" @click="emit('close')">Abandonner</button>
 				</template>
 				<template v-else>
-					<span class="flex-auto text-sm text-ink-gray-6">{{ hint }}</span>
+					<slot name="hint"><span class="flex-auto text-sm text-ink-gray-6">{{ hint }}</span></slot>
 					<button type="button" class="btn-ghost" :disabled="busy" @click="requestClose">Annuler</button>
 					<slot name="actions" />
 				</template>

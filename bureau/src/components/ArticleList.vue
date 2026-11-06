@@ -7,10 +7,11 @@ import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getArticleOptions, getArticles } from '@/lib/api'
-import { ARTICLE_COLUMNS, ARTICLE_FILTER_FIELDS, ARTICLE_VIEWS, articleConditionLabel, articleFilterChoices, articleSigle, articleSortText, clientTone, DEFAULT_ARTICLE_COLUMNS, procedeLabel, procedeTone, TYPE_GENERAL, visibleArticleColumns, type ArticleOptions, type ArticleRow } from '@/lib/articles'
+import { ARTICLE_COLUMNS, ARTICLE_FILTER_FIELDS, ARTICLE_VIEWS, articleConditionLabel, articleFilterChoices, articleSigle, articleSortText, clientTone, DEFAULT_ARTICLE_COLUMNS, procedeLabel, procedeTone, TYPE_GENERAL, visibleArticleColumns, type ArticleOptions, type ArticleRow, type ArticleView } from '@/lib/articles'
 import { formatAmount } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import { withDoctypeFields, type Condition } from '@/lib/filters'
+import type { ExportQuery } from '@/lib/exports'
 import type { ArticlesState } from '@/lib/useArticles'
 
 const props = defineProps<{ state: ArticlesState; selected?: string }>()
@@ -20,9 +21,9 @@ const options = ref<ArticleOptions | null>(null)
 const optionsError = ref('')
 const dataList = ref<{ revealCreated: () => Promise<void> } | null>(null)
 const labelOf = (condition: Condition) => articleConditionLabel(condition, options.value)
-async function fetchAll(start: number, pageLength: number) {
+async function fetchRows(query: ExportQuery, start: number, pageLength: number) {
 	const state = props.state
-	const response = await getArticles(state.view.value, state.conditions.value, state.search.value, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
+	const response = await getArticles(query.view as ArticleView, query.conditions, query.search, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
 	return { rows: response.articles as ArticleRow[], total: response.total }
 }
 function flagOf(row: ArticleRow) {
@@ -89,7 +90,7 @@ onBeforeUnmount(() => {
 		default-sort-label="Ordre par désignation"
 		:sort-text="articleSortText(state.sort.value)"
 		:condition-label="labelOf"
-		:fetch-all="fetchAll"
+		:fetch-rows="fetchRows"
 		:selected="selected"
 		:created="created ?? undefined"
 		:load-error="optionsError"
@@ -99,8 +100,8 @@ onBeforeUnmount(() => {
 		@changed="emit('changed')"
 		@create="creating = true"
 	>
-		<template #filters>
-			<FilterBuilder v-model="state.conditions.value" :fields="withDoctypeFields(ARTICLE_FILTER_FIELDS, options?.filter_fields)" first-field="procede" :choices-of="(field) => articleFilterChoices(field, options)" />
+		<template #filters="{ conditions, update }">
+			<FilterBuilder :model-value="conditions" @update:model-value="update" :fields="withDoctypeFields(ARTICLE_FILTER_FIELDS, options?.filter_fields)" first-field="procede" :choices-of="(field) => articleFilterChoices(field, options)" />
 		</template>
 
 		<template #cells="{ row, columns }">

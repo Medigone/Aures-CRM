@@ -10,13 +10,20 @@ Chaque action renvoie le ticket à jour. Elle reçoit la date `modified` affich�
 changé entre-temps, l'action est refusée plutôt que d'écraser le travail d'un autre sans le dire.
 """
 
+import base64
+import io
 import json
+import re
 import unicodedata
 
 import frappe
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_transitions
 from frappe.utils import cint, cstr, escape_html, flt, get_fullname, getdate, strip_html, today
+from openpyxl import Workbook
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 
 from aurescrm.api import activity
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
@@ -125,6 +132,7 @@ FILTER_OPERATORS = {
 	"number": {"egal", "plus", "moins"},
 }
 NOBODY = "__nobody__"
+INVALID_SHEET_CHARS = re.compile(r"[\\/*?:\[\]]")
 # Un filtre sur n'importe quel champ du doctype porte ce préfixe : il ne peut pas se confondre avec un filtre de la liste.
 DOCTYPE_FIELD_PREFIX = "champ:"
 NOT_FILTERABLE_TYPES = {"Section Break", "Column Break", "Tab Break", "HTML", "Button", "Table", "Table MultiSelect", "Password", "Fold", "Heading", "Image", "Signature", "Geolocation"}
@@ -160,6 +168,8 @@ def view_filters(view, user):
 		"urgent": [opened, ["statut_demande_urgence", "=", "En attente"]],
 		"creance": [["status", "=", STATUS_BLOCKED]],
 		"closed": [["status", "in", list(CLOSED_STATUSES)]],
+		# Toute la file, pour l'export : aucune vue de la liste ne la montre en entier.
+		"all": [],
 	}
 	if view not in views:
 		frappe.throw(_("Vue inconnue."))
@@ -479,6 +489,33 @@ def get_queue(view="todo", conditions=None, search=None, start=0, page_length=DE
 
 def _select_options(fieldname):
 	return [option for option in (frappe.get_meta(TICKET).get_field(fieldname).options or "").split("\n") if option]
+
+
+@frappe.whitelist()
+def export_xlsx(title, headers, rows):
+	"""Classeur Excel des lignes que la liste a déjà lues, en base 64. Un nombre reste un nombre, et tout le reste du texte : rien ne s'exécute à l'ouverture."""
+	require_bureau()
+	workbook = Workbook()
+	sheet = workbook.active
+	sheet.title = INVALID_SHEET_CHARS.sub(" ", cstr(title))[:31] or "Export"
+	rows = _parse(rows) or []
+	headers = _parse(headers) or []
+	for row_index, values in enumerate([headers, *rows], start=1):
+		for column_index, value in enumerate(values, start=1):
+			if isinstance(value, (int, float)):
+				cell = sheet.cell(row=row_index, column=column_index, value=value)
+			else:
+				cell = sheet.cell(row=row_index, column=column_index, value=ILLEGAL_CHARACTERS_RE.sub("", cstr(value)))
+				cell.data_type = "s"
+			if row_index == 1:
+				cell.font = Font(bold=True)
+	sheet.freeze_panes = "A2"
+	for column_index, header in enumerate(headers, start=1):
+		longest = max((len(cstr(row[column_index - 1])) for row in rows if len(row) >= column_index), default=0)
+		sheet.column_dimensions[get_column_letter(column_index)].width = min(max(longest, len(cstr(header))) + 2, 60)
+	output = io.BytesIO()
+	workbook.save(output)
+	return base64.b64encode(output.getvalue()).decode()
 
 
 @frappe.whitelist()
