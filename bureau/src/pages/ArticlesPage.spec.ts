@@ -148,6 +148,24 @@ describe('page Articles', () => {
 		wrapper.unmount()
 	})
 
+	it('un clic hors du tiroir le ferme, pas un clic dedans ni sur une ligne', async () => {
+		const { wrapper, router } = await open('/articles')
+		const pointerdown = (selector: string) => document.querySelector(selector)!.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+		await wrapper.find('.list-row-main').trigger('click')
+		await flushPromises()
+
+		pointerdown('.bureau-drawer-body')
+		pointerdown('.list-row-main')
+		await flushPromises()
+		expect(router.currentRoute.value.query.apercu).toBe('CLI-1-003')
+
+		pointerdown('.bureau-toolbar')
+		await flushPromises()
+		expect(router.currentRoute.value.query.apercu).toBeUndefined()
+		expect(wrapper.find('.bureau-drawer').exists()).toBe(false)
+		wrapper.unmount()
+	})
+
 	it('la fiche résume la prépresse et signale l’écart de BAT', async () => {
 		const { wrapper } = await open('/articles/CLI-1-003')
 		const main = wrapper.find('.client-main').text()

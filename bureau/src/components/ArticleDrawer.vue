@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideChevronDown from '~icons/lucide/chevron-down'
@@ -19,6 +19,16 @@ const emit = defineEmits<{ prev: []; next: []; close: []; open: [tab?: string]; 
 
 const { article, error, notFound, load, refresh } = useArticle(() => props.id)
 defineExpose({ refresh })
+
+/** Un clic hors du tiroir le ferme, sauf sur une ligne, qui change d'article, et dans une fenêtre ou un menu ouverts au-dessus. */
+const root = ref<HTMLElement | null>(null)
+function onPointerDown(event: PointerEvent) {
+	const target = event.target
+	if (event.button !== 0 || !(target instanceof Element) || root.value?.contains(target)) return
+	if (!target.closest('.list-row, .dialog-scrim, .app-menu')) emit('close')
+}
+onMounted(() => document.addEventListener('pointerdown', onPointerDown))
+onBeforeUnmount(() => document.removeEventListener('pointerdown', onPointerDown))
 
 const openTickets = computed(() => (article.value?.tickets ?? []).filter((ticket) => ticket.is_open))
 const lastOrder = computed(() => article.value?.commandes[0]?.transaction_date)
@@ -42,7 +52,7 @@ function onTags(tags: string[]) {
 </script>
 
 <template>
-	<aside class="bureau-drawer" aria-label="Aperçu de l'article">
+	<aside ref="root" class="bureau-drawer" aria-label="Aperçu de l'article">
 		<div class="bureau-drawer-head">
 			<button type="button" class="icon-btn" aria-label="Article précédent" :disabled="noPrev" @click="emit('prev')"><LucideChevronUp class="h-4 w-4" aria-hidden="true" /></button>
 			<button type="button" class="icon-btn" aria-label="Article suivant" :disabled="noNext" @click="emit('next')"><LucideChevronDown class="h-4 w-4" aria-hidden="true" /></button>
