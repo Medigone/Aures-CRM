@@ -1485,7 +1485,6 @@
 	.list-row-on,
 	.list-row-on:hover {
 		background-color: var(--selection);
-		box-shadow: inset 0 0 0 1px var(--selection-border);
 	}
 	.list-row-on::before,
 	.list-row-on + .list-row::before {
