@@ -5,6 +5,7 @@ import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideClipboardList from '~icons/lucide/clipboard-list'
 import LucideFileText from '~icons/lucide/file-text'
+import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
 import LucideLogOut from '~icons/lucide/log-out'
 import LucideMoon from '~icons/lucide/moon'
 import LucidePackage from '~icons/lucide/package'
@@ -28,7 +29,7 @@ import { useAppTheme } from '@/lib/theme'
 import { loadTodoCount, todoCount } from '@/lib/todoCount'
 
 /** Coquille du poste de bureau : la même barre et le même menu sur toutes ses pages. */
-const props = defineProps<{ crumbs: Crumb[]; active: 'tickets' | 'demandes' | 'clients' | 'articles' }>()
+const props = defineProps<{ crumbs: Crumb[]; active: 'accueil' | 'tickets' | 'demandes' | 'clients' | 'articles' }>()
 const emit = defineEmits<{ created: [kind: CreateKind] }>()
 
 const router = useRouter()
@@ -44,7 +45,8 @@ const navGroups = computed<NavGroup[]>(() => [
 	{
 		title: 'Mon travail',
 		items: [
-			{ id: 'tickets', label: 'Tickets', icon: LucideTicket, to: { name: 'Home' }, count: todoCount.value, active: props.active === 'tickets' },
+			{ id: 'accueil', label: 'Accueil', icon: LucideLayoutDashboard, to: { name: 'Home' }, active: props.active === 'accueil' },
+			{ id: 'tickets', label: 'Tickets', icon: LucideTicket, to: { name: 'Tickets' }, count: todoCount.value, active: props.active === 'tickets' },
 			{ id: 'demandes', label: 'Demandes', icon: LucideClipboardList, to: { name: 'Demandes' }, active: props.active === 'demandes' },
 			{ id: 'devis', label: 'Devis', icon: LucideFileText, href: '/app/quotation' },
 			{ id: 'commandes', label: 'Commandes', icon: LucideShoppingCart, href: '/app/sales-order' },
@@ -74,6 +76,7 @@ function togglePalette() {
 	if (paletteOpen.value) dismissPalette()
 	else paletteOpen.value = true
 }
+defineExpose({ startCreating })
 function startCreating(kind: CreateKind) {
 	paletteOpen.value = false
 	creating.value = kind

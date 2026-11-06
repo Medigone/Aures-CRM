@@ -14,7 +14,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from frappe.desk.notifications import extract_mentions
 
-from aurescrm.api import activity, bureau, bureau_articles, bureau_bulk, bureau_clients, bureau_demandes
+from aurescrm.api import activity, bureau, bureau_accueil, bureau_articles, bureau_bulk, bureau_clients, bureau_demandes
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import generate_etude_faisabilite
 from aurescrm.aures_crm.doctype.ticket_commercial import ticket_pieces
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import update_assigne_a
@@ -2214,3 +2214,116 @@ class TestListViews(FrappeTestCase):
 			self._save(is_global=1)
 		name = self._save(is_global=1)
 		self.assertTrue(self._view(name)["is_global"])
+
+
+class TestAccueil(FrappeTestCase):
+	"""Règles de l'accueil du poste : sans base de données, sauf le contrôle d'accès."""
+
+	def test_groupe_decide(self):
+		self.assertEqual(bureau_accueil.queue_group({"status": "Blocage Créance", "request_type": "Bon de commande"}, False), "decide")
+		self.assertEqual(bureau_accueil.queue_group({"status": "En Cours", "request_type": "Bon de commande", "statut_demande_urgence": "En attente"}, True), "decide")
+
+	def test_groupe_prise_en_charge(self):
+		for status in ("Nouveau", "Pending"):
+			self.assertEqual(bureau_accueil.queue_group({"status": status, "request_type": "Demande de devis"}, False), "take")
+
+	def test_groupe_transformer(self):
+		ticket = {"status": "En Cours", "request_type": "Bon de commande"}
+		self.assertEqual(bureau_accueil.queue_group(ticket, False), "transform")
+		self.assertIsNone(bureau_accueil.queue_group(ticket, True))
+		self.assertIsNone(bureau_accueil.queue_group({**ticket, "devis_rapproche": "SAL-QTN-1"}, False))
+		self.assertIsNone(bureau_accueil.queue_group({**ticket, "request_type": "Essai Blanc"}, False))
+
+	def test_mise_a_jour_hors_de_la_file(self):
+		self.assertIsNone(bureau_accueil.queue_group({"status": "Nouveau", "request_type": "Mise à jour données"}, False))
+
+	def test_ordre_de_la_file(self):
+		rows = [
+			{"name": "ancien", "niveau_urgence": "U0", "creation": "2026-01-01"},
+			{"name": "urgent", "niveau_urgence": "U2", "creation": "2026-06-01"},
+			{"name": "echeance", "niveau_urgence": "U0", "echeance": "2026-11-08", "creation": "2026-06-01"},
+		]
+		self.assertEqual([row["name"] for row in sorted(rows, key=bureau_accueil.queue_order)], ["urgent", "echeance", "ancien"])
+
+	def test_etape_resume_et_immobile(self):
+		rows = [
+			{"status": "Nouveau", "modified": "2026-11-06 10:00:00"},
+			{"status": "Nouveau", "modified": "2026-10-01 10:00:00"},
+			{"status": "Terminé", "modified": "2026-01-01 10:00:00"},
+		]
+		summary = bureau_accueil.summarize_stage(rows, ("Nouveau", "En Cours"), "2026-11-07")
+		self.assertEqual(summary, {"parts": [{"status": "Nouveau", "count": 2}], "total": 2, "stale": 1})
+
+	def test_manques_clients(self):
+		rows = [
+			{"custom_nº_nif": "1", "custom_nº_rc": "", "custom_nº_nis": None, "custom_nº_ai": None, "custom_gps": "  "},
+			{"custom_gps": "36.7,3.0"},
+		]
+		gaps = {row["key"]: row for row in bureau_accueil.count_client_gaps(rows)}
+		# Le groupe légal ne manque que si les quatre numéros sont vides.
+		self.assertEqual(gaps["legal"]["count"], 1)
+		self.assertEqual(gaps["gps"]["count"], 1)
+		self.assertEqual(gaps["phone"]["count"], 2)
+		self.assertEqual(gaps["legal"]["total"], 2)
+
+	def test_manques_articles(self):
+		rows = [
+			{"name": "A", "custom_type_article": "Client", "custom_client": "C", "image": "/x.png", "custom_fiche_technique_article": ""},
+			{"name": "B", "custom_type_article": "Client", "custom_client": "", "image": "", "custom_fiche_technique_article": "/y.pdf"},
+			{"name": "G", "custom_type_article": "Général", "custom_client": "", "image": "", "custom_fiche_technique_article": ""},
+		]
+		gaps = {row["key"]: row for row in bureau_accueil.count_article_gaps(rows, {"A"})}
+		self.assertEqual((gaps["image"]["count"], gaps["image"]["total"]), (2, 3))
+		self.assertEqual((gaps["bat"]["count"], gaps["bat"]["total"]), (2, 3))
+		# Un article général n'a ni client ni maquette à fournir.
+		self.assertEqual((gaps["maquette"]["count"], gaps["maquette"]["total"]), (1, 2))
+		self.assertEqual((gaps["client"]["count"], gaps["client"]["total"]), (1, 2))
+
+	def test_mois_de_cloture(self):
+		closed = {"T1": "2026-11-06 10:00:00", "T2": "2026-05-02 10:00:00"}
+		versions = [
+			("T1", "2026-04-01 09:00:00", '{"changed": [["status", "En Cours", "Terminé"]]}'),
+			("T1", "2026-04-02 09:00:00", '{"changed": [["status", "Terminé", "En Cours"]]}'),
+			("T1", "2026-07-03 09:00:00", '{"changed": [["status", "En Cours", "Terminé"]]}'),
+			("T3", "2026-07-03 09:00:00", '{"changed": [["status", "En Cours", "Terminé"]]}'),
+			("T1", "2026-08-03 09:00:00", "pas du json"),
+		]
+		# T1 prend sa dernière clôture ; T2, sans historique, sa date de modification ; T3 n'est plus clos.
+		self.assertEqual(sorted(bureau_accueil.closing_months(versions, closed)), ["2026-05", "2026-07"])
+
+	def test_anciennete(self):
+		buckets = bureau_accueil.age_buckets(["2026-11-06", "2026-10-31", "2026-10-30", "2026-01-01"], "2026-11-07")
+		self.assertEqual([row["count"] for row in buckets], [2, 1, 0, 0, 1])
+
+	def test_mois_du_graphique(self):
+		months = bureau_accueil.month_keys("2026-11-07")
+		self.assertEqual((len(months), months[0], months[-1]), (12, "2025-12", "2026-11"))
+
+	def test_completude(self):
+		self.assertEqual(bureau_accueil.completeness([{"count": 15, "total": 20}, {"count": 5, "total": 20}]), {"filled": 20, "expected": 40, "percent": 50})
+		self.assertEqual(bureau_accueil.completeness([])["percent"], 100)
+
+	def test_acces_refuse_hors_du_poste(self):
+		frappe.set_user("Guest")
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				bureau_accueil.get_accueil()
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_les_liens_de_l_accueil_passent_les_filtres_des_listes(self):
+		"""Un filtre refusé ferait tomber la liste en erreur à l'arrivée du clic."""
+		result = bureau_accueil.get_accueil()
+		rows = result["clients"]["rows"] + result["articles"]["rows"] + result["documents"]
+		for row in rows:
+			conditions = row.get("conditions") or []
+			if conditions:
+				self.assertEqual(len(bureau.condition_filters(conditions, conditions[0]["doctype"])), len(conditions))
+
+	def test_page_complete(self):
+		result = bureau_accueil.get_accueil()
+		self.assertEqual([stage["key"] for stage in result["stages"]], ["tickets", "demandes", "etudes", "devis", "commandes"])
+		self.assertEqual(len(result["trends"]["months"]), 12)
+		with self.assertRaises(frappe.ValidationError):
+			bureau_accueil.get_accueil("autre")
+

@@ -1,4 +1,5 @@
 /** File, tickets et actions. Les règles restent côté serveur (aurescrm/api/bureau.py). */
+import type { AccueilData, AccueilScope } from './accueil'
 import type { DuplicateKeep } from './articleDuplicate'
 import type { ListLayout } from './listViews'
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
@@ -106,6 +107,8 @@ export const getQueue = (view: QueueView, conditions: Condition[], search: strin
 		direction: paging.direction,
 	})
 
+export const getAccueil = (scope: AccueilScope) => call<AccueilData>('aurescrm.api.bureau_accueil.get_accueil', { scope })
+
 export const getReferences = () => call<References>(`${BUREAU}.get_references`)
 
 export const getTicket = (name: string) => call<TicketDetail>(`${BUREAU}.get_ticket`, { name })
@@ -115,7 +118,7 @@ export const getCandidates = (ticketName: string) =>
 
 const action = (method: string, params: Record<string, unknown>) => call<TicketDetail>(`${BUREAU}.${method}`, params, true)
 
-export const runAction = (ticket: TicketDetail, name: string) => action('run_action', { name: ticket.name, modified: ticket.modified, action: name })
+export const runAction = (ticket: Pick<TicketDetail, 'name' | 'modified'>, name: string) => action('run_action', { name: ticket.name, modified: ticket.modified, action: name })
 
 export const setCreance = (ticket: TicketDetail, statut: string, motif?: string) =>
 	action('set_creance', { name: ticket.name, modified: ticket.modified, statut, motif })
@@ -130,7 +133,7 @@ export const decideUrgence = (ticket: TicketDetail, decision: 'validate' | 'refu
 export const decideRapprochement = (ticket: TicketDetail, decision: string, devis: string | null, commentaire: string) =>
 	action('decide_rapprochement', { name: ticket.name, modified: ticket.modified, decision, devis, commentaire })
 
-export const setAssignee = (ticket: TicketDetail, user: string) => action('set_assignee', { name: ticket.name, user })
+export const setAssignee = (ticket: Pick<TicketDetail, 'name'>, user: string) => action('set_assignee', { name: ticket.name, user })
 
 export const removeDocument = (ticket: TicketDetail, file: string) => action('remove_document', { name: ticket.name, file })
 

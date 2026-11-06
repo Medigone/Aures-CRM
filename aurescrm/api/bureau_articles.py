@@ -70,6 +70,7 @@ VIEWS = {
 	"salle_blanche": lambda row: row["procede"] == SALLE_BLANCHE,
 	# Un article général (matière, support) n'a pas de BAT : il n'a rien à faire dans cette vue.
 	"sans_bat": lambda row: row["type"] == TYPE_CLIENT and row["bat"] not in BAT_VALIDATED,
+	"sans_maquette": lambda row: row["type"] == TYPE_CLIENT and not row["maquette_active"],
 	"compose": lambda row: bool(row["compose"]),
 	"general": lambda row: row["type"] == TYPE_GENERAL,
 }
@@ -131,6 +132,13 @@ def format_label(item):
 		return f"Laize {laize.replace(' mm', '')}" if laize else None
 	value = item.get("custom_dimensions_h_x_l") if procede == FLEXO else item.get("custom_cotations_article")
 	return cstr(value).replace("x", "×").replace("X", "×") or None
+
+
+def _activated_maquettes(names):
+	"""Les articles qui ont une maquette activée."""
+	if not names or not _readable("Maquette"):
+		return set()
+	return set(frappe.get_list("Maquette", filters=[["article", "in", names], ["status", "=", "Version Activée"]], pluck="article", limit_page_length=0))
 
 
 def last_bats(names):
@@ -249,7 +257,8 @@ def get_articles(view="all", conditions=None, search=None, start=0, page_length=
 	)
 	names = [item.name for item in items]
 	customers, bats, orders = _customers(item.custom_client for item in items), last_bats(names), _last_orders(names)
-	rows = [_list_row(item, customers, bats, orders) for item in items]
+	activated = _activated_maquettes(names)
+	rows = [{**_list_row(item, customers, bats, orders), "maquette_active": item.name in activated} for item in items]
 	counts = {name: sum(1 for row in rows if test(row)) for name, test in VIEWS.items()}
 	ordered = order_articles([row for row in rows if VIEWS[view](row)], sort, direction)
 	first, length = page_bounds(len(ordered), start, page_length)

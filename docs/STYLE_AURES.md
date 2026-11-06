@@ -9,6 +9,7 @@ Toutes les applications métier (`/commercial`, `/bureau` et les postes à venir
 | Couleurs, rayons, ombres, densités | `shared/tokens.css` |
 | Composants communs (`.btn`, `.card`, `.field-input`, `.badge`, `.tone-*`, `.urgence-*`) | `shared/styles.css` |
 | Tailles et couleurs pour Tailwind | `shared/tailwind.preset.js` |
+| Teinte et libellé d'un statut | `shared/status.ts` |
 | Thème clair ou sombre | `shared/theme.ts` |
 | Barre du haut et menu de gauche | `shared/components/AppShell.vue`, `shared/shell.ts` |
 | Pied de liste et états | `shared/components/ListPager.vue`, `ListState.vue` |

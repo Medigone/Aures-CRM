@@ -45,7 +45,7 @@ const stepFromRoute = computed(() => {
 })
 
 function showPreview(name?: string) {
-	return router.replace({ name: 'Home', query: listQuery(name ? { apercu: name } : {}) })
+	return router.replace({ name: 'Tickets', query: listQuery(name ? { apercu: name } : {}) })
 }
 function openFiche(name: string, step?: number, activity?: boolean) {
 	const query: Record<string, string> = {}
@@ -55,15 +55,15 @@ function openFiche(name: string, step?: number, activity?: boolean) {
 }
 function backToList() {
 	if (props.id) state.reveal(props.id)
-	router.push({ name: 'Home', query: listQuery(props.id ? { apercu: props.id } : {}) })
+	router.push({ name: 'Tickets', query: listQuery(props.id ? { apercu: props.id } : {}) })
 }
 watch([state.view, state.page], () => {
-	if (!props.id) router.replace({ name: 'Home', query: listQuery(preview.value ? { apercu: preview.value } : {}) })
+	if (!props.id) router.replace({ name: 'Tickets', query: listQuery(preview.value ? { apercu: preview.value } : {}) })
 })
 
 // L'adresse commande aussi la vue : la palette ou le menu y mènent sans recharger la page. Une fiche garde la vue de la liste qu'elle a quittée.
 watch([() => route.name, () => route.query.vue], () => {
-	if (route.name === 'Home') state.view.value = viewFromRoute() ?? 'todo'
+	if (route.name === 'Tickets') state.view.value = viewFromRoute() ?? 'todo'
 })
 
 // Le compteur du menu reste affiché sur les autres pages du poste.
@@ -76,7 +76,7 @@ watch(
 const crumbs = computed<Crumb[]>(() => {
 	if (!props.id) return [{ label: 'Tickets' }]
 	const open = state.tickets.value.find((ticket) => ticket.name === props.id)
-	return [{ label: 'Tickets', to: { name: 'Home' } }, { label: open ? `${open.client} · ${open.name}` : props.id }]
+	return [{ label: 'Tickets', to: { name: 'Tickets' } }, { label: open ? `${open.client} · ${open.name}` : props.id }]
 })
 
 // Position dans la liste affichée, commune à l'aperçu et à la fiche.

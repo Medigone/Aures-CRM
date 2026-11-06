@@ -7,7 +7,7 @@ import { TICKET_VIEWS } from './useQueue'
 
 export type CreateKind = 'ticket' | 'article' | 'client'
 export type PaletteSection = 'create' | 'lists' | 'elsewhere'
-export type ListKind = 'tickets' | 'clients' | 'articles' | 'demandes'
+export type ListKind = 'accueil' | 'tickets' | 'clients' | 'articles' | 'demandes'
 
 export type PaletteAction = { type: 'create'; kind: CreateKind } | { type: 'route'; to: RouteLocationRaw } | { type: 'href'; href: string }
 
@@ -52,7 +52,8 @@ export const PALETTE_COMMANDS: PaletteCommand[] = [
 	{ id: 'create-ticket', section: 'create', label: 'Nouveau ticket', keywords: 'créer ajouter demande', icon: 'ticket', action: { type: 'create', kind: 'ticket' } },
 	{ id: 'create-article', section: 'create', label: 'Nouvel article', keywords: 'créer ajouter produit', icon: 'article', action: { type: 'create', kind: 'article' } },
 	{ id: 'create-client', section: 'create', label: 'Nouveau prospect', keywords: 'créer ajouter client', icon: 'client', action: { type: 'create', kind: 'client' } },
-	...viewCommands('tickets', 'Tickets', 'Home', TICKET_VIEWS, 'todo', 'ticket liste'),
+	{ id: 'list-accueil', section: 'lists', label: 'Accueil', keywords: 'tableau de bord dashboard', icon: 'accueil', action: { type: 'route', to: { name: 'Home' } } },
+	...viewCommands('tickets', 'Tickets', 'Tickets', TICKET_VIEWS, 'todo', 'ticket liste'),
 	...viewCommands('demandes', 'Demandes', 'Demandes', DEMANDE_VIEWS, 'all', 'demande faisabilité liste'),
 	...viewCommands('clients', 'Clients', 'Clients', CLIENT_VIEWS, 'all', 'client liste'),
 	...viewCommands('articles', 'Articles', 'Articles', ARTICLE_VIEWS, 'all', 'article produit liste'),

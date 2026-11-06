@@ -7,7 +7,7 @@ import { deskUrl, formatDay } from './display'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
 
-export type ArticleView = 'all' | 'offset' | 'flexo' | 'salle_blanche' | 'sans_bat' | 'compose' | 'general'
+export type ArticleView = 'all' | 'offset' | 'flexo' | 'salle_blanche' | 'sans_bat' | 'sans_maquette' | 'compose' | 'general'
 
 export const ARTICLE_VIEWS: { key: ArticleView; label: string }[] = [
 	{ key: 'all', label: 'Tous' },
@@ -15,6 +15,7 @@ export const ARTICLE_VIEWS: { key: ArticleView; label: string }[] = [
 	{ key: 'flexo', label: 'Flexo' },
 	{ key: 'salle_blanche', label: 'Salle blanche' },
 	{ key: 'sans_bat', label: 'Sans BAT validé' },
+	{ key: 'sans_maquette', label: 'Sans maquette activée' },
 	{ key: 'compose', label: 'Composés' },
 	{ key: 'general', label: 'Généraux' },
 ]

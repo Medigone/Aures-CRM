@@ -3,6 +3,16 @@
 Application de bureau pour les équipes internes, à côté du Desk. Le premier module sert au back office (rôle `Administrateur Ventes`).
 Cahier des charges de la V1 et maquette : voir les liens transmis au projet.
 
+## Accueil (`/bureau`)
+Tableau de bord du back office, dont la mission est de transformer les requêtes en actions et de garder les données à jour. La liste des tickets est passée à `/bureau/tickets`, et les anciens liens (`/bureau?vue=…`) y sont renvoyés.
+
+- **Flux** : un donut par étape (Tickets, Demandes, Études, Devis, Commandes), le total au centre, les couleurs de statut de chaque document. Au survol ou à l'appui, une part donne son nombre et son statut.
+- **Tendances** : tickets reçus et clos par mois (mois de clôture lu dans l'historique du ticket), ancienneté des tickets ouverts, complétude des fiches. Le masquage est retenu par navigateur.
+- **À transformer en action** : À décider, À prendre en charge, À transformer en document. Le serveur dit quelle action chaque ligne permet ; sinon, elle ouvre la fiche.
+- **Données à mettre à jour** : chaque manque ouvre la liste déjà filtrée (`?filtres=` en JSON, ou `?vue=`), ou le Desk (`↗`).
+
+Règles dans `aurescrm/api/bureau_accueil.py` (seuil « sans mouvement » : `STALE_DAYS`), mise en forme dans `bureau/src/lib/accueil.ts`. Un bloc disparaît pour un rôle qui ne lit pas le document.
+
 ## Lot 1 (livré) : lecture
 - **Liste de travail** : recherche, filtres combinables, choix de la vue avec ses compteurs dans le panneau Filtres, tri par urgence puis échéance.
 - **Ticket** : en-tête, demande du commercial, urgence à décider, pièces du dossier, créance, rapprochement, en lecture seule.

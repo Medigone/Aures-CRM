@@ -77,6 +77,10 @@
 		background-color: var(--tone-amber-bg);
 		color: var(--tone-amber-ink);
 	}
+	.tone-orange {
+		background-color: var(--tone-orange-bg);
+		color: var(--tone-orange-ink);
+	}
 	.tone-green {
 		background-color: var(--tone-green-bg);
 		color: var(--tone-green-ink);
@@ -119,6 +123,10 @@
 	:root[data-density='poste'] .badge.tone-amber {
 		border-color: var(--tone-amber-line);
 		background-color: var(--tone-amber-soft);
+	}
+	:root[data-density='poste'] .badge.tone-orange {
+		border-color: var(--tone-orange-line);
+		background-color: var(--tone-orange-soft);
 	}
 	:root[data-density='poste'] .badge.tone-green {
 		border-color: var(--tone-green-line);

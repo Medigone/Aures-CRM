@@ -199,7 +199,7 @@ describe('poste de bureau', () => {
 
 	it("refuse l'accès sans le bon rôle, sans appeler l'API", async () => {
 		window.can_access = false
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		expect(wrapper.text()).toContain('Accès non autorisé')
 		expect(fetchMock).not.toHaveBeenCalled()
 	})
@@ -213,7 +213,7 @@ describe('poste de bureau', () => {
 	const row = (wrapper: Awaited<ReturnType<typeof open>>['wrapper'], name: string) => wrapper.findAll('.list-row').find((item) => item.text().includes(name))!
 
 	it("arrive sur la liste, sans ouvrir de ticket", async () => {
-		const { wrapper, router } = await open('/')
+		const { wrapper, router } = await open('/tickets')
 		await flushPromises()
 		expect(router.currentRoute.value.params.id).toBeUndefined()
 		expect(wrapper.find('.bureau-drawer').exists()).toBe(false)
@@ -227,7 +227,7 @@ describe('poste de bureau', () => {
 	})
 
 	it('le tiroir : flèches, Échap et clic extérieur', async () => {
-		const { wrapper, router } = await open('/?apercu=TC-1')
+		const { wrapper, router } = await open('/tickets?apercu=TC-1')
 		const press = async (key: string) => {
 			document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }))
 			await flushPromises()
@@ -251,7 +251,7 @@ describe('poste de bureau', () => {
 	})
 
 	it("ouvre l'aperçu au clic, change de ticket sans le fermer, puis ouvre la fiche", async () => {
-		const { wrapper, router } = await open('/')
+		const { wrapper, router } = await open('/tickets')
 		await row(wrapper, 'TC-1').find('.list-row-main').trigger('click')
 		await flushPromises()
 		await flushPromises()
@@ -276,7 +276,7 @@ describe('poste de bureau', () => {
 	})
 
 	it("ouvre la fiche à l'étape cliquée dans l'aperçu", async () => {
-		const { wrapper, router } = await open('/?apercu=TC-1')
+		const { wrapper, router } = await open('/tickets?apercu=TC-1')
 		await wrapper.findAll('.bureau-drawer .step-button')[3].trigger('click')
 		await flushPromises()
 		await flushPromises()
@@ -286,7 +286,7 @@ describe('poste de bureau', () => {
 	})
 
 	it('bascule le thème depuis le menu du compte et le garde sur cet appareil', async () => {
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		const before = document.documentElement.dataset.theme
 		await wrapper.find('button[aria-label^="Mon compte"]').trigger('click')
 		await wrapper.find('button[role="menuitem"]').trigger('click')
@@ -300,7 +300,7 @@ describe('poste de bureau', () => {
 	})
 
 	it("montre les tickets en cours dans le menu et ouvre sur le Desk ce qui n'est pas encore repris", async () => {
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		const current = wrapper.find('.app-nav-item[aria-current="page"]')
 		expect(current.text()).toContain('Tickets')
 		expect(current.text()).toContain('2')
@@ -309,7 +309,7 @@ describe('poste de bureau', () => {
 	})
 
 	it('replie le menu et garde ce choix sur cet appareil', async () => {
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		const shell = wrapper.find('.app-shell')
 		const before = shell.attributes('data-collapsed')
 		await wrapper.find('.app-collapse').trigger('click')
@@ -330,7 +330,7 @@ describe('poste de bureau', () => {
 	}
 
 	it('le raccourci ouvre et referme la palette', async () => {
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		await pressShortcut()
 		expect(wrapper.find('.command-palette').exists()).toBe(true)
 		expect(wrapper.find('.command-palette').text()).toContain('Nouveau ticket')
@@ -344,7 +344,7 @@ describe('poste de bureau', () => {
 	})
 
 	it('la palette trouve un ticket, y compris clos, et ouvre sa fiche', async () => {
-		const { wrapper, router } = await open('/')
+		const { wrapper, router } = await open('/tickets')
 		await pressShortcut()
 		fetchMock.mockClear()
 		await wrapper.find('.command-palette-input').setValue('Client Un')
@@ -363,7 +363,7 @@ describe('poste de bureau', () => {
 	})
 
 	it('une recherche en erreur ne masque pas les autres résultats', async () => {
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		await pressShortcut()
 		fetchMock.mockImplementation((input: RequestInfo | URL) => (String(input).includes('get_clients') ? Promise.resolve(new Response(JSON.stringify({ exception: 'Refusé' }), { status: 403 })) : respond(String(input))))
 		await wrapper.find('.command-palette-input').setValue('Client Un')
@@ -376,7 +376,7 @@ describe('poste de bureau', () => {
 	})
 
 	it('la palette crée un ticket sans quitter la page et recharge la liste', async () => {
-		const { wrapper, router } = await open('/')
+		const { wrapper, router } = await open('/tickets')
 		await pressShortcut()
 		await wrapper.find('.command-palette-input').setValue('nouveau ticket')
 		await wrapper.find('.command-palette-input').trigger('keydown', { key: 'Enter' })
@@ -390,7 +390,7 @@ describe('poste de bureau', () => {
 		expect(wrapper.findComponent(NewTicketDialog).exists()).toBe(false)
 		expect(wrapper.find('.app-toast').text()).toContain('Ticket TC-NEW créé.')
 		expect(fetchMock.mock.calls.some(([url]) => String(url).includes('get_queue'))).toBe(true)
-		expect(router.currentRoute.value.path).toBe('/')
+		expect(router.currentRoute.value.path).toBe('/tickets')
 		await wrapper.find('.app-toast-action').trigger('click')
 		await flushPromises()
 		expect(router.currentRoute.value.path).toBe('/ticket/TC-NEW')
@@ -401,7 +401,7 @@ describe('poste de bureau', () => {
 		const other = document.createElement('div')
 		other.className = 'dialog-scrim'
 		document.body.append(other)
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		await pressShortcut()
 		expect(wrapper.find('.command-palette').exists()).toBe(false)
 		other.remove()
@@ -409,7 +409,7 @@ describe('poste de bureau', () => {
 	})
 
 	it("l'adresse commande la vue de la liste, sans la perdre depuis une fiche", async () => {
-		const { wrapper, router } = await open('/')
+		const { wrapper, router } = await open('/tickets')
 		fetchMock.mockClear()
 		await router.push({ name: 'Home', query: { vue: 'closed' } })
 		await flushPromises()
@@ -446,7 +446,7 @@ describe('poste de bureau', () => {
 	}
 
 	it('demande le tri au serveur : croissant, décroissant, puis ordre par défaut', async () => {
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		const sortByClient = async () => {
 			await wrapper.find('.list-head [aria-label*="Client"]').trigger('click')
 			await flushPromises()
@@ -461,7 +461,7 @@ describe('poste de bureau', () => {
 	})
 
 	it("n'offre pas le tri par étape", async () => {
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		expect(wrapper.find('.list-head [aria-label*="Étape"]').exists()).toBe(false)
 		expect(wrapper.find('.list-head').text()).toContain('Étape')
 	})
@@ -483,7 +483,7 @@ describe('poste de bureau', () => {
 		})
 
 		it("affiche la position, change de page et garde la page dans l'adresse", async () => {
-			const { wrapper, router } = await open('/')
+			const { wrapper, router } = await open('/tickets')
 			expect(wrapper.find('.pager').text()).toContain('1–20 sur 45')
 			expect(wrapper.find('.pager').text()).toContain('Page 1 sur 3')
 			expect(wrapper.find('[aria-label="Page précédente"]').attributes('disabled')).toBeDefined()
@@ -496,13 +496,13 @@ describe('poste de bureau', () => {
 		})
 
 		it("reprend la page et la vue depuis l'adresse", async () => {
-			await open('/?vue=mine&page=3')
+			await open('/tickets?vue=mine&page=3')
 			expect(queueParams().get('view')).toBe('mine')
 			expect(queueParams().get('start')).toBe('40')
 		})
 
 		it('changer de taille ramène à la première page et reste en mémoire', async () => {
-			const { wrapper } = await open('/?page=2')
+			const { wrapper } = await open('/tickets?page=2')
 			await wrapper.findAll('.seg button').find((button) => button.text() === '100')!.trigger('click')
 			await flushPromises()
 			expect(queueParams().get('start')).toBe('0')
@@ -511,7 +511,7 @@ describe('poste de bureau', () => {
 		})
 
 		it('changer de vue ramène à la première page', async () => {
-			const { wrapper } = await open('/?page=2')
+			const { wrapper } = await open('/tickets?page=2')
 			await chooseView(wrapper, 'mine')
 			await flushPromises()
 			expect(queueParams().get('view')).toBe('mine')
@@ -519,7 +519,7 @@ describe('poste de bureau', () => {
 		})
 
 		it('changer de page vide la sélection', async () => {
-			const { wrapper } = await open('/')
+			const { wrapper } = await open('/tickets')
 			await row(wrapper, 'TC-1').find('input[type="checkbox"]').setValue(true)
 			expect(wrapper.find('.bureau-bulk').exists()).toBe(true)
 			await wrapper.find('[aria-label="Page suivante"]').trigger('click')
@@ -538,7 +538,7 @@ describe('poste de bureau', () => {
 
 	it('choisit les colonnes et garde ce choix', async () => {
 		localStorage.removeItem('bureau-tickets-colonnes')
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		await wrapper.findAll('.bureau-toolbar button').find((button) => button.text() === 'Colonnes')!.trigger('click')
 		await wrapper.findAll('.export-field').find((item) => item.text() === 'Commercial')!.find('input').setValue(true)
 		expect(row(wrapper, 'TC-1').text()).toContain('Commercial A')
@@ -556,7 +556,7 @@ describe('poste de bureau', () => {
 			if (url.includes('get_queue')) return Promise.resolve(new Response(JSON.stringify({ message: { ...queue, tickets: [], names: [], total: 0 } }), { status: 200 }))
 			return respond(url)
 		})
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		expect(wrapper.find('.list-state').text()).toContain('Rien dans cette vue')
 		await wrapper.find('.bureau-search input').setValue('xyz')
 		expect(wrapper.find('.list-state').text()).toContain('Aucun résultat')
@@ -567,7 +567,7 @@ describe('poste de bureau', () => {
 
 	describe('création de ticket', () => {
 		const openDialog = async () => {
-			const opened = await open('/')
+			const opened = await open('/tickets')
 			await opened.wrapper.findAll('.bureau-toolbar button').find((button) => button.text() === 'Nouveau ticket')!.trigger('click')
 			await flushPromises()
 			return opened
@@ -588,7 +588,7 @@ describe('poste de bureau', () => {
 		it("ouvre la fenêtre sans quitter la page et n'envoie rien vers le Desk", async () => {
 			const { wrapper, router } = await openDialog()
 			expect(wrapper.find('.dialog').exists()).toBe(true)
-			expect(router.currentRoute.value.path).toBe('/')
+			expect(router.currentRoute.value.path).toBe('/tickets')
 			expect(wrapper.find('a[href*="ticket-commercial/new"]').exists()).toBe(false)
 		})
 
@@ -621,7 +621,7 @@ describe('poste de bureau', () => {
 			const call = posted().find((item) => item.url.includes('create_ticket'))!
 			expect(call.body).toMatchObject({ customer: 'CLI-1', request_type: 'Bon de commande', site: 'S1', description: '40 000 boîtes', commercial: 'b@example.com' })
 			expect(wrapper.find('.dialog').exists()).toBe(false)
-			expect(router.currentRoute.value.path).toBe('/')
+			expect(router.currentRoute.value.path).toBe('/tickets')
 			expect(wrapper.find('.list-row-created').exists()).toBe(true)
 			await wrapper.find('.app-toast-action').trigger('click')
 			await flushPromises()
@@ -775,7 +775,7 @@ describe('poste de bureau', () => {
 		})
 
 		it("montre le dernier commentaire dans l'aperçu et ouvre la fiche sur le fil", async () => {
-			const { wrapper, router } = await open('/?apercu=TC-1')
+			const { wrapper, router } = await open('/tickets?apercu=TC-1')
 			await flushPromises()
 			const drawer = wrapper.find('.bureau-drawer')
 			expect(drawer.text()).toContain('Le client relance')
@@ -787,7 +787,7 @@ describe('poste de bureau', () => {
 	})
 
 	it("cocher une ligne n'ouvre pas l'aperçu et propose les actions concernées", async () => {
-		const { wrapper, router } = await open('/')
+		const { wrapper, router } = await open('/tickets')
 		expect(wrapper.find('.bureau-bulk').exists()).toBe(false)
 		await row(wrapper, 'TC-2').find('input[type="checkbox"]').setValue(true)
 		expect(router.currentRoute.value.query.apercu).toBeUndefined()
@@ -799,7 +799,7 @@ describe('poste de bureau', () => {
 	})
 
 	it('la case de tête sélectionne toute la vue, et changer de vue vide la sélection', async () => {
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		const all = wrapper.find('.list-head input[type="checkbox"]')
 		await row(wrapper, 'TC-1').find('input[type="checkbox"]').setValue(true)
 		expect((all.element as HTMLInputElement).indeterminate).toBe(true)
@@ -816,7 +816,7 @@ describe('poste de bureau', () => {
 				? Promise.resolve(new Response(JSON.stringify({ message: { done: ['TC-1'], skipped: [{ name: 'TC-2', reason: 'Ticket clos.' }] } })))
 				: respond(String(input)),
 		)
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		await wrapper.find('.list-head input[type="checkbox"]').setValue(true)
 		await wrapper.find('#bulk-assignee').setValue('amine@example.com')
 		await wrapper.find('.bureau-bulk').findAll('button').find((button) => button.text() === 'Attribuer')!.trigger('click')
@@ -843,7 +843,7 @@ describe('poste de bureau', () => {
 				? Promise.resolve(new Response(JSON.stringify({ _server_messages: JSON.stringify([JSON.stringify({ message: 'Trop de tickets' })]) }), { status: 417 }))
 				: respond(String(input)),
 		)
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		await row(wrapper, 'TC-2').find('input[type="checkbox"]').setValue(true)
 		await wrapper.find('.bureau-bulk').findAll('button').find((button) => button.text() === 'Démarrer (1)')!.trigger('click')
 		await flushPromises()
@@ -855,7 +855,7 @@ describe('poste de bureau', () => {
 
 	it("garde le ticket de l'aperçu visible dans la liste, qui défile seule", async () => {
 		const scrollIntoView = vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {})
-		const { wrapper } = await open('/?apercu=TC-1')
+		const { wrapper } = await open('/tickets?apercu=TC-1')
 		await flushPromises()
 		const selected = wrapper.find('.bureau-list-card [aria-current="true"]')
 		expect(selected.exists()).toBe(true)
@@ -922,7 +922,7 @@ describe('poste de bureau', () => {
 	})
 
 	it('propose les vues avec leur compteur dans les filtres, et plus en onglets', async () => {
-		const { wrapper } = await open('/')
+		const { wrapper } = await open('/tickets')
 		expect(wrapper.find('.view').exists()).toBe(false)
 		await wrapper.findAll('.bureau-toolbar button').find((button) => button.text().startsWith('Filtres'))!.trigger('click')
 		const labels = wrapper.findAll('select[aria-label="Afficher"] option').map((option) => option.text())
@@ -931,7 +931,7 @@ describe('poste de bureau', () => {
 	})
 
 	it("le menu de la ligne agit sur ce ticket sans toucher à la sélection", async () => {
-		const { wrapper, router } = await open('/')
+		const { wrapper, router } = await open('/tickets')
 		await row(wrapper, 'TC-2').find('input[type="checkbox"]').setValue(true)
 		await row(wrapper, 'TC-1').find('.list-more-btn').trigger('click')
 		const items = row(wrapper, 'TC-1').findAll('.app-menu-item')

@@ -4,6 +4,7 @@ import { useRouter, type RouteLocationRaw } from 'vue-router'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideClipboardList from '~icons/lucide/clipboard-list'
 import LucideFileText from '~icons/lucide/file-text'
+import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
 import LucidePackage from '~icons/lucide/package'
 import LucidePlus from '~icons/lucide/plus'
 import LucideSearch from '~icons/lucide/search'
@@ -40,6 +41,7 @@ const ICONS: Record<PaletteCommand['icon'], Component> = {
 	article: LucidePlus,
 	client: LucidePlus,
 	demandes: LucideClipboardList,
+	accueil: LucideLayoutDashboard,
 	tickets: LucideTicket,
 	clients: LucideBuilding2,
 	articles: LucidePackage,

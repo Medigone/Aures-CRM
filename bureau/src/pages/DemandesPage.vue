@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { conditionsFromQuery } from '@/lib/filters'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LucideArrowLeft from '~icons/lucide/arrow-left'
@@ -28,6 +29,8 @@ function pageFromRoute() {
 	return Number.isInteger(value) && value > 1 ? value - 1 : 0
 }
 const state = useDemandes({ view: viewFromRoute(), page: pageFromRoute() })
+// Un lien de l'accueil arrive avec ses filtres dans l'adresse.
+state.conditions.value = conditionsFromQuery(route.query.filtres)
 function listQuery(extra: Record<string, string> = {}) {
 	return {
 		...(state.view.value === 'all' ? {} : { vue: state.view.value }),

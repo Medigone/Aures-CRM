@@ -34,6 +34,10 @@
 		--tone-blue-ink: #0060b0;
 		--tone-amber-bg: #fff7d3;
 		--tone-amber-ink: #a85b05;
+		/* Orange : ce qui est en cours (En Cours, En étude). `bar` pour une marque de graphique, `ink` pour du texte. */
+		--tone-orange-bg: #ffedd5;
+		--tone-orange-ink: #c2410c;
+		--tone-orange-bar: #ea580c;
 		--tone-green-bg: #e4faeb;
 		--tone-green-ink: #1b6e47;
 		--tone-red-bg: #ffe7e7;
@@ -67,6 +71,8 @@
 		--tone-blue-line: #b8dcfb;
 		--tone-amber-soft: #fffbe8;
 		--tone-amber-line: #f5dc8a;
+		--tone-orange-soft: #fff4ed;
+		--tone-orange-line: #fed7aa;
 		/* Cloche des listes : le jaune franc, cerné pour rester lisible sur fond clair. */
 		--bell-fill: #facc15;
 		--bell-line: #b88a00;
@@ -118,6 +124,9 @@
 		--tone-blue-ink: #5aaef2;
 		--tone-amber-bg: #4b2606;
 		--tone-amber-ink: #e79913;
+		--tone-orange-bg: #431407;
+		--tone-orange-ink: #fb923c;
+		--tone-orange-bar: #fb923c;
 		--tone-green-bg: #0a3f27;
 		--tone-green-ink: #58c08e;
 		--tone-red-bg: #361515;
@@ -149,6 +158,8 @@
 		--tone-blue-line: #164a7a;
 		--tone-amber-soft: #2c1a07;
 		--tone-amber-line: #6b4210;
+		--tone-orange-soft: #2a1506;
+		--tone-orange-line: #6b3410;
 		--bell-fill: #facc15;
 		--bell-line: #facc15;
 		--bell-soft: #3d3205;

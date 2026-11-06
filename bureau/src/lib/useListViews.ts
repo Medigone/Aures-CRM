@@ -87,7 +87,9 @@ function createSession(options: ListViewsOptions) {
 	}
 
 	// Ouverture : la copie de cet appareil s'applique sans attendre le serveur et sans recharger la liste.
-	const stored = readActiveView(columnsKey)
+	// Un lien arrive avec ses filtres dans l'adresse (accueil) : ils l'emportent sur la vue retenue.
+	const fromLink = state.conditions.value.length > 0
+	const stored = fromLink ? null : readActiveView(columnsKey)
 	if (stored?.name && stored.config) {
 		const layout = cleanLayout(stored.config, list)
 		activeName.value = stored.name
@@ -130,7 +132,7 @@ function createSession(options: ListViewsOptions) {
 					else apply(found, { keepView: state.view.value !== fresh.view && state.view.value !== defaultView })
 				} else notice.value = droppedNotice(found.dropped)
 				remember(found, fresh)
-			} else if (!stored && byDefault && layoutSignature(current.value) === openedOn) {
+			} else if (!stored && !fromLink && byDefault && layoutSignature(current.value) === openedOn) {
 				apply(byDefault, { keepView: state.view.value !== defaultView })
 			}
 		} catch (e) {

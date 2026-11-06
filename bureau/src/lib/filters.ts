@@ -189,3 +189,20 @@ export function ticketFilterFields(references: References | null): FilterField[]
 export function conditionsForServer(conditions: Condition[]) {
 	return conditions.filter(isComplete).map(({ doctype, field, op, value }) => ({ doctype, field, op, value: value.trim() }))
 }
+
+/** Les filtres d'un lien vers une liste (accueil du poste) : ils voyagent dans l'adresse, en JSON. */
+export const conditionsQuery = (conditions: Pick<Condition, 'doctype' | 'field' | 'op' | 'value'>[]) =>
+	JSON.stringify(conditions.map(({ doctype, field, op, value }) => [doctype, field, op, value]))
+
+export function conditionsFromQuery(value: unknown): Condition[] {
+	if (typeof value !== 'string' || !value) return []
+	try {
+		const rows = JSON.parse(value)
+		if (!Array.isArray(rows)) return []
+		return rows
+			.filter((row) => Array.isArray(row) && row.length === 4)
+			.map(([doctype, field, op, text], index) => ({ id: index + 1, doctype: String(doctype), field: String(field), op: String(op), value: String(text) }))
+	} catch {
+		return []
+	}
+}

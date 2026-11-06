@@ -1,4 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
+import AccueilPage from './pages/AccueilPage.vue'
 import ArticlesPage from './pages/ArticlesPage.vue'
 import BureauPage from './pages/BureauPage.vue'
 import ClientsPage from './pages/ClientsPage.vue'
@@ -8,7 +9,14 @@ import LoginPage from './pages/LoginPage.vue'
 export const routes = [
 	// Seule page servie sans session : hors de la coquille.
 	{ path: '/connexion', name: 'Login', component: LoginPage },
-	{ path: '/', name: 'Home', component: BureauPage },
+	{
+		path: '/',
+		name: 'Home',
+		component: AccueilPage,
+		// La liste des tickets était à la racine : un ancien lien garde sa vue et son aperçu.
+		beforeEnter: (to: RouteLocationNormalized) => (to.query.vue || to.query.apercu || to.query.page ? { name: 'Tickets', query: to.query } : true),
+	},
+	{ path: '/tickets', name: 'Tickets', component: BureauPage },
 	{ path: '/ticket/:id', name: 'Ticket', component: BureauPage, props: true },
 	{ path: '/demandes', name: 'Demandes', component: DemandesPage },
 	{ path: '/demandes/:id', name: 'Demande', component: DemandesPage, props: true },

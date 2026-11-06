@@ -41,7 +41,7 @@ onBeforeUnmount(() => {
 		<button type="button" class="btn-secondary header-menu-btn" :disabled="disabled" aria-haspopup="menu" :aria-expanded="open" :aria-label="ariaLabel" @click="toggle">
 			<slot name="icon"></slot>
 			{{ label }}
-			<span class="header-menu-value" :title="value">{{ value }}</span>
+			<span v-if="value" class="header-menu-value" :title="value">{{ value }}</span>
 			<LucideChevronDown class="h-3.5 w-3.5 flex-none" aria-hidden="true" />
 		</button>
 		<div v-if="open" class="app-menu header-menu" :class="[menuClass, alignRight && 'app-menu-right']" role="menu">
