@@ -100,6 +100,8 @@ const onDoc = computed(() => !isClosed.value && viewed.value?.key === 'doc' && v
 // Le devis retenu mène à la commande : la demande reste possible, en second. Sans décision, la commande garde son accès au Desk.
 const demandeFirst = computed(() => canCreateDemande.value && !ticket.value?.devis_rapproche)
 const deskForCommande = computed(() => onDoc.value && isBC.value && ticket.value?.decision_rapprochement !== 'Nouvelle demande de faisabilité')
+// Possible à toute étape d'un ticket En Cours. L'encart de l'étape Demande propose déjà le bouton : pas de doublon.
+const demandeInHeader = computed(() => canCreateDemande.value && !onDoc.value)
 const needsDesk = computed(() => onDoc.value && (isEssai.value || deskForCommande.value))
 const deskLabel = computed(() => (isEssai.value ? 'Créer le dossier sur le Desk' : 'Créer la commande sur le Desk'))
 // Encore à confirmer : la demande s'ouvre sur sa page.
@@ -151,6 +153,7 @@ function onTags(tags: string[]) {
 					</div>
 					<div class="flex flex-wrap items-center gap-1.5">
 						<button v-if="canAssign && !ticket.mine" type="button" class="btn-secondary" :disabled="busy" @click="perform(() => setAssignee(ticket!, String(window_user)))">Me l'attribuer</button>
+						<button v-if="demandeInHeader" type="button" class="btn-primary" @click="creatingDemande = true">{{ ticket.cycle.demandes.length ? 'Créer une autre demande' : 'Créer une demande' }}</button>
 						<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" secondary :except="[...heroActions, ...menuActions]" />
 						<MoreMenu>
 							<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>

@@ -996,6 +996,33 @@ describe('poste de bureau', () => {
 		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
 	})
 
+	it('crée une demande depuis un ticket dont l\'étape Demande est déjà faite', async () => {
+		const pret = { ...ticket, status: 'En Cours', actions: ['Pause', 'Terminer'], demande_creation: { state: 'ready', reason: null, procede: 'Offset' }, cycle: { ...ticket.cycle, demandes: [{ name: 'DF-1', status: 'Commandé', etudes: [], sales_documents: [] }] } }
+		const context = { ticket: 'TC-1', state: 'ready', procede: 'Offset', reason: null, request_type: 'Bon de commande', client: 'CLI-1', client_label: 'NUMIDIA', description: null, urgence: 'U0', livraison: '2026-11-20', from_echeance: true, devis_rapproche: null }
+		const reply = (message: unknown) => Promise.resolve(new Response(JSON.stringify({ message })))
+		fetchMock.mockImplementation((input: RequestInfo | URL) => {
+			const url = String(input)
+			if (url.includes('get_ticket_demande_context')) return reply(context)
+			if (url.includes('get_demande_articles')) return reply([])
+			return url.includes('get_ticket') ? reply(pret) : respond(url)
+		})
+		const { wrapper } = await open('/ticket/TC-1')
+		await wrapper.findAll('button').find((button) => button.text() === 'Créer une autre demande')!.trigger('click')
+		await flushPromises()
+		await flushPromises()
+		expect(wrapper.find('.demande-dialog').exists()).toBe(true)
+		expect(wrapper.find('.demande-dialog').text()).toContain('Procédé du site : Offset')
+		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
+	})
+
+	it('ne propose pas de créer une demande quand le ticket ne le permet pas', async () => {
+		const bloque = { ...ticket, status: 'En Cours', actions: ['Pause'], demande_creation: { state: 'other_type', reason: 'Non', procede: null } }
+		fetchMock.mockImplementation((input: RequestInfo | URL) => (String(input).includes('get_ticket') ? Promise.resolve(new Response(JSON.stringify({ message: bloque }))) : respond(String(input))))
+		const { wrapper } = await open('/ticket/TC-1')
+		expect(wrapper.findAll('button').some((button) => /Créer une (autre )?demande/.test(button.text()))).toBe(false)
+		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
+	})
+
 	it('exige un motif pour bloquer la créance', async () => {
 		const enCours = { ...ticket, status: 'En Cours', actions: ['Pause', 'Terminer'] }
 		fetchMock.mockImplementation((input: RequestInfo | URL) =>
