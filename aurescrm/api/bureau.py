@@ -117,33 +117,61 @@ QUEUE_ORDER_FIELDS = [
 	"statut_creance",
 ]
 
-# Filtre de la file → (champ du ticket, nature de la valeur).
-FILTER_FIELDS = {
-	"client": ("customer_name", "text"),
-	"commercial": ("nom_commercial", "text"),
-	"type": ("request_type", "choice"),
-	"status": ("status", "choice"),
-	"urgence": ("niveau_urgence", "choice"),
-	"creance": ("statut_creance", "choice"),
-	"assigne": ("assigne_a", "user"),
-	"echeance": ("echeance", "date"),
-	"tag": ("_user_tags", "text"),
+# Filtres courants de chaque liste : champ → libellé. Ils passent en tête, et restent proposés quel que soit le niveau de droit du champ.
+FILTER_LISTS = {
+	TICKET: {
+		"request_type": "Type de ticket",
+		"status": "Statut",
+		"niveau_urgence": "Urgence",
+		"customer_name": "Client",
+		"nom_commercial": "Commercial",
+		"assigne_a": "Pris en charge par",
+		"statut_creance": "Créance",
+		"echeance": "Échéance",
+		"_user_tags": "Tag",
+	},
+	"Item": {
+		"custom_procédé": "Procédé",
+		"custom_client": "Client",
+		"item_group": "Groupe",
+		"custom_type_article": "Type",
+		"custom_support": "Papier",
+		"item_name": "Désignation",
+		"custom_code_client": "Réf. client",
+		"_user_tags": "Tag",
+	},
+	"Customer": {
+		"custom_status": "Statut",
+		"custom_wilaya": "Wilaya",
+		"custom_commercial_attribué": "Commercial",
+		"customer_group": "Catégorie",
+		"custom_grand_compte": "Grand compte",
+		"customer_name": "Raison sociale",
+		"_user_tags": "Tag",
+	},
 }
-FILTER_OPERATORS = {
-	"text": {"contient", "exclut"},
-	"choice": {"est", "nest"},
-	"user": {"est", "nest"},
-	"date": {"avant", "apres", "vide"},
-	"number": {"egal", "plus", "moins"},
-}
+# Conditions du Desk par nature de champ (`frappe/ui/filters/filter.js`), la condition par défaut en tête.
+TEXT_CONDITIONS = ["like", "not like", "=", "!=", "in", "not in", "is", ">", "<", ">=", "<="]
+CHOICE_CONDITIONS = ["=", "!=", "in", "not in", "is", ">", "<", ">=", "<="]
+LINK_CONDITIONS = ["=", "!=", "like", "not like", "in", "not in", "is"]
+TREE_CONDITIONS = ["descendants of", "descendants of (inclusive)", "not descendants of", "ancestors of", "not ancestors of"]
+NUMBER_CONDITIONS = ["=", "!=", ">", "<", ">=", "<=", "is"]
+DATE_CONDITIONS = ["Between", "Timespan", "=", "!=", "<", ">", "<=", ">=", "is"]
+DATETIME_CONDITIONS = ["Between", "Timespan", "<", ">", "<=", ">=", "is"]
+TIMESPANS = {
+	"last 7 days", "last 14 days", "last 30 days", "last 90 days", "last week", "last month", "last quarter", "last 6 months", "last year",
+	"yesterday", "today", "tomorrow",
+	"this week", "this month", "this quarter", "this year",
+	"next 7 days", "next 14 days", "next 30 days", "next week", "next month", "next quarter", "next 6 months", "next year",
+}  # fmt: skip
+LIST_FILTER = "List Filter"
+LINK_SEARCH_LIMIT = 20
 NOBODY = "__nobody__"
 INVALID_SHEET_CHARS = re.compile(r"[\\/*?:\[\]]")
-# Un filtre sur n'importe quel champ du doctype porte ce préfixe : il ne peut pas se confondre avec un filtre de la liste.
-DOCTYPE_FIELD_PREFIX = "champ:"
 NOT_FILTERABLE_TYPES = {"Section Break", "Column Break", "Tab Break", "HTML", "Button", "Table", "Table MultiSelect", "Password", "Fold", "Heading", "Image", "Signature", "Geolocation"}
 NUMBER_TYPES = {"Int", "Float", "Currency", "Percent", "Rating", "Duration"}
 DATE_TYPES = {"Date", "Datetime"}
-SYSTEM_FILTER_FIELDS = [("name", "Code", "text"), ("creation", "Créé le", "date"), ("modified", "Modifié le", "date")]
+SYSTEM_FILTER_FIELDS = [("name", "Code", "Data", None), ("owner", "Créé par", "Link", "User"), ("creation", "Créé le", "Datetime", None), ("modified_by", "Modifié par", "Link", "User"), ("modified", "Modifié le", "Datetime", None)]
 
 
 def can_access_bureau(user=None):
@@ -181,107 +209,281 @@ def view_filters(view, user):
 	return views[view]
 
 
-def _filter_field(df):
-	"""Le champ tel que le panneau de filtres le propose : sa nature décide des conditions, et un choix porte ses valeurs."""
-	entry = {"value": DOCTYPE_FIELD_PREFIX + df.fieldname, "label": _(df.label or df.fieldname), "kind": "text"}
-	if df.fieldtype in NUMBER_TYPES:
-		entry["kind"] = "number"
-	elif df.fieldtype in DATE_TYPES:
-		entry["kind"] = "date"
-	elif df.fieldtype == "Check":
-		entry.update(kind="choice", choices=[{"value": "1", "label": _("Oui")}, {"value": "0", "label": _("Non")}])
-	elif df.fieldtype == "Select":
-		entry.update(kind="choice", choices=[{"value": option, "label": _(option)} for option in cstr(df.options).split("\n") if option])
+def _filter_conditions(fieldtype, link_doctype=None):
+	"""(nature du champ, conditions permises), selon son type."""
+	if fieldtype in NUMBER_TYPES:
+		return "number", NUMBER_CONDITIONS
+	if fieldtype == "Date":
+		return "date", DATE_CONDITIONS
+	if fieldtype == "Datetime":
+		return "date", DATETIME_CONDITIONS
+	if fieldtype == "Check":
+		return "check", ["="]
+	if fieldtype == "Select":
+		return "choice", CHOICE_CONDITIONS
+	if fieldtype == "Link":
+		try:
+			tree = bool(link_doctype and frappe.get_meta(link_doctype).is_tree)
+		except frappe.DoesNotExistError:
+			tree = False
+		return "link", LINK_CONDITIONS + TREE_CONDITIONS if tree else LINK_CONDITIONS
+	return "text", TEXT_CONDITIONS
+
+
+def _filter_entry(doctype, fieldname, label, fieldtype, options=None, **extra):
+	"""Un champ du panneau de filtres : sa nature, ses conditions et, s'il en a, ses valeurs."""
+	link_doctype = options if fieldtype == "Link" else None
+	kind, conditions = _filter_conditions(fieldtype, link_doctype)
+	entry = {"value": f"{doctype}.{fieldname}", "doctype": doctype, "field": fieldname, "label": _(label or fieldname), "kind": kind, "operators": conditions, **extra}
+	if link_doctype:
+		entry["link_doctype"] = link_doctype
+	if kind == "check":
+		entry["choices"] = [{"value": "1", "label": _("Oui")}, {"value": "0", "label": _("Non")}]
+	elif kind == "choice":
+		entry["choices"] = [{"value": option, "label": _(option)} for option in cstr(options).split("\n") if option]
 	return entry
 
 
-def doctype_filter_fields(doctype, curated=None):
-	"""Tous les champs filtrables que la personne a le droit de lire, hors ceux que la liste propose déjà."""
+def _filterable(df, permitted):
+	return df.fieldtype not in NOT_FILTERABLE_TYPES and not df.is_virtual and df.fieldname in permitted
+
+
+def doctype_filter_fields(doctype, choices=None):
+	"""Tout ce qu'on peut filtrer sur une liste : ses filtres courants, puis les champs lisibles du doctype et de ses tables enfants."""
 	meta = frappe.get_meta(doctype)
+	common = FILTER_LISTS[doctype]
 	permitted = set(meta.get_permitted_fieldnames())
-	taken = {fieldname for fieldname, _kind in (curated or {}).values()}
-	fields = []
+	entries = []
+	for fieldname, label in common.items():
+		df = meta.get_field(fieldname)
+		if df:
+			entries.append(_filter_entry(doctype, fieldname, label, df.fieldtype, df.options))
+		elif fieldname == "_user_tags":
+			entries.append(_filter_entry(doctype, fieldname, label, "Data"))
+	entries.append(
+		{"value": f"{doctype}.{BELL_FILTER}", "doctype": doctype, "field": BELL_FILTER, "label": _("Cloche"), "kind": "choice", "operators": ["=", "!="], "choices": [{"value": "1", "label": _("activée")}]}
+	)
 	tab = section = None
 	for df in meta.fields:
 		if df.fieldtype == "Tab Break":
 			tab, section = df.label, None
 		elif df.fieldtype == "Section Break":
 			section = df.label
-		if df.fieldtype in NOT_FILTERABLE_TYPES or df.is_virtual or df.fieldname not in permitted or df.fieldname in taken:
+		if df.fieldname not in common and _filterable(df, permitted):
+			entries.append(_filter_entry(doctype, df.fieldname, df.label, df.fieldtype, df.options, group=_(section or tab or "Autres champs")))
+	for fieldname, label, fieldtype, options in SYSTEM_FILTER_FIELDS:
+		if fieldname not in common:
+			entries.append(_filter_entry(doctype, fieldname, label, fieldtype, options, group=_("Suivi")))
+	# `get_permitted_fieldnames` ne contient pas les tables : leur droit se lit à leur niveau d'accès.
+	levels = set(meta.get_permlevel_access())
+	for table in meta.get_table_fields():
+		if table.fieldtype != "Table" or table.permlevel not in levels:
 			continue
-		fields.append({**_filter_field(df), "group": _(section or tab or "Autres champs")})
-	system = [
-		{"value": DOCTYPE_FIELD_PREFIX + fieldname, "label": _(label), "kind": kind, "group": _("Suivi")}
-		for fieldname, label, kind in SYSTEM_FILTER_FIELDS
-		if fieldname not in taken
-	]
-	return fields + system
+		child = frappe.get_meta(table.options)
+		readable = set(child.get_permitted_fieldnames(parenttype=doctype))
+		label = _(table.label or table.options)
+		entries.extend(_filter_entry(table.options, df.fieldname, df.label, df.fieldtype, df.options, group=label, table=label) for df in child.fields if _filterable(df, readable))
+	for entry in entries:
+		if entry["doctype"] == doctype and entry["field"] in (choices or {}):
+			entry["choices"] = choices[entry["field"]]
+	return entries
 
 
-def _doctype_field(doctype, key):
-	"""(champ, nature) d'un filtre de champ, seulement si la personne a le droit de filtrer dessus."""
-	if not doctype or not key.startswith(DOCTYPE_FIELD_PREFIX):
+def _filter_catalog(doctype):
+	return {(entry["doctype"], entry["field"]): entry for entry in doctype_filter_fields(doctype)}
+
+
+def _require_filter_list(doctype):
+	if doctype not in FILTER_LISTS:
+		frappe.throw(_("Liste inconnue."))
+
+
+def _filter_value(entry, op, value):
+	"""La valeur attendue par `frappe.get_list`, ou None quand le filtre n'est pas complet. Une valeur mal formée est refusée."""
+	text = ",".join(cstr(item) for item in value) if isinstance(value, (list, tuple)) else cstr(value).strip()
+	if not text:
 		return None
-	for field in doctype_filter_fields(doctype):
-		if field["value"] == key:
-			return key[len(DOCTYPE_FIELD_PREFIX) :], field["kind"]
-	return None
-
-
-def _bell_filter(condition):
-	"""Lignes où la personne connectée a mis, ou n'a pas mis, sa cloche. La colonne range une liste JSON d'utilisateurs."""
-	op = cstr(condition.get("op"))
-	if op not in FILTER_OPERATORS["choice"]:
-		frappe.throw(_("Condition de filtre invalide."))
-	if not cstr(condition.get("value")).strip():
-		return None
-	return [BELL_FIELD, "like" if op == "est" else "not like", f'%"{frappe.session.user}"%']
-
-
-def condition_filters(conditions, fields=None, doctype=None):
-	"""Traduit les filtres choisis dans une liste. Un filtre sans valeur est ignoré, sauf « sans date »."""
-	filters = []
-	for condition in conditions or []:
-		key = cstr(condition.get("field"))
-		if key == BELL_FILTER:
-			bell = _bell_filter(condition)
-			if bell:
-				filters.append(bell)
-			continue
-		field = (fields or FILTER_FIELDS).get(key) or _doctype_field(doctype, key)
-		if not field:
-			frappe.throw(_("Filtre inconnu."))
-		fieldname, kind = field
-		op = cstr(condition.get("op"))
-		if op not in FILTER_OPERATORS[kind]:
+	if op == "is":
+		if text not in ("set", "not set"):
 			frappe.throw(_("Condition de filtre invalide."))
-		if op == "vide":
-			filters.append([fieldname, "is", "not set"])
+		return text
+	if op == "Timespan":
+		if text not in TIMESPANS:
+			frappe.throw(_("Condition de filtre invalide."))
+		return text
+	if op == "Between":
+		bounds = [part.strip() for part in text.split(",")]
+		if len(bounds) != 2 or not all(bounds):
+			return None
+		return [str(getdate(bound)) for bound in bounds]
+	if op in ("in", "not in"):
+		return [part.strip() for part in text.split(",") if part.strip()] or None
+	if op in ("like", "not like"):
+		return text if "%" in text else f"%{text}%"
+	if entry["kind"] == "number":
+		return flt(text)
+	if entry["kind"] == "date":
+		return str(getdate(text))
+	if entry["kind"] == "check":
+		return cint(text)
+	return text
+
+
+def condition_filters(conditions, doctype):
+	"""Traduit les filtres choisis dans une liste, au format du Desk. Tout ce qui n'est pas dans le catalogue de la personne est refusé."""
+	if not conditions:
+		return []
+	_require_filter_list(doctype)
+	catalog = _filter_catalog(doctype)
+	filters = []
+	for condition in conditions:
+		table, fieldname, op = cstr(condition.get("doctype")), cstr(condition.get("field")), cstr(condition.get("op"))
+		entry = catalog.get((table, fieldname))
+		if not entry:
+			frappe.throw(_("Filtre inconnu."))
+		if op not in entry["operators"]:
+			frappe.throw(_("Condition de filtre invalide."))
+		if fieldname == BELL_FILTER:
+			# Toujours la personne connectée : le navigateur n'envoie pas d'utilisateur.
+			if cstr(condition.get("value")).strip():
+				filters.append([doctype, BELL_FIELD, "like" if op == "=" else "not like", f'%"{frappe.session.user}"%'])
 			continue
-		value = cstr(condition.get("value")).strip()
-		if not value:
+		value = _filter_value(entry, op, condition.get("value"))
+		if value is None:
 			continue
-		if kind == "user" and value == NOBODY:
-			filters.append([fieldname, "is", "not set" if op == "est" else "set"])
-		elif op == "contient":
-			filters.append([fieldname, "like", f"%{value}%"])
-		elif op == "exclut":
-			filters.append([fieldname, "not like", f"%{value}%"])
-		elif op == "est":
-			filters.append([fieldname, "=", value])
-		elif op == "nest":
-			filters.append([fieldname, "!=", value])
-		elif op == "avant":
-			filters.append([fieldname, "<", str(getdate(value))])
-		elif op == "apres":
-			filters.append([fieldname, ">", str(getdate(value))])
-		elif op == "egal":
-			filters.append([fieldname, "=", flt(value)])
-		elif op == "plus":
-			filters.append([fieldname, ">", flt(value)])
-		elif op == "moins":
-			filters.append([fieldname, "<", flt(value)])
+		if value == NOBODY and op in ("=", "!="):
+			op, value = "is", "not set" if op == "=" else "set"
+		filters.append([table, fieldname, op, value])
 	return filters
+
+
+def has_child_filter(filters, doctype):
+	"""Vrai si un filtre passe par une table enfant : plusieurs de ses lignes peuvent alors répondre pour un même document."""
+	return any(row[0] != doctype for row in filters if len(row) == 4)
+
+
+def _condition_from_stored(row, doctype, catalog):
+	"""Une ligne de `List Filter`, écrite ici ou sur le Desk, relue comme une condition. None si le champ n'est plus disponible."""
+	if not isinstance(row, (list, tuple)) or len(row) < 4:
+		return None
+	table, fieldname, op, value = row[:4]
+	if fieldname == BELL_FIELD:
+		if op not in ("like", "not like"):
+			return None
+		return {"doctype": doctype, "field": BELL_FILTER, "op": "=" if op == "like" else "!=", "value": "1"}
+	entry = catalog.get((table, fieldname))
+	if not entry:
+		return None
+	op = next((known for known in entry["operators"] if known.lower() == cstr(op).lower()), None)
+	if not op:
+		return None
+	if isinstance(value, (list, tuple)):
+		value = ",".join(cstr(item) for item in value)
+	elif op in ("like", "not like"):
+		value = cstr(value).strip("%")
+	return {"doctype": table, "field": fieldname, "op": op, "value": cstr(value)}
+
+
+def _can_share_filters():
+	return "System Manager" in frappe.get_roles()
+
+
+@frappe.whitelist()
+def get_saved_filters(doctype):
+	"""Les filtres enregistrés de la personne et ceux de tout le monde : les mêmes que dans le Desk."""
+	require_bureau()
+	_require_filter_list(doctype)
+	user = frappe.session.user
+	catalog = _filter_catalog(doctype)
+	rows = frappe.get_all(LIST_FILTER, filters={"reference_doctype": doctype}, fields=["name", "filter_name", "for_user", "filters"], order_by="filter_name asc", limit_page_length=0)
+	can_share = _can_share_filters()
+	saved = []
+	for row in rows:
+		if row.for_user and row.for_user != user:
+			continue
+		stored = _parse(row.filters) or []
+		conditions = [condition for condition in (_condition_from_stored(item, doctype, catalog) for item in stored) if condition]
+		saved.append(
+			{
+				"name": row.name,
+				"label": row.filter_name,
+				"is_global": not row.for_user,
+				"can_delete": bool(row.for_user) or can_share,
+				"conditions": conditions,
+				"dropped": len(stored) - len(conditions),
+			}
+		)
+	return {"filters": saved, "can_share": can_share}
+
+
+@frappe.whitelist(methods=["POST"])
+def save_filter(doctype, label, conditions, is_global=0):
+	"""Enregistre les conditions dans `List Filter`, au format du Desk. Un filtre pour tout le monde demande le rôle System Manager."""
+	require_bureau()
+	_require_filter_list(doctype)
+	label = cstr(label).strip()
+	if not label:
+		frappe.throw(_("Donnez un nom à ce filtre."))
+	if cint(is_global) and not _can_share_filters():
+		frappe.throw(_("Seul un System Manager peut partager un filtre."), frappe.PermissionError)
+	user = frappe.session.user
+	existing = frappe.get_all(LIST_FILTER, filters={"reference_doctype": doctype, "filter_name": label}, fields=["for_user"], limit_page_length=0)
+	if any(not row.for_user or row.for_user == user for row in existing):
+		frappe.throw(_("Un filtre porte déjà ce nom."))
+	filters = condition_filters(_parse(conditions), doctype)
+	if not filters:
+		frappe.throw(_("Ce filtre n'a aucune condition complète."))
+	# Le rôle Desk User n'est pas exigé sur /bureau : les règles ci-dessus tiennent lieu de droits.
+	doc = frappe.get_doc(
+		{"doctype": LIST_FILTER, "reference_doctype": doctype, "filter_name": label, "for_user": "" if cint(is_global) else user, "filters": json.dumps([[*row, False] for row in filters])}
+	).insert(ignore_permissions=True)
+	return doc.name
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_saved_filter(name):
+	"""Retire un filtre : le sien, ou un filtre commun pour un System Manager."""
+	require_bureau()
+	doc = frappe.get_doc(LIST_FILTER, name)
+	if doc.reference_doctype not in FILTER_LISTS:
+		frappe.throw(_("Liste inconnue."))
+	if doc.for_user != frappe.session.user and (doc.for_user or not _can_share_filters()):
+		frappe.throw(_("Ce filtre ne vous appartient pas."), frappe.PermissionError)
+	doc.delete(ignore_permissions=True)
+
+
+def link_search_values(target, search, limit=LINK_SEARCH_LIMIT):
+	"""Valeurs d'un doctype lié, avec les droits de lecture de la personne."""
+	meta = frappe.get_meta(target)
+	title = meta.title_field if meta.title_field and meta.has_field(meta.title_field) else None
+	value = cstr(search).strip()
+	or_filters = None
+	if value:
+		or_filters = [["name", "like", f"%{value}%"]]
+		if title:
+			or_filters.append([title, "like", f"%{value}%"])
+	filters = []
+	if meta.has_field("enabled"):
+		filters.append(["enabled", "=", 1])
+	if meta.has_field("disabled"):
+		filters.append(["disabled", "=", 0])
+	rows = frappe.get_list(target, filters=filters, or_filters=or_filters, fields=["name", title] if title else ["name"], order_by=f"{title or 'name'} asc", limit_page_length=limit)
+	return [{"value": row.name, "label": cstr(row.get(title)) or row.name if title else row.name} for row in rows]
+
+
+@frappe.whitelist()
+def search_filter_link(list_doctype, doctype, field, search=None):
+	"""Valeurs proposées pour un champ lien du panneau de filtres. Sans droit de lecture sur la cible, on saisit la valeur à la main."""
+	require_bureau()
+	_require_filter_list(list_doctype)
+	entry = _filter_catalog(list_doctype).get((cstr(doctype), cstr(field)))
+	if not entry or not entry.get("link_doctype"):
+		frappe.throw(_("Filtre inconnu."))
+	try:
+		return link_search_values(entry["link_doctype"], search)
+	except frappe.PermissionError:
+		frappe.clear_messages()
+		return []
 
 
 def queue_level(ticket):
@@ -458,7 +660,7 @@ def _queue_documents(tickets):
 def get_queue(view="todo", conditions=None, search=None, start=0, page_length=DEFAULT_PAGE_LENGTH, sort=None, direction=None):
 	"""Une page de la file, le total et l'ordre de toute la vue, et les compteurs de toutes les vues pour les mêmes filtres."""
 	user = require_bureau()
-	base = condition_filters(_parse(conditions), doctype=TICKET)
+	base = condition_filters(_parse(conditions), TICKET)
 	or_filters = _search_filters(search)
 
 	counts = {}
@@ -556,7 +758,7 @@ def get_references():
 		"creances": _select_options("statut_creance"),
 		"assignees": [{"value": user.name, "label": user.full_name or user.name} for user in users],
 		"nobody": NOBODY,
-		"filter_fields": doctype_filter_fields(TICKET, FILTER_FIELDS),
+		"filter_fields": doctype_filter_fields(TICKET, {"assigne_a": [{"value": NOBODY, "label": _("Non attribué")}, *[{"value": user.name, "label": user.full_name or user.name} for user in users]]}),
 	}
 
 

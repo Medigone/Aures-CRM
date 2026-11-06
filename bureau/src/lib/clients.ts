@@ -1,7 +1,6 @@
 /** Règles de la page Clients : types, vues, colonnes, filtres et validation de la fenêtre. */
 import type { CommentSummary, Option } from '@/types'
-import type { Condition, FilterField } from './filters'
-import { BELL_FIELD, describeCondition, withDoctypeFields } from './filters'
+import type { FilterField } from './filters'
 import { formatDay } from './display'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
@@ -182,33 +181,6 @@ export function visibleClientColumns(keys: string[]) {
 export function clientSortText(sort: Sort | null) {
 	const column = sort && CLIENT_COLUMNS.find((item) => item.key === sort.key)
 	return column ? `Tri : ${column.label.toLowerCase()}` : 'Tri : nom'
-}
-
-export const CLIENT_FILTER_FIELDS: FilterField[] = [
-	{ value: 'status', label: 'Statut', kind: 'choice' },
-	{ value: 'wilaya', label: 'Wilaya', kind: 'choice' },
-	{ value: 'commercial', label: 'Commercial', kind: 'user' },
-	{ value: 'categorie', label: 'Catégorie', kind: 'choice' },
-	{ value: 'grand_compte', label: 'Grand compte', kind: 'choice' },
-	{ value: 'client', label: 'Raison sociale', kind: 'text' },
-	{ value: 'tag', label: 'Tag', kind: 'text' },
-	BELL_FIELD,
-]
-
-export function clientFilterChoices(field: string, options: ClientOptions | null): Option[] {
-	if (!options) return []
-	const plain = (values: string[]) => values.map((value) => ({ value, label: value }))
-	if (field === 'status') return plain(options.statuses)
-	if (field === 'wilaya') return plain(options.wilayas)
-	if (field === 'categorie') return plain(options.categories)
-	if (field === 'commercial') return [{ value: options.nobody, label: 'Non attribué' }, ...options.commercials]
-	if (field === 'grand_compte') return [{ value: '1', label: 'Oui' }, { value: '0', label: 'Non' }]
-	return []
-}
-
-/** Texte de la pastille d'un filtre actif : « Commercial est Nadia Haddad ». */
-export function clientConditionLabel(condition: Condition, options: ClientOptions | null) {
-	return describeCondition(condition, withDoctypeFields(CLIENT_FILTER_FIELDS, options?.filter_fields), clientFilterChoices(condition.field, options))
 }
 
 const REQUIRED: { field: ClientField; message: string }[] = [

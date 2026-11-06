@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import ClientDialog from './ClientDialog.vue'
@@ -7,9 +7,9 @@ import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getClientOptions, getClients } from '@/lib/api'
-import { CLIENT_COLUMNS, CLIENT_FILTER_FIELDS, CLIENT_VIEWS, clientConditionLabel, clientFilterChoices, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, visibleClientColumns, type ClientOptions, type ClientRow, type ClientView } from '@/lib/clients'
+import { CLIENT_COLUMNS, CLIENT_VIEWS, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, visibleClientColumns, type ClientOptions, type ClientRow, type ClientView } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
-import { withDoctypeFields, type Condition } from '@/lib/filters'
+import { describeCondition, type Condition } from '@/lib/filters'
 import type { ExportQuery } from '@/lib/exports'
 import type { ClientsState } from '@/lib/useClients'
 
@@ -19,7 +19,8 @@ const emit = defineEmits<{ pick: [name?: string]; open: [name: string, tab?: str
 const options = ref<ClientOptions | null>(null)
 const optionsError = ref('')
 const dataList = ref<{ revealCreated: () => Promise<void> } | null>(null)
-const labelOf = (condition: Condition) => clientConditionLabel(condition, options.value)
+const fields = computed(() => options.value?.filter_fields ?? [])
+const labelOf = (condition: Condition) => describeCondition(condition, fields.value)
 async function fetchRows(query: ExportQuery, start: number, pageLength: number) {
 	const state = props.state
 	const response = await getClients(query.view as ClientView, query.conditions, query.search, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
@@ -95,8 +96,8 @@ onBeforeUnmount(() => {
 		@changed="emit('changed')"
 		@create="creating = true"
 	>
-		<template #filters="{ conditions, update }">
-			<FilterBuilder :model-value="conditions" @update:model-value="update" :fields="withDoctypeFields(CLIENT_FILTER_FIELDS, options?.filter_fields)" first-field="status" :choices-of="(field) => clientFilterChoices(field, options)" />
+		<template #filters="{ conditions, update, canSave }">
+			<FilterBuilder :model-value="conditions" :fields="fields" doctype="Customer" :can-save="canSave" @update:model-value="update" />
 		</template>
 
 		<template #cells="{ row, columns }">

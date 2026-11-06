@@ -16,7 +16,7 @@ from frappe.desk.doctype.tag.tag import DocTags
 from frappe.model.workflow import get_workflow_name
 from frappe.utils import cint, cstr, flt, get_datetime, getdate
 
-from aurescrm.api.bureau import TICKET, _bulk_apply, _parse, _ticket_for_write, require_bureau, row_tags
+from aurescrm.api.bureau import TICKET, _bulk_apply, _parse, _ticket_for_write, link_search_values, require_bureau, row_tags
 from aurescrm.api.bureau_articles import ITEM, _article_for_write
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, _check_commercial, _client_for_write, _set_principal
 
@@ -291,25 +291,4 @@ def search_bulk_link(doctype, fieldname, search=None):
 	df = _editable_field(doctype, cstr(fieldname))
 	if df.fieldtype != "Link":
 		frappe.throw(_("Ce champ n'est pas un lien."))
-	target = frappe.get_meta(df.options)
-	title = target.title_field if target.title_field and target.has_field(target.title_field) else None
-	value = cstr(search).strip()
-	or_filters = None
-	if value:
-		or_filters = [["name", "like", f"%{value}%"]]
-		if title:
-			or_filters.append([title, "like", f"%{value}%"])
-	filters = []
-	if target.has_field("enabled"):
-		filters.append(["enabled", "=", 1])
-	if target.has_field("disabled"):
-		filters.append(["disabled", "=", 0])
-	rows = frappe.get_list(
-		df.options,
-		filters=filters,
-		or_filters=or_filters,
-		fields=["name", title] if title else ["name"],
-		order_by=f"{title or 'name'} asc",
-		limit_page_length=LINK_SEARCH_LIMIT,
-	)
-	return [{"value": row.name, "label": cstr(row.get(title)) or row.name if title else row.name} for row in rows]
+	return link_search_values(df.options, search, LINK_SEARCH_LIMIT)

@@ -1,150 +1,189 @@
-/** Filtres combinables de la file : champ, condition, valeur. Ils s'ajoutent entre eux, comme sur le Desk. */
+/** Filtres des listes, au format du Desk : doctype (ou table enfant), champ, condition, valeur. Ils s'ajoutent entre eux. */
 import { formatDay, statusLabel } from './display'
 import type { Option, References } from '@/types'
 
-export type FieldKind = 'text' | 'choice' | 'user' | 'date' | 'number'
+export type FieldKind = 'text' | 'choice' | 'link' | 'number' | 'date' | 'check'
 
 export interface Condition {
 	id: number
+	doctype: string
 	field: string
 	op: string
+	/** Toujours du texte : valeurs séparées par des virgules pour « dans la liste », deux dates pour « entre ». */
 	value: string
 }
 
+/** Un champ filtrable, décrit par le serveur : c'est lui qui connaît les conditions permises. */
 export interface FilterField {
+	/** Clé unique : « doctype.champ ». */
 	value: string
+	doctype: string
+	field: string
 	label: string
 	kind: FieldKind
-	/** Rubrique du champ dans la liste de choix. */
+	operators: string[]
+	/** Rubrique du champ ; absente pour un filtre courant de la liste. */
 	group?: string
-	/** Valeurs possibles, quand le champ les porte lui-même. */
+	/** Nom de la table enfant, quand le champ vient d'une table. */
+	table?: string
 	choices?: Option[]
+	link_doctype?: string
 }
 
-/** Les filtres de la liste d'abord, puis tous les champs du doctype envoyés par le serveur. */
-export function withDoctypeFields(common: FilterField[], doctypeFields: FilterField[] = []): FilterField[] {
-	return [...common, ...doctypeFields]
-}
+export const conditionKey = (condition: Pick<Condition, 'doctype' | 'field'>) => `${condition.doctype}.${condition.field}`
+export const fieldOf = (condition: Pick<Condition, 'doctype' | 'field'>, fields: FilterField[]) => fields.find((item) => item.value === conditionKey(condition))
 
-const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+/** Le nom d'un champ dans le sélecteur fermé : « Code · Couleurs » pour une table enfant. */
+export const fieldTitle = (field: FilterField) => (field.table ? `${field.label} · ${field.table}` : field.label)
 
-/** Les champs dont le nom contient tous les mots tapés, sans tenir compte des accents ni des majuscules, par ordre alphabétique. */
+const fold = (text: string) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+/** Les champs dont le nom ou la table contient tous les mots tapés, sans tenir compte des accents ni des majuscules, par ordre alphabétique. */
 export function searchFields(fields: FilterField[], query: string) {
 	const words = fold(query).split(/\s+/).filter(Boolean)
 	return fields
 		.filter((field) => {
-			const label = fold(field.label)
+			const label = fold(fieldTitle(field))
 			return words.every((word) => label.includes(word))
 		})
 		.sort((a, b) => a.label.localeCompare(b.label, 'fr', { sensitivity: 'base' }))
 }
 
-/** La cloche de la personne connectée, commune à toutes les listes : le cœur du Desk. */
+/** La cloche de la personne connectée, commune à toutes les listes : le cœur du Desk. Le serveur y met lui-même l'utilisateur. */
 export const BELL_FILTER = 'cloche'
-export const BELL_FIELD: FilterField = { value: BELL_FILTER, label: 'Cloche', kind: 'choice', choices: [{ value: '1', label: 'activée' }] }
 
-export const hasBell = (conditions: Condition[]) => conditions.some((condition) => condition.field === BELL_FILTER && condition.op === 'est' && isComplete(condition))
+export const hasBell = (conditions: Condition[]) => conditions.some((condition) => condition.field === BELL_FILTER && condition.op === '=' && isComplete(condition))
 
 /** Allume ou éteint le filtre depuis l'en-tête de la liste. */
-export function toggleBell(conditions: Condition[]): Condition[] {
+export function toggleBell(conditions: Condition[], doctype: string): Condition[] {
 	const others = conditions.filter((condition) => condition.field !== BELL_FILTER)
 	if (hasBell(conditions)) return others
 	const id = conditions.reduce((max, condition) => Math.max(max, condition.id), 0) + 1
-	return [...others, { id, field: BELL_FILTER, op: 'est', value: '1' }]
+	return [...others, { id, doctype, field: BELL_FILTER, op: '=', value: '1' }]
 }
 
-export const FIELDS: FilterField[] = [
-	{ value: 'client', label: 'Client', kind: 'text' },
-	{ value: 'type', label: 'Type de ticket', kind: 'choice' },
-	{ value: 'status', label: 'Statut', kind: 'choice' },
-	{ value: 'urgence', label: 'Urgence', kind: 'choice' },
-	{ value: 'commercial', label: 'Commercial', kind: 'text' },
-	{ value: 'assigne', label: 'Pris en charge par', kind: 'user' },
-	{ value: 'creance', label: 'Créance', kind: 'choice' },
-	{ value: 'echeance', label: 'Échéance', kind: 'date' },
-	{ value: 'tag', label: 'Tag', kind: 'text' },
-	BELL_FIELD,
+const OPERATOR_LABELS: Record<string, string> = {
+	'=': 'égal à',
+	'!=': 'différent de',
+	like: 'contient',
+	'not like': 'ne contient pas',
+	in: 'dans la liste',
+	'not in': 'hors de la liste',
+	is: 'renseigné ou non',
+	'>': 'supérieur à',
+	'<': 'inférieur à',
+	'>=': 'supérieur ou égal à',
+	'<=': 'inférieur ou égal à',
+	Between: 'entre',
+	Timespan: 'période',
+	'descendants of': 'descendants de',
+	'descendants of (inclusive)': 'descendants de, lui compris',
+	'not descendants of': 'hors descendants de',
+	'ancestors of': 'ancêtres de',
+	'not ancestors of': 'hors ancêtres de',
+}
+const DATE_LABELS: Record<string, string> = { '<': 'avant le', '>': 'après le', '<=': 'au plus tard le', '>=': 'au plus tôt le' }
+/** Une valeur à choisir se lit mieux avec « est » qu'avec « égal à ». */
+const CHOSEN_LABELS: Record<string, string> = { '=': 'est', '!=': "n'est pas" }
+
+export function operatorLabel(op: string, field?: FilterField) {
+	if (field?.kind === 'date' && DATE_LABELS[op]) return DATE_LABELS[op]
+	if (field && field.kind !== 'text' && field.kind !== 'number' && CHOSEN_LABELS[op]) return CHOSEN_LABELS[op]
+	return OPERATOR_LABELS[op] ?? op
+}
+
+export function operatorOptions(field?: FilterField): Option[] {
+	return (field?.operators ?? []).map((op) => ({ value: op, label: operatorLabel(op, field) }))
+}
+
+/** Les périodes du Desk, dans le même ordre. */
+export const TIMESPANS: Option[] = [
+	{ value: 'last 7 days', label: '7 derniers jours' },
+	{ value: 'last 14 days', label: '14 derniers jours' },
+	{ value: 'last 30 days', label: '30 derniers jours' },
+	{ value: 'last 90 days', label: '90 derniers jours' },
+	{ value: 'last week', label: 'La semaine dernière' },
+	{ value: 'last month', label: 'Le mois dernier' },
+	{ value: 'last quarter', label: 'Le trimestre dernier' },
+	{ value: 'last 6 months', label: '6 derniers mois' },
+	{ value: 'last year', label: "L'année dernière" },
+	{ value: 'yesterday', label: 'Hier' },
+	{ value: 'today', label: "Aujourd'hui" },
+	{ value: 'tomorrow', label: 'Demain' },
+	{ value: 'this week', label: 'Cette semaine' },
+	{ value: 'this month', label: 'Ce mois-ci' },
+	{ value: 'this quarter', label: 'Ce trimestre' },
+	{ value: 'this year', label: 'Cette année' },
+	{ value: 'next 7 days', label: '7 prochains jours' },
+	{ value: 'next 14 days', label: '14 prochains jours' },
+	{ value: 'next 30 days', label: '30 prochains jours' },
+	{ value: 'next week', label: 'La semaine prochaine' },
+	{ value: 'next month', label: 'Le mois prochain' },
+	{ value: 'next quarter', label: 'Le trimestre prochain' },
+	{ value: 'next 6 months', label: '6 prochains mois' },
+	{ value: 'next year', label: "L'année prochaine" },
+]
+export const SET_CHOICES: Option[] = [
+	{ value: 'set', label: 'Renseigné' },
+	{ value: 'not set', label: 'Non renseigné' },
 ]
 
-const OPERATORS: Record<FieldKind, Option[]> = {
-	text: [
-		{ value: 'contient', label: 'contient' },
-		{ value: 'exclut', label: 'ne contient pas' },
-	],
-	choice: [
-		{ value: 'est', label: 'est' },
-		{ value: 'nest', label: "n'est pas" },
-	],
-	user: [
-		{ value: 'est', label: 'est' },
-		{ value: 'nest', label: "n'est pas" },
-	],
-	date: [
-		{ value: 'avant', label: 'avant le' },
-		{ value: 'apres', label: 'après le' },
-		{ value: 'vide', label: 'sans date' },
-	],
-	number: [
-		{ value: 'egal', label: 'égal à' },
-		{ value: 'plus', label: 'supérieur à' },
-		{ value: 'moins', label: 'inférieur à' },
-	],
+export type ValueInput = 'text' | 'list' | 'number' | 'date' | 'between' | 'select' | 'link'
+
+/** La saisie de la valeur dépend du champ et de la condition, comme sur le Desk. */
+export function valueInput(field: FilterField | undefined, op: string): ValueInput {
+	if (op === 'is' || op === 'Timespan') return 'select'
+	if (op === 'Between') return 'between'
+	if (op === 'in' || op === 'not in') return 'list'
+	if (!field) return 'text'
+	if (field.choices && !['like', 'not like'].includes(op)) return 'select'
+	if (field.kind === 'date') return 'date'
+	if (field.kind === 'number') return 'number'
+	if (field.kind === 'link' && !['like', 'not like'].includes(op)) return 'link'
+	return 'text'
 }
 
-export function kindOf(field: string, fields: FilterField[] = FIELDS): FieldKind {
-	return fields.find((item) => item.value === field)?.kind ?? 'text'
+export function valueChoices(field: FilterField | undefined, op: string): Option[] {
+	if (op === 'is') return SET_CHOICES
+	if (op === 'Timespan') return TIMESPANS
+	return field?.choices ?? []
 }
 
-export function operatorsOf(field: string, fields: FilterField[] = FIELDS): Option[] {
-	return OPERATORS[kindOf(field, fields)]
+export function newCondition(id: number, field: FilterField): Condition {
+	return { id, doctype: field.doctype, field: field.field, op: field.operators[0], value: '' }
 }
 
-export function newCondition(id: number, field = 'type', fields: FilterField[] = FIELDS): Condition {
-	return { id, field, op: operatorsOf(field, fields)[0].value, value: '' }
-}
-
-/** Changer de champ repart de sa première condition, sans valeur : l'ancienne n'aurait plus de sens. */
-export function withField(condition: Condition, field: string, fields: FilterField[] = FIELDS): Condition {
-	return { ...newCondition(condition.id, field, fields) }
-}
-
-export function needsValue(condition: Pick<Condition, 'op'>) {
-	return condition.op !== 'vide'
-}
-
-export function isComplete(condition: Condition) {
-	return !needsValue(condition) || Boolean(condition.value.trim())
-}
-
-/** Texte de la pastille d'un filtre actif, dans toute liste : « Grammage égal à 300 ». */
-export function describeCondition(condition: Condition, fields: FilterField[], choices: Option[] = []) {
-	const definition = fields.find((item) => item.value === condition.field)
-	const field = definition?.label ?? condition.field
-	const op = operatorsOf(condition.field, fields).find((item) => item.value === condition.op)?.label ?? condition.op
-	if (!needsValue(condition) || !isComplete(condition)) return `${field} ${op}`
-	const value = condition.value.trim()
-	const shown = [...choices, ...(definition?.choices ?? [])].find((item) => item.value === value)?.label ?? (definition?.kind === 'date' ? formatDay(value) : value)
-	return `${field} ${op} ${shown}`
-}
-
-/** Texte de la pastille d'un filtre actif : « Statut est En pause ». */
-export function conditionLabel(condition: Condition, references: References | null) {
-	const fields = withDoctypeFields(FIELDS, references?.filter_fields)
-	if (condition.field === BELL_FILTER || !FIELDS.some((item) => item.value === condition.field)) return describeCondition(condition, fields)
-	const field = FIELDS.find((item) => item.value === condition.field)?.label ?? condition.field
-	const op = operatorsOf(condition.field).find((item) => item.value === condition.op)?.label ?? condition.op
-	if (!needsValue(condition)) return `${field} ${op}`
-	const value = condition.value.trim()
-	let shown = value
-	if (condition.field === 'status') shown = statusLabel(value)
-	else if (condition.field === 'echeance') shown = formatDay(value)
-	else if (condition.field === 'assigne') {
-		shown = value === references?.nobody ? 'Non attribué' : references?.assignees.find((item) => item.value === value)?.label ?? value
+export function isComplete(condition: Pick<Condition, 'op' | 'value'>) {
+	if (condition.op === 'Between') {
+		const [start, end] = condition.value.split(',')
+		return Boolean(start?.trim() && end?.trim())
 	}
-	return `${field} ${op} ${shown}`
+	return Boolean(condition.value.trim())
+}
+
+/** Texte de la pastille d'un filtre actif : « Couleurs · Code contient 186 », « Créé le : ce mois-ci ». */
+export function describeCondition(condition: Condition, fields: FilterField[]) {
+	const definition = fieldOf(condition, fields)
+	const name = definition ? (definition.table ? `${definition.table} · ${definition.label}` : definition.label) : condition.field
+	const op = operatorLabel(condition.op, definition)
+	if (!isComplete(condition)) return `${name} ${op}`
+	const value = condition.value.trim()
+	if (condition.op === 'is') return `${name} ${value === 'set' ? 'renseigné' : 'non renseigné'}`
+	if (condition.op === 'Timespan') return `${name} : ${(TIMESPANS.find((item) => item.value === value)?.label ?? value).toLowerCase()}`
+	if (condition.op === 'Between') {
+		const [start, end] = value.split(',')
+		return `${name} entre le ${formatDay(start.trim())} et le ${formatDay(end.trim())}`
+	}
+	const shown = definition?.choices?.find((item) => item.value === value)?.label ?? (definition?.kind === 'date' ? formatDay(value) : value)
+	return `${name} ${op} ${shown}`
+}
+
+/** Les champs de la file : le statut garde les libellés affichés dans la liste. */
+export function ticketFilterFields(references: References | null): FilterField[] {
+	return (references?.filter_fields ?? []).map((field) => (field.field === 'status' && field.choices ? { ...field, choices: field.choices.map(({ value }) => ({ value, label: statusLabel(value) })) } : field))
 }
 
 /** Seuls les filtres complets partent au serveur. */
 export function conditionsForServer(conditions: Condition[]) {
-	return conditions.filter(isComplete).map(({ field, op, value }) => ({ field, op, value: value.trim() }))
+	return conditions.filter(isComplete).map(({ doctype, field, op, value }) => ({ doctype, field, op, value: value.trim() }))
 }

@@ -140,7 +140,7 @@ const candidates = {
 		},
 	],
 }
-const references = { types: ['Bon de commande'], statuses: ['Pending'], urgences: ['U0'], creances: ['OK'], assignees: [{ value: 'amine@example.com', label: 'Amine Melizi' }], nobody: '__nobody__' }
+const references = { types: ['Bon de commande'], statuses: ['Pending'], urgences: ['U0'], creances: ['OK'], assignees: [{ value: 'amine@example.com', label: 'Amine Melizi' }], nobody: '__nobody__', filter_fields: [{ value: 'Ticket Commercial.request_type', doctype: 'Ticket Commercial', field: 'request_type', label: 'Type de ticket', kind: 'choice', operators: ['=', '!='], choices: [{ value: 'Bon de commande', label: 'Bon de commande' }] }] }
 
 function respond(url: string) {
 	const message = url.includes('get_queue')

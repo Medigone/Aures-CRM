@@ -20,7 +20,7 @@ const fetchRows = vi.fn(async (query: ExportQuery, start: number, pageLength: nu
 	return { rows: rows.slice(start, start + pageLength), total: rows.length }
 })
 const views = [{ key: 'todo', label: 'À traiter' }, { key: 'closed', label: 'Clos' }]
-const condition: Condition = { id: 1, field: 'status', op: 'est', value: 'Ouvert' }
+const condition: Condition = { id: 1, doctype: 'Ticket Commercial', field: 'status', op: '=', value: 'Ouvert' }
 const settle = async () => {
 	await vi.advanceTimersByTimeAsync(300)
 	await flushPromises()
@@ -29,7 +29,7 @@ const settle = async () => {
 function open(filtered = false, conditions: Condition[] = []) {
 	return mount(ExportDialog<Row>, {
 		props: { title: 'Tickets', noun: 'ticket', views, columns, initial: { view: 'todo', conditions, search: filtered ? 'etui' : '' }, filtered, fetchRows },
-		slots: { filters: `<template #filters="{ conditions, update }"><button class="add-filter" @click="update([{ id: 2, field: 'status', op: 'est', value: 'Clos' }])">{{ conditions.length }} filtres</button></template>` },
+		slots: { filters: `<template #filters="{ conditions, update }"><button class="add-filter" @click="update([{ id: 2, doctype: 'Ticket Commercial', field: 'status', op: '=', value: 'Clos' }])">{{ conditions.length }} filtres</button></template>` },
 		attachTo: document.body,
 	})
 }

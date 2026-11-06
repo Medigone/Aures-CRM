@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { changedValues, clientConditionLabel, clientFilterChoices, clientFormValues, clientSortText, formatAmount, normalizeName, validateClient, visibleClientColumns, type ClientDetail, type ClientOptions } from './clients'
+import { changedValues, clientFormValues, clientSortText, formatAmount, normalizeName, validateClient, visibleClientColumns, type ClientDetail, type ClientOptions } from './clients'
 import { ticketsToCsv } from './list'
 
 const options = { statuses: ['Actif'], wilayas: ['Sétif'], categories: ['Commercial'], formes: [], sensibilites: [], groupes: [], commercials: [{ value: 'n@example.com', label: 'Nadia Haddad' }], nobody: '__nobody__' } as ClientOptions
@@ -15,13 +15,6 @@ describe('clients', () => {
 		expect(visibleClientColumns(['status', 'inconnue']).map((column) => column.key)).toEqual(['client', 'status'])
 		expect(clientSortText(null)).toBe('Tri : nom')
 		expect(clientSortText({ key: 'creance', dir: 'desc' })).toBe('Tri : créance (da)')
-	})
-
-	it('nomme les valeurs des filtres', () => {
-		expect(clientFilterChoices('commercial', options)[0]).toEqual({ value: '__nobody__', label: 'Non attribué' })
-		expect(clientFilterChoices('grand_compte', options).map((item) => item.label)).toEqual(['Oui', 'Non'])
-		expect(clientConditionLabel({ id: 1, field: 'commercial', op: 'est', value: 'n@example.com' }, options)).toBe('Commercial est Nadia Haddad')
-		expect(clientConditionLabel({ id: 2, field: 'grand_compte', op: 'nest', value: '1' }, options)).toBe("Grand compte n'est pas Oui")
 	})
 
 	it('exige les champs du Customer et le commercial', () => {

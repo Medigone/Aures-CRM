@@ -22,6 +22,7 @@ from aurescrm.api.bureau import (
 	_parse,
 	condition_filters,
 	doctype_filter_fields,
+	has_child_filter,
 	page_bounds,
 	require_bureau,
 	row_bell,
@@ -54,17 +55,6 @@ LIST_FIELDS = [
 	"_user_tags",
 	BELL_FIELD,
 ]
-
-# Filtre de la liste → (champ du client, nature de la valeur), au format de `bureau.condition_filters`.
-FILTER_FIELDS = {
-	"client": ("customer_name", "text"),
-	"status": ("custom_status", "choice"),
-	"wilaya": ("custom_wilaya", "choice"),
-	"commercial": (COMMERCIAL_FIELD, "user"),
-	"categorie": ("customer_group", "choice"),
-	"grand_compte": ("custom_grand_compte", "choice"),
-	"tag": ("_user_tags", "text"),
-}
 
 VIEWS = {
 	"all": lambda row: True,
@@ -200,9 +190,11 @@ def get_clients(view="all", conditions=None, search=None, start=0, page_length=N
 		frappe.throw(_("Vue inconnue."))
 	value = cstr(search).strip()
 	pattern = f"%{value}%"
+	conditions = condition_filters(_parse(conditions), CUSTOMER)
 	clients = frappe.get_list(
 		CUSTOMER,
-		filters=[["disabled", "=", 0], *condition_filters(_parse(conditions), FILTER_FIELDS, CUSTOMER)],
+		filters=[["disabled", "=", 0], *conditions],
+		distinct=has_child_filter(conditions, CUSTOMER),
 		or_filters=[
 			["customer_name", "like", pattern],
 			["name", "like", pattern],
@@ -238,16 +230,27 @@ def _select_options(fieldname):
 def get_client_options():
 	"""Valeurs proposées dans les filtres et dans la fenêtre du client."""
 	require_bureau()
+	plain = lambda values: [{"value": value, "label": value} for value in values]
+	categories = frappe.get_list("Customer Group", filters={"is_group": 0}, order_by="name asc", pluck="name", limit_page_length=0)
+	wilayas = frappe.get_list("Wilayas", order_by="name asc", pluck="name", limit_page_length=0)
+	commercials = [{"value": user.name, "label": user.full_name or user.name} for user in _commercial_users()]
 	return {
 		"statuses": _select_options("custom_status"),
 		"formes": _select_options("custom_forme_juridique"),
 		"sensibilites": _select_options("custom_sensibilité_prix"),
-		"categories": frappe.get_list("Customer Group", filters={"is_group": 0}, order_by="name asc", pluck="name", limit_page_length=0),
+		"categories": categories,
 		"groupes": frappe.get_list("Groupe de societes", order_by="name asc", pluck="name", limit_page_length=0),
-		"wilayas": frappe.get_list("Wilayas", order_by="name asc", pluck="name", limit_page_length=0),
-		"commercials": [{"value": user.name, "label": user.full_name or user.name} for user in _commercial_users()],
+		"wilayas": wilayas,
+		"commercials": commercials,
 		"nobody": NOBODY,
-		"filter_fields": doctype_filter_fields(CUSTOMER, FILTER_FIELDS),
+		"filter_fields": doctype_filter_fields(
+			CUSTOMER,
+			{
+				COMMERCIAL_FIELD: [{"value": NOBODY, "label": _("Non attribué")}, *commercials],
+				"customer_group": plain(categories),
+				"custom_wilaya": plain(wilayas),
+			},
+		),
 	}
 
 

@@ -150,46 +150,60 @@ class TestQueueRules(FrappeTestCase):
 		rows.sort(key=bureau.queue_sort_key)
 		self.assertEqual(rows[0]["name"], "avec")
 
+	def _ticket_filter(self, field, op, value=""):
+		return {"doctype": bureau.TICKET, "field": field, "op": op, "value": value}
+
 	def test_traduction_des_filtres(self):
+		t = bureau.TICKET
 		filters = bureau.condition_filters(
 			[
-				{"field": "type", "op": "est", "value": "Bon de commande"},
-				{"field": "creance", "op": "nest", "value": "OK"},
-				{"field": "client", "op": "contient", "value": " laiterie "},
-				{"field": "commercial", "op": "exclut", "value": "ali"},
-				{"field": "echeance", "op": "avant", "value": "2026-11-10"},
-				{"field": "echeance", "op": "apres", "value": "2026-11-01"},
-				{"field": "echeance", "op": "vide"},
-				{"field": "assigne", "op": "est", "value": bureau.NOBODY},
-				{"field": "assigne", "op": "nest", "value": bureau.NOBODY},
-			]
+				self._ticket_filter("request_type", "=", "Bon de commande"),
+				self._ticket_filter("statut_creance", "!=", "OK"),
+				self._ticket_filter("customer_name", "like", " laiterie "),
+				self._ticket_filter("nom_commercial", "not like", "ali"),
+				self._ticket_filter("echeance", "<", "2026-11-10"),
+				self._ticket_filter("echeance", ">=", "2026-11-01"),
+				self._ticket_filter("echeance", "is", "not set"),
+				self._ticket_filter("echeance", "Between", "2026-11-01,2026-11-30"),
+				self._ticket_filter("creation", "Timespan", "this month"),
+				self._ticket_filter("status", "in", "Ouvert, Clos"),
+				self._ticket_filter("assigne_a", "=", bureau.NOBODY),
+				self._ticket_filter("assigne_a", "!=", bureau.NOBODY),
+			],
+			t,
 		)
 		self.assertEqual(
 			filters,
 			[
-				["request_type", "=", "Bon de commande"],
-				["statut_creance", "!=", "OK"],
-				["customer_name", "like", "%laiterie%"],
-				["nom_commercial", "not like", "%ali%"],
-				["echeance", "<", "2026-11-10"],
-				["echeance", ">", "2026-11-01"],
-				["echeance", "is", "not set"],
-				["assigne_a", "is", "not set"],
-				["assigne_a", "is", "set"],
+				[t, "request_type", "=", "Bon de commande"],
+				[t, "statut_creance", "!=", "OK"],
+				[t, "customer_name", "like", "%laiterie%"],
+				[t, "nom_commercial", "not like", "%ali%"],
+				[t, "echeance", "<", "2026-11-10"],
+				[t, "echeance", ">=", "2026-11-01"],
+				[t, "echeance", "is", "not set"],
+				[t, "echeance", "Between", ["2026-11-01", "2026-11-30"]],
+				[t, "creation", "Timespan", "this month"],
+				[t, "status", "in", ["Ouvert", "Clos"]],
+				[t, "assigne_a", "is", "not set"],
+				[t, "assigne_a", "is", "set"],
 			],
 		)
 
 	def test_filtre_sans_valeur_ignore(self):
-		self.assertEqual(bureau.condition_filters([{"field": "type", "op": "est", "value": ""}]), [])
+		for condition in (self._ticket_filter("request_type", "="), self._ticket_filter("echeance", "Between", "2026-11-01,"), self._ticket_filter("status", "in", " , ")):
+			self.assertEqual(bureau.condition_filters([condition], bureau.TICKET), [])
 
 	def test_filtre_cloche_propre_a_la_personne(self):
 		pattern = f'%"{frappe.session.user}"%'
-		for fields in (None, bureau_clients.FILTER_FIELDS, bureau_articles.FILTER_FIELDS):
-			self.assertEqual(bureau.condition_filters([{"field": "cloche", "op": "est", "value": "1"}], fields), [["_liked_by", "like", pattern]])
-			self.assertEqual(bureau.condition_filters([{"field": "cloche", "op": "nest", "value": "1"}], fields), [["_liked_by", "not like", pattern]])
-		self.assertEqual(bureau.condition_filters([{"field": "cloche", "op": "est", "value": ""}]), [])
-		with self.assertRaises(frappe.ValidationError):
-			bureau.condition_filters([{"field": "cloche", "op": "like", "value": "1"}])
+		for doctype in bureau.FILTER_LISTS:
+			self.assertEqual(bureau.condition_filters([{"doctype": doctype, "field": "cloche", "op": "=", "value": "1"}], doctype), [[doctype, "_liked_by", "like", pattern]])
+			self.assertEqual(bureau.condition_filters([{"doctype": doctype, "field": "cloche", "op": "!=", "value": "1"}], doctype), [[doctype, "_liked_by", "not like", pattern]])
+			# Le navigateur ne choisit pas la personne : sa valeur ne sert qu'à dire que le filtre est complet.
+			self.assertEqual(bureau.condition_filters([{"doctype": doctype, "field": "cloche", "op": "=", "value": "autre@example.com"}], doctype), [[doctype, "_liked_by", "like", pattern]])
+			self.assertEqual(bureau.condition_filters([{"doctype": doctype, "field": "cloche", "op": "=", "value": ""}], doctype), [])
+			with self.assertRaises(frappe.ValidationError):
+				bureau.condition_filters([{"doctype": doctype, "field": "cloche", "op": "like", "value": "1"}], doctype)
 
 	def test_cloche_de_la_ligne(self):
 		user = frappe.session.user
@@ -198,12 +212,24 @@ class TestQueueRules(FrappeTestCase):
 		self.assertFalse(bureau.row_bell(frappe._dict(_liked_by=None)))
 
 	def test_filtre_inconnu_refuse(self):
+		for condition in (
+			{"doctype": bureau.TICKET, "field": "inexistant", "op": "=", "value": "x"},
+			{"doctype": "User", "field": "email", "op": "=", "value": "x"},
+			{"doctype": "Article Couleur", "field": "code", "op": "like", "value": "x"},
+			{"field": "status", "op": "=", "value": "x"},
+		):
+			with self.assertRaises(frappe.ValidationError):
+				bureau.condition_filters([condition], bureau.TICKET)
 		with self.assertRaises(frappe.ValidationError):
-			bureau.condition_filters([{"field": "owner", "op": "est", "value": "x"}])
+			bureau.condition_filters([self._ticket_filter("status", "=", "x")], "User")
 
 	def test_operateur_inadapte_refuse(self):
-		with self.assertRaises(frappe.ValidationError):
-			bureau.condition_filters([{"field": "type", "op": "like", "value": "x"}])
+		for field, op in (("request_type", "like"), ("request_type", "Between"), ("customer_name", "Timespan"), ("creation", "="), ("assigne_a", ">"), ("status", "; drop")):
+			with self.assertRaises(frappe.ValidationError):
+				bureau.condition_filters([self._ticket_filter(field, op, "x")], bureau.TICKET)
+		for op, value in (("is", "peut-etre"), ("Timespan", "demain soir")):
+			with self.assertRaises(frappe.ValidationError):
+				bureau.condition_filters([self._ticket_filter("echeance", op, value)], bureau.TICKET)
 
 	def test_vue_inconnue_refusee(self):
 		with self.assertRaises(frappe.ValidationError):
@@ -234,7 +260,7 @@ class TestPermissions(FrappeTestCase):
 			self.assertFalse(bureau.can_access_bureau("x@example.com"))
 
 	def test_lecture_administrateur(self):
-		queue = bureau.get_queue(view="todo", conditions='[{"field": "type", "op": "est", "value": "Bon de commande"}]')
+		queue = bureau.get_queue(view="todo", conditions=json.dumps([{"doctype": bureau.TICKET, "field": "request_type", "op": "=", "value": "Bon de commande"}]))
 		self.assertEqual(set(queue["counts"]), {"todo", "mine", "urgent", "creance", "closed"})
 		self.assertTrue(all(row["request_type"] == "Bon de commande" for row in queue["tickets"]))
 
@@ -860,9 +886,9 @@ class TestClients(FrappeTestCase):
 
 	def test_filtres_de_la_liste(self):
 		name = self._create(customer_name="zzz filtre bureau")
-		conditions = [{"field": "commercial", "op": "est", "value": self.COMMERCIAL}, {"field": "grand_compte", "op": "est", "value": "0"}]
+		conditions = [{"doctype": "Customer", "field": bureau_clients.COMMERCIAL_FIELD, "op": "=", "value": self.COMMERCIAL}, {"doctype": "Customer", "field": "custom_grand_compte", "op": "=", "value": "0"}]
 		self.assertIn(name, bureau_clients.get_clients(conditions=conditions, page_length=500)["names"])
-		conditions = [{"field": "grand_compte", "op": "est", "value": "1"}]
+		conditions = [{"doctype": "Customer", "field": "custom_grand_compte", "op": "=", "value": "1"}]
 		self.assertNotIn(name, bureau_clients.get_clients(conditions=conditions, page_length=500)["names"])
 
 	def test_tri_sans_valeur_a_la_fin(self):
@@ -1083,7 +1109,7 @@ class TestBulkCommun(FrappeTestCase):
 		self.assertEqual(result["done"], [item["name"]])
 		self.assertIn(tag, frappe.db.get_value("Customer", item["name"], "_user_tags"))
 		self.assertEqual(str(frappe.db.get_value("Customer", item["name"], "modified")), item["modified"])
-		rows = bureau_clients.get_clients(conditions=[{"field": "tag", "op": "contient", "value": tag}])
+		rows = bureau_clients.get_clients(conditions=[{"doctype": "Customer", "field": "_user_tags", "op": "like", "value": tag}])
 		self.assertEqual(rows["names"], [item["name"]])
 		self.assertIn(tag, rows["clients"][0]["tags"])
 
@@ -1279,34 +1305,142 @@ class TestArticles(FrappeTestCase):
 		self.assertEqual(bureau_articles.format_label({"custom_procédé": "Salle Blanche Pharma", "custom_laize": "670 mm"}), "Laize 670")
 		self.assertIsNone(bureau_articles.support_label({"custom_procédé": "Offset"}))
 
-	def test_les_filtres_couvrent_tous_les_champs_lisibles_du_doctype(self):
-		from aurescrm.api import bureau, bureau_articles
+	def test_les_filtres_couvrent_les_champs_et_les_tables_enfants(self):
+		from aurescrm.api import bureau
 
 		frappe.set_user("Administrator")
-		fields = {field["value"]: field for field in bureau.doctype_filter_fields("Item", bureau_articles.FILTER_FIELDS)}
-		self.assertEqual(fields["champ:custom_grammage"]["kind"], "text")
-		self.assertEqual(fields["champ:custom_nbr_couleurs"]["kind"], "text")
-		self.assertEqual(fields["champ:disabled"]["choices"][0]["value"], "1")
-		self.assertEqual(fields["champ:creation"]["kind"], "date")
-		# Déjà proposé par la liste, et sans valeur à comparer.
-		self.assertNotIn("champ:item_name", fields)
-		self.assertFalse([value for value, field in fields.items() if frappe.get_meta("Item").get_field(value.removeprefix("champ:")) and frappe.get_meta("Item").get_field(value.removeprefix("champ:")).fieldtype in bureau.NOT_FILTERABLE_TYPES])
+		fields = {(field["doctype"], field["field"]): field for field in bureau.doctype_filter_fields("Item")}
+		self.assertEqual(fields[("Item", "custom_grammage")]["kind"], "link")
+		self.assertEqual(fields[("Item", "custom_grammage")]["link_doctype"], "Grammage Papier")
+		self.assertEqual(fields[("Item", "item_group")]["label"], "Groupe")
+		self.assertIn("descendants of", fields[("Item", "item_group")]["operators"])
+		self.assertNotIn("descendants of", fields[("Item", "custom_grammage")]["operators"])
+		self.assertEqual(fields[("Item", "custom_recto_verso")]["operators"], ["="])
+		self.assertEqual(fields[("Item", "custom_recto_verso")]["choices"][0], {"value": "1", "label": "Oui"})
+		self.assertEqual(fields[("Item", "creation")]["kind"], "date")
+		self.assertNotIn("=", fields[("Item", "creation")]["operators"])
+		color = fields[("Article Couleur", "code")]
+		self.assertEqual(color["kind"], "text")
+		self.assertEqual(color["table"], "Couleurs")
+		self.assertEqual(fields[("Article Couleur", "type_couleur")]["choices"][0]["value"], "Pantone")
+		self.assertNotIn(("Item", "custom_couleurs_article"), fields)
+		self.assertNotIn(("Article Couleur", "parent"), fields)
 
-		condition = [{"field": "champ:custom_grammage", "op": "contient", "value": "300"}]
-		self.assertEqual(bureau.condition_filters(condition, bureau_articles.FILTER_FIELDS, "Item"), [["custom_grammage", "like", "%300%"]])
-		number = [{"field": "champ:opening_stock", "op": "plus", "value": "5"}]
-		self.assertEqual(bureau.condition_filters(number, bureau_articles.FILTER_FIELDS, "Item"), [["opening_stock", ">", 5.0]])
-
-	def test_un_filtre_refuse_un_champ_inconnu_ou_interdit(self):
-		from aurescrm.api import bureau, bureau_articles
+	def test_filtre_sur_table_enfant_sans_doublon(self):
+		from aurescrm.api import bureau_articles
 
 		frappe.set_user("Administrator")
-		for field in ("champ:inexistant", "champ:password", "owner; drop"):
-			with self.assertRaises(frappe.ValidationError):
-				bureau.condition_filters([{"field": field, "op": "contient", "value": "x"}], bureau_articles.FILTER_FIELDS, "Item")
-		# Sans doctype déclaré, un champ libre reste refusé.
+		item = frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": "ZZ-FILTRE-ENFANT",
+				"item_name": "ZZ FILTRE ENFANT",
+				"item_group": frappe.db.get_value("Item Group", {"is_group": 0}),
+				"stock_uom": frappe.db.get_value("UOM", {}),
+				"custom_type_article": "Général",
+				"custom_couleurs_article": [{"type_couleur": "CMJN", "c": 100}, {"type_couleur": "CMJN", "m": 100}],
+			}
+		).insert(ignore_permissions=True, ignore_mandatory=True)
+		codes = frappe.get_all("Article Couleur", filters={"parent": item.name}, pluck="code")
+		self.assertEqual(len(codes), 2)
+		condition = [{"doctype": "Article Couleur", "field": "type_couleur", "op": "=", "value": "CMJN"}, {"doctype": "Item", "field": "item_name", "op": "like", "value": "ZZ-FILTRE-ENFANT"}]
+		response = bureau_articles.get_articles(conditions=condition, page_length=500)
+		self.assertEqual(response["names"], [item.name])
+		self.assertEqual(response["total"], 1)
+		frappe.delete_doc("Item", item.name, ignore_permissions=True, force=True)
+
+	def _saved(self, doctype="Item"):
+		from aurescrm.api import bureau
+
+		return {row["label"]: row for row in bureau.get_saved_filters(doctype)["filters"]}
+
+	def test_filtre_enregistre_au_format_du_desk(self):
+		from aurescrm.api import bureau
+
+		frappe.set_user("Administrator")
+		conditions = [
+			{"doctype": "Article Couleur", "field": "code", "op": "like", "value": "186"},
+			{"doctype": "Item", "field": "creation", "op": "Between", "value": "2026-01-01,2026-12-31"},
+			{"doctype": "Item", "field": "cloche", "op": "=", "value": "1"},
+		]
+		name = bureau.save_filter("Item", "ZZ couleur", conditions)
+		self.addCleanup(frappe.delete_doc, "List Filter", name, ignore_permissions=True, force=True, ignore_missing=True)
+		stored = frappe.get_doc("List Filter", name)
+		self.assertEqual(stored.for_user, "Administrator")
+		self.assertEqual(stored.reference_doctype, "Item")
+		self.assertEqual(
+			json.loads(stored.filters),
+			[
+				["Article Couleur", "code", "like", "%186%", False],
+				["Item", "creation", "Between", ["2026-01-01", "2026-12-31"], False],
+				["Item", "_liked_by", "like", '%"Administrator"%', False],
+			],
+		)
+		saved = self._saved()["ZZ couleur"]
+		self.assertEqual(saved["dropped"], 0)
+		self.assertEqual([(row["doctype"], row["field"], row["op"], row["value"]) for row in saved["conditions"]], [("Article Couleur", "code", "like", "186"), ("Item", "creation", "Between", "2026-01-01,2026-12-31"), ("Item", "cloche", "=", "1")])
 		with self.assertRaises(frappe.ValidationError):
-			bureau.condition_filters([{"field": "champ:custom_grammage", "op": "contient", "value": "x"}], bureau_articles.FILTER_FIELDS)
+			bureau.save_filter("Item", "ZZ couleur", conditions)
+		with self.assertRaises(frappe.ValidationError):
+			bureau.save_filter("Item", "ZZ vide", [{"doctype": "Item", "field": "item_name", "op": "like", "value": ""}])
+		with self.assertRaises(frappe.ValidationError):
+			bureau.save_filter("User", "ZZ interdit", conditions)
+		bureau.delete_saved_filter(name)
+		self.assertNotIn("ZZ couleur", self._saved())
+
+	def test_filtre_du_desk_relu_et_champ_disparu_signale(self):
+		from aurescrm.api import bureau
+
+		frappe.set_user("Administrator")
+		doc = frappe.get_doc(
+			{
+				"doctype": "List Filter",
+				"reference_doctype": "Item",
+				"filter_name": "ZZ desk",
+				"for_user": "Administrator",
+				"filters": json.dumps([["Item", "custom_grammage", "not in", ["300", "450"], False], ["Item", "custom_recto_verso", "=", 1, False], ["Item", "n_existe_pas", "=", "x", False], ["Item", "item_name", "Timespan", "today", False]]),
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "List Filter", doc.name, ignore_permissions=True, force=True, ignore_missing=True)
+		saved = self._saved()["ZZ desk"]
+		self.assertEqual(saved["dropped"], 2)
+		self.assertEqual([(row["field"], row["op"], row["value"]) for row in saved["conditions"]], [("custom_grammage", "not in", "300,450"), ("custom_recto_verso", "=", "1")])
+
+	def test_droits_des_filtres_enregistres(self):
+		from aurescrm.api import bureau
+
+		frappe.set_user("Administrator")
+		condition = [{"doctype": "Item", "field": "item_name", "op": "like", "value": "a"}]
+		common = bureau.save_filter("Item", "ZZ commun", condition, is_global=1)
+		self.addCleanup(frappe.delete_doc, "List Filter", common, ignore_permissions=True, force=True, ignore_missing=True)
+		self.assertFalse(frappe.db.get_value("List Filter", common, "for_user"))
+		other = frappe.get_doc({"doctype": "List Filter", "reference_doctype": "Item", "filter_name": "ZZ autre", "for_user": "Guest", "filters": "[]"}).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "List Filter", other.name, ignore_permissions=True, force=True, ignore_missing=True)
+		saved = self._saved()
+		self.assertTrue(saved["ZZ commun"]["is_global"])
+		self.assertTrue(saved["ZZ commun"]["can_delete"])
+		self.assertNotIn("ZZ autre", saved)
+		with self.assertRaises(frappe.PermissionError):
+			bureau.delete_saved_filter(other.name)
+
+		with patch("aurescrm.api.bureau._can_share_filters", return_value=False):
+			self.assertFalse(bureau.get_saved_filters("Item")["can_share"])
+			self.assertFalse(self._saved()["ZZ commun"]["can_delete"])
+			with self.assertRaises(frappe.PermissionError):
+				bureau.save_filter("Item", "ZZ partage", condition, is_global=1)
+			with self.assertRaises(frappe.PermissionError):
+				bureau.delete_saved_filter(common)
+
+	def test_recherche_de_lien_controlee(self):
+		from aurescrm.api import bureau
+
+		frappe.set_user("Administrator")
+		values = bureau.search_filter_link("Item", "Item", "custom_grammage", "30")
+		self.assertTrue(values)
+		self.assertTrue(all("30" in row["value"] for row in values))
+		for args in (("Item", "Item", "item_name"), ("Item", "User", "email"), ("User", "User", "email")):
+			with self.assertRaises(frappe.ValidationError):
+				bureau.search_filter_link(*args)
 
 	def test_l_export_excel_garde_le_texte_sans_formule(self):
 		import base64
@@ -1388,9 +1522,9 @@ class TestArticles(FrappeTestCase):
 		self.assertEqual(result["counts"]["offset"], 0)
 		self.assertEqual(result["counts"]["sans_bat"], 1)
 		self.assertEqual(bureau_articles.get_articles(view="offset", search=designation)["total"], 0)
-		conditions = [{"field": "procede", "op": "est", "value": "Flexo"}]
+		conditions = [{"doctype": "Item", "field": bureau_articles.PROCEDE_FIELD, "op": "=", "value": "Flexo"}]
 		self.assertIn(name, bureau_articles.get_articles(conditions=conditions, page_length=500)["names"])
-		conditions = [{"field": "procede", "op": "nest", "value": "Flexo"}]
+		conditions = [{"doctype": "Item", "field": bureau_articles.PROCEDE_FIELD, "op": "!=", "value": "Flexo"}]
 		self.assertNotIn(name, bureau_articles.get_articles(conditions=conditions, page_length=500)["names"])
 		customer_name = frappe.db.get_value("Customer", self.client, "customer_name")
 		self.assertIn(name, bureau_articles.get_articles(search=customer_name, page_length=500)["names"])

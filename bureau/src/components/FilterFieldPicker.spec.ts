@@ -3,24 +3,19 @@ import { describe, expect, it } from 'vitest'
 import FilterFieldPicker from './FilterFieldPicker.vue'
 import type { FilterField } from '@/lib/filters'
 
-const fields: FilterField[] = [
-	{ value: 'tag', label: 'Tag', kind: 'text' },
-	{ value: 'champ:a', label: 'Tolérance Grammage', kind: 'text', group: 'Fiche' },
-	{ value: 'champ:b', label: 'Nombre Passages', kind: 'number', group: 'Fiche' },
-	{ value: 'champ:c', label: 'Grammage Support', kind: 'choice', group: 'Flexo' },
-	{ value: 'champ:e', label: 'Grammage', kind: 'text', group: 'Offset' },
-]
+const make = (field: string, label: string, kind: FilterField['kind'], group?: string): FilterField => ({ value: `Item.${field}`, doctype: 'Item', field, label, kind, operators: ['='], group })
+const fields: FilterField[] = [make('tag', 'Tag', 'text'), make('a', 'Tolérance Grammage', 'text', 'Fiche'), make('b', 'Nombre Passages', 'number', 'Fiche'), make('c', 'Grammage Support', 'choice', 'Flexo'), make('e', 'Grammage', 'text', 'Offset')]
 const labels = (wrapper: ReturnType<typeof mount>) => wrapper.findAll('.filter-field-option span:first-child').map((option) => option.text())
 
 async function open() {
-	const wrapper = mount(FilterFieldPicker, { props: { modelValue: 'tag', fields }, attachTo: document.body })
+	const wrapper = mount(FilterFieldPicker, { props: { modelValue: 'Item.tag', fields }, attachTo: document.body })
 	await wrapper.find('input').trigger('focus')
 	return wrapper
 }
 
 describe('choix du champ d’un filtre', () => {
 	it('affiche le champ choisi, puis la liste par ordre alphabétique', async () => {
-		const wrapper = mount(FilterFieldPicker, { props: { modelValue: 'tag', fields }, attachTo: document.body })
+		const wrapper = mount(FilterFieldPicker, { props: { modelValue: 'Item.tag', fields }, attachTo: document.body })
 		expect((wrapper.find('input').element as HTMLInputElement).value).toBe('Tag')
 		await wrapper.find('input').trigger('focus')
 		expect((wrapper.find('input').element as HTMLInputElement).value).toBe('')
@@ -36,7 +31,7 @@ describe('choix du champ d’un filtre', () => {
 		expect(labels(wrapper)).toEqual(['Grammage', 'Grammage Support', 'Tolérance Grammage'])
 		await wrapper.find('input').trigger('keydown', { key: 'ArrowDown' })
 		await wrapper.find('input').trigger('keydown', { key: 'Enter' })
-		expect(wrapper.emitted('update:modelValue')).toEqual([['champ:c']])
+		expect(wrapper.emitted('update:modelValue')).toEqual([['Item.c']])
 		expect(wrapper.find('.filter-field-list').exists()).toBe(false)
 		wrapper.unmount()
 	})

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activationConsequence, cmjnHex, colorsAfterCard, couleursSansDetail, newTeinte, teinteDetail, teinteHex, teintesPayload, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSigle, articleSortText, changedFields, clientTone, creationCards, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
+import { activationConsequence, cmjnHex, colorsAfterCard, couleursSansDetail, newTeinte, teinteDetail, teinteHex, teintesPayload, prepresseState, type ArticleDetail, articleDoc, articleSigle, articleSortText, changedFields, clientTone, creationCards, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
 
 const offset = "eval: doc.custom_procédé == 'Offset'"
 const flexo = "eval: doc.custom_procédé == 'Flexo'"
@@ -61,12 +61,6 @@ describe('articles', () => {
 		expect(visibleArticleColumns(['bat', 'inconnue']).map((column) => column.key)).toEqual(['designation', 'bat'])
 		expect(articleSortText(null)).toBe('Tri : désignation')
 		expect(articleSortText({ key: 'commande', dir: 'desc' })).toBe('Tri : commande')
-	})
-
-	it('nomme les valeurs des filtres par leur libellé', () => {
-		expect(articleFilterChoices('client', options)).toEqual(options.clients)
-		expect(articleFilterChoices('procede', null)).toEqual([])
-		expect(articleConditionLabel({ id: 1, field: 'client', op: 'est', value: 'CLI-1' }, options)).toBe('Client est Biscuiterie Numidia')
 	})
 
 	it('ne montre que les champs du procédé de l’article, rangés par sujet', () => {

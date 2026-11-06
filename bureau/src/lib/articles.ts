@@ -2,7 +2,7 @@
 import { fieldVisible, isEmptyValue, type FicheDoc, type FicheField, type FicheSchema } from '@shared/fiche'
 import type { CommentSummary, Option } from '@/types'
 import type { ClientTicket } from './clients'
-import { BELL_FIELD, describeCondition, withDoctypeFields, type Condition, type FilterField } from './filters'
+import type { FilterField } from './filters'
 import { deskUrl, formatDay } from './display'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
@@ -275,34 +275,6 @@ export function clientTone(client: string) {
 export function articleSortText(sort: Sort | null) {
 	const column = sort && ARTICLE_COLUMNS.find((item) => item.key === sort.key)
 	return column ? `Tri : ${column.label.toLowerCase()}` : 'Tri : désignation'
-}
-
-export const ARTICLE_FILTER_FIELDS: FilterField[] = [
-	{ value: 'procede', label: 'Procédé', kind: 'choice' },
-	{ value: 'client', label: 'Client', kind: 'choice' },
-	{ value: 'groupe', label: 'Groupe', kind: 'choice' },
-	{ value: 'type', label: 'Type', kind: 'choice' },
-	{ value: 'support', label: 'Papier', kind: 'choice' },
-	{ value: 'designation', label: 'Désignation', kind: 'text' },
-	{ value: 'reference', label: 'Réf. client', kind: 'text' },
-	{ value: 'tag', label: 'Tag', kind: 'text' },
-	BELL_FIELD,
-]
-
-export function articleFilterChoices(field: string, options: ArticleOptions | null): Option[] {
-	if (!options) return []
-	const plain = (values: string[]) => values.map((value) => ({ value, label: value }))
-	if (field === 'procede') return plain(options.procedes)
-	if (field === 'client') return options.clients
-	if (field === 'groupe') return plain(options.groupes)
-	if (field === 'type') return plain(options.types)
-	if (field === 'support') return plain(options.supports)
-	return []
-}
-
-/** Texte de la pastille d'un filtre actif : « Client est Biscuiterie Numidia ». */
-export function articleConditionLabel(condition: Condition, options: ArticleOptions | null) {
-	return describeCondition(condition, withDoctypeFields(ARTICLE_FILTER_FIELDS, options?.filter_fields), articleFilterChoices(condition.field, options))
 }
 
 /** Prix unitaire : deux décimales et une virgule, avec une espace pour les milliers : « 1 240,50 ». */

@@ -50,6 +50,22 @@ export async function logout() {
 	window.location.href = LOGIN_PATH
 }
 
+/** Un filtre de `List Filter`, partagé avec le Desk. `dropped` compte les conditions dont le champ n'est plus disponible. */
+export interface SavedFilter {
+	name: string
+	label: string
+	is_global: boolean
+	can_delete: boolean
+	conditions: Omit<Condition, 'id'>[]
+	dropped: number
+}
+export const getSavedFilters = (doctype: string) => call<{ filters: SavedFilter[]; can_share: boolean }>(`${BUREAU}.get_saved_filters`, { doctype })
+export const saveFilter = (doctype: string, label: string, conditions: Condition[], isGlobal: boolean) =>
+	call<string>(`${BUREAU}.save_filter`, { doctype, label, conditions: conditionsForServer(conditions), is_global: isGlobal ? 1 : 0 }, true)
+export const deleteSavedFilter = (name: string) => call(`${BUREAU}.delete_saved_filter`, { name }, true)
+export const searchFilterLink = (listDoctype: string, doctype: string, field: string, search: string) =>
+	call<Option[]>(`${BUREAU}.search_filter_link`, { list_doctype: listDoctype, doctype, field, search: search.trim() || undefined })
+
 /** Classeur Excel des lignes données, en base 64. */
 export const exportXlsx = (title: string, headers: string[], rows: (string | number)[][]) => call<string>(`${BUREAU}.export_xlsx`, { title, headers, rows }, true)
 

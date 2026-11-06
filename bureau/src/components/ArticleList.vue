@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import ArticleDialog from './ArticleDialog.vue'
@@ -7,10 +7,10 @@ import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getArticleOptions, getArticles } from '@/lib/api'
-import { ARTICLE_COLUMNS, ARTICLE_FILTER_FIELDS, ARTICLE_VIEWS, articleConditionLabel, articleFilterChoices, articleSigle, articleSortText, clientTone, DEFAULT_ARTICLE_COLUMNS, procedeLabel, procedeTone, TYPE_GENERAL, visibleArticleColumns, type ArticleOptions, type ArticleRow, type ArticleView } from '@/lib/articles'
+import { ARTICLE_COLUMNS, ARTICLE_VIEWS, articleSigle, articleSortText, clientTone, DEFAULT_ARTICLE_COLUMNS, procedeLabel, procedeTone, TYPE_GENERAL, visibleArticleColumns, type ArticleOptions, type ArticleRow, type ArticleView } from '@/lib/articles'
 import { formatAmount } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
-import { withDoctypeFields, type Condition } from '@/lib/filters'
+import { describeCondition, type Condition } from '@/lib/filters'
 import type { ExportQuery } from '@/lib/exports'
 import type { ArticlesState } from '@/lib/useArticles'
 
@@ -20,7 +20,8 @@ const emit = defineEmits<{ pick: [name?: string]; open: [name: string, tab?: str
 const options = ref<ArticleOptions | null>(null)
 const optionsError = ref('')
 const dataList = ref<{ revealCreated: () => Promise<void> } | null>(null)
-const labelOf = (condition: Condition) => articleConditionLabel(condition, options.value)
+const fields = computed(() => options.value?.filter_fields ?? [])
+const labelOf = (condition: Condition) => describeCondition(condition, fields.value)
 async function fetchRows(query: ExportQuery, start: number, pageLength: number) {
 	const state = props.state
 	const response = await getArticles(query.view as ArticleView, query.conditions, query.search, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
@@ -101,8 +102,8 @@ onBeforeUnmount(() => {
 		@changed="emit('changed')"
 		@create="creating = true"
 	>
-		<template #filters="{ conditions, update }">
-			<FilterBuilder :model-value="conditions" @update:model-value="update" :fields="withDoctypeFields(ARTICLE_FILTER_FIELDS, options?.filter_fields)" first-field="procede" :choices-of="(field) => articleFilterChoices(field, options)" />
+		<template #filters="{ conditions, update, canSave }">
+			<FilterBuilder :model-value="conditions" :fields="fields" doctype="Item" :can-save="canSave" @update:model-value="update" />
 		</template>
 
 		<template #cells="{ row, columns }">

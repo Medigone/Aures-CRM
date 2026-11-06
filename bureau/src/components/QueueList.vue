@@ -10,7 +10,7 @@ import NewTicketDialog from './NewTicketDialog.vue'
 import TicketStatus from './TicketStatus.vue'
 import { bulkAction, bulkAssign, getQueue, getReferences } from '@/lib/api'
 import { echeanceLabel } from '@/lib/display'
-import { conditionLabel, FIELDS, withDoctypeFields, type Condition } from '@/lib/filters'
+import { describeCondition, ticketFilterFields, type Condition } from '@/lib/filters'
 import { canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, isOpen, sortText, stepPercent, stepText, visibleColumns } from '@/lib/list'
 import type { ExportQuery } from '@/lib/exports'
 import type { BulkState } from '@/lib/useBulk'
@@ -23,7 +23,8 @@ const emit = defineEmits<{ pick: [name?: string]; open: [name: string]; changed:
 const references = ref<References | null>(null)
 const referencesError = ref('')
 const dataList = ref<{ revealCreated: () => Promise<void> } | null>(null)
-const labelOf = (condition: Condition) => conditionLabel(condition, references.value)
+const fields = computed(() => ticketFilterFields(references.value))
+const labelOf = (condition: Condition) => describeCondition(condition, fields.value)
 async function fetchRows(query: ExportQuery, start: number, pageLength: number) {
 	const state = props.state
 	const response = await getQueue(query.view as QueueState['view']['value'], query.conditions, query.search, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
@@ -146,8 +147,8 @@ onBeforeUnmount(() => {
 		@changed="emit('changed')"
 		@create="creating = true"
 	>
-		<template #filters="{ conditions, update }">
-			<FilterBuilder :model-value="conditions" @update:model-value="update" :references="references" :fields="withDoctypeFields(FIELDS, references?.filter_fields)" />
+		<template #filters="{ conditions, update, canSave }">
+			<FilterBuilder :model-value="conditions" :fields="fields" doctype="Ticket Commercial" :can-save="canSave" @update:model-value="update" />
 		</template>
 
 		<template #cells="{ row: ticket, columns }">

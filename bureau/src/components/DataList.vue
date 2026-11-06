@@ -167,7 +167,7 @@ const bellFiltered = computed(() => hasBell(props.state.conditions.value))
 const bellError = ref('')
 const bellBusy = new Set<string>()
 function toggleBellFilter() {
-	props.state.conditions.value = toggleBell(props.state.conditions.value)
+	props.state.conditions.value = toggleBell(props.state.conditions.value, props.doctype)
 }
 async function toggleRowBell(row: Row) {
 	if (bellBusy.has(row.name)) return
@@ -363,7 +363,7 @@ onBeforeUnmount(() => {
 						<option v-for="view in views" :key="view.key" :value="view.key">{{ viewOption(view) }}</option>
 					</select>
 				</label>
-				<slot name="filters" :conditions="state.conditions.value" :update="(value: Condition[]) => (state.conditions.value = value)"></slot>
+				<slot name="filters" :conditions="state.conditions.value" :update="(value: Condition[]) => (state.conditions.value = value)" :can-save="true"></slot>
 				<button type="button" class="btn-primary self-end" @click="filtersOpen = false">Fermer</button>
 			</div>
 		</div>

@@ -116,7 +116,7 @@ async function submit() {
 						<option v-for="item in views" :key="item.key" :value="item.key">{{ item.label }}</option>
 					</select>
 				</label>
-				<slot name="filters" :conditions="conditions" :update="(value: Condition[]) => (conditions = value)"></slot>
+				<slot name="filters" :conditions="conditions" :update="(value: Condition[]) => (conditions = value)" :can-save="false"></slot>
 				<button v-if="search" type="button" class="filter-chip self-start" :aria-label="`Retirer la recherche ${search}`" @click="search = ''">Recherche : {{ search }} ×</button>
 			</div>
 

@@ -15,7 +15,7 @@ from frappe.utils.file_manager import get_max_file_size
 
 from aurescrm import bat_import, pantone
 from aurescrm.api import activity
-from aurescrm.api.bureau import BELL_FIELD, TICKET, _parse, condition_filters, doctype_filter_fields, page_bounds, require_bureau, row_bell, row_tags
+from aurescrm.api.bureau import BELL_FIELD, TICKET, _parse, condition_filters, doctype_filter_fields, has_child_filter, page_bounds, require_bureau, row_bell, row_tags
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, bind_file, ticket_rows
 from aurescrm.api.commercial_mobile import article_fiche, article_schema
 from aurescrm.aures_crm.doctype.etude_technique.etude_technique import create_new_bat_from_etude
@@ -61,18 +61,6 @@ LIST_FIELDS = [
 	"_user_tags",
 	BELL_FIELD,
 ]
-
-# Filtre de la liste → (champ de l'article, nature de la valeur), au format de `bureau.condition_filters`.
-FILTER_FIELDS = {
-	"designation": ("item_name", "text"),
-	"reference": ("custom_code_client", "text"),
-	"procede": (PROCEDE_FIELD, "choice"),
-	"client": ("custom_client", "choice"),
-	"groupe": ("item_group", "choice"),
-	"type": ("custom_type_article", "choice"),
-	"support": ("custom_support", "choice"),
-	"tag": ("_user_tags", "text"),
-}
 
 VIEWS = {
 	"all": lambda row: True,
@@ -248,9 +236,11 @@ def get_articles(view="all", conditions=None, search=None, start=0, page_length=
 	require_bureau()
 	if view not in VIEWS:
 		frappe.throw(_("Vue inconnue."))
+	conditions = condition_filters(_parse(conditions), ITEM)
 	items = frappe.get_list(
 		ITEM,
-		filters=[["disabled", "=", 0], *condition_filters(_parse(conditions), FILTER_FIELDS, ITEM)],
+		filters=[["disabled", "=", 0], *conditions],
+		distinct=has_child_filter(conditions, ITEM),
 		or_filters=_search_filters(cstr(search).strip()),
 		fields=LIST_FIELDS,
 		limit_page_length=0,
@@ -279,16 +269,20 @@ def get_article_options():
 	used = frappe.get_list(ITEM, filters={"disabled": 0, "custom_client": ["is", "set"]}, pluck="custom_client", distinct=True, limit_page_length=0)
 	customers = _customers(used)
 	clients = [{"value": name, "label": customers[name].customer_name or name} for name in customers]
+	clients = sorted(clients, key=lambda client: cstr(client["label"]).casefold())
+	groupes = [name for name in frappe.get_list("Item Group", order_by="name asc", pluck="name", limit_page_length=0) if name != ROOT_ITEM_GROUP]
+	supports = frappe.get_list("Type Papier", order_by="name asc", pluck="name", limit_page_length=0)
+	plain = lambda values: [{"value": value, "label": value} for value in values]
 	return {
 		"procedes": _select_options(PROCEDE_FIELD),
 		"types": _select_options("custom_type_article"),
-		"groupes": [name for name in frappe.get_list("Item Group", order_by="name asc", pluck="name", limit_page_length=0) if name != ROOT_ITEM_GROUP],
-		"supports": frappe.get_list("Type Papier", order_by="name asc", pluck="name", limit_page_length=0),
-		"clients": sorted(clients, key=lambda client: cstr(client["label"]).casefold()),
+		"groupes": groupes,
+		"supports": supports,
+		"clients": clients,
 		"groupe_defaut": ARTICLE_ITEM_GROUP,
 		"can_create": bool(frappe.has_permission(ITEM, "create")),
 		"schema": article_schema(),
-		"filter_fields": doctype_filter_fields(ITEM, FILTER_FIELDS),
+		"filter_fields": doctype_filter_fields(ITEM, {"custom_client": clients, "item_group": plain(groupes), "custom_support": plain(supports)}),
 	}
 
 

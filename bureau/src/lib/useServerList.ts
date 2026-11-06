@@ -94,7 +94,7 @@ export function useServerList<Response extends ListResponse, View extends string
 		firstPage()
 		loadSoon()
 	})
-	const signature = computed(() => JSON.stringify(conditions.value.filter(isComplete).map(({ field, op, value }) => [field, op, value])))
+	const signature = computed(() => JSON.stringify(conditions.value.filter(isComplete).map(({ doctype, field, op, value }) => [doctype, field, op, value])))
 	watch(signature, () => {
 		firstPage()
 		loadSoon()

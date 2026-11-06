@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
 import LucideChevronDown from '~icons/lucide/chevron-down'
-import { searchFields, type FilterField } from '@/lib/filters'
+import { fieldTitle, searchFields, type FilterField } from '@/lib/filters'
 
 /** Choix du champ d'un filtre : on tape dans le champ, la liste se réduit à chaque lettre. Elle montre dix lignes, par ordre alphabétique. */
 const props = defineProps<{ modelValue: string; fields: FilterField[]; autofocus?: boolean }>()
@@ -13,7 +13,10 @@ const cursor = ref(0)
 const input = ref<HTMLInputElement | null>(null)
 const list = ref<HTMLElement | null>(null)
 
-const current = computed(() => props.fields.find((field) => field.value === props.modelValue)?.label ?? props.modelValue)
+const current = computed(() => {
+	const field = props.fields.find((item) => item.value === props.modelValue)
+	return field ? fieldTitle(field) : props.modelValue
+})
 const found = computed(() => searchFields(props.fields, query.value))
 
 function reveal() {
