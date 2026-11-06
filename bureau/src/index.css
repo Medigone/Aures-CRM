@@ -969,6 +969,15 @@
 	.export-dialog {
 		--dialog-width: 480px;
 	}
+	.export-column {
+		cursor: pointer;
+	}
+	.export-column input {
+		flex: none;
+	}
+	.export-column-on {
+		font-weight: 500;
+	}
 	.export-choice {
 		display: flex;
 		align-items: center;

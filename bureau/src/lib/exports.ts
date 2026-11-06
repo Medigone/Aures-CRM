@@ -1,5 +1,5 @@
 /** Fenêtre d'export : ce qu'on exporte, et le fichier qui en sort. */
-import { conditionsForServer, type Condition } from './filters'
+import { BELL_FILTER, conditionsForServer, fieldTitle, searchFields, type Condition, type FilterField } from './filters'
 import { ticketsToCsv, type Column } from './list'
 
 export type ExportFormat = 'xlsx' | 'csv'
@@ -21,6 +21,60 @@ export function querySignature(query: ExportQuery) {
 export function countText(count: number, noun: string) {
 	if (count === 0) return `Aucun ${noun} à exporter`
 	return count === 1 ? `1 ${noun} sera exporté` : `${count.toLocaleString('fr-FR')} ${noun}s seront exportés`
+}
+
+/** Une colonne proposée à l'export : une colonne de la liste, ou un champ du doctype lu à part sur le serveur. */
+export interface ExportColumnOption {
+	key: string
+	label: string
+	hint?: string
+	field?: FilterField
+}
+export const LINES_PER_REQUEST = 500
+
+const listKey = (key: string) => `liste:${key}`
+export const listColumnKeys = <Row>(columns: Column<Row>[]) => columns.map((column) => listKey(column.key))
+
+/** Les colonnes de la liste, puis les champs du doctype qu'elles ne montrent pas déjà sous le même nom. */
+export function exportColumnOptions<Row>(columns: Column<Row>[], fields: FilterField[]): ExportColumnOption[] {
+	const taken = new Set(columns.map((column) => column.label.toLowerCase()))
+	const others = fields.filter((field) => field.field !== BELL_FILTER && (field.table || !taken.has(field.label.toLowerCase())))
+	return [
+		...columns.map((column) => ({ key: listKey(column.key), label: column.label, hint: 'Liste' })),
+		...others.map((field) => ({ key: field.value, label: fieldTitle(field), hint: field.group, field })),
+	]
+}
+
+/** Recherche alphabétique, la même que pour le champ d'un filtre. */
+export function searchLabels(options: ExportColumnOption[], query: string) {
+	const asFields = options.map((option) => ({ value: option.key, label: option.label }) as FilterField)
+	const byKey = new Map(options.map((option) => [option.key, option]))
+	return searchFields(asFields, query).map((item) => byKey.get(item.value)!)
+}
+
+/** Les colonnes du fichier : celles de la liste dans leur ordre, puis les champs dans l'ordre où ils ont été cochés. */
+export function exportColumns<Row extends { name: string }>(selected: string[], columns: Column<Row>[], options: ExportColumnOption[], values: Record<string, Record<string, string | number>>): Column<Row>[] {
+	const chosen = new Set(selected)
+	const byKey = new Map(options.map((option) => [option.key, option]))
+	const fromFields = selected.flatMap((key) => {
+		const option = byKey.get(key)
+		if (!option?.field) return []
+		const { field } = option
+		return [
+			{
+				key,
+				label: option.label,
+				width: 0,
+				sortable: false,
+				text: (row: Row) => {
+					const value = values[row.name]?.[key] ?? ''
+					const shown = field.choices?.find((item) => item.value === String(value))?.label
+					return shown ?? value
+				},
+			},
+		]
+	})
+	return [...columns.filter((column) => chosen.has(listKey(column.key))), ...fromFields]
 }
 
 export function exportTable<Row>(rows: Row[], columns: Column<Row>[]) {

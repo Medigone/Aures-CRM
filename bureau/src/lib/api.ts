@@ -66,6 +66,10 @@ export const deleteSavedFilter = (name: string) => call(`${BUREAU}.delete_saved_
 export const searchFilterLink = (listDoctype: string, doctype: string, field: string, search: string) =>
 	call<Option[]>(`${BUREAU}.search_filter_link`, { list_doctype: listDoctype, doctype, field, search: search.trim() || undefined })
 
+/** Champs du doctype qui ne figurent pas dans la liste, pour les lignes exportées : { ligne: { « doctype.champ »: valeur } }. */
+export const getExportValues = (doctype: string, names: string[], fields: { doctype: string; field: string }[]) =>
+	call<Record<string, Record<string, string | number>>>(`${BUREAU}.get_export_values`, { doctype, names, fields }, true)
+
 /** Classeur Excel des lignes données, en base 64. */
 export const exportXlsx = (title: string, headers: string[], rows: (string | number)[][]) => call<string>(`${BUREAU}.export_xlsx`, { title, headers, rows }, true)
 

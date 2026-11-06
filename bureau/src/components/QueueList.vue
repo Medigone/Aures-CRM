@@ -141,6 +141,7 @@ onBeforeUnmount(() => {
 		:created="created?.name"
 		:load-error="referencesError"
 		doctype="Ticket Commercial"
+		:export-fields="fields"
 		bulk-doctype="Ticket Commercial"
 		@pick="emit('pick', $event)"
 		@open="emit('open', $event)"

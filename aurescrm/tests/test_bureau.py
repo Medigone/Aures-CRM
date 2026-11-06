@@ -1442,6 +1442,43 @@ class TestArticles(FrappeTestCase):
 			with self.assertRaises(frappe.ValidationError):
 				bureau.search_filter_link(*args)
 
+	def test_export_lit_les_champs_et_tables_choisis(self):
+		from aurescrm.api import bureau
+
+		frappe.set_user("Administrator")
+		item = frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": "ZZ-EXPORT",
+				"item_name": "ZZ-EXPORT",
+				"item_group": frappe.db.get_value("Item Group", {"is_group": 0}),
+				"stock_uom": frappe.db.get_value("UOM", {}),
+				"custom_type_article": "Général",
+				"custom_nombre_passages": 3,
+				"custom_couleurs_article": [{"type_couleur": "CMJN", "c": 100}, {"type_couleur": "CMJN", "m": 100}],
+			}
+		).insert(ignore_permissions=True, ignore_mandatory=True)
+		self.addCleanup(frappe.delete_doc, "Item", item.name, ignore_permissions=True, force=True, ignore_missing=True)
+		fields = [{"doctype": "Item", "field": "custom_nombre_passages"}, {"doctype": "Item", "field": "custom_pelliculage"}, {"doctype": "Article Couleur", "field": "code"}, {"doctype": "Article Couleur", "field": "nom"}]
+		values = bureau.get_export_values("Item", [item.name, "N-EXISTE-PAS"], fields)
+		self.assertEqual(list(values), [item.name])
+		self.assertEqual(values[item.name]["Item.custom_nombre_passages"], 3)
+		self.assertEqual(values[item.name]["Item.custom_pelliculage"], "Sans")
+		self.assertEqual(values[item.name]["Article Couleur.code"], "C100, M100")
+		self.assertNotIn("Article Couleur.nom", values[item.name])
+
+	def test_export_refuse_un_champ_hors_catalogue(self):
+		from aurescrm.api import bureau
+
+		frappe.set_user("Administrator")
+		for field in ({"doctype": "Item", "field": "n_existe_pas"}, {"doctype": "User", "field": "email"}, {"doctype": "Item", "field": "cloche"}):
+			with self.assertRaises(frappe.ValidationError):
+				bureau.get_export_values("Item", ["X"], [field])
+		with self.assertRaises(frappe.ValidationError):
+			bureau.get_export_values("User", ["X"], [])
+		with self.assertRaises(frappe.ValidationError):
+			bureau.get_export_values("Item", ["X"] * (bureau.EXPORT_LINES_LIMIT + 1), [])
+
 	def test_l_export_excel_garde_le_texte_sans_formule(self):
 		import base64
 		import io

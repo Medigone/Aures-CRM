@@ -166,6 +166,7 @@ TIMESPANS = {
 }  # fmt: skip
 LIST_FILTER = "List Filter"
 LINK_SEARCH_LIMIT = 20
+EXPORT_LINES_LIMIT = 500
 NOBODY = "__nobody__"
 INVALID_SHEET_CHARS = re.compile(r"[\\/*?:\[\]]")
 NOT_FILTERABLE_TYPES = {"Section Break", "Column Break", "Tab Break", "HTML", "Button", "Table", "Table MultiSelect", "Password", "Fold", "Heading", "Image", "Signature", "Geolocation"}
@@ -450,6 +451,53 @@ def delete_saved_filter(name):
 	if doc.for_user != frappe.session.user and (doc.for_user or not _can_share_filters()):
 		frappe.throw(_("Ce filtre ne vous appartient pas."), frappe.PermissionError)
 	doc.delete(ignore_permissions=True)
+
+
+def _export_cell(value, fieldtype):
+	"""Une valeur lisible dans un fichier : un nombre reste un nombre, et un texte mis en forme perd ses balises."""
+	if value is None:
+		return ""
+	if isinstance(value, (int, float)):
+		return value
+	return strip_html(cstr(value)) if fieldtype in ("Text Editor", "HTML Editor") else cstr(value)
+
+
+@frappe.whitelist(methods=["POST"])
+def get_export_values(doctype, names, fields):
+	"""Valeurs des champs choisis, pour des lignes que la personne peut lire. Plusieurs lignes d'une table enfant se suivent, séparées par des virgules."""
+	require_bureau()
+	_require_filter_list(doctype)
+	names, fields = _parse(names) or [], _parse(fields) or []
+	if len(names) > EXPORT_LINES_LIMIT:
+		frappe.throw(_("Trop de lignes demandées."))
+	catalog = _filter_catalog(doctype)
+	own, children = [], {}
+	for item in fields:
+		table, fieldname = cstr(item.get("doctype")), cstr(item.get("field"))
+		if (table, fieldname) not in catalog or fieldname == BELL_FILTER:
+			frappe.throw(_("Filtre inconnu."))
+		if table == doctype:
+			own.append(fieldname)
+		else:
+			children.setdefault(table, []).append(fieldname)
+	# `get_list` applique les droits : une ligne interdite ne revient pas, ni ses lignes enfants.
+	rows = frappe.get_list(doctype, filters=[["name", "in", names]], fields=["name", *own], limit_page_length=0)
+	readable = [row.name for row in rows]
+	meta = frappe.get_meta(doctype)
+	values = {}
+	for row in rows:
+		values[row.name] = {f"{doctype}.{fieldname}": _export_cell(row.get(fieldname), meta.get_field(fieldname).fieldtype if meta.get_field(fieldname) else "Data") for fieldname in own}
+	for table, fieldnames in children.items():
+		child = frappe.get_meta(table)
+		for row in frappe.get_all(table, filters={"parent": ["in", readable], "parenttype": doctype}, fields=["parent", *fieldnames], order_by="idx asc", limit_page_length=0):
+			for fieldname in fieldnames:
+				cell = _export_cell(row.get(fieldname), child.get_field(fieldname).fieldtype)
+				if cell == "":
+					continue
+				key = f"{table}.{fieldname}"
+				current = values[row.parent].get(key)
+				values[row.parent][key] = cell if current is None else f"{current}, {cell}"
+	return values
 
 
 def link_search_values(target, search, limit=LINK_SEARCH_LIMIT):

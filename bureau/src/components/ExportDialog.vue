@@ -1,9 +1,10 @@
-<script setup lang="ts" generic="Row">
+<script setup lang="ts" generic="Row extends { name: string }">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import FormDialog from '@shared/components/FormDialog.vue'
-import { exportXlsx } from '@/lib/api'
-import { countText, EVERYTHING, exportFileName, exportTable, querySignature, saveCsv, saveXlsx, type ExportFormat, type ExportQuery } from '@/lib/exports'
-import { isComplete, type Condition } from '@/lib/filters'
+import ExportColumns from './ExportColumns.vue'
+import { exportXlsx, getExportValues } from '@/lib/api'
+import { countText, EVERYTHING, exportColumnOptions, exportColumns, exportFileName, exportTable, LINES_PER_REQUEST, listColumnKeys, querySignature, saveCsv, saveXlsx, type ExportFormat, type ExportQuery } from '@/lib/exports'
+import { isComplete, type Condition, type FilterField } from '@/lib/filters'
 import type { Column } from '@/lib/list'
 import { PAGE_SIZES } from '@/lib/useServerList'
 
@@ -11,8 +12,13 @@ import { PAGE_SIZES } from '@/lib/useServerList'
 const props = defineProps<{
 	title: string
 	noun: string
+	/** DocType des lignes : les champs choisis s'y lisent. */
+	doctype: string
 	views: { key: string; label: string }[]
+	/** Toutes les colonnes de la liste, et celles qu'elle affiche, cochées au départ. */
+	allColumns: Column<Row>[]
 	columns: Column<Row>[]
+	fields: FilterField[]
 	/** Vue, filtres et recherche de la liste au moment d'ouvrir. */
 	initial: ExportQuery
 	filtered: boolean
@@ -21,6 +27,9 @@ const props = defineProps<{
 const emit = defineEmits<{ close: []; done: [message: string] }>()
 
 const format = ref<ExportFormat>('xlsx')
+const options = computed(() => exportColumnOptions(props.allColumns, props.fields))
+const selected = ref(listColumnKeys(props.columns))
+const listKeys = computed(() => listColumnKeys(props.columns))
 const scope = ref<'all' | 'filtered'>(props.filtered ? 'filtered' : 'all')
 const view = ref(props.initial.view)
 // Un filtre resté sans valeur dans la liste ne filtre rien : il n'encombre pas la fenêtre.
@@ -65,7 +74,7 @@ onBeforeUnmount(() => {
 })
 
 async function submit() {
-	if (busy.value || !count.value) return
+	if (busy.value || !count.value || !selected.value.length) return
 	busy.value = true
 	error.value = ''
 	try {
@@ -77,10 +86,18 @@ async function submit() {
 			rows.push(...response.rows)
 			if (rows.length >= response.total || !response.rows.length) break
 		}
+		const chosen = selected.value.flatMap((key) => options.value.find((option) => option.key === key)?.field ?? [])
+		const values: Record<string, Record<string, string | number>> = {}
+		if (chosen.length) {
+			const names = rows.map((row) => row.name)
+			const fields = chosen.map(({ doctype, field }) => ({ doctype, field }))
+			for (let start = 0; start < names.length; start += LINES_PER_REQUEST) Object.assign(values, await getExportValues(props.doctype, names.slice(start, start + LINES_PER_REQUEST), fields))
+		}
+		const columns = exportColumns(selected.value, props.allColumns, options.value, values)
 		const name = exportFileName(props.noun, format.value)
-		if (format.value === 'csv') saveCsv(rows, props.columns, name)
+		if (format.value === 'csv') saveCsv(rows, columns, name)
 		else {
-			const { headers, cells } = exportTable(rows, props.columns)
+			const { headers, cells } = exportTable(rows, columns)
 			saveXlsx(await exportXlsx(props.title, headers, cells), name)
 		}
 		emit('done', `${countText(rows.length, props.noun).replace('sera exporté', 'exporté').replace('seront exportés', 'exportés')}.`)
@@ -120,16 +137,16 @@ async function submit() {
 				<button v-if="search" type="button" class="filter-chip self-start" :aria-label="`Retirer la recherche ${search}`" @click="search = ''">Recherche : {{ search }} ×</button>
 			</div>
 
-			<p class="text-sm text-ink-gray-6">Le fichier reprend les {{ columns.length }} colonnes affichées dans la liste.</p>
+			<ExportColumns v-model="selected" :options="options" :list-columns="listKeys" />
 			<p v-if="countError" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">Le nombre de lignes n'a pas pu être calculé : {{ countError }}</p>
 			<p v-if="error" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">{{ error }}</p>
 		</div>
 
 		<template #hint>
-			<span class="flex-auto text-sm font-medium text-ink-gray-9" role="status">{{ count === null ? (countError ? '' : 'Calcul du nombre de lignes…') : countText(count, noun) }}</span>
+			<span class="flex-auto text-sm font-medium text-ink-gray-9" role="status">{{ !selected.length ? 'Choisissez au moins une colonne' : count === null ? (countError ? '' : 'Calcul du nombre de lignes…') : countText(count, noun) }}</span>
 		</template>
 		<template #actions>
-			<button type="button" class="btn-primary" :disabled="busy || !count" @click="submit">{{ busy ? 'Export…' : 'Exporter' }}</button>
+			<button type="button" class="btn-primary" :disabled="busy || !count || !selected.length" @click="submit">{{ busy ? 'Export…' : 'Exporter' }}</button>
 		</template>
 	</FormDialog>
 </template>

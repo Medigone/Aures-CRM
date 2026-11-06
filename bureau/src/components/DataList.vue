@@ -21,7 +21,7 @@ import ExportDialog from './ExportDialog.vue'
 import { setBell } from '@/lib/api'
 import { rangeToggle } from '@/lib/bulk'
 import { saveCsv, type ExportQuery } from '@/lib/exports'
-import { hasBell, isComplete, toggleBell, type Condition } from '@/lib/filters'
+import { hasBell, isComplete, toggleBell, type Condition, type FilterField } from '@/lib/filters'
 import { gridTemplate, minListWidth, nextSort, type Column, type Sort } from '@/lib/list'
 import { useBulk } from '@/lib/useBulk'
 import { PAGE_SIZES } from '@/lib/useServerList'
@@ -68,8 +68,10 @@ const props = defineProps<{
 	selected?: string
 	created?: string
 	loadError?: string
-	/** DocType des lignes, pour la cloche. */
+	/** DocType des lignes, pour la cloche et l'export. */
 	doctype: string
+	/** Champs du doctype qu'on peut ajouter à l'export. */
+	exportFields: FilterField[]
 	/** DocType des lignes : le déclarer ajoute les cases à cocher et les actions groupées. Il doit figurer dans `bureau_bulk.BULK_DOCTYPES`. */
 	bulkDoctype?: string
 }>()
@@ -472,8 +474,11 @@ onBeforeUnmount(() => {
 			v-if="exportOpen"
 			:title="title"
 			:noun="noun"
+			:doctype="doctype"
 			:views="views"
+			:all-columns="columns"
 			:columns="shown"
+			:fields="exportFields"
 			:initial="{ view: state.view.value, conditions: state.conditions.value, search: state.search.value }"
 			:filtered="exportFiltered"
 			:fetch-rows="fetchRows"

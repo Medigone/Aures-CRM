@@ -96,6 +96,7 @@ onBeforeUnmount(() => {
 		:created="created ?? undefined"
 		:load-error="optionsError"
 		doctype="Item"
+		:export-fields="fields"
 		bulk-doctype="Item"
 		@pick="emit('pick', $event)"
 		@open="emit('open', $event)"
