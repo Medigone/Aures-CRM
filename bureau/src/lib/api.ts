@@ -1,4 +1,5 @@
 /** File, tickets et actions. Les règles restent côté serveur (aurescrm/api/bureau.py). */
+import type { ListLayout } from './listViews'
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
 import { call, callForm } from '@shared/api'
 import type { BulkItem, BulkOptions, BulkResult, CandidateDemande, ClientChoice, Option, QueueResponse, QueueTicket, QueueView, References, TicketDetail, TicketFormOptions } from '@/types'
@@ -66,6 +67,25 @@ export const saveFilter = (doctype: string, label: string, conditions: Condition
 export const deleteSavedFilter = (name: string) => call(`${BUREAU}.delete_saved_filter`, { name }, true)
 export const searchFilterLink = (listDoctype: string, doctype: string, field: string, search: string) =>
 	call<Option[]>(`${BUREAU}.search_filter_link`, { list_doctype: listDoctype, doctype, field, search: search.trim() || undefined })
+
+/** Une vue enregistrée d'une liste. `dropped` compte les colonnes et les filtres dont le champ n'est plus disponible. */
+export interface SavedListView {
+	name: string
+	label: string
+	is_global: boolean
+	can_edit: boolean
+	config: ListLayout
+	dropped: number
+}
+export const getListViews = (doctype: string) => call<{ views: SavedListView[]; default: string | null; can_share: boolean }>(`${BUREAU}.get_list_views`, { doctype })
+export const saveListView = (doctype: string, label: string, layout: ListLayout, isGlobal: boolean, name?: string) =>
+	call<string>(
+		`${BUREAU}.save_list_view`,
+		{ doctype, label, config: { columns: layout.columns, sort: layout.sort, view: layout.view, conditions: conditionsForServer(layout.conditions.map((condition, id) => ({ ...condition, id }))) }, is_global: isGlobal ? 1 : 0, name },
+		true,
+	)
+export const deleteListView = (name: string) => call(`${BUREAU}.delete_list_view`, { name }, true)
+export const setDefaultListView = (doctype: string, name: string | null) => call(`${BUREAU}.set_default_list_view`, { doctype, name: name ?? undefined }, true)
 
 /** Champs du doctype qui ne figurent pas dans la liste, pour les lignes exportées : { ligne: { « doctype.champ »: valeur } }. */
 export const getExportValues = (doctype: string, names: string[], fields: { doctype: string; field: string }[]) =>

@@ -1920,3 +1920,77 @@ class TestTriParCreation(FrappeTestCase):
 		days = [row["creation"] for row in bureau_demandes.order_demandes([{"name": "A", "creation": "2026-01-02"}, {"name": "B", "creation": "2026-03-01"}, {"name": "C", "creation": None}], "creation", "desc")]
 		self.assertEqual(days, ["2026-03-01", "2026-01-02", None])
 
+
+class TestListViews(FrappeTestCase):
+	"""Vues enregistrées des listes : exige le doctype `Vue Liste Bureau`, donc une migration."""
+
+	CONFIG = {"columns": [{"key": "client"}, {"key": "status", "width": 180}], "sort": {"key": "status", "dir": "desc"}, "view": "all", "conditions": []}
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		frappe.db.delete(bureau.LIST_VIEW, {"reference_doctype": "Customer"})
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+
+	def _save(self, label="Mes créances", **kwargs):
+		return bureau.save_list_view("Customer", label, json.dumps(self.CONFIG), **kwargs)
+
+	def _view(self, name):
+		return next(view for view in bureau.get_list_views("Customer")["views"] if view["name"] == name)
+
+	def test_enregistre_et_relit_les_reglages(self):
+		view = self._view(self._save())
+		self.assertEqual(view["config"]["columns"], self.CONFIG["columns"])
+		self.assertEqual(view["config"]["sort"], self.CONFIG["sort"])
+		self.assertEqual(view["dropped"], 0)
+
+	def test_refuse_un_nom_deja_pris(self):
+		self._save()
+		with self.assertRaises(frappe.ValidationError):
+			self._save()
+
+	def test_met_a_jour_sans_se_heurter_a_son_propre_nom(self):
+		name = self._save()
+		self.assertEqual(self._save(name=name), name)
+
+	def test_borne_la_largeur(self):
+		config = {**self.CONFIG, "columns": [{"key": "client", "width": 9000}, {"key": "status", "width": 1}]}
+		widths = [column["width"] for column in bureau._clean_list_view_config("Customer", json.dumps(config))["columns"]]
+		self.assertEqual(widths, [800, 56])
+
+	def test_refuse_un_champ_hors_catalogue(self):
+		with self.assertRaises(frappe.ValidationError):
+			bureau._clean_list_view_config("Customer", {**self.CONFIG, "columns": [{"key": "Customer.champ_inconnu"}]})
+
+	def test_retire_a_la_lecture_ce_qui_n_est_plus_disponible(self):
+		name = self._save()
+		config = {**self.CONFIG, "columns": [{"key": "client"}, {"key": "Customer.disparu"}], "conditions": [{"doctype": "Customer", "field": "disparu", "op": "=", "value": "x"}]}
+		frappe.db.set_value(bureau.LIST_VIEW, name, "config", json.dumps(config))
+		view = self._view(name)
+		self.assertEqual([column["key"] for column in view["config"]["columns"]], ["client"])
+		self.assertEqual(view["config"]["conditions"], [])
+		self.assertEqual(view["dropped"], 2)
+
+	def test_vue_par_defaut(self):
+		name = self._save()
+		bureau.set_default_list_view("Customer", name)
+		self.assertEqual(bureau.get_list_views("Customer")["default"], name)
+		bureau.delete_list_view(name)
+		self.assertIsNone(bureau.get_list_views("Customer")["default"])
+
+	def test_la_vue_d_un_autre_reste_privee(self):
+		name = self._save()
+		with patch.object(bureau, "_can_share_filters", return_value=False), patch.object(bureau, "require_bureau"):
+			frappe.set_user("Guest")
+			self.assertEqual(bureau.get_list_views("Customer")["views"], [])
+			with self.assertRaises(frappe.PermissionError):
+				bureau.delete_list_view(name)
+			with self.assertRaises(frappe.PermissionError):
+				self._save(label="Autre", name=name)
+
+	def test_publier_demande_le_role(self):
+		with patch.object(bureau, "_can_share_filters", return_value=False), self.assertRaises(frappe.PermissionError):
+			self._save(is_global=1)
+		name = self._save(is_global=1)
+		self.assertTrue(self._view(name)["is_global"])

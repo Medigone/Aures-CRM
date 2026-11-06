@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fieldCellText } from '@/lib/listViews'
 import { computed, onMounted, ref } from 'vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import DataList from './DataList.vue'
@@ -6,7 +7,7 @@ import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getDemandeOptions, getDemandes } from '@/lib/api'
 import { clientTone, procedeTone } from '@/lib/articles'
-import { DEFAULT_DEMANDE_COLUMNS, DEMANDE_COLUMNS, DEMANDE_VIEWS, demandeSortText, typeLabel, visibleDemandeColumns, type DemandeOptions, type DemandeRow, type DemandeView } from '@/lib/demandes'
+import { DEFAULT_DEMANDE_COLUMNS, DEMANDE_COLUMNS, DEMANDE_VIEWS, demandeSortText, typeLabel, type DemandeOptions, type DemandeRow, type DemandeView } from '@/lib/demandes'
 import { formatDay } from '@/lib/display'
 import { describeCondition, type Condition } from '@/lib/filters'
 import type { ExportQuery } from '@/lib/exports'
@@ -44,7 +45,7 @@ onMounted(async () => {
 		search-label="Rechercher une demande"
 		search-placeholder="Numéro, client, article, bon de commande"
 		:columns="DEMANDE_COLUMNS"
-		:visible-of="visibleDemandeColumns"
+		locked-column="name"
 		:default-columns="DEFAULT_DEMANDE_COLUMNS"
 		columns-key="bureau-demandes-colonnes"
 		:views="DEMANDE_VIEWS"
@@ -90,6 +91,7 @@ onMounted(async () => {
 				<span v-else-if="column.key === 'creation'" class="tabular-nums">{{ formatDay(row.creation) || '—' }}</span>
 				<span v-else-if="column.key === 'modified'" class="tabular-nums">{{ formatDay(row.modified) || '—' }}</span>
 				<span v-else-if="column.key === 'cree_par'" :title="row.cree_par || undefined">{{ row.cree_par || '—' }}</span>
+				<span v-else :class="column.end && 'list-col-end tabular-nums'" :title="String(column.text(row))">{{ fieldCellText(column, row) }}</span>
 			</template>
 		</template>
 

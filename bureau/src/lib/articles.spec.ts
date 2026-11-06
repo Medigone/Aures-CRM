@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { activationConsequence, cmjnHex, colorsAfterCard, couleursSansDetail, newTeinte, teinteDetail, teinteHex, teintesPayload, prepresseState, type ArticleDetail, articleDoc, articleSigle, articleSortText, changedFields, clientTone, creationCards, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
+import { ARTICLE_COLUMNS, activationConsequence, cmjnHex, colorsAfterCard, couleursSansDetail, newTeinte, teinteDetail, teinteHex, teintesPayload, prepresseState, type ArticleDetail, articleDoc, articleSigle, articleSortText, changedFields, clientTone, creationCards, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, type ArticleOptions } from './articles'
+import { normalizeColumns, resolveColumns } from './listViews'
+
+const visibleArticleColumns = (keys: string[]) => resolveColumns(ARTICLE_COLUMNS, normalizeColumns(keys.map((key) => ({ key })), 'designation'))
 
 const offset = "eval: doc.custom_procédé == 'Offset'"
 const flexo = "eval: doc.custom_procédé == 'Flexo'"

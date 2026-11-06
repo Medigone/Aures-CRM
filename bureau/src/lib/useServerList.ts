@@ -1,5 +1,5 @@
 /** État d'une liste paginée côté serveur. Il survit à l'ouverture d'une fiche, qui s'en sert pour aller à la ligne voisine. */
-import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import type { Condition } from './filters'
 import { isComplete } from './filters'
 import type { Sort } from './list'
@@ -82,11 +82,24 @@ export function useServerList<Response extends ListResponse, View extends string
 	function firstPage() {
 		page.value = 0
 	}
+	// La vue active reprise à l'ouverture ne compte pas comme un changement : la page de l'adresse reste valable.
+	let restoring = false
+	function restore(layout: { view?: string; sort: Sort | null; conditions: Condition[] }) {
+		restoring = true
+		if (layout.view !== undefined) view.value = layout.view as View
+		sort.value = layout.sort
+		conditions.value = layout.conditions
+		nextTick(() => {
+			restoring = false
+		})
+	}
 	watch(view, () => {
+		if (restoring) return
 		firstPage()
 		load()
 	})
 	watch(sort, () => {
+		if (restoring) return
 		firstPage()
 		load()
 	})
@@ -96,6 +109,7 @@ export function useServerList<Response extends ListResponse, View extends string
 	})
 	const signature = computed(() => JSON.stringify(conditions.value.filter(isComplete).map(({ doctype, field, op, value }) => [doctype, field, op, value])))
 	watch(signature, () => {
+		if (restoring) return
 		firstPage()
 		loadSoon()
 	})
@@ -136,5 +150,5 @@ export function useServerList<Response extends ListResponse, View extends string
 		if (timer) clearTimeout(timer)
 	})
 
-	return { view, search, conditions, sort, page, pageSize, response, names, total, loading, error, load, goToPage, setPageSize, reveal }
+	return { view, search, conditions, sort, page, pageSize, response, names, total, loading, error, load, goToPage, setPageSize, reveal, restore }
 }

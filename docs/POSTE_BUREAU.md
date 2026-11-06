@@ -116,6 +116,19 @@ Sur toutes les listes (`DataList`), l'équivalent du cœur du Desk : un rappel v
 - **Tiroir et fiche** : au même endroit, sous la ligne d'identification. Avec le droit d'écriture, on retire un tag d'un clic et on en ajoute un parmi ceux qui existent, ou un nouveau (`add_doc_tag`, `remove_doc_tag`).
 - **Date `modified`** : poser ou retirer un tag ne la change pas, comme sur le Desk.
 
+## Colonnes et vues
+
+Toute liste passe par `DataList` et a ces réglages sans rien de plus à déclarer que `locked-column` et `FILTER_LISTS`.
+
+- **Colonnes** : le bouton Colonnes ouvre la fenêtre aux trois volets de l'export (`ColumnsDialog`, `ExportColumns`). On y ajoute tout champ lisible du doctype et de ses tables, et on retire ou réordonne les colonnes. Le changement s'applique aussitôt ; Annuler revient à l'état d'ouverture. Dans le tableau, on glisse un en-tête pour déplacer la colonne, et son bord droit pour la largeur (double-clic : largeur d'origine).
+- **Colonne principale** : `locked-column` (Client, Article, Demande) reste affichée et en tête, car elle porte le nombre de lignes.
+- **Champs ajoutés** : leurs clés sont celles du catalogue (`Customer.territory`). Leurs valeurs viennent de `get_export_values`, pour la page affichée, avec les droits de la personne. Ils ne se trient pas : le tri serveur ne connaît que les colonnes déclarées.
+- **Vues** : le sélecteur à côté du titre (`ViewSwitcher`) passe d'une vue à l'autre. Une vue retient les colonnes, leur ordre et leurs largeurs, le tri, les filtres et le choix « Afficher », mais pas la recherche. Elles sont dans le doctype `Vue Liste Bureau`, et l'API est dans `aurescrm/api/bureau.py` (`get_list_views`, `save_list_view`, `delete_list_view`, `set_default_list_view`).
+- **Droits** : chacun gère ses vues. Seul un System Manager publie, modifie ou supprime une vue pour tout le monde, comme pour les filtres enregistrés. Chacun choisit sa vue par défaut (étoile), rangée dans ses `DefaultValue`.
+- **Ouverture** : la dernière vue utilisée sur cet appareil, sinon la vue par défaut, sinon la Vue standard. Une copie dans le navigateur (`bureau-*-colonnes:vue`) évite d'afficher un instant les colonnes standard. Une adresse avec `?vue=` l'emporte sur le choix « Afficher » de la vue.
+- **Vue standard** : elle ne se supprime pas. Ses retouches restent dans le navigateur (`bureau-*-colonnes` et `bureau-*-colonnes:largeurs`). Enregistrer sous depuis cette vue déplace les retouches dans la nouvelle vue et rend à la Vue standard ses colonnes d'origine.
+- **Export** : sur une vue enregistrée, la fenêtre part des colonnes de la vue, pas du dernier export.
+
 ## Disposition et densité
 
 - Sur ordinateur, la page ne défile pas : la liste et le détail du ticket ont chacun leur défilement, et l'en-tête du ticket reste visible. En dessous de 900 px de large, la page reprend le défilement et l'aperçu prend tout l'écran.

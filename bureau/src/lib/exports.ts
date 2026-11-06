@@ -1,6 +1,7 @@
 /** Fenêtre d'export : ce qu'on exporte, et le fichier qui en sort. */
 import { BELL_FILTER, conditionsForServer, fieldTitle, searchFields, type Condition, type FilterField } from './filters'
 import { ticketsToCsv, type Column } from './list'
+import { fieldColumn } from './listViews'
 
 export type ExportFormat = 'xlsx' | 'csv'
 
@@ -36,7 +37,9 @@ export const LINES_PER_REQUEST = 500
 export const LIST_RUBRIC = 'Colonnes de la liste'
 
 const listKey = (key: string) => `liste:${key}`
-export const listColumnKeys = <Row>(columns: Column<Row>[]) => columns.map((column) => listKey(column.key))
+/** Une colonne de la liste, ou un champ déjà ajouté à la liste, qui garde sa clé de champ. */
+export const listColumnKeys = <Row>(columns: Column<Row>[]) => columns.map((column) => (column.field ? column.key : listKey(column.key)))
+export const columnFromOption = (key: string) => (key.startsWith('liste:') ? key.slice(6) : key)
 
 /** Les colonnes de la liste, puis les champs du doctype qu'elles ne montrent pas déjà sous le même nom. */
 export function exportColumnOptions<Row>(columns: Column<Row>[], fields: FilterField[]): ExportColumnOption[] {
@@ -77,19 +80,7 @@ export function exportColumns<Row extends { name: string }>(selected: string[], 
 		if (column) return [column]
 		const option = byKey.get(key)
 		if (!option?.field) return []
-		const { field } = option
-		return [
-			{
-				key,
-				label: option.label,
-				width: 0,
-				sortable: false,
-				text: (row: Row) => {
-					const value = values[row.name]?.[key] ?? ''
-					return field.choices?.find((item) => item.value === String(value))?.label ?? value
-				},
-			},
-		]
+		return [fieldColumn<Row>(option.field, key, option.label, (row) => values[row.name]?.[key])]
 	})
 }
 

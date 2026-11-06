@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fieldCellText } from '@/lib/listViews'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import LucideMessageSquare from '~icons/lucide/message-square'
 import LucideX from '~icons/lucide/x'
@@ -11,7 +12,7 @@ import TicketStatus from './TicketStatus.vue'
 import { bulkAction, bulkAssign, getQueue, getReferences } from '@/lib/api'
 import { echeanceLabel, formatDay } from '@/lib/display'
 import { describeCondition, ticketFilterFields, type Condition } from '@/lib/filters'
-import { canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, isOpen, sortText, stepPercent, stepText, visibleColumns } from '@/lib/list'
+import { canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, isOpen, sortText, stepPercent, stepText } from '@/lib/list'
 import type { ExportQuery } from '@/lib/exports'
 import type { BulkState } from '@/lib/useBulk'
 import { TICKET_VIEWS, type QueueState } from '@/lib/useQueue'
@@ -128,7 +129,7 @@ onBeforeUnmount(() => {
 		search-placeholder="Client ou n° de ticket"
 		create-label="Nouveau ticket"
 		:columns="COLUMNS"
-		:visible-of="visibleColumns"
+		locked-column="client"
 		:default-columns="DEFAULT_COLUMNS"
 		columns-key="bureau-tickets-colonnes"
 		:views="TICKET_VIEWS"
@@ -177,6 +178,7 @@ onBeforeUnmount(() => {
 				<span v-else-if="column.key === 'commercial'" :title="ticket.commercial || undefined">{{ ticket.commercial || '—' }}</span>
 				<span v-else-if="column.key === 'creance'">{{ creanceText(ticket) }}</span>
 				<TagCell v-else-if="column.key === 'tags'" :tags="ticket.tags" :max="1" />
+				<span v-else :class="column.end && 'list-col-end tabular-nums'" :title="String(column.text(ticket))">{{ fieldCellText(column, ticket) }}</span>
 			</template>
 		</template>
 

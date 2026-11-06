@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fieldCellText } from '@/lib/listViews'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
@@ -7,7 +8,7 @@ import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getClientOptions, getClients } from '@/lib/api'
-import { CLIENT_COLUMNS, CLIENT_VIEWS, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, visibleClientColumns, type ClientOptions, type ClientRow, type ClientView } from '@/lib/clients'
+import { CLIENT_COLUMNS, CLIENT_VIEWS, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, type ClientOptions, type ClientRow, type ClientView } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import { describeCondition, type Condition } from '@/lib/filters'
 import type { ExportQuery } from '@/lib/exports'
@@ -77,7 +78,7 @@ onBeforeUnmount(() => {
 		search-placeholder="Nom, code, wilaya, contact"
 		create-label="Nouveau prospect"
 		:columns="CLIENT_COLUMNS"
-		:visible-of="visibleClientColumns"
+		locked-column="client"
 		:default-columns="DEFAULT_CLIENT_COLUMNS"
 		columns-key="bureau-clients-colonnes"
 		:views="CLIENT_VIEWS"
@@ -121,6 +122,7 @@ onBeforeUnmount(() => {
 				<span v-else-if="column.key === 'creation'" class="tabular-nums">{{ formatDay(row.creation) || '—' }}</span>
 				<span v-else-if="column.key === 'modified'" class="tabular-nums">{{ formatDay(row.modified) || '—' }}</span>
 				<TagCell v-else-if="column.key === 'tags'" :tags="row.tags" :max="2" />
+				<span v-else :class="column.end && 'list-col-end tabular-nums'" :title="String(column.text(row))">{{ fieldCellText(column, row) }}</span>
 			</template>
 		</template>
 

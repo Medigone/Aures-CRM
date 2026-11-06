@@ -231,7 +231,7 @@ describe('poste de bureau', () => {
 			await flushPromises()
 			return router.currentRoute.value.query.apercu
 		}
-		expect(wrapper.find('.list-head .list-cols button').text()).toMatch(/^Client\s+2/)
+		expect(wrapper.find('.list-head .list-cols button').text()).toMatch(/^Client\s*2/)
 		expect(wrapper.find('.page-head .page-count').exists()).toBe(false)
 		expect(await press('ArrowDown')).toBe('TC-2')
 		expect(await press('ArrowUp')).toBe('TC-1')
@@ -535,12 +535,15 @@ describe('poste de bureau', () => {
 	it('choisit les colonnes et garde ce choix', async () => {
 		localStorage.removeItem('bureau-tickets-colonnes')
 		const { wrapper } = await open('/')
-		await wrapper.find('[aria-label="Choisir les colonnes"]').trigger('click')
-		const commercial = wrapper.findAll('[role="menuitemcheckbox"]').find((item) => item.text() === 'Commercial')!
-		await commercial.trigger('click')
+		await wrapper.findAll('.bureau-toolbar button').find((button) => button.text() === 'Colonnes')!.trigger('click')
+		await wrapper.findAll('.export-field').find((item) => item.text() === 'Commercial')!.find('input').setValue(true)
 		expect(row(wrapper, 'TC-1').text()).toContain('Commercial A')
 		expect(JSON.parse(localStorage.getItem('bureau-tickets-colonnes')!)).toContain('commercial')
+		// La colonne ajoutée passe en dernier : l'ordre choisi compte désormais.
+		expect(wrapper.find('.list-head .list-cols').findAll('.list-th').at(-1)!.text()).toBe('Commercial')
+		expect(wrapper.find('.view-modified').text()).toBe('Modifiée')
 		localStorage.removeItem('bureau-tickets-colonnes')
+		localStorage.removeItem('bureau-tickets-colonnes:largeurs')
 	})
 
 	it("distingue une vue vide d'une recherche sans résultat", async () => {

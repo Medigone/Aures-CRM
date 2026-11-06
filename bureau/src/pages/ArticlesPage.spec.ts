@@ -133,7 +133,7 @@ describe('page Articles', () => {
 		expect(wrapper.text()).toContain('BAT-P Validé')
 		expect(wrapper.text()).toContain('Composé')
 		expect(wrapper.text()).toContain('Aucun')
-		expect(wrapper.find('.list-head .list-cols button').text()).toMatch(/^Article\s+2/)
+		expect(wrapper.find('.list-head .list-cols button').text()).toMatch(/^Article\s*2/)
 		expect(wrapper.find('.page-head .page-count').exists()).toBe(false)
 		await wrapper.findAll('.bureau-toolbar button').find((button) => button.text().startsWith('Filtres'))!.trigger('click')
 		expect(wrapper.findAll('select[aria-label="Afficher"] option').map((option) => option.text())).toContain('Sans BAT validé (1)')

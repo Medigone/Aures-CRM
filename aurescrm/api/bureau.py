@@ -180,6 +180,10 @@ TIMESPANS = {
 	"next 7 days", "next 14 days", "next 30 days", "next week", "next month", "next quarter", "next 6 months", "next year",
 }  # fmt: skip
 LIST_FILTER = "List Filter"
+LIST_VIEW = "Vue Liste Bureau"
+LIST_VIEW_MAX_COLUMNS = 60
+LIST_VIEW_WIDTHS = (56, 800)
+LIST_COLUMN_KEY = re.compile(r"^\w{1,140}$")
 LINK_SEARCH_LIMIT = 20
 EXPORT_LINES_LIMIT = 500
 NOBODY = "__nobody__"
@@ -473,6 +477,147 @@ def delete_saved_filter(name):
 	if doc.for_user != frappe.session.user and (doc.for_user or not _can_share_filters()):
 		frappe.throw(_("Ce filtre ne vous appartient pas."), frappe.PermissionError)
 	doc.delete(ignore_permissions=True)
+
+
+def _list_view_default_key(doctype):
+	return f"bureau_vue:{doctype}"
+
+
+def _clean_list_view_config(doctype, config):
+	"""Les réglages d'une vue, réduits à ce qu'on attend : le navigateur n'écrit jamais autre chose dans le document."""
+	config = _parse(config)
+	if not isinstance(config, dict):
+		frappe.throw(_("Réglages de vue invalides."))
+	catalog = _filter_catalog(doctype)
+	fields = {entry["value"] for entry in catalog.values() if entry["field"] != BELL_FILTER}
+	columns, seen = [], set()
+	for column in config.get("columns") or []:
+		key = cstr(column.get("key")) if isinstance(column, dict) else ""
+		if key in seen or not (key in fields or LIST_COLUMN_KEY.match(key)):
+			frappe.throw(_("Colonne inconnue : {0}").format(key))
+		seen.add(key)
+		cleaned = {"key": key}
+		if column.get("width"):
+			cleaned["width"] = min(max(cint(column["width"]), LIST_VIEW_WIDTHS[0]), LIST_VIEW_WIDTHS[1])
+		columns.append(cleaned)
+	if not columns or len(columns) > LIST_VIEW_MAX_COLUMNS:
+		frappe.throw(_("Une vue compte de 1 à {0} colonnes.").format(LIST_VIEW_MAX_COLUMNS))
+	sort = config.get("sort")
+	if sort and (not isinstance(sort, dict) or sort.get("dir") not in ("asc", "desc") or not LIST_COLUMN_KEY.match(cstr(sort.get("key")))):
+		frappe.throw(_("Tri invalide."))
+	conditions = [
+		{"doctype": cstr(item.get("doctype")), "field": cstr(item.get("field")), "op": cstr(item.get("op")), "value": cstr(item.get("value"))}
+		for item in config.get("conditions") or []
+		if isinstance(item, dict)
+	]
+	# Refuse un champ ou une condition absents du catalogue de la personne.
+	condition_filters(conditions, doctype)
+	return {"columns": columns, "sort": {"key": sort["key"], "dir": sort["dir"]} if sort else None, "view": cstr(config.get("view")), "conditions": conditions}
+
+
+def _list_view_for_reader(row, catalog):
+	"""Une vue telle que la personne peut l'ouvrir : sans les colonnes ni les filtres dont le champ ne lui est plus disponible."""
+	config = _parse(row.config) or {}
+	fields = {entry["value"] for entry in catalog.values() if entry["field"] != BELL_FILTER}
+	stored_columns = config.get("columns") or []
+	columns = [column for column in stored_columns if "." not in cstr(column.get("key")) or column.get("key") in fields]
+	stored_conditions = config.get("conditions") or []
+	conditions = []
+	for condition in stored_conditions:
+		entry = catalog.get((cstr(condition.get("doctype")), cstr(condition.get("field"))))
+		if entry and cstr(condition.get("op")) in entry["operators"]:
+			conditions.append(condition)
+	return {
+		"name": row.name,
+		"label": row.label,
+		"is_global": not row.for_user,
+		"can_edit": bool(row.for_user) or _can_share_filters(),
+		"config": {"columns": columns, "sort": config.get("sort"), "view": cstr(config.get("view")), "conditions": conditions},
+		"dropped": len(stored_columns) - len(columns) + len(stored_conditions) - len(conditions),
+	}
+
+
+def _check_list_view_label(doctype, label, current=None):
+	label = cstr(label).strip()
+	if not label:
+		frappe.throw(_("Donnez un nom à cette vue."))
+	user = frappe.session.user
+	rows = frappe.get_all(LIST_VIEW, filters={"reference_doctype": doctype, "label": label}, fields=["name", "for_user"], limit_page_length=0)
+	if any(row.name != current and (not row.for_user or row.for_user == user) for row in rows):
+		frappe.throw(_("Une vue porte déjà ce nom."))
+	return label
+
+
+def _list_view_for_write(name):
+	"""La vue à modifier : la sienne, ou une vue commune pour un System Manager."""
+	doc = frappe.get_doc(LIST_VIEW, name)
+	if doc.for_user != frappe.session.user and (doc.for_user or not _can_share_filters()):
+		frappe.throw(_("Cette vue ne vous appartient pas."), frappe.PermissionError)
+	return doc
+
+
+@frappe.whitelist()
+def get_list_views(doctype):
+	"""Les vues de la personne, celles de tout le monde et sa vue par défaut."""
+	require_bureau()
+	_require_filter_list(doctype)
+	user = frappe.session.user
+	catalog = _filter_catalog(doctype)
+	rows = frappe.get_all(LIST_VIEW, filters={"reference_doctype": doctype}, or_filters=[["for_user", "=", user], ["for_user", "is", "not set"]], fields=["name", "label", "for_user", "config"], order_by="label asc", limit_page_length=0)
+	views = [_list_view_for_reader(row, catalog) for row in rows]
+	default = frappe.defaults.get_user_default(_list_view_default_key(doctype))
+	return {"views": views, "default": default if any(view["name"] == default for view in views) else None, "can_share": _can_share_filters()}
+
+
+@frappe.whitelist(methods=["POST"])
+def save_list_view(doctype, label, config, is_global=0, name=None):
+	"""Crée une vue, ou met à jour son nom et ses réglages quand `name` est donné. Une vue pour tout le monde demande le rôle System Manager."""
+	require_bureau()
+	_require_filter_list(doctype)
+	config = _clean_list_view_config(doctype, config)
+	if name:
+		doc = _list_view_for_write(name)
+		if doc.reference_doctype != doctype:
+			frappe.throw(_("Liste inconnue."))
+		doc.label = _check_list_view_label(doctype, label, current=doc.name)
+		doc.config = json.dumps(config)
+		doc.save(ignore_permissions=True)
+		return doc.name
+	if cint(is_global) and not _can_share_filters():
+		frappe.throw(_("Seul un System Manager peut partager une vue."), frappe.PermissionError)
+	# Le rôle Desk User n'est pas exigé sur /bureau : les règles ci-dessus tiennent lieu de droits.
+	return (
+		frappe.get_doc(
+			{"doctype": LIST_VIEW, "reference_doctype": doctype, "label": _check_list_view_label(doctype, label), "for_user": "" if cint(is_global) else frappe.session.user, "config": json.dumps(config)}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_list_view(name):
+	"""Retire une vue : la sienne, ou une vue commune pour un System Manager."""
+	require_bureau()
+	doc = _list_view_for_write(name)
+	if frappe.defaults.get_user_default(_list_view_default_key(doc.reference_doctype)) == doc.name:
+		frappe.defaults.clear_user_default(_list_view_default_key(doc.reference_doctype))
+	doc.delete(ignore_permissions=True)
+
+
+@frappe.whitelist(methods=["POST"])
+def set_default_list_view(doctype, name=None):
+	"""Choisit la vue par défaut de la personne sur cette liste ; sans `name`, revient à la Vue standard."""
+	require_bureau()
+	_require_filter_list(doctype)
+	key = _list_view_default_key(doctype)
+	if not name:
+		frappe.defaults.clear_user_default(key)
+		return
+	view = frappe.db.get_value(LIST_VIEW, name, ["reference_doctype", "for_user"], as_dict=True)
+	if not view or view.reference_doctype != doctype or (view.for_user and view.for_user != frappe.session.user):
+		frappe.throw(_("Vue inconnue."))
+	frappe.defaults.set_user_default(key, name)
 
 
 def _export_cell(value, fieldtype):

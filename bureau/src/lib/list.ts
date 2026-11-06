@@ -1,5 +1,6 @@
 /** Règles de la liste des tickets : colonnes, tri, export et actions groupées. */
 import { formatDay, statusLabel } from './display'
+import type { FilterField } from './filters'
 import type { BulkResult, QueueTicket } from '@/types'
 
 export interface Sort {
@@ -20,6 +21,8 @@ export interface Column<Row = QueueTicket> {
 	end?: boolean
 	/** Valeur de l'export. */
 	text: (row: Row) => string | number
+	/** Colonne ajoutée depuis un champ du doctype : sa valeur est lue à part et elle ne se trie pas. */
+	field?: FilterField
 }
 
 export const COLUMNS: Column[] = [
@@ -48,11 +51,6 @@ const COLUMN_GAP = 8
 const MENU_WIDTH = 30
 const BELL_WIDTH = 30
 const TRAY_BORDER = 2
-
-/** La colonne Client reste toujours affichée ; une clé inconnue, venue d'un ancien réglage, est ignorée. */
-export function visibleColumns(keys: string[]) {
-	return COLUMNS.filter((column) => column.key === 'client' || keys.includes(column.key))
-}
 
 /** Tags d'une ligne, à l'écran comme à l'export. */
 export const tagsText = (row: { tags?: string[] }) => (row.tags ?? []).join(', ')

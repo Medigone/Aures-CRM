@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { changedValues, clientFormValues, clientSortText, formatAmount, normalizeName, validateClient, visibleClientColumns, type ClientDetail, type ClientOptions } from './clients'
+import { CLIENT_COLUMNS, changedValues, clientFormValues, clientSortText, formatAmount, normalizeName, validateClient, type ClientDetail, type ClientOptions } from './clients'
 import { ticketsToCsv } from './list'
+import { normalizeColumns, resolveColumns } from './listViews'
+
+const visibleClientColumns = (keys: string[]) => resolveColumns(CLIENT_COLUMNS, normalizeColumns(keys.map((key) => ({ key })), 'client'))
 
 const options = { statuses: ['Actif'], wilayas: ['Sétif'], categories: ['Commercial'], formes: [], sensibilites: [], groupes: [], commercials: [{ value: 'n@example.com', label: 'Nadia Haddad' }], nobody: '__nobody__' } as ClientOptions
 

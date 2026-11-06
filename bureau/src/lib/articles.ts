@@ -244,11 +244,6 @@ export const ARTICLE_COLUMNS: Column<ArticleRow>[] = [
 ]
 export const DEFAULT_ARTICLE_COLUMNS = ARTICLE_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 
-/** La colonne Article reste toujours affichée ; une clé inconnue, venue d'un ancien réglage, est ignorée. */
-export function visibleArticleColumns(keys: string[]) {
-	return ARTICLE_COLUMNS.filter((column) => column.key === 'designation' || keys.includes(column.key))
-}
-
 /** Repères de couleur de la liste : les teintes d'Aures Pli, sans le rouge, réservé à ce qui bloque. */
 const PROCEDE_REPERES: Record<string, { tone: string; sigle: string; label?: string }> = {
 	Offset: { tone: 'tone-blue', sigle: 'OF' },

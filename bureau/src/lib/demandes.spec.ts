@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { catalogRows, demandeNext, demandeSteps, DEMANDE_COLUMNS, demandeSortText, draftStatus, draftValues, duplicateLines, expectedProcede, lineStudyStatus, visibleDemandeColumns, type ArticleChoice, type DemandeDetail, type DraftLine } from './demandes'
+import { catalogRows, demandeNext, demandeSteps, DEMANDE_COLUMNS, demandeSortText, draftStatus, draftValues, duplicateLines, expectedProcede, lineStudyStatus, type ArticleChoice, type DemandeDetail, type DraftLine } from './demandes'
+import { normalizeColumns, resolveColumns } from './listViews'
+
+const visibleDemandeColumns = (keys: string[]) => resolveColumns(DEMANDE_COLUMNS, normalizeColumns(keys.map((key) => ({ key })), 'name'))
 
 const article = (name: string, procede: string, extra: Partial<ArticleChoice> = {}): ArticleChoice => ({ name, designation: `ETUI ${name}`, reference: null, procedes: procede ? [procede] : [], support: 'BBTB', format: '10×20', bat: null, last_quantity: 0, compose: 0, unavailable: null, ...extra })
 const line = (id: number, name: string, quantity = ''): DraftLine => ({ id, article: name, designation: name, last_quantity: 0, quantity, est_creation: false })

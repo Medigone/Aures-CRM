@@ -160,7 +160,7 @@ describe('page Clients', () => {
 			await flushPromises()
 			return router.currentRoute.value.query.apercu
 		}
-		expect(wrapper.find('.list-head .list-cols button').text()).toMatch(/^Client\s+2/)
+		expect(wrapper.find('.list-head .list-cols button').text()).toMatch(/^Client\s*2/)
 		expect(wrapper.find('.page-head .page-count').exists()).toBe(false)
 		expect(await press('ArrowDown')).toBe('CLI-2')
 		expect(await press('ArrowUp')).toBe('CLI-1')

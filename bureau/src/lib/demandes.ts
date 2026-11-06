@@ -175,11 +175,6 @@ export const DEMANDE_COLUMNS: Column<DemandeRow>[] = [
 
 export const DEFAULT_DEMANDE_COLUMNS = DEMANDE_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 
-/** La colonne Demande reste toujours affichée ; une clé inconnue, venue d'un ancien réglage, est ignorée. */
-export function visibleDemandeColumns(keys: string[]) {
-	return DEMANDE_COLUMNS.filter((column) => column.key === 'name' || keys.includes(column.key))
-}
-
 export function demandeSortText(sort: Sort | null) {
 	const column = sort && DEMANDE_COLUMNS.find((item) => item.key === sort.key)
 	return column ? `Tri : ${column.label.toLowerCase()}` : 'Tri : les plus récentes'

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { bulkSummary, canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, gridTemplate, isOpen, minListWidth, nextSort, SORTABLE_COLUMNS, sortText, stepPercent, stepText, ticketsToCsv, visibleColumns } from './list'
+import { bulkSummary, canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, gridTemplate, isOpen, minListWidth, nextSort, SORTABLE_COLUMNS, sortText, stepPercent, stepText, ticketsToCsv } from './list'
 import type { QueueTicket } from '@/types'
+import { normalizeColumns, resolveColumns } from './listViews'
+
+const visibleColumns = (keys: string[]) => resolveColumns(COLUMNS, normalizeColumns(keys.map((key) => ({ key })), 'client'))
 
 const row = (name: string, extra: Partial<QueueTicket> = {}): QueueTicket => ({
 	name,

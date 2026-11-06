@@ -178,11 +178,6 @@ export const CLIENT_COLUMNS: Column<ClientRow>[] = [
 ]
 export const DEFAULT_CLIENT_COLUMNS = CLIENT_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 
-/** La colonne Client reste toujours affichée ; une clé inconnue, venue d'un ancien réglage, est ignorée. */
-export function visibleClientColumns(keys: string[]) {
-	return CLIENT_COLUMNS.filter((column) => column.key === 'client' || keys.includes(column.key))
-}
-
 export function clientSortText(sort: Sort | null) {
 	const column = sort && CLIENT_COLUMNS.find((item) => item.key === sort.key)
 	return column ? `Tri : ${column.label.toLowerCase()}` : 'Tri : nom'

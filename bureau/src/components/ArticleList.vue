@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fieldCellText } from '@/lib/listViews'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
@@ -7,7 +8,7 @@ import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getArticleOptions, getArticles } from '@/lib/api'
-import { ARTICLE_COLUMNS, ARTICLE_VIEWS, articleSigle, articleSortText, clientTone, DEFAULT_ARTICLE_COLUMNS, procedeLabel, procedeTone, TYPE_GENERAL, visibleArticleColumns, type ArticleOptions, type ArticleRow, type ArticleView } from '@/lib/articles'
+import { ARTICLE_COLUMNS, ARTICLE_VIEWS, articleSigle, articleSortText, clientTone, DEFAULT_ARTICLE_COLUMNS, procedeLabel, procedeTone, TYPE_GENERAL, type ArticleOptions, type ArticleRow, type ArticleView } from '@/lib/articles'
 import { formatAmount } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import { describeCondition, type Condition } from '@/lib/filters'
@@ -83,7 +84,7 @@ onBeforeUnmount(() => {
 		search-placeholder="Désignation, code, réf. client, client"
 		create-label="Nouvel article"
 		:columns="ARTICLE_COLUMNS"
-		:visible-of="visibleArticleColumns"
+		locked-column="designation"
 		:default-columns="DEFAULT_ARTICLE_COLUMNS"
 		columns-key="bureau-articles-colonnes"
 		:views="ARTICLE_VIEWS"
@@ -132,6 +133,7 @@ onBeforeUnmount(() => {
 				<span v-else-if="column.key === 'groupe'">{{ row.groupe || '—' }}</span>
 				<span v-else-if="column.key === 'couleurs'">{{ row.couleurs || '—' }}</span>
 				<span v-else-if="column.key === 'consommation'" class="list-col-end tabular-nums" :class="!row.consommation && 'text-ink-gray-6'">{{ row.consommation ? formatAmount(row.consommation) : '—' }}</span>
+				<span v-else :class="column.end && 'list-col-end tabular-nums'" :title="String(column.text(row))">{{ fieldCellText(column, row) }}</span>
 			</template>
 		</template>
 

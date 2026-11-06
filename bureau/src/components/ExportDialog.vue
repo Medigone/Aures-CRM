@@ -26,6 +26,8 @@ const props = defineProps<{
 	picked: Row[]
 	/** Ouverte depuis la barre des lignes cochées. */
 	fromPicked: boolean
+	/** Une vue enregistrée est active : le fichier part de ses colonnes, pas du dernier export. */
+	preferColumns?: boolean
 	conditionLabel: (condition: Condition) => string
 	fetchRows: (query: ExportQuery, start: number, pageLength: number) => Promise<{ rows: Row[]; total: number }>
 }>()
@@ -33,8 +35,8 @@ const emit = defineEmits<{ close: []; done: [message: string] }>()
 
 const format = ref<ExportFormat>('xlsx')
 const options = computed(() => exportColumnOptions(props.allColumns, props.fields))
-// Le dernier choix de cette liste, sinon les colonnes qu'elle affiche.
-const selected = ref(savedExportColumns(props.doctype) ?? listColumnKeys(props.columns))
+// Le dernier choix de cette liste, sinon les colonnes qu'elle affiche ; une vue enregistrée impose les siennes.
+const selected = ref((props.preferColumns ? null : savedExportColumns(props.doctype)) ?? listColumnKeys(props.columns))
 const known = computed(() => new Set(options.value.map((option) => option.key)))
 const fileColumns = computed(() => selected.value.filter((key) => known.value.has(key)))
 const listKeys = computed(() => listColumnKeys(props.columns))
