@@ -3,12 +3,12 @@ import LucideCheck from '~icons/lucide/check'
 import type { Step } from '@/types'
 
 /** `focus` : l'étape qui porte la consigne `tip`. `showBack` : on regarde une autre étape que celle en cours. */
-defineProps<{ steps: Step[]; viewed: number; current: number | null; focus: number; tip: string; showBack?: boolean }>()
+withDefaults(defineProps<{ steps: Step[]; viewed: number; current: number | null; focus: number; tip: string; showBack?: boolean; label?: string }>(), { label: 'Étapes du ticket' })
 const emit = defineEmits<{ pick: [index: number]; back: [] }>()
 </script>
 
 <template>
-	<section aria-label="Étapes du ticket" class="card px-2 py-3">
+	<section :aria-label="label" class="card px-2 py-3">
 		<div class="mx-1.5 mb-1.5 flex items-baseline justify-between gap-2">
 			<h3 class="text-base font-semibold">Étapes</h3>
 			<button v-if="showBack" type="button" class="text-sm text-link" @click="emit('back')">Revenir à l'étape en cours</button>

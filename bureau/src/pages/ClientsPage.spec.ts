@@ -283,7 +283,7 @@ describe('page Clients', () => {
 		for (const tab of ['', '?onglet=infos', '?onglet=activite']) {
 			const { wrapper } = await open(`/clients/CLI-1${tab}`)
 			expect(wrapper.find('.record-activity .activity').exists()).toBe(true)
-			expect(wrapper.find('.client-main .activity').exists()).toBe(false)
+			expect(wrapper.find('.client-main .activity').exists()).toBe(true)
 			if (tab === '?onglet=activite') expect(wrapper.find('.record-tab[aria-selected="true"]').text()).toBe('Aperçu')
 			wrapper.unmount()
 		}

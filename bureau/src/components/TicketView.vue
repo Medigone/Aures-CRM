@@ -207,6 +207,11 @@ function onTags(tags: string[]) {
 
 					<CreanceCard v-if="showCreance" :ticket="ticket" :busy="busy" :perform="perform" :actions-bar="decisionsBar" />
 					<RapprochementCard v-if="showRappro" :ticket="ticket" :busy="busy" :perform="perform" :actions-bar="decisionsBar" />
+
+					<!-- Le fil vient après le contenu, quelle que soit l'étape regardée. -->
+					<aside class="record-activity" aria-label="Commentaires et activité du ticket">
+						<ActivityFeed ref="feed" :api="activityApi" :version="ticket.modified" :user-name="userName" @changed="refresh(); emit('changed')" />
+					</aside>
 				</div>
 
 				<div class="bureau-side">
@@ -214,10 +219,6 @@ function onTags(tags: string[]) {
 					<DocumentsCard :ticket="ticket" :busy="busy" :perform="perform" />
 				</div>
 			</div>
-			<!-- Le fil reste visible, quelle que soit l'étape regardée. -->
-			<aside class="record-activity" aria-label="Commentaires et activité du ticket">
-				<ActivityFeed ref="feed" :api="activityApi" :version="ticket.modified" :user-name="userName" @changed="refresh(); emit('changed')" />
-			</aside>
 			</div>
 		</template>
 		<DemandeDialog v-if="creatingDemande && ticket" :ticket="ticket.name" @close="creatingDemande = false" @created="onDemandeCreated" />

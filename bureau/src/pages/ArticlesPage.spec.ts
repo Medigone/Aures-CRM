@@ -241,7 +241,7 @@ describe('page Articles', () => {
 		for (const tab of ['', '?onglet=technique', '?onglet=affaires']) {
 			const { wrapper } = await open(`/articles/CLI-1-003${tab}`)
 			expect(wrapper.find('.record-activity .activity').exists()).toBe(true)
-			expect(wrapper.find('.client-main .activity').exists()).toBe(false)
+			expect(wrapper.find('.client-main .activity').exists()).toBe(true)
 			wrapper.unmount()
 		}
 	})

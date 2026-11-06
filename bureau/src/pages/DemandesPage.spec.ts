@@ -84,8 +84,11 @@ describe('page Demandes', () => {
 	it('la fiche propose de confirmer, et garde le fil visible hors des onglets', async () => {
 		const { wrapper } = await open('/demandes/DF-1')
 		expect(wrapper.find('.record-activity').exists()).toBe(true)
-		expect(wrapper.find('.pp-next').text()).toContain('Confirmer la demande')
-		expect(wrapper.find('.step-hero').exists()).toBe(false)
+		// Même structure que le ticket : en-tête, contenu puis fil à gauche, étapes à droite.
+		expect(wrapper.find('.bureau-center .record-activity').exists()).toBe(true)
+		expect(wrapper.find('.client-side').exists()).toBe(false)
+		expect(wrapper.find('.pp-chain').exists()).toBe(false)
+		expect(wrapper.find('[aria-label="Étapes de la demande"] .step-tip').text()).toContain('Confirmer la demande')
 		await wrapper.find('.record-actions .btn-primary').trigger('click')
 		await flushPromises()
 		button('Confirmer et lancer les études')!.click()

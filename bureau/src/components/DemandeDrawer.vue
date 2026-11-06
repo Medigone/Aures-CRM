@@ -102,11 +102,11 @@ function onTags(tags: string[]) {
 							<time class="text-ink-gray-6" :datetime="demande.comments.last.at" :title="exactTime(demande.comments.last.at)">{{ relativeTime(demande.comments.last.at) }}</time>
 						</p>
 						<CommentText class="line-clamp-3" :parts="demande.comments.last.parts" />
-						<button type="button" class="text-sm text-link" @click="emit('open')">{{ demande.comments.count > 1 ? `Voir les ${demande.comments.count} commentaires` : 'Voir le fil' }}</button>
+						<button type="button" class="text-sm text-link" @click="emit('open', 'activite')">{{ demande.comments.count > 1 ? `Voir les ${demande.comments.count} commentaires` : 'Voir le fil' }}</button>
 					</template>
 					<p v-else class="text-ink-gray-6">
 						Aucun commentaire.
-						<button type="button" class="text-link" @click="emit('open')">Écrire le premier</button>
+						<button type="button" class="text-link" @click="emit('open', 'activite')">Écrire le premier</button>
 					</p>
 				</section>
 

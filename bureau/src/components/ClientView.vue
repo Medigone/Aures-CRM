@@ -171,7 +171,7 @@ function onPieceUploaded(file: UploadedFile) {
 		<div v-else-if="!client" class="card p-8 text-center text-ink-gray-6">Chargement du client…</div>
 
 		<template v-else>
-			<div class="client-dossier" :class="client.can_view_activity && 'with-activity'">
+			<div class="client-dossier">
 			<aside class="card client-side" aria-label="Identité du client">
 				<div class="side-block gap-2">
 					<h2 class="page-title leading-tight">{{ client.client }}</h2>
@@ -395,12 +395,12 @@ function onPieceUploaded(file: UploadedFile) {
 						</dl>
 					</section>
 				</div>
+				<!-- Le fil vient après le contenu, quel que soit l'onglet. -->
+				<aside v-if="client.can_view_activity" class="record-activity" aria-label="Commentaires et activité du client">
+					<ActivityFeed ref="feed" :api="activityApi" :version="client.modified" :user-name="userName" @changed="refresh()" />
+				</aside>
 			</div>
 			</div>
-			<!-- Le fil reste visible, quel que soit l'onglet. -->
-			<aside v-if="client.can_view_activity" class="record-activity" aria-label="Commentaires et activité du client">
-				<ActivityFeed ref="feed" :api="activityApi" :version="client.modified" :user-name="userName" @changed="refresh()" />
-			</aside>
 			</div>
 		</template>
 

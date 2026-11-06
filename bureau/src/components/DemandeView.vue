@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
-import LucideCheck from '~icons/lucide/check'
 import ActivityFeed from '@shared/components/ActivityFeed.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import DemandeActions from './DemandeActions.vue'
 import DemandeLinesTable from './DemandeLinesTable.vue'
+import StepTimeline from './StepTimeline.vue'
 import TagEditor from './TagEditor.vue'
 import { demandeActivity } from '@/lib/api'
-import { demandeNext, demandeSteps, typeLabel, type DemandeAction, type DemandeStep, DEMANDE_ACTION_LABELS, demandeHeaderActions, isPrimaryDemandeAction } from '@/lib/demandes'
+import { demandeNext, demandeSteps, demandeTimeline, typeLabel, type DemandeAction, DEMANDE_ACTION_LABELS, demandeHeaderActions, isPrimaryDemandeAction } from '@/lib/demandes'
 import { deskUrl, formatDay } from '@/lib/display'
 import { useDemande } from '@/lib/useDemande'
 
@@ -42,11 +42,24 @@ const tabs = computed(() => {
 	]
 })
 const activeTab = computed(() => (tabs.value.some((tab) => tab.key === props.tab) ? props.tab! : 'apercu'))
-const steps = computed(() => (demande.value ? demandeSteps(demande.value) : []))
+const timeline = computed(() => (demande.value ? demandeTimeline(demande.value) : null))
 const next = computed(() => (demande.value ? demandeNext(demande.value) : null))
-function openStep(step: DemandeStep) {
-	emit('tab', step.key === 'demande' ? 'articles' : 'etudes')
+const tip = computed(() => (next.value ? `${next.value.title}. ${next.value.text}` : ''))
+function openStep(index: number) {
+	emit('tab', timeline.value?.steps[index]?.key === 'demande' ? 'articles' : 'etudes')
 }
+const commentLabel = computed(() => {
+	const count = demande.value?.comments.count ?? 0
+	return count ? `${count} commentaire${count > 1 ? 's' : ''}` : 'Commenter'
+})
+async function showActivity() {
+	await nextTick()
+	feed.value?.root?.scrollIntoView?.({ block: 'start' })
+}
+// Depuis l'aperçu : la fiche s'ouvre sur le fil.
+watch(feed, (current) => {
+	if (current && props.tab === 'activite') showActivity()
+})
 
 // Boutons de l'en-tête : la prochaine action d'abord. Le reste passe dans le menu.
 const sideActions = computed(() => (demande.value ? demandeHeaderActions(demande.value) : []))
@@ -76,63 +89,54 @@ function onTags(tags: string[]) {
 		<div v-else-if="!demande" class="card p-8 text-center text-ink-gray-6">Chargement de la demande…</div>
 
 		<template v-else>
-			<div class="client-dossier with-activity">
-				<aside class="card client-side" aria-label="Identité de la demande">
-					<div class="side-block gap-2">
-						<h2 class="page-title leading-tight tabular-nums">{{ demande.name }}</h2>
+			<div class="card flex flex-none flex-col gap-2 p-3.5">
+				<div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+					<div class="min-w-0">
 						<div class="flex flex-wrap items-center gap-1.5">
+							<h2 class="page-title">{{ typeLabel(demande.type) || 'Demande' }}</h2>
 							<StatusPill :status="demande.status" />
 							<span class="urgence" :class="`urgence-${demande.urgence}`">{{ demande.urgence }}</span>
 						</div>
-						<p class="text-sm text-ink-gray-7">{{ [typeLabel(demande.type), demande.procede].filter(Boolean).join(' · ') }}</p>
-						<TagEditor doctype="Demande Faisabilite" :name="demande.name" :modified="demande.modified" :tags="demande.tags" :can-edit="demande.can_write" @changed="onTags" />
-						<div class="record-actions record-actions-rail">
-							<button v-for="(action, index) in sideActions" :key="action" type="button" :class="[isPrimaryDemandeAction(action) ? 'btn-primary' : 'btn-secondary', index === 0 && 'flex-auto']" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
-							<MoreMenu>
+						<p class="mt-0.5 text-sm text-ink-gray-7">
+							<RouterLink class="ref-link" :to="{ name: 'Client', params: { id: demande.client } }">{{ demande.client_label }}</RouterLink>
+							· <span class="tabular-nums">{{ demande.name }}</span><template v-if="demande.procede"> · {{ demande.procede }}</template> ·
+							<button type="button" class="text-link" @click="showActivity">{{ commentLabel }}</button>
+						</p>
+						<TagEditor class="mt-1.5" doctype="Demande Faisabilite" :name="demande.name" :modified="demande.modified" :tags="demande.tags" :can-edit="demande.can_write" @changed="onTags" />
+					</div>
+					<div class="record-actions">
+						<button v-for="action in sideActions" :key="action" type="button" :class="isPrimaryDemandeAction(action) ? 'btn-primary' : 'btn-secondary'" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
+						<MoreMenu>
 								<button v-for="action in menuActions" :key="action" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
 								<div v-if="menuActions.length" class="app-menu-sep"></div>
 								<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 								<a class="app-menu-item" role="menuitem" :href="deskUrl('Demande Faisabilite', demande.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
 							</MoreMenu>
-						</div>
 					</div>
-					<div class="side-block">
-						<p class="side-label">Client</p>
-						<p><RouterLink class="ref-link font-semibold" :to="{ name: 'Client', params: { id: demande.client } }">{{ demande.client_label }}</RouterLink></p>
-						<p class="text-ink-gray-6">{{ [demande.wilaya, demande.commercial].filter(Boolean).join(' · ') || 'Non attribué' }}</p>
-					</div>
-					<div class="side-block">
-						<dl class="side-kv">
-							<div><dt>Livraison souhaitée</dt><dd class="tabular-nums">{{ formatDay(demande.livraison) || '—' }}</dd></div>
-							<div><dt>Créée le</dt><dd class="tabular-nums">{{ formatDay(demande.creation) || '—' }}</dd></div>
-							<div><dt>Créée par</dt><dd>{{ demande.cree_par || '—' }}</dd></div>
-							<div><dt>Ticket</dt><dd v-if="demande.ticket"><RouterLink class="ref-link tabular-nums" :to="{ name: 'Ticket', params: { id: demande.ticket } }">{{ demande.ticket }}</RouterLink></dd><dd v-else class="font-normal text-ink-gray-6">Aucun</dd></div>
-							<div v-if="demande.bon_commande"><dt>Bon de commande</dt><dd class="tabular-nums">{{ demande.bon_commande }}</dd></div>
-							<div v-if="demande.demande_origin"><dt>Demande d'origine</dt><dd><RouterLink class="ref-link tabular-nums" :to="{ name: 'Demande', params: { id: demande.demande_origin } }">{{ demande.demande_origin }}</RouterLink></dd></div>
-						</dl>
-					</div>
-				</aside>
+				</div>
+				<dl class="ticket-facts">
+					<div class="ticket-fact"><dt>Commercial</dt><dd><span class="truncate" :title="demande.commercial || undefined">{{ demande.commercial || 'Non attribué' }}</span></dd></div>
+					<div class="ticket-fact"><dt>Wilaya</dt><dd>{{ demande.wilaya || '—' }}</dd></div>
+					<div class="ticket-fact"><dt>Livraison souhaitée</dt><dd class="tabular-nums">{{ formatDay(demande.livraison) || '—' }}</dd></div>
+					<div class="ticket-fact"><dt>Ticket</dt><dd><RouterLink v-if="demande.ticket" class="ref-link tabular-nums" :to="{ name: 'Ticket', params: { id: demande.ticket } }">{{ demande.ticket }}</RouterLink><template v-else>Aucun</template></dd></div>
+					<div class="ticket-fact"><dt>Créée le</dt><dd class="tabular-nums">{{ formatDay(demande.creation) || '—' }}</dd></div>
+					<div class="ticket-fact"><dt>Créée par</dt><dd>{{ demande.cree_par || '—' }}</dd></div>
+					<div v-if="demande.bon_commande" class="ticket-fact"><dt>Bon de commande</dt><dd class="tabular-nums">{{ demande.bon_commande }}</dd></div>
+					<div v-if="demande.demande_origin" class="ticket-fact"><dt>Demande d'origine</dt><dd><RouterLink class="ref-link tabular-nums" :to="{ name: 'Demande', params: { id: demande.demande_origin } }">{{ demande.demande_origin }}</RouterLink></dd></div>
+				</dl>
+			</div>
 
-				<div class="client-main">
+			<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
+
+			<div class="ticket-dossier">
+			<div class="bureau-detail">
+				<div class="bureau-center">
 					<div class="record-tabs" role="tablist">
 						<button v-for="item in tabs" :key="item.key" type="button" class="record-tab" role="tab" :aria-selected="activeTab === item.key" @click="emit('tab', item.key)">
 							{{ item.label }}<span v-if="item.count !== undefined" class="ml-1 tabular-nums text-ink-gray-6">{{ item.count }}</span><span v-if="item.todo" class="tab-todo" title="Une étape à faire"><span class="sr-only">, une étape à faire</span></span>
 						</button>
 					</div>
-					<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
-
-					<div v-if="activeTab === 'apercu'" class="bureau-center">
-						<section class="card" aria-label="Avancement de la demande">
-							<div class="pp-chain">
-								<button v-for="step in steps" :key="step.key" type="button" class="pp-step" :data-next="!step.done" @click="openStep(step)">
-									<span class="pp-mark" :class="!step.done && !step.next && 'pp-mark-later'" :data-todo="step.next" aria-hidden="true"><LucideCheck v-if="step.done" class="h-3.5 w-3.5" /></span>
-									<b>{{ step.label }}</b>
-									<span class="pp-step-sub" :class="step.next && 'font-medium text-tone-amber'">{{ step.sub }}</span>
-								</button>
-							</div>
-							<p v-if="next" class="pp-next"><span>{{ next.eyebrow }}</span> <b>{{ next.title }}.</b> {{ next.text }}</p>
-						</section>
-
+					<div v-if="activeTab === 'apercu'" class="detail-tab">
 						<section v-if="demande.etudes.length" class="card ref-card">
 							<h3>{{ demande.status === 'Confirmée' || demande.status === 'En Cours' ? 'Études de faisabilité' : 'Résultat des études' }}</h3>
 							<DemandeLinesTable :demande="demande" kind="etudes" :result-label="demande.status === 'Confirmée' || demande.status === 'En Cours' ? 'Statut' : 'Résultat'" />
@@ -143,14 +147,14 @@ function onTags(tags: string[]) {
 						</section>
 					</div>
 
-					<div v-else-if="activeTab === 'articles'" class="bureau-center">
+					<div v-else-if="activeTab === 'articles'" class="detail-tab">
 						<section class="card ref-card">
 							<h3>Articles demandés</h3>
 							<DemandeLinesTable :demande="demande" kind="articles" />
 						</section>
 					</div>
 
-					<div v-else class="bureau-center">
+					<div v-else class="detail-tab">
 						<section class="card ref-card">
 							<h3>Études de faisabilité</h3>
 							<DemandeLinesTable v-if="demande.etudes.length" :demande="demande" kind="etudes" />
@@ -168,12 +172,17 @@ function onTags(tags: string[]) {
 						</section>
 						<p class="text-xs text-ink-gray-6">Ces pièces s'ouvrent sur le Desk tant que leurs pages n'existent pas sur le poste de bureau.</p>
 					</div>
+
+					<!-- Le fil vient après le contenu, quel que soit l'onglet. -->
+					<aside class="record-activity" aria-label="Commentaires et activité de la demande">
+						<ActivityFeed ref="feed" :api="activityApi" :version="demande.modified" :user-name="userName" @changed="refresh(); emit('changed')" />
+					</aside>
 				</div>
 
-				<!-- Le fil reste visible, quel que soit l'onglet regardé. -->
-				<aside class="record-activity" aria-label="Commentaires et activité de la demande">
-					<ActivityFeed ref="feed" :api="activityApi" :version="demande.modified" :user-name="userName" @changed="refresh(); emit('changed')" />
-				</aside>
+				<div class="bureau-side">
+					<StepTimeline v-if="timeline" :steps="timeline.steps" :viewed="timeline.focus" :current="timeline.current" :focus="timeline.focus" :tip="tip" label="Étapes de la demande" @pick="openStep" />
+				</div>
+			</div>
 			</div>
 			<DemandeActions ref="actions" :demande="demande" :busy="busy" :perform="perform" @error="actionError = $event" />
 		</template>

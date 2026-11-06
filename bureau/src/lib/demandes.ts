@@ -5,6 +5,7 @@ import { formatDay } from './display'
 import type { FilterField } from './filters'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
+import type { Step } from '@/types'
 
 export type DemandeView = 'all' | 'confirm' | 'etude' | 'chiffrer' | 'devis' | 'commande' | 'closes'
 
@@ -216,6 +217,15 @@ export function demandeSteps(demande: DemandeDetail): DemandeStep[] {
 	const closed = ['Annulée', 'Fermée'].includes(demande.status)
 	const nextKey = closed ? null : !confirmed ? 'demande' : canDevis && !hasDevis ? 'devis' : !studied ? 'etudes' : null
 	return steps.map((step) => ({ ...step, next: step.key === nextKey }))
+}
+
+/** Les étapes au format de la carte Étapes : `focus` est l'étape à faire, sinon la dernière atteinte. */
+export function demandeTimeline(demande: DemandeDetail) {
+	const raw = demandeSteps(demande)
+	const nextIndex = raw.findIndex((step) => step.next)
+	const lastDone = raw.reduce((last, step, index) => (step.done ? index : last), 0)
+	const steps: Step[] = raw.map((step) => ({ key: step.key, label: step.label, detail: step.sub, state: step.done ? 'done' : step.next ? 'current' : 'todo' }))
+	return { steps, current: nextIndex >= 0 ? nextIndex : null, focus: nextIndex >= 0 ? nextIndex : lastDone }
 }
 
 export interface DemandeNext {

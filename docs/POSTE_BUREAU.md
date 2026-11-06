@@ -130,7 +130,13 @@ Règle commune à tout `/bureau` : les actions d'un document sont dans la barre 
 
 ## Étapes du ticket
 
-La consigne de l'étape est dans la carte Étapes (`StepTimeline`), sous l'étape regardée : il n'y a plus d'encart au-dessus du dossier. Sur une autre étape que celle en cours, l'en-tête de la carte propose « Revenir à l'étape en cours ». Les fiches Demande et Article n'ont pas de carte Étapes : leur consigne est une ligne (`.pp-next`) en bas de leur chaîne d'avancement. L'action de la prochaine étape d'un article va dans la barre d'actions de la fiche.
+La consigne de l'étape est dans la carte Étapes (`StepTimeline`), sous l'étape regardée : il n'y a plus d'encart au-dessus du dossier. Sur une autre étape que celle en cours, l'en-tête de la carte propose « Revenir à l'étape en cours ». L'onglet Prépresse d'un article garde sa chaîne horizontale, avec sa consigne en une ligne (`.pp-next`) ; l'action de sa prochaine étape va dans la barre d'actions de la fiche.
+
+## Structure des fiches
+
+- **Documents qui avancent (Ticket, Demande, et les futurs Études, Devis, Commandes)** : en-tête pleine largeur avec les actions et les informations (`.record-actions`, `.ticket-facts`), contenu à gauche (`.bureau-center`), carte Étapes à droite (`.bureau-side`).
+- **Fiches de référence (Client, Article)** : colonne d'identité à gauche (`.client-side`), onglets et contenu à droite.
+- **Commentaires et activité** : toujours sous le contenu (`.record-activity`), quel que soit l'onglet, et il défile avec la page. Il n'a pas de carte autour, comme la timeline du Desk. « Voir le fil » depuis un aperçu amène dessus (`?onglet=activite`, ou `?fil=1` sur le ticket).
 
 ## Pièces du dossier
 

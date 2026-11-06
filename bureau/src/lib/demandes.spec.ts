@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { catalogRows, demandeNext, demandeSteps, DEMANDE_COLUMNS, demandeSortText, draftStatus, draftValues, duplicateLines, expectedProcede, lineStudyStatus, type ArticleChoice, type DemandeDetail, type DraftLine } from './demandes'
+import { demandeTimeline, catalogRows, demandeNext, demandeSteps, DEMANDE_COLUMNS, demandeSortText, draftStatus, draftValues, duplicateLines, expectedProcede, lineStudyStatus, type ArticleChoice, type DemandeDetail, type DraftLine } from './demandes'
 import { normalizeColumns, resolveColumns } from './listViews'
 
 const visibleDemandeColumns = (keys: string[]) => resolveColumns(DEMANDE_COLUMNS, normalizeColumns(keys.map((key) => ({ key })), 'name'))
@@ -108,5 +108,21 @@ describe('avancement de la fiche', () => {
 		expect(lineStudyStatus(record, { article: 'A', quantite: 100 })).toBe('Réalisable')
 		expect(lineStudyStatus(record, { article: 'A', quantite: 999 })).toBeNull()
 		expect(lineStudyStatus(record, { article: 'P', quantite: 100 })).toBe('En étude')
+	})
+})
+
+describe('frise de la demande', () => {
+	it('met en avant la prochaine étape', () => {
+		const base = { status: 'Brouillon', etudes: [], devis: [], commandes: [], actions: [] } as unknown as DemandeDetail
+		const timeline = demandeTimeline(base)
+		expect(timeline.steps.map((step) => step.state)).toEqual(['current', 'todo', 'todo', 'todo'])
+		expect(timeline).toMatchObject({ current: 0, focus: 0 })
+		expect(timeline.steps[0].detail).toBe('À confirmer')
+	})
+	it('reste sur la dernière étape atteinte quand rien ne reste à faire', () => {
+		const closed = { status: 'Fermée', etudes: [], devis: [{ name: 'D' }], commandes: [], actions: [] } as unknown as DemandeDetail
+		const timeline = demandeTimeline(closed)
+		expect(timeline.current).toBeNull()
+		expect(timeline.focus).toBe(2)
 	})
 })

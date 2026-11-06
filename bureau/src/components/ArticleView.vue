@@ -231,7 +231,7 @@ const decisionsBar = ref<HTMLElement | null>(null)
 		<div v-else-if="!article" class="card p-8 text-center text-ink-gray-6">Chargement de l'article…</div>
 
 		<template v-else>
-			<div class="client-dossier with-activity" @dragenter="onDragEnter" @dragover.prevent @dragleave="onDragLeave" @drop.prevent="onDrop">
+			<div class="client-dossier" @dragenter="onDragEnter" @dragover.prevent @dragleave="onDragLeave" @drop.prevent="onDrop">
 				<div v-if="dragging" class="record-drop" aria-hidden="true"><div><b>Déposer pour joindre à {{ article.designation }}</b><span>Ils arrivent dans Documents.</span></div></div>
 				<aside class="card client-side" aria-label="Identité de l'article">
 					<ArticleImage :article="article" :busy="busy" :perform="perform" />
@@ -448,12 +448,12 @@ const decisionsBar = ref<HTMLElement | null>(null)
 								<ClientTicketsTable :tickets="article.tickets" empty="Aucun ticket rattaché à cet article." />
 							</section>
 						</div>
+						<!-- Le fil vient après le contenu, quel que soit l'onglet. -->
+						<aside class="record-activity" aria-label="Commentaires et activité de l'article">
+							<ActivityFeed ref="feed" :api="activityApi" :version="article.modified" :user-name="userName" @changed="refresh()" />
+						</aside>
 					</div>
 				</div>
-				<!-- Le fil reste visible, quel que soit l'onglet. -->
-				<aside class="record-activity" aria-label="Commentaires et activité de l'article">
-					<ActivityFeed ref="feed" :api="activityApi" :version="article.modified" :user-name="userName" @changed="refresh()" />
-				</aside>
 			</div>
 		</template>
 

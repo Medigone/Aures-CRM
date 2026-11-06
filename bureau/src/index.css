@@ -664,11 +664,8 @@
 	.client-dossier {
 		grid-template-columns: 19rem minmax(0, 1fr);
 	}
-	.client-dossier.with-activity {
-		grid-template-columns: 19rem minmax(0, 1fr) 20rem;
-	}
 	.ticket-dossier {
-		grid-template-columns: minmax(0, 1fr) 20rem;
+		grid-template-columns: minmax(0, 1fr);
 	}
 	.client-side {
 		display: flex;
@@ -685,19 +682,25 @@
 		min-width: 0;
 		min-height: 0;
 	}
-	/* Le fil défile sous la zone de saisie, qui reste à portée de main. */
-	.record-activity {
+	.detail-tab {
 		display: flex;
 		flex-direction: column;
+		gap: 0.625rem;
 		min-width: 0;
-		min-height: 0;
+	}
+	/* Le fil vient après le contenu et défile avec lui, sans carte, comme la timeline du Desk. */
+	.record-activity {
+		flex: 1 1 100%;
+		min-width: 0;
 	}
 	.record-activity .activity {
-		min-height: 0;
+		padding: 0.375rem 0 0;
+		border: 0;
+		background: none;
+		box-shadow: none;
 	}
-	.record-activity .act-scroll {
-		overflow-y: auto;
-		scrollbar-width: thin;
+	.record-activity .act-mark {
+		border-color: var(--page);
 	}
 	.side-block {
 		display: flex;
@@ -768,66 +771,19 @@
 		align-items: start;
 		gap: 0.625rem;
 	}
-	/* Trois colonnes ne tiennent plus : le fil passe sous le contenu et la fiche défile d'un seul tenant. */
-	@media (max-width: 1279px) {
-		.client-dossier.with-activity,
-		.ticket-dossier {
-			grid-template-rows: auto auto;
-			overflow-y: auto;
-			scrollbar-width: thin;
-		}
-		.client-dossier.with-activity {
-			grid-template-columns: 19rem minmax(0, 1fr);
-		}
-		.ticket-dossier {
-			grid-template-columns: minmax(0, 1fr);
-		}
-		.client-dossier.with-activity .client-side {
-			position: sticky;
-			top: 0;
-			grid-row: 1 / span 2;
-			max-height: none;
-			overflow: visible;
-		}
-		.client-dossier.with-activity .client-main,
-		.ticket-dossier .bureau-detail {
-			min-height: auto;
-		}
-		.client-dossier.with-activity .bureau-detail,
-		.ticket-dossier .bureau-detail {
-			flex: none;
-			overflow: visible;
-		}
-		.client-dossier.with-activity .record-activity {
-			grid-column: 2;
-		}
-		.record-activity,
-		.record-activity .activity,
-		.record-activity .act-scroll {
-			min-height: auto;
-		}
-		.record-activity .act-scroll {
-			overflow: visible;
-		}
-	}
 	@media (max-width: 900px) {
 		.client-dossier,
-		.client-dossier.with-activity,
 		.ticket-dossier {
 			flex: none;
 			grid-template-columns: minmax(0, 1fr);
 			grid-template-rows: none;
 			overflow: visible;
 		}
-		.client-dossier.with-activity .client-side,
 		.client-side {
 			position: static;
 			grid-row: auto;
 			max-height: none;
 			overflow: visible;
-		}
-		.client-dossier.with-activity .record-activity {
-			grid-column: auto;
 		}
 		.client-main {
 			flex: none;
