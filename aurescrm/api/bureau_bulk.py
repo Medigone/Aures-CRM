@@ -46,7 +46,7 @@ BULK_DOCTYPES = {
 		"excluded": {
 			"customer",
 			"owner_user_name",
-			# Créance et rapprochement exigent un motif ou une décision ; la liste de contrôle a son action.
+			# Créance et rapprochement exigent un motif ou une décision ; les pièces du dossier viennent des documents liés.
 			"statut_creance",
 			"motif_blocage_creance",
 			"commentaire_rapprochement",
@@ -57,6 +57,9 @@ BULK_DOCTYPES = {
 			"checklist_eb_dossier_essai_blanc",
 			"checklist_rec_photo",
 			"checklist_rec_quantites",
+			"quantites_impactees",
+			"articles_verifies_par",
+			"articles_verifies_le",
 		},
 		"setters": {},
 	},

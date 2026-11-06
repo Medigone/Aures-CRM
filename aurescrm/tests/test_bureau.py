@@ -16,6 +16,7 @@ from frappe.desk.notifications import extract_mentions
 
 from aurescrm.api import activity, bureau, bureau_articles, bureau_bulk, bureau_clients, bureau_demandes
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import generate_etude_faisabilite
+from aurescrm.aures_crm.doctype.ticket_commercial import ticket_pieces
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import update_assigne_a
 from aurescrm.www import bureau as bureau_page
 
@@ -359,38 +360,68 @@ class TestActions(FrappeTestCase):
 		)
 		return name
 
-	def test_la_demande_coche_la_liste_de_controle(self):
-		from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import sync_demande_checklist
+	def _piece(self, ticket_name, key):
+		return next(row for row in bureau.get_ticket(ticket_name)["pieces"] if row["key"] == key)
 
+	def test_une_demande_confirmee_compte_pas_un_brouillon(self):
+		ticket = self._bc_sans_demande()
+		self.assertEqual(self._piece(ticket["name"], "demande")["state"], "missing")
+		demande = self._demande(ticket["name"])
+		piece = self._piece(ticket["name"], "demande")
+		self.assertEqual(piece["state"], "missing")
+		self.assertEqual(piece["documents"][0]["name"], demande)
+		frappe.db.set_value("Demande Faisabilite", demande, "status", "Confirmée", update_modified=False)
+		self.assertEqual(self._piece(ticket["name"], "demande")["state"], "wait")
+		frappe.db.set_value("Demande Faisabilite", demande, "status", "Finalisée", update_modified=False)
+		self.assertEqual(self._piece(ticket["name"], "demande")["state"], "ok")
+		frappe.db.set_value("Demande Faisabilite", demande, "status", "Annulée", update_modified=False)
+		self.assertEqual(self._piece(ticket["name"], "demande")["state"], "missing")
+
+	def test_la_synchronisation_suit_les_documents_sans_toucher_a_modified(self):
 		ticket = self._bc_sans_demande()
 		field = "checklist_bc_demande_faisabilite"
 		frappe.db.set_value(bureau.TICKET, ticket["name"], field, 0, update_modified=False)
-		demande = self._demande(ticket["name"])
-		sync_demande_checklist(ticket["name"])
+		demande = self._demande(ticket["name"], "Confirmée")
+		before = frappe.db.get_value(bureau.TICKET, ticket["name"], "modified")
+		ticket_pieces.sync_ticket_pieces(ticket["name"])
 		self.assertEqual(frappe.db.get_value(bureau.TICKET, ticket["name"], field), 1)
-		item = next(row for row in bureau.get_ticket(ticket["name"])["checklist"] if row["fieldname"] == field)
-		self.assertTrue(item["checked"])
-		self.assertEqual(item["detected"], [demande])
-		with self.assertRaises(frappe.ValidationError):
-			fresh = bureau.get_ticket(ticket["name"])
-			bureau.set_checklist(fresh["name"], fresh["modified"], field, 0)
-		frappe.clear_messages()
-		frappe.db.set_value("Demande Faisabilite", demande, "status", "Annulée", update_modified=False)
-		sync_demande_checklist(ticket["name"])
+		ticket_pieces.sync_ticket_pieces(ticket["name"], excluding=demande)
 		self.assertEqual(frappe.db.get_value(bureau.TICKET, ticket["name"], field), 0)
+		self.assertEqual(frappe.db.get_value(bureau.TICKET, ticket["name"], "modified"), before)
 
-	def test_sans_demande_rien_n_est_detecte(self):
-		from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import active_demandes_of_ticket
-
+	def test_devis_retenu_rend_la_demande_sans_objet(self):
+		quotation = frappe.db.get_value("Quotation", {"docstatus": ["!=", 2]}, "name")
+		if not quotation:
+			self.skipTest("Aucun devis.")
 		ticket = self._bc_sans_demande()
-		self.assertEqual(active_demandes_of_ticket(ticket["name"]), [])
-		item = next(row for row in ticket["checklist"] if row["fieldname"] == "checklist_bc_demande_faisabilite")
-		self.assertEqual(item["detected"], [])
+		frappe.db.set_value(bureau.TICKET, ticket["name"], {"decision_rapprochement": "Devis retenu pour commande", "devis_rapproche": quotation}, update_modified=False)
+		pieces = {row["key"]: row for row in bureau.get_ticket(ticket["name"])["pieces"]}
+		self.assertEqual(pieces["demande"]["state"], "skip")
+		self.assertEqual(pieces["devis"]["state"], "ok")
+		self.assertEqual(pieces["devis"]["documents"][0]["name"], quotation)
+		self.assertFalse(pieces["commande"]["required"])
+
+	def test_un_ticket_clos_garde_ses_champs(self):
+		name = frappe.db.get_value(bureau.TICKET, {"request_type": "Bon de commande", "status": "Terminé"}, "name")
+		if not name:
+			self.skipTest("Aucun bon de commande terminé.")
+		before = frappe.db.get_value(bureau.TICKET, name, ["checklist_bc_demande_faisabilite", "checklist_bc_devis"])
+		ticket_pieces.sync_ticket_pieces(name)
+		self.assertEqual(frappe.db.get_value(bureau.TICKET, name, ["checklist_bc_demande_faisabilite", "checklist_bc_devis"]), before)
+
+	def test_reclamation_et_essai_blanc(self):
+		doc = frappe._dict(name="X", request_type="Réclamation", quantites_impactees=12)
+		pieces = {row["key"]: row for row in ticket_pieces.dossier_pieces(doc, {})}
+		self.assertEqual(pieces["quantites"]["state"], "ok")
+		self.assertEqual(pieces["photo"]["state"], "missing")
+		doc = frappe._dict(name="X", request_type="Essai Blanc", articles_verifies_par="Administrator")
+		pieces = {row["key"]: row for row in ticket_pieces.dossier_pieces(doc, {"dossiers": [{"name": "D", "status": "Annulé"}]})}
+		self.assertEqual(pieces["dossier"]["state"], "missing")
+		self.assertTrue(pieces["articles"]["verified"])
+		self.assertEqual(pieces["articles"]["state"], "ok")
 
 	def test_terminer_exige_la_liste_de_controle(self):
 		ticket = self._bc_sans_demande()
-		for item in ticket["checklist"]:
-			ticket = bureau.set_checklist(ticket["name"], ticket["modified"], item["fieldname"], 0)
 		with self.assertRaises(frappe.ValidationError):
 			bureau.run_action(ticket["name"], ticket["modified"], "Terminer")
 
@@ -417,20 +448,12 @@ class TestActions(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			bureau.set_creance(ticket["name"], ticket["modified"], "OK")
 
-	def test_liste_de_controle_limitee_au_type(self):
+	def test_pieces_limitees_au_type(self):
 		ticket = self._bc_en_cours()
 		with self.assertRaises(frappe.ValidationError):
-			bureau.set_checklist(ticket["name"], ticket["modified"], "checklist_rec_photo", 1)
+			bureau.set_articles_verified(ticket["name"], ticket["modified"])
 		with self.assertRaises(frappe.ValidationError):
-			bureau.set_checklist(ticket["name"], ticket["modified"], "status", 1)
-
-	def test_coche_liste_de_controle(self):
-		ticket = self._bc_sans_demande()
-		field = ticket["checklist"][0]["fieldname"]
-		checked = bureau.set_checklist(ticket["name"], ticket["modified"], field, 1)
-		self.assertTrue(checked["checklist"][0]["checked"])
-		cleared = bureau.set_checklist(ticket["name"], checked["modified"], field, 0)
-		self.assertFalse(cleared["checklist"][0]["checked"])
+			bureau.set_quantites_impactees(ticket["name"], ticket["modified"], 3)
 
 	def test_rapprochement(self):
 		ticket = self._bc_en_cours()

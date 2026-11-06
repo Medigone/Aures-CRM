@@ -133,6 +133,22 @@ export interface CommentSummary {
 	last: { who: string; at: string; parts: CommentPart[] } | null
 }
 
+/** Une pièce du dossier d'un ticket, calculée par le serveur à partir des documents liés. */
+export interface DossierPiece {
+	key: string
+	label: string
+	state: 'ok' | 'wait' | 'missing' | 'skip'
+	/** Requise pour terminer le ticket ; sinon, elle se montre pour information. */
+	required: boolean
+	documents: { doctype: string; name: string; status: string | null }[]
+	detail: string
+	summary?: string
+	empty?: string
+	quantity?: number
+	can_verify?: boolean
+	verified?: boolean
+}
+
 export interface TicketDetail {
 	name: string
 	modified: string
@@ -165,8 +181,7 @@ export interface TicketDetail {
 	commentaire_rapprochement: string | null
 	devis_rapproche: string | null
 	demande_faisabilite_rapprochee: string | null
-	/** `detected` : demandes qui cochent l'élément d'elles-mêmes. */
-	checklist: { fieldname: string; label: string; checked: boolean; detected?: string[] }[]
+	pieces: DossierPiece[]
 	comments: CommentSummary
 	steps: Step[]
 	current_step: number | null

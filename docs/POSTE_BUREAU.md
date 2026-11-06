@@ -5,7 +5,7 @@ Cahier des charges de la V1 et maquette : voir les liens transmis au projet.
 
 ## Lot 1 (livré) : lecture
 - **Liste de travail** : recherche, filtres combinables, choix de la vue avec ses compteurs dans le panneau Filtres, tri par urgence puis échéance.
-- **Ticket** : en-tête, étape active, demande du commercial, urgence à décider, créance, rapprochement et liste de contrôle, en lecture seule.
+- **Ticket** : en-tête, étape active, demande du commercial, urgence à décider, pièces du dossier, créance, rapprochement, en lecture seule.
 - **Colonne de droite** : timeline, documents (ouverts dans une nouvelle fenêtre), cycle du dossier (ouvert sur le Desk).
 - **Accès** : `Administrateur Ventes`, `System Manager`, `Administrator`. Les autres comptes reçoivent un refus, dans la page comme dans l'API.
 
@@ -126,8 +126,24 @@ Règle commune à tout `/bureau` : les actions d'un document sont dans la barre 
   - **Urgence** : Refuser l'urgence et Valider. Valider devient l'action principale tant que la décision est en attente.
   - **Créance** : menu `Créance` (`HeaderMenu`). Bloquée ouvre le motif dans la carte, puis Bloquer le ticket ou Annuler le blocage dans la barre.
   - **Rapprochement** : on choisit un devis ou une autre issue et on commente dans la carte, puis Enregistrer la décision. Rien n'est écrit avant ce clic.
-- **Liste de contrôle** : sur un bon de commande, « Demande de faisabilité » se coche seule dès qu'une demande non annulée est rattachée au ticket, et reste verrouillée tant qu'elle existe. Si la dernière demande est annulée ou supprimée, la case se décoche. Sans demande, la case se coche à la main, notamment quand un devis existant est retenu. Tout cela vit dans `sync_demande_checklist` (`ticket_commercial.py`), appelée par la demande.
-- **Restent dans leur carte** : les cases de la liste de contrôle, et les ajouts propres à une carte (joindre un fichier, créer un sous-article).
+- **Restent dans leur carte** : les ajouts propres à une carte (joindre un fichier, créer un sous-article).
+
+## Pièces du dossier
+
+Il n'y a plus de cases à cocher sur `/bureau`. La carte `PiecesCard` montre, pour chaque pièce, le document réel et son statut. Le calcul est dans `aures_crm/doctype/ticket_commercial/ticket_pieces.py`, seule source de la carte et de la règle de Terminer. La carte remplace aussi l'ancienne carte Cycle du dossier.
+
+| Type | Pièces requises | Lues dans |
+|---|---|---|
+| Bon de commande | Demande de faisabilité, Devis | Demandes du ticket ; devis de ces demandes ou devis retenu |
+| Demande de devis | Articles | Lignes des demandes non annulées, sinon vérification signée |
+| Essai blanc | Dossier essai à blanc, Articles | Dossier non annulé ; vérification signée |
+| Réclamation | Photo, Quantités impactées | Image jointe au ticket ; champ `quantites_impactees` |
+
+- **États** : `ok` (obtenue), `wait` (existe et avance), `missing` (bloque Terminer), `skip` (sans objet). Seul `missing` bloque.
+- **Bon de commande** : une demande en brouillon ne compte pas. Avec un devis retenu au rapprochement, la demande est sans objet. La commande se montre pour information.
+- **Articles** : quand aucun document ne les porte, le bouton « Articles vérifiés » de l'en-tête enregistre la personne et la date. Le menu `⋯` retire la vérification.
+- **Autres pièces** : demande, devis ou commande existants s'ajoutent pour information sur les autres types.
+- **Champs `checklist_*`** : en lecture seule. Ils recopient le calcul pour le contrôle de Terminer et les étapes de la file. Le ticket les recalcule à chaque enregistrement, et `sync_ticket_pieces` quand une demande, un dossier, un devis ou un fichier change (`doc_events` de `hooks.py`). Un ticket clos garde ses valeurs.
 
 ## Colonnes et vues
 

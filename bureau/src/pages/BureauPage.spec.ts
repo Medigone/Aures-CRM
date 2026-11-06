@@ -79,13 +79,16 @@ const ticket = {
 	commentaire_rapprochement: null,
 	devis_rapproche: null,
 	demande_faisabilite_rapprochee: null,
-	checklist: [{ fieldname: 'checklist_bc_devis', label: 'Devis', checked: false }],
+	pieces: [
+		{ key: 'demande', label: 'Demande de faisabilité', state: 'ok', required: true, documents: [{ doctype: 'Demande Faisabilite', name: 'DF-1', status: 'Finalisée' }], detail: 'Études : 1 réalisable' },
+		{ key: 'devis', label: 'Devis', state: 'missing', required: true, documents: [], detail: '', empty: "Aucun devis pour l'instant" },
+	],
 	steps: [
 		{ key: 'recu', label: 'Ticket reçu', state: 'done', detail: '01/11/2026' },
 		{ key: 'charge', label: 'Pris en charge', state: 'done', detail: '' },
 		{ key: 'creance', label: 'Créance vérifiée', state: 'paused', detail: 'En pause' },
 		{ key: 'rappro', label: 'Rapprochement', state: 'todo', detail: '' },
-		{ key: 'fin', label: 'Terminé', state: 'todo', detail: 'Liste de contrôle 0/1' },
+		{ key: 'fin', label: 'Terminé', state: 'todo', detail: 'Pièces 0/1' },
 	],
 	current_step: 2,
 	documents: [{ name: 'F1', file_name: 'bc.pdf', file_url: '/private/files/bc.pdf', owner_name: 'Commercial A', creation: '2026-11-01 10:00:00', can_remove: false }],
@@ -871,7 +874,7 @@ describe('poste de bureau', () => {
 		expect(text).toContain('Rupture de stock')
 		expect(text).toContain('Besoin urgent')
 		expect(text).toContain('Non vérifiée')
-		expect(text).toContain('DEV-1')
+		expect(text).toContain('DF-1')
 		const document = wrapper.find('a[href="/private/files/bc.pdf"]')
 		expect(document.attributes('target')).toBe('_blank')
 	})
@@ -1090,21 +1093,44 @@ describe('poste de bureau', () => {
 		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
 	})
 
-	it('coche et verrouille la demande de faisabilité détectée', async () => {
-		const detecte = { ...ticket, status: 'En Cours', actions: ['Pause', 'Terminer'], checklist: [{ fieldname: 'checklist_bc_demande_faisabilite', label: 'Demande de faisabilité', checked: true, detected: ['DF-1'] }] }
+	it('montre les pièces réelles du dossier, sans case à cocher', async () => {
+		const { wrapper } = await open('/ticket/TC-1')
+		const card = wrapper.find('[aria-label="Pièces du dossier"]')
+		expect(card.text()).toContain('DF-1')
+		expect(card.text()).toContain("Aucun devis pour l'instant")
+		expect(card.text()).toContain('1 sur 2 pour terminer')
+		expect(card.find('input[type="checkbox"]').exists()).toBe(false)
+	})
+
+	it('signe la vérification des articles depuis l en-tête', async () => {
+		const essai = { ...ticket, status: 'En Cours', request_type: 'Essai Blanc', actions: ['Pause', 'Terminer'], pieces: [{ key: 'articles', label: 'Articles', state: 'missing', required: true, documents: [], detail: '', empty: 'Non vérifiés', can_verify: true }] }
 		fetchMock.mockImplementation((input: RequestInfo | URL) =>
-			String(input).includes('get_ticket') ? Promise.resolve(new Response(JSON.stringify({ message: detecte }))) : respond(String(input)),
+			String(input).includes('get_ticket') ? Promise.resolve(new Response(JSON.stringify({ message: essai }))) : respond(String(input)),
 		)
 		const { wrapper } = await open('/ticket/TC-1')
-		await wrapper.findAll('.step-button').at(-1)!.trigger('click')
+		await wrapper.findAll('.record-actions button').find((button) => button.text() === 'Articles vérifiés')!.trigger('click')
 		await flushPromises()
-		const box = wrapper.find('input[type="checkbox"]:disabled')
-		expect((box.element as HTMLInputElement).checked).toBe(true)
-		expect(wrapper.text()).toContain('Détectée : DF-1')
+		expect(posted()[0].url).toContain('set_articles_verified')
+		expect(posted()[0].body).toMatchObject({ name: 'TC-1', verified: 1 })
 		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
 	})
 
-	it('grise Terminer tant que la liste de contrôle est incomplète', async () => {
+	it('enregistre les quantités impactées d une réclamation', async () => {
+		const reclamation = { ...ticket, status: 'En Cours', request_type: 'Réclamation', actions: ['Pause', 'Terminer'], pieces: [{ key: 'quantites', label: 'Quantités impactées', state: 'missing', required: true, documents: [], detail: '', quantity: 0 }] }
+		fetchMock.mockImplementation((input: RequestInfo | URL) =>
+			String(input).includes('get_ticket') ? Promise.resolve(new Response(JSON.stringify({ message: reclamation }))) : respond(String(input)),
+		)
+		const { wrapper } = await open('/ticket/TC-1')
+		const input = wrapper.find('.piece-quantity')
+		await input.setValue('1200')
+		await input.trigger('change')
+		await flushPromises()
+		expect(posted()[0].url).toContain('set_quantites_impactees')
+		expect(posted()[0].body).toMatchObject({ value: '1200' })
+		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
+	})
+
+	it('grise Terminer tant qu une pièce manque', async () => {
 		const enCours = { ...ticket, status: 'En Cours', statut_demande_urgence: 'Aucune', actions: ['Pause', 'Terminer'] }
 		fetchMock.mockImplementation((input: RequestInfo | URL) =>
 			String(input).includes('get_ticket') ? Promise.resolve(new Response(JSON.stringify({ message: enCours }))) : respond(String(input)),
@@ -1112,7 +1138,7 @@ describe('poste de bureau', () => {
 		const { wrapper } = await open('/ticket/TC-1')
 		const finish = wrapper.findAll('button').find((button) => button.text() === 'Terminer')!
 		expect(finish.attributes('disabled')).toBeDefined()
-		expect(wrapper.text()).toContain('Pour terminer, cochez : Devis.')
+		expect(wrapper.text()).toContain('Pour terminer, il manque : Devis.')
 		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
 	})
 

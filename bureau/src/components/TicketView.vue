@@ -7,18 +7,17 @@ import MoreMenu from '@shared/components/MoreMenu.vue'
 import AppToast from './AppToast.vue'
 import ActionButtons from './ActionButtons.vue'
 import AttributionButton from './AttributionButton.vue'
-import ChecklistCard from './ChecklistCard.vue'
 import CreanceCard from './CreanceCard.vue'
-import CycleCard from './CycleCard.vue'
 import DemandeDialog from './DemandeDialog.vue'
 import DocumentsCard from './DocumentsCard.vue'
+import PiecesCard from './PiecesCard.vue'
 import RapprochementCard from './RapprochementCard.vue'
 import StepTimeline from './StepTimeline.vue'
 import TicketStatus from './TicketStatus.vue'
 import UrgenceCard from './UrgenceCard.vue'
 import { htmlToText } from '@shared/text'
-import { ticketActivity } from '@/lib/api'
-import { deskUrl, formatDay, missingChecklist, primaryTicketActions, stepHelp } from '@/lib/display'
+import { setArticlesVerified, ticketActivity } from '@/lib/api'
+import { deskUrl, formatDay, missingPieces, primaryTicketActions, stepHelp } from '@/lib/display'
 import TagEditor from './TagEditor.vue'
 import { useTicket } from '@/lib/useTicket'
 
@@ -85,7 +84,6 @@ function pick(index: number) {
 const isBC = computed(() => ticket.value?.request_type === 'Bon de commande')
 const showCreance = computed(() => isBC.value && viewed.value?.key === 'creance')
 const showRappro = computed(() => isBC.value && viewed.value?.key === 'rappro')
-const showChecks = computed(() => Boolean(ticket.value?.checklist.length) && ['check', 'fin'].includes(viewed.value?.key || ''))
 // Toutes les actions vivent dans l'en-tête, à droite d'Attribution. Elles suivent l'étape en cours, pas l'étape consultée.
 const currentKey = computed(() => ticket.value?.steps[followIndex.value]?.key)
 // Une décision d'urgence en attente passe avant les actions de l'étape : une seule action principale à l'écran.
@@ -124,7 +122,9 @@ function openCreatedDemande() {
 	createdDemande.value = ''
 	router.push({ name: 'Demande', params: { id: name } })
 }
-const finishHint = computed(() => (ticket.value ? missingChecklist(ticket.value) : ''))
+const finishHint = computed(() => (ticket.value ? missingPieces(ticket.value) : ''))
+const articles = computed(() => ticket.value?.pieces.find((piece) => piece.key === 'articles'))
+const canEditDossier = computed(() => Boolean(ticket.value?.can_write) && !isClosed.value)
 function onTags(tags: string[]) {
 	if (ticket.value) ticket.value.tags = tags
 	emit('changed')
@@ -165,6 +165,7 @@ function onTags(tags: string[]) {
 							<LucideArrowUpRight class="h-4 w-4" aria-hidden="true" />
 						</a>
 						<RouterLink v-if="toConfirm" class="btn-primary" :to="{ name: 'Demande', params: { id: toConfirm.name } }">Ouvrir la demande {{ toConfirm.name }}</RouterLink>
+						<button v-if="canEditDossier && articles?.can_verify" type="button" class="btn-secondary" :disabled="busy" @click="perform(() => setArticlesVerified(ticket!, true))">Articles vérifiés</button>
 						<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" :primary="primaryActions" :except="menuActions" />
 						<MoreMenu>
 							<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
@@ -172,6 +173,7 @@ function onTags(tags: string[]) {
 								<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />
 								Ouvrir sur le Desk
 							</a>
+							<button v-if="canEditDossier && articles?.verified" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="perform(() => setArticlesVerified(ticket!, false))">Retirer la vérification des articles</button>
 							<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" in-menu :only="menuActions" />
 						</MoreMenu>
 					</div>
@@ -204,6 +206,8 @@ function onTags(tags: string[]) {
 
 					<UrgenceCard v-if="urgencePending" :ticket="ticket" :busy="busy" :perform="perform" :actions-bar="decisionsBar" />
 
+					<PiecesCard :ticket="ticket" :busy="busy" :perform="perform" wide />
+
 					<div class="card flex flex-col gap-1 p-3.5">
 						<h3 class="text-base font-semibold">Demande du commercial</h3>
 						<p class="whitespace-pre-line text-ink-gray-8">{{ htmlToText(ticket.description) || 'Aucune description.' }}</p>
@@ -211,13 +215,11 @@ function onTags(tags: string[]) {
 
 					<CreanceCard v-if="showCreance" :ticket="ticket" :busy="busy" :perform="perform" :actions-bar="decisionsBar" />
 					<RapprochementCard v-if="showRappro" :ticket="ticket" :busy="busy" :perform="perform" :actions-bar="decisionsBar" />
-					<ChecklistCard v-if="showChecks" :ticket="ticket" :busy="busy" :perform="perform" />
 				</div>
 
 				<div class="bureau-side">
 					<StepTimeline :steps="ticket.steps" :viewed="viewIndex" :current="ticket.current_step" @pick="pick" />
 					<DocumentsCard :ticket="ticket" :busy="busy" :perform="perform" />
-					<CycleCard :ticket="ticket" />
 				</div>
 			</div>
 			<!-- Le fil reste visible, quelle que soit l'étape regardée. -->

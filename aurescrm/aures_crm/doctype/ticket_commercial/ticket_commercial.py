@@ -36,28 +36,6 @@ CHECKLIST_TERMINE_FIELDS = {
 }
 
 
-DEMANDE_CHECKLIST_FIELD = "checklist_bc_demande_faisabilite"
-
-
-def active_demandes_of_ticket(ticket_name, excluding=None):
-    """Demandes de faisabilité du ticket qui ne sont pas annulées, de la plus ancienne à la plus récente."""
-    filters = {"ticket_commercial": ticket_name, "status": ["!=", "Annulée"]}
-    if excluding:
-        filters["name"] = ["!=", excluding]
-    return frappe.get_all("Demande Faisabilite", filters=filters, pluck="name", order_by="creation asc")
-
-
-def sync_demande_checklist(ticket_name, excluding=None):
-    """Aligne la case du ticket sur ses demandes. Appelée seulement quand une demande change : sans demande, une case cochée à la main reste."""
-    ticket = frappe.db.get_value("Ticket Commercial", ticket_name, ["request_type", "status", DEMANDE_CHECKLIST_FIELD], as_dict=True)
-    if not ticket or ticket.request_type != "Bon de commande" or ticket.status in ("Terminé", "Annulé"):
-        return
-    wanted = 1 if active_demandes_of_ticket(ticket_name, excluding) else 0
-    if wanted != cint(ticket.get(DEMANDE_CHECKLIST_FIELD)):
-        # Sans toucher à `modified` : la fiche ouverte ailleurs reste enregistrable.
-        frappe.db.set_value("Ticket Commercial", ticket_name, DEMANDE_CHECKLIST_FIELD, wanted, update_modified=False)
-
-
 class TicketCommercial(Document):
     def autoname(self):
         """Génère le nom du ticket au format TC-YY-MM-#####"""
@@ -87,7 +65,7 @@ class TicketCommercial(Document):
         self.set_defaults()
         self.apply_creance_status_rules()
         self.validate_required_fields()
-        self.apply_demande_checklist()
+        self.apply_dossier_pieces()
         self.validate_liste_controle_si_termine()
         self.validate_creance_fields()
         self.apply_insert_urgence_guard()
@@ -105,10 +83,16 @@ class TicketCommercial(Document):
         if not self.priority:
             frappe.throw(_("Le champ Priorité est obligatoire"))
 
-    def apply_demande_checklist(self):
-        """Une demande de faisabilité active suffit à cocher son élément de la liste de contrôle."""
-        if not self.is_new() and self.request_type == "Bon de commande" and active_demandes_of_ticket(self.name):
-            self.set(DEMANDE_CHECKLIST_FIELD, 1)
+    def apply_dossier_pieces(self):
+        """Les éléments de la liste de contrôle viennent des documents liés. Un ticket déjà clos garde ce qu'il avait."""
+        if self.is_new():
+            return
+        old = self.get_doc_before_save()
+        if cstr(old.get("status") if old else self.status) in ("Terminé", "Annulé"):
+            return
+        from aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces import apply_pieces
+
+        apply_pieces(self)
 
     def validate_liste_controle_si_termine(self):
         """Types couverts par la liste de contrôle : impossible de passer en Terminé si cases manquantes."""
@@ -128,7 +112,7 @@ class TicketCommercial(Document):
 
         if missing:
             frappe.throw(
-                _("Pour marquer ce ticket comme Terminé, cochez tous les éléments de la liste de contrôle (onglet « Liste de contrôle ») : {0}").format(
+                _("Pour terminer ce ticket, il manque : {0}").format(
                     ", ".join(missing)
                 )
             )

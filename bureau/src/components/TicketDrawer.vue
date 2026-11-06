@@ -7,7 +7,7 @@ import LucideX from '~icons/lucide/x'
 import AppToast from './AppToast.vue'
 import ActionButtons from './ActionButtons.vue'
 import AttributionButton from './AttributionButton.vue'
-import CycleCard from './CycleCard.vue'
+import PiecesCard from './PiecesCard.vue'
 import DocumentsCard from './DocumentsCard.vue'
 import StepTimeline from './StepTimeline.vue'
 import TicketStatus from './TicketStatus.vue'
@@ -92,6 +92,8 @@ function onTags(tags: string[]) {
 					<div v-if="ticket.request_type === 'Bon de commande'"><dt>Créance</dt><dd>{{ ticket.statut_creance || 'Non vérifiée' }}</dd></div>
 				</dl>
 
+				<PiecesCard :ticket="ticket" :busy="busy" :perform="perform" />
+
 				<section class="card flex flex-col gap-1">
 					<h3 class="text-base font-semibold">Demande du commercial</h3>
 					<p class="whitespace-pre-line text-ink-gray-8">{{ htmlToText(ticket.description) || 'Aucune description.' }}</p>
@@ -113,7 +115,6 @@ function onTags(tags: string[]) {
 				</section>
 				<StepTimeline :steps="ticket.steps" :viewed="-1" :current="ticket.current_step" @pick="emit('open', $event)" />
 				<DocumentsCard :ticket="ticket" :busy="busy" :perform="perform" />
-				<CycleCard :ticket="ticket" />
 			</template>
 		</div>
 		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />

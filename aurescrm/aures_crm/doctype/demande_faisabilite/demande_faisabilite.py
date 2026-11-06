@@ -170,20 +170,6 @@ class DemandeFaisabilite(Document):
 	def after_insert(self):
 		self.set_ticket_bc_rapprochement_decision()
 
-	def on_update(self):
-		"""La liste de contrôle du ticket suit ses demandes : création, annulation, ou rattachement à un autre ticket."""
-		from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import sync_demande_checklist
-
-		before = self.get_doc_before_save()
-		for ticket in {self.ticket_commercial, before.ticket_commercial if before else None} - {None, ""}:
-			sync_demande_checklist(ticket)
-
-	def on_trash(self):
-		from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import sync_demande_checklist
-
-		if self.ticket_commercial:
-			sync_demande_checklist(self.ticket_commercial, excluding=self.name)
-
 	def validate(self):
 		"""Validation automatique pour synchroniser type, is_reprint et essai_blanc"""
 		# Interdire les sous-articles dans la liste d'articles

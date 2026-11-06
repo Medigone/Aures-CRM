@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { deskUrl, echeanceLabel, fileExtension, formatDay, initials, missingChecklist, statusLabel, stepHelp, ticketActions, urgenceNote } from './display'
+import { deskUrl, echeanceLabel, fileExtension, formatDay, initials, missingPieces, piecesProgress, statusLabel, stepHelp, ticketActions, urgenceNote } from './display'
 
 describe('affichage', () => {
 	it('affiche Pending en français', () => {
@@ -28,28 +28,31 @@ describe('affichage', () => {
 	})
 
 	it('adapte la consigne au ticket', () => {
-		const ticket = { request_type: 'Essai Blanc', status: 'En Cours', checklist: [] }
+		const ticket = { request_type: 'Essai Blanc', status: 'En Cours', pieces: [] }
 		expect(stepHelp('doc', ticket)).toContain('dossier essai à blanc')
 		expect(stepHelp('fin', ticket)).toBe('Terminez le ticket une fois la demande traitée.')
 		expect(stepHelp('fin', { ...ticket, status: 'Terminé' })).toBe('Ce ticket est clos.')
 	})
 
 	it('présente les actions permises par le serveur, dans un ordre stable', () => {
-		const checklist = [{ label: 'Devis', checked: false }]
-		const actions = ticketActions({ actions: ['Terminer', 'Pause'], checklist })
+		const pieces = [{ label: 'Devis', required: true, state: 'missing' }]
+		const actions = ticketActions({ actions: ['Terminer', 'Pause'], pieces })
 		expect(actions.map((item) => item.label)).toEqual(['Mettre en pause', 'Terminer'])
 		expect(actions[1].disabled).toBe(true)
-		expect(ticketActions({ actions: ['Terminer'], checklist: [{ label: 'Devis', checked: true }] })[0].disabled).toBe(false)
-		expect(ticketActions({ actions: ['Inconnue'], checklist: [] })).toEqual([])
+		expect(ticketActions({ actions: ['Terminer'], pieces: [{ label: 'Devis', required: true, state: 'wait' }] })[0].disabled).toBe(false)
+		expect(ticketActions({ actions: ['Terminer'], pieces: [{ label: 'Commande', required: false, state: 'missing' }] })[0].disabled).toBe(false)
+		expect(ticketActions({ actions: ['Inconnue'], pieces: [] })).toEqual([])
 	})
 
 	it('explique ce qui manque pour terminer', () => {
-		const checklist = [
-			{ label: 'Devis', checked: false },
-			{ label: 'Photo', checked: false },
+		const pieces = [
+			{ label: 'Devis', required: true, state: 'missing' },
+			{ label: 'Photo', required: true, state: 'missing' },
+			{ label: 'Demande', required: true, state: 'skip' },
 		]
-		expect(missingChecklist({ actions: ['Terminer'], checklist })).toBe('Pour terminer, cochez : Devis, Photo.')
-		expect(missingChecklist({ actions: ['Pause'], checklist })).toBe('')
+		expect(missingPieces({ actions: ['Terminer'], pieces })).toBe('Pour terminer, il manque : Devis, Photo.')
+		expect(missingPieces({ actions: ['Pause'], pieces })).toBe('')
+		expect(piecesProgress({ pieces })).toEqual({ total: 3, done: 1 })
 	})
 
 	it('compare le niveau accordé au niveau demandé', () => {

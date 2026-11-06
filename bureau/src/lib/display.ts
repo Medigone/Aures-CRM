@@ -34,7 +34,7 @@ export function initials(name?: string | null) {
 }
 
 /** Consigne de l'encart d'étape. */
-export function stepHelp(key: string, ticket: { request_type: string; status: string; checklist: unknown[] }) {
+export function stepHelp(key: string, ticket: { request_type: string; status: string; pieces: { required: boolean }[] }) {
 	const closed = ticket.status === 'Terminé' || ticket.status === 'Annulé'
 	switch (key) {
 		case 'recu':
@@ -54,10 +54,10 @@ export function stepHelp(key: string, ticket: { request_type: string; status: st
 		case 'confirm':
 			return 'Confirmez la demande : une étude de faisabilité sera générée par article.'
 		case 'check':
-			return 'Cochez cet élément dans la liste de contrôle.'
+			return 'Réunissez cette pièce : la carte Pièces du dossier dit ce qui manque.'
 		case 'fin':
 			if (closed) return 'Ce ticket est clos.'
-			return ticket.checklist.length ? 'Cochez la liste de contrôle, puis terminez le ticket.' : 'Terminez le ticket une fois la demande traitée.'
+			return ticket.pieces.some((piece) => piece.required) ? 'Réunissez les pièces du dossier, puis terminez le ticket.' : 'Terminez le ticket une fois la demande traitée.'
 		default:
 			return ''
 	}
@@ -85,19 +85,27 @@ export function primaryTicketActions(stepKey?: string) {
 	return ['Reprendre', ...(stepKey === 'charge' ? ['Démarrer'] : stepKey === 'creance' ? ['Débloquer Créance'] : stepKey === 'fin' ? ['Terminer'] : [])]
 }
 
+type WithPieces = { pieces: { label: string; required: boolean; state: string }[] }
+const missingOf = ({ pieces }: WithPieces) => pieces.filter((piece) => piece.required && piece.state === 'missing')
+
 /** Boutons du workflow : le serveur dit lesquels sont permis, l'écran grise ce qu'il sait déjà refusé. */
-export function ticketActions(ticket: { actions: string[]; checklist: { checked: boolean }[] }): TicketAction[] {
-	const incomplete = ticket.checklist.some((item) => !item.checked)
+export function ticketActions(ticket: WithPieces & { actions: string[] }): TicketAction[] {
+	const incomplete = missingOf(ticket).length > 0
 	return Object.keys(ACTIONS)
 		.filter((action) => ticket.actions.includes(action))
 		.map((action) => ({ action, ...ACTIONS[action], disabled: action === 'Terminer' && incomplete }))
 }
 
-/** Éléments de la liste de contrôle qui empêchent de terminer. */
-export function missingChecklist(ticket: { actions: string[]; checklist: { label: string; checked: boolean }[] }) {
+/** Les pièces qui empêchent de terminer. */
+export function missingPieces(ticket: WithPieces & { actions: string[] }) {
 	if (!ticket.actions.includes('Terminer')) return ''
-	const missing = ticket.checklist.filter((item) => !item.checked).map((item) => item.label)
-	return missing.length ? `Pour terminer, cochez : ${missing.join(', ')}.` : ''
+	const missing = missingOf(ticket).map((piece) => piece.label)
+	return missing.length ? `Pour terminer, il manque : ${missing.join(', ')}.` : ''
+}
+
+export function piecesProgress(ticket: WithPieces) {
+	const required = ticket.pieces.filter((piece) => piece.required)
+	return { total: required.length, done: required.length - missingOf(ticket).length }
 }
 
 export function urgenceNote(level: string, requested?: string | null) {

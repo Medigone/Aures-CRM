@@ -240,6 +240,9 @@ doc_events = {
     },
     "Quotation": {
         "before_validate": "aurescrm.commercial_assignment.set_commercial_on_quotation",
+        "on_update": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces.on_related_update",
+        "on_cancel": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces.on_related_update",
+        "on_trash": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces.on_related_trash",
         "on_submit": [
             # Mise à jour du chemin
             "aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite.set_demande_status_from_quotation",
@@ -265,7 +268,17 @@ doc_events = {
         # Vous pourriez avoir d'autres hooks ici
     },
     "Demande Faisabilite": {
-        "before_validate": "aurescrm.commercial_assignment.set_commercial_on_demande_faisabilite"
+        "before_validate": "aurescrm.commercial_assignment.set_commercial_on_demande_faisabilite",
+        "on_update": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces.on_related_update",
+        "on_trash": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces.on_related_trash",
+    },
+    "Dossier Essai Blanc": {
+        "on_update": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces.on_related_update",
+        "on_trash": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces.on_related_trash",
+    },
+    "File": {
+        "after_insert": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces.on_related_update",
+        "on_trash": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces.on_related_trash",
     },
     "Ticket Commercial": {
         "on_update": "aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial_hooks.propagate_niveau_urgence"

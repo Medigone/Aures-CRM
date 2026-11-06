@@ -35,7 +35,7 @@
   "section_description",
   "description",
   "amended_from",
-  "liste_de_contr\u00f4le_tab",
+  "liste_de_contrôle_tab",
   "section_cl_bc",
   "checklist_bc_demande_faisabilite",
   "checklist_bc_devis",
@@ -44,10 +44,13 @@
   "section_cl_eb",
   "checklist_eb_articles",
   "checklist_eb_dossier_essai_blanc",
+  "articles_verifies_par",
+  "articles_verifies_le",
   "section_cl_rec",
   "checklist_rec_photo",
   "checklist_rec_quantites",
-  "suivi_cr\u00e9ance_tab",
+  "quantites_impactees",
+  "suivi_créance_tab",
   "section_creance_bc",
   "statut_creance",
   "motif_blocage_creance",
@@ -108,7 +111,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn Cours\nPending\nBlocage Cr\u00e9ance\nTermin\u00e9\nAnnul\u00e9",
+   "options": "Nouveau\nEn Cours\nPending\nBlocage Créance\nTerminé\nAnnulé",
    "reqd": 1
   },
   {
@@ -116,7 +119,7 @@
    "fieldname": "priority",
    "fieldtype": "Select",
    "hidden": 1,
-   "label": "Priorit\u00e9",
+   "label": "Priorité",
    "options": "\nBasse\nMoyenne\nHaute"
   },
   {
@@ -130,7 +133,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "\nConception\nBon de commande\nDemande de devis\nInformation Production\nMise \u00e0 jour donn\u00e9es\nR\u00e9clamation\nEssai Blanc\nAutre",
+   "options": "\nConception\nBon de commande\nDemande de devis\nInformation Production\nMise à jour données\nRéclamation\nEssai Blanc\nAutre",
    "reqd": 1,
    "sort_options": 1
   },
@@ -152,14 +155,14 @@
   {
    "fieldname": "description",
    "fieldtype": "Text Editor",
-   "label": "Description d\u00e9taill\u00e9e"
+   "label": "Description détaillée"
   },
   {
    "default": "__user",
    "fieldname": "owner_user",
    "fieldtype": "Link",
    "hidden": 1,
-   "label": "Cr\u00e9\u00e9 par",
+   "label": "Créé par",
    "options": "User",
    "read_only": 1
   },
@@ -167,7 +170,7 @@
    "default": "Today",
    "fieldname": "creation_date",
    "fieldtype": "Date",
-   "label": "Date de cr\u00e9ation",
+   "label": "Date de création",
    "read_only": 1
   },
   {
@@ -179,7 +182,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "customer.custom_commercial_attribu\u00e9",
+   "fetch_from": "customer.custom_commercial_attribué",
    "fieldname": "commercial",
    "fieldtype": "Link",
    "hidden": 1,
@@ -199,21 +202,21 @@
    "fetch_from": "owner_user.full_name",
    "fieldname": "owner_user_name",
    "fieldtype": "Data",
-   "label": "Cr\u00e9\u00e9 par"
+   "label": "Créé par"
   },
   {
    "fieldname": "assigne_a",
    "fieldtype": "Link",
    "hidden": 1,
    "in_standard_filter": 1,
-   "label": "Assign\u00e9 \u00e0",
+   "label": "Assigné à",
    "options": "User"
   },
   {
    "fetch_from": "assigne_a.full_name",
    "fieldname": "assigne_a_nom",
    "fieldtype": "Data",
-   "label": "Assign\u00e9 \u00e0",
+   "label": "Assigné à",
    "read_only": 1
   },
   {
@@ -230,7 +233,7 @@
    "fieldname": "echeance",
    "fieldtype": "Date",
    "hidden": 1,
-   "label": "\u00c9ch\u00e9ance"
+   "label": "Échéance"
   },
   {
    "fieldname": "urgence_tab",
@@ -252,7 +255,7 @@
    "fieldname": "niveau_urgence_demande",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Niveau d'urgence demand\u00e9",
+   "label": "Niveau d'urgence demandé",
    "options": "U0\nU1\nU2\nU3",
    "read_only": 1
   },
@@ -261,7 +264,7 @@
    "fieldname": "statut_demande_urgence",
    "fieldtype": "Select",
    "label": "Statut demande urgence",
-   "options": "Aucune\nEn attente\nValid\u00e9e\nRefus\u00e9e",
+   "options": "Aucune\nEn attente\nValidée\nRefusée",
    "read_only": 1
   },
   {
@@ -278,14 +281,14 @@
   {
    "fieldname": "urgence_validee_par",
    "fieldtype": "Link",
-   "label": "Urgence valid\u00e9e par",
+   "label": "Urgence validée par",
    "options": "User",
    "read_only": 1
   },
   {
    "fieldname": "urgence_validee_le",
    "fieldtype": "Datetime",
-   "label": "Urgence valid\u00e9e le",
+   "label": "Urgence validée le",
    "read_only": 1
   },
   {
@@ -306,30 +309,30 @@
   {
    "fieldname": "suivi_cycle_html",
    "fieldtype": "HTML",
-   "label": "Documents li\u00e9s"
+   "label": "Documents liés"
   },
   {
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "section_creance_bc",
    "fieldtype": "Section Break",
-   "label": "Cr\u00e9ance client"
+   "label": "Créance client"
   },
   {
-   "default": "Non v\u00e9rifi\u00e9e",
+   "default": "Non vérifiée",
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "statut_creance",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Statut cr\u00e9ance",
-   "options": "Non v\u00e9rifi\u00e9e\nOK\nBloqu\u00e9e\nD\u00e9blocage autoris\u00e9",
+   "label": "Statut créance",
+   "options": "Non vérifiée\nOK\nBloquée\nDéblocage autorisé",
    "permlevel": 1
   },
   {
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "motif_blocage_creance",
    "fieldtype": "Small Text",
-   "label": "Motif / commentaire cr\u00e9ance",
+   "label": "Motif / commentaire créance",
    "permlevel": 1
   },
   {
@@ -341,7 +344,7 @@
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "creance_verifiee_par",
    "fieldtype": "Link",
-   "label": "Cr\u00e9ance v\u00e9rifi\u00e9e par",
+   "label": "Créance vérifiée par",
    "options": "User",
    "permlevel": 1,
    "read_only": 1
@@ -350,7 +353,7 @@
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "creance_verifiee_le",
    "fieldtype": "Datetime",
-   "label": "Cr\u00e9ance v\u00e9rifi\u00e9e le",
+   "label": "Créance vérifiée le",
    "permlevel": 1,
    "read_only": 1
   },
@@ -370,15 +373,15 @@
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "section_decision_rapprochement",
    "fieldtype": "Section Break",
-   "label": "D\u00e9cision rapprochement"
+   "label": "Décision rapprochement"
   },
   {
    "allow_on_submit": 1,
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "decision_rapprochement",
    "fieldtype": "Select",
-   "label": "D\u00e9cision",
-   "options": "\n\u00c0 d\u00e9finir\nDevis retenu pour commande\nNouvelle demande de faisabilit\u00e9\nAucun candidat pertinent",
+   "label": "Décision",
+   "options": "\nÀ définir\nDevis retenu pour commande\nNouvelle demande de faisabilité\nAucun candidat pertinent",
    "permlevel": 1,
    "read_only": 1
   },
@@ -413,11 +416,11 @@
   {
    "allow_on_submit": 1,
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
-   "fetch_from": "devis_rapproche.custom_demande_faisabilit\u00e9",
+   "fetch_from": "devis_rapproche.custom_demande_faisabilité",
    "fetch_if_empty": 1,
    "fieldname": "demande_faisabilite_rapprochee",
    "fieldtype": "Link",
-   "label": "Demande de faisabilit\u00e9 (rapprochement)",
+   "label": "Demande de faisabilité (rapprochement)",
    "options": "Demande Faisabilite",
    "permlevel": 1,
    "read_only": 1
@@ -451,9 +454,9 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "liste_de_contr\u00f4le_tab",
+   "fieldname": "liste_de_contrôle_tab",
    "fieldtype": "Tab Break",
-   "label": "Liste de contr\u00f4le"
+   "label": "Liste de contrôle"
   },
   {
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
@@ -466,8 +469,9 @@
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
    "fieldname": "checklist_bc_demande_faisabilite",
    "fieldtype": "Check",
-   "label": "Demande de faisabilit\u00e9",
-   "permlevel": 1
+   "label": "Demande de faisabilité",
+   "permlevel": 1,
+   "read_only": 1
   },
   {
    "default": "0",
@@ -475,7 +479,8 @@
    "fieldname": "checklist_bc_devis",
    "fieldtype": "Check",
    "label": "Devis",
-   "permlevel": 1
+   "permlevel": 1,
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.request_type==\"Demande de devis\"",
@@ -489,7 +494,8 @@
    "fieldname": "checklist_dd_articles",
    "fieldtype": "Check",
    "label": "Article(s)",
-   "permlevel": 1
+   "permlevel": 1,
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.request_type==\"Essai Blanc\"",
@@ -503,35 +509,38 @@
    "fieldname": "checklist_eb_articles",
    "fieldtype": "Check",
    "label": "Article(s)",
-   "permlevel": 1
+   "permlevel": 1,
+   "read_only": 1
   },
   {
-   "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
+   "depends_on": "eval:doc.request_type==\"Réclamation\"",
    "fieldname": "section_cl_rec",
    "fieldtype": "Section Break",
-   "label": "R\u00e9clamation"
+   "label": "Réclamation"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
+   "depends_on": "eval:doc.request_type==\"Réclamation\"",
    "fieldname": "checklist_rec_photo",
    "fieldtype": "Check",
    "label": "Photo",
-   "permlevel": 1
+   "permlevel": 1,
+   "read_only": 1
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.request_type==\"R\u00e9clamation\"",
+   "depends_on": "eval:doc.request_type==\"Réclamation\"",
    "fieldname": "checklist_rec_quantites",
    "fieldtype": "Check",
-   "label": "Quantit\u00e9s impact\u00e9es",
-   "permlevel": 1
+   "label": "Quantités impactées",
+   "permlevel": 1,
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.request_type==\"Bon de commande\"",
-   "fieldname": "suivi_cr\u00e9ance_tab",
+   "fieldname": "suivi_créance_tab",
    "fieldtype": "Tab Break",
-   "label": "Suivi cr\u00e9ance"
+   "label": "Suivi créance"
   },
   {
    "default": "0",
@@ -539,13 +548,36 @@
    "fieldname": "checklist_eb_dossier_essai_blanc",
    "fieldtype": "Check",
    "label": "Dossier Essai Blanc",
-   "permlevel": 1
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.request_type==\"Réclamation\"",
+   "fieldname": "quantites_impactees",
+   "fieldtype": "Float",
+   "label": "Quantités impactées (valeur)",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:[\"Demande de devis\",\"Essai Blanc\"].includes(doc.request_type)",
+   "fieldname": "articles_verifies_par",
+   "fieldtype": "Link",
+   "label": "Articles vérifiés par",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:[\"Demande de devis\",\"Essai Blanc\"].includes(doc.request_type)",
+   "fieldname": "articles_verifies_le",
+   "fieldtype": "Datetime",
+   "label": "Articles vérifiés le",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-17 09:36:15.895419",
+ "modified": "2026-11-06 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Ticket Commercial",
@@ -573,7 +605,7 @@
    "email": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "Commercial Itin\u00e9rant",
+   "role": "Commercial Itinérant",
    "select": 1,
    "share": 1,
    "write": 1
@@ -583,7 +615,7 @@
    "email": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "Charg\u00e9 Devis",
+   "role": "Chargé Devis",
    "select": 1,
    "share": 1,
    "write": 1
@@ -623,7 +655,7 @@
    "email": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "Commercial S\u00e9dentaire",
+   "role": "Commercial Sédentaire",
    "select": 1,
    "share": 1,
    "write": 1
@@ -633,7 +665,7 @@
    "email": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9",
+   "role": "Chargé Étude Faisabilité",
    "select": 1,
    "share": 1,
    "write": 1
@@ -643,7 +675,7 @@
    "email": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "Responsable \u00c9tude Faisabilit\u00e9",
+   "role": "Responsable Étude Faisabilité",
    "select": 1,
    "share": 1,
    "write": 1
@@ -692,15 +724,15 @@
   },
   {
    "color": "Red",
-   "title": "Blocage Cr\u00e9ance"
+   "title": "Blocage Créance"
   },
   {
    "color": "Green",
-   "title": "Termin\u00e9"
+   "title": "Terminé"
   },
   {
    "color": "Red",
-   "title": "Annul\u00e9"
+   "title": "Annulé"
   }
  ],
  "title_field": "customer_name",

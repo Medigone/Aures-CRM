@@ -119,8 +119,9 @@ export const runAction = (ticket: TicketDetail, name: string) => action('run_act
 export const setCreance = (ticket: TicketDetail, statut: string, motif?: string) =>
 	action('set_creance', { name: ticket.name, modified: ticket.modified, statut, motif })
 
-export const setChecklist = (ticket: TicketDetail, fieldname: string, checked: boolean) =>
-	action('set_checklist', { name: ticket.name, modified: ticket.modified, fieldname, checked: checked ? 1 : 0 })
+export const setArticlesVerified = (ticket: TicketDetail, verified: boolean) => action('set_articles_verified', { name: ticket.name, modified: ticket.modified, verified: verified ? 1 : 0 })
+
+export const setQuantitesImpactees = (ticket: TicketDetail, value: string) => action('set_quantites_impactees', { name: ticket.name, modified: ticket.modified, value })
 
 export const decideUrgence = (ticket: TicketDetail, decision: 'validate' | 'refuse', niveau: string | null, commentaire: string) =>
 	action('decide_urgence', { name: ticket.name, modified: ticket.modified, action: decision, niveau, commentaire })

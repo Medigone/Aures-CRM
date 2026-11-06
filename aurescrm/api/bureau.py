@@ -19,7 +19,7 @@ import unicodedata
 import frappe
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_transitions
-from frappe.utils import cint, cstr, escape_html, flt, get_fullname, getdate, strip_html, today
+from frappe.utils import cint, cstr, escape_html, flt, get_fullname, getdate, now_datetime, strip_html, today
 from openpyxl import Workbook
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.styles import Font
@@ -27,9 +27,8 @@ from openpyxl.utils import get_column_letter
 
 from aurescrm.api import activity
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import FAISABILITE_PROCEDES, get_expected_procede_from_ticket
+from aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces import apply_pieces, dossier_pieces
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
-	DEMANDE_CHECKLIST_FIELD,
-	active_demandes_of_ticket,
 	CHECKLIST_TERMINE_FIELDS,
 	default_niveau_urgence_pour_creation,
 	get_cycle_documents,
@@ -1029,7 +1028,7 @@ def compute_steps(ticket, cycle=None, commande=None):
 		"key": "fin",
 		"label": "Annulé" if status == "Annulé" else "Terminé",
 		"done": closed,
-		"detail": f"Liste de contrôle {checked}/{len(checks)}" if checks else "",
+		"detail": f"Pièces {checked}/{len(checks)}" if checks else "",
 	}
 	demandes = _active_demandes(cycle)
 
@@ -1182,10 +1181,10 @@ def get_ticket(name):
 
 	cycle = get_cycle_documents(doc.name)
 	commande = _commande_for_devis(doc.devis_rapproche) if doc.request_type == "Bon de commande" else None
-	# La demande fait foi, même sur un ticket pas encore réenregistré depuis sa création.
-	detected = [demande["name"] for demande in _active_demandes(cycle)] if doc.request_type == "Bon de commande" else []
-	if detected:
-		doc.set(DEMANDE_CHECKLIST_FIELD, 1)
+	# Les documents font foi, même sur un ticket pas encore réenregistré : un ticket clos garde ce qu'il avait.
+	pieces = dossier_pieces(doc, cycle, commande)
+	if _is_open(doc.status):
+		apply_pieces(doc, pieces)
 	timeline = compute_steps(doc.as_dict(), cycle, commande)
 	meta = frappe.get_meta(TICKET)
 	echeance = str(doc.echeance) if doc.echeance else None
@@ -1223,15 +1222,7 @@ def get_ticket(name):
 		"commentaire_rapprochement": doc.commentaire_rapprochement,
 		"devis_rapproche": doc.devis_rapproche,
 		"demande_faisabilite_rapprochee": doc.demande_faisabilite_rapprochee,
-		"checklist": [
-			{
-				"fieldname": fieldname,
-				"label": _(meta.get_label(fieldname)),
-				"checked": bool(cint(doc.get(fieldname))),
-				"detected": detected if fieldname == DEMANDE_CHECKLIST_FIELD else [],
-			}
-			for fieldname in CHECKLIST_TERMINE_FIELDS.get(cstr(doc.request_type), ())
-		],
+		"pieces": pieces,
 		"steps": timeline["steps"],
 		"current_step": timeline["current"],
 		"documents": _ticket_documents(doc.name, user, _is_open(doc.status)),
@@ -1300,14 +1291,27 @@ def set_creance(name, modified, statut, motif=None):
 
 
 @frappe.whitelist(methods=["POST"])
-def set_checklist(name, modified, fieldname, checked):
-	"""Coche ou décoche un élément de la liste de contrôle du type de ticket."""
+def set_articles_verified(name, modified, verified=1):
+	"""Signe ou retire la vérification des articles, quand aucune demande ne les porte."""
 	doc = _ticket_for_write(name, modified)
-	if fieldname not in CHECKLIST_TERMINE_FIELDS.get(cstr(doc.request_type), ()):
-		frappe.throw(_("Cet élément n'appartient pas à la liste de contrôle de ce ticket."))
-	if fieldname == DEMANDE_CHECKLIST_FIELD and not cint(checked) and active_demandes_of_ticket(doc.name):
-		frappe.throw(_("Ce ticket a une demande de faisabilité active : cet élément reste coché tant qu'elle n'est pas annulée."))
-	doc.set(fieldname, 1 if cint(checked) else 0)
+	if not any(piece["key"] == "articles" for piece in dossier_pieces(doc)):
+		frappe.throw(_("Cette pièce n'existe pas pour ce type de ticket."))
+	doc.articles_verifies_par = frappe.session.user if cint(verified) else None
+	doc.articles_verifies_le = now_datetime() if cint(verified) else None
+	doc.save()
+	return get_ticket(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def set_quantites_impactees(name, modified, value):
+	"""Quantités impactées d'une réclamation : une valeur, et plus une case."""
+	doc = _ticket_for_write(name, modified)
+	if doc.request_type != "Réclamation":
+		frappe.throw(_("Cette pièce n'existe pas pour ce type de ticket."))
+	quantity = flt(value)
+	if quantity < 0:
+		frappe.throw(_("La quantité ne peut pas être négative."))
+	doc.quantites_impactees = quantity
 	doc.save()
 	return get_ticket(name)
 
