@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import ActivityFeed from '@shared/components/ActivityFeed.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
@@ -9,6 +10,7 @@ import AssigneeField from './AssigneeField.vue'
 import ChecklistCard from './ChecklistCard.vue'
 import CreanceCard from './CreanceCard.vue'
 import CycleCard from './CycleCard.vue'
+import DemandeDialog from './DemandeDialog.vue'
 import DocumentsCard from './DocumentsCard.vue'
 import RapprochementCard from './RapprochementCard.vue'
 import StepTimeline from './StepTimeline.vue'
@@ -21,6 +23,7 @@ import TagEditor from './TagEditor.vue'
 import { useTicket } from '@/lib/useTicket'
 
 const props = defineProps<{ id: string; step?: number | null; goToActivity?: boolean }>()
+const router = useRouter()
 const emit = defineEmits<{ changed: [] }>()
 
 const { ticket, error, notFound, actionError, notice, noticeTone, busy, load, perform, refresh, isClosed, followIndex, urgencePending, banner, assigneeOptions, canAssign, assign } = useTicket(
@@ -89,7 +92,31 @@ const heroActions = computed(() => {
 	return ['Reprendre', ...(key === 'charge' ? ['Démarrer'] : key === 'creance' ? ['Débloquer Créance'] : key === 'fin' ? ['Terminer'] : [])]
 })
 const menuActions = ['Annuler']
-const needsDesk = computed(() => !isClosed.value && ['doc', 'confirm'].includes(viewed.value?.key || ''))
+const creation = computed(() => ticket.value?.demande_creation)
+const canCreateDemande = computed(() => creation.value?.state === 'ready')
+const isEssai = computed(() => ticket.value?.request_type === 'Essai Blanc')
+// Étape faite : le document existe, une autre demande passe par la carte Cycle du dossier.
+const onDoc = computed(() => !isClosed.value && viewed.value?.key === 'doc' && viewed.value.state !== 'done')
+// Le devis retenu mène à la commande : la demande reste possible, en second. Sans décision, la commande garde son accès au Desk.
+const demandeFirst = computed(() => canCreateDemande.value && !ticket.value?.devis_rapproche)
+const deskForCommande = computed(() => onDoc.value && isBC.value && ticket.value?.decision_rapprochement !== 'Nouvelle demande de faisabilité')
+const needsDesk = computed(() => onDoc.value && (isEssai.value || deskForCommande.value))
+const deskLabel = computed(() => (isEssai.value ? 'Créer le dossier sur le Desk' : 'Créer la commande sur le Desk'))
+// Encore à confirmer : la demande s'ouvre sur sa page.
+const toConfirm = computed(() => (!isClosed.value && viewed.value?.key === 'confirm' ? ticket.value?.cycle.demandes.find((demande) => demande.status === 'Brouillon') : undefined))
+const creatingDemande = ref(false)
+const createdDemande = ref('')
+function onDemandeCreated(name: string) {
+	creatingDemande.value = false
+	createdDemande.value = name
+	refreshAll()
+	emit('changed')
+}
+function openCreatedDemande() {
+	const name = createdDemande.value
+	createdDemande.value = ''
+	router.push({ name: 'Demande', params: { id: name } })
+}
 const finishHint = computed(() => (ticket.value ? missingChecklist(ticket.value) : ''))
 const window_user = window.user
 function onTags(tags: string[]) {
@@ -166,10 +193,18 @@ function onTags(tags: string[]) {
 						<div v-if="heroActions.length" class="flex flex-wrap gap-2 empty:hidden">
 							<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" :only="heroActions" />
 						</div>
-						<a v-if="needsDesk" class="btn-secondary self-start" :href="deskUrl('Ticket Commercial', ticket.name)" target="_blank" rel="noopener noreferrer">
-							Créer sur le Desk
-							<LucideArrowUpRight class="h-4 w-4" aria-hidden="true" />
-						</a>
+						<p v-if="onDoc && !isEssai && !canCreateDemande && creation?.reason" class="rounded-control tone-amber px-3 py-2 text-sm">{{ creation.reason }}</p>
+						<p v-else-if="onDoc && canCreateDemande && ticket.devis_rapproche" class="text-sm text-selection-ink">Une demande reste possible si le devis ne couvre pas la commande : elle remplacera la décision de rapprochement.</p>
+						<div v-if="onDoc || toConfirm" class="flex flex-wrap gap-2 empty:hidden">
+							<button v-if="onDoc && demandeFirst" type="button" class="btn-primary" @click="creatingDemande = true">Créer la demande</button>
+							<button v-else-if="onDoc && creation?.state === 'no_procede'" type="button" class="btn-primary" disabled>Créer la demande</button>
+							<a v-if="needsDesk" :class="demandeFirst ? 'btn-secondary' : 'btn-primary'" :href="deskUrl('Ticket Commercial', ticket.name)" target="_blank" rel="noopener noreferrer">
+								{{ deskLabel }}
+								<LucideArrowUpRight class="h-4 w-4" aria-hidden="true" />
+							</a>
+							<button v-if="onDoc && canCreateDemande && !demandeFirst" type="button" class="btn-secondary" @click="creatingDemande = true">Créer une demande</button>
+							<RouterLink v-if="toConfirm" class="btn-primary" :to="{ name: 'Demande', params: { id: toConfirm.name } }">Ouvrir la demande {{ toConfirm.name }}</RouterLink>
+						</div>
 					</div>
 
 					<UrgenceCard v-if="urgencePending" :ticket="ticket" :busy="busy" :perform="perform" />
@@ -187,7 +222,7 @@ function onTags(tags: string[]) {
 				<div class="bureau-side">
 					<StepTimeline :steps="ticket.steps" :viewed="viewIndex" :current="ticket.current_step" @pick="pick" />
 					<DocumentsCard :ticket="ticket" :busy="busy" :perform="perform" />
-					<CycleCard :ticket="ticket" />
+					<CycleCard :ticket="ticket" @create-demande="creatingDemande = true" />
 				</div>
 			</div>
 			<!-- Le fil reste visible, quelle que soit l'étape regardée. -->
@@ -196,6 +231,10 @@ function onTags(tags: string[]) {
 			</aside>
 			</div>
 		</template>
+		<DemandeDialog v-if="creatingDemande && ticket" :ticket="ticket.name" @close="creatingDemande = false" @created="onDemandeCreated" />
+		<AppToast :message="createdDemande ? `Demande ${createdDemande} créée.` : ''" :duration="0" @close="createdDemande = ''">
+			<button type="button" class="app-toast-action" @click="openCreatedDemande">Ouvrir la fiche</button>
+		</AppToast>
 		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />
 	</main>
 </template>

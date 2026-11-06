@@ -3,6 +3,7 @@ import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideBuilding2 from '~icons/lucide/building-2'
+import LucideClipboardList from '~icons/lucide/clipboard-list'
 import LucideFileText from '~icons/lucide/file-text'
 import LucideLogOut from '~icons/lucide/log-out'
 import LucideMoon from '~icons/lucide/moon'
@@ -17,6 +18,7 @@ import type { Crumb, NavGroup } from '@shared/shell'
 import AppToast from './AppToast.vue'
 import ArticleDialog from './ArticleDialog.vue'
 import ClientDialog from './ClientDialog.vue'
+import DemandeDialog from './DemandeDialog.vue'
 import CommandPalette from './CommandPalette.vue'
 import GlobalSearch from './GlobalSearch.vue'
 import NewTicketDialog from './NewTicketDialog.vue'
@@ -27,7 +29,7 @@ import { useAppTheme } from '@/lib/theme'
 import { loadTodoCount, todoCount } from '@/lib/todoCount'
 
 /** Coquille du poste de bureau : la même barre et le même menu sur toutes ses pages. */
-const props = defineProps<{ crumbs: Crumb[]; active: 'tickets' | 'clients' | 'articles' }>()
+const props = defineProps<{ crumbs: Crumb[]; active: 'tickets' | 'demandes' | 'clients' | 'articles' }>()
 const emit = defineEmits<{ created: [kind: CreateKind] }>()
 
 const router = useRouter()
@@ -44,8 +46,9 @@ const navGroups = computed<NavGroup[]>(() => [
 		title: 'Mon travail',
 		items: [
 			{ id: 'tickets', label: 'Tickets', icon: LucideTicket, to: { name: 'Home' }, count: todoCount.value, active: props.active === 'tickets' },
-			{ id: 'commandes', label: 'Commandes', icon: LucideShoppingCart, href: '/app/sales-order' },
+			{ id: 'demandes', label: 'Demandes', icon: LucideClipboardList, to: { name: 'Demandes' }, active: props.active === 'demandes' },
 			{ id: 'devis', label: 'Devis', icon: LucideFileText, href: '/app/quotation' },
+			{ id: 'commandes', label: 'Commandes', icon: LucideShoppingCart, href: '/app/sales-order' },
 			{ id: 'creances', label: 'Créances', icon: LucideWallet, href: '/app/suivi-creance' },
 		],
 	},
@@ -87,6 +90,7 @@ const createdMessage = computed(() => {
 	const { kind, name, failedFiles } = created.value
 	if (kind === 'article') return 'Article créé.'
 	if (kind === 'client') return 'Prospect créé.'
+	if (kind === 'demande') return `Demande ${name} créée.`
 	const files = !failedFiles ? '' : failedFiles > 1 ? ` ${failedFiles} fichiers n'ont pas été envoyés : joignez-les depuis la fiche.` : " Un fichier n'a pas été envoyé : joignez-le depuis la fiche."
 	return `Ticket ${name} créé.${files}`
 })
@@ -94,7 +98,7 @@ function openCreated() {
 	const record = created.value
 	created.value = null
 	if (!record) return
-	const route = { ticket: 'Ticket', article: 'Article', client: 'Client' }[record.kind]
+	const route = { ticket: 'Ticket', article: 'Article', client: 'Client', demande: 'Demande' }[record.kind]
 	router.push({ name: route, params: { id: record.name } })
 }
 </script>
@@ -131,6 +135,7 @@ function openCreated() {
 		<NewTicketDialog v-if="creating === 'ticket'" @close="creating = null" @created="(result) => onCreated('ticket', result.name, result.failedFiles)" />
 		<ArticleDialog v-else-if="creating === 'article'" @close="creating = null" @created="(name) => onCreated('article', name)" />
 		<ClientDialog v-else-if="creating === 'client'" @close="creating = null" @created="(name) => onCreated('client', name)" />
+		<DemandeDialog v-else-if="creating === 'demande'" @close="creating = null" @created="(name) => onCreated('demande', name)" />
 		<AppToast :message="createdMessage" :tone="created?.failedFiles ? 'warning' : 'success'" :duration="created?.failedFiles ? 0 : 8000" @close="created = null">
 			<button type="button" class="app-toast-action" @click="openCreated">Ouvrir la fiche</button>
 		</AppToast>

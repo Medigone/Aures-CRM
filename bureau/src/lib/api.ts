@@ -5,6 +5,7 @@ import type { BulkItem, BulkOptions, BulkResult, CandidateDemande, ClientChoice,
 import type { BatAnalysis } from './batImport'
 import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView, PantoneMatch } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
+import type { ArticleChoice, DemandeDetail, DemandeOptions, DemandesResponse, DemandeValues, DemandeView, TicketDemandeContext } from './demandes'
 import type { Condition } from './filters'
 import { conditionsForServer } from './filters'
 
@@ -262,6 +263,53 @@ export function articleActivity(name: string): ActivityApi {
 		add: (text, mentions) => call<ActivityFeedData>(`${ARTICLES}.add_article_comment`, { name, text, mentions }, true),
 		update: (comment, text, mentions) => call<ActivityFeedData>(`${ARTICLES}.update_article_comment`, { name, comment, text, mentions }, true),
 		remove: (comment) => call<ActivityFeedData>(`${ARTICLES}.delete_article_comment`, { name, comment }, true),
+		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
+	}
+}
+
+/** Demandes de faisabilité : liste, fiche, création et cycle. */
+const DEMANDES = 'aurescrm.api.bureau_demandes'
+
+export const getDemandes = (view: DemandeView, conditions: Condition[], search: string, paging: QueuePaging = {}) =>
+	call<DemandesResponse>(`${DEMANDES}.get_demandes`, {
+		view,
+		conditions: conditionsForServer(conditions),
+		search: search.trim() || undefined,
+		start: paging.start,
+		page_length: paging.pageLength,
+		sort: paging.sort,
+		direction: paging.direction,
+	})
+
+export const getDemande = (name: string) => call<DemandeDetail>(`${DEMANDES}.get_demande`, { name })
+
+export const getDemandeOptions = () => call<DemandeOptions>(`${DEMANDES}.get_demande_options`)
+
+export const getDemandeArticles = (client: string) => call<ArticleChoice[]>(`${DEMANDES}.get_demande_articles`, { client })
+
+export const getTicketDemandeContext = (ticket: string) => call<TicketDemandeContext>(`${DEMANDES}.get_ticket_demande_context`, { ticket })
+
+export const createDemande = (values: DemandeValues, ticket?: string) => call<{ name: string }>(`${DEMANDES}.create_demande`, { values, ticket }, true)
+
+export const updateDemande = (demande: DemandeDetail, values: DemandeValues) => call<DemandeDetail>(`${DEMANDES}.update_demande`, { name: demande.name, modified: demande.modified, values }, true)
+
+export const confirmDemande = (demande: DemandeDetail) => call<DemandeDetail>(`${DEMANDES}.confirm_demande`, { name: demande.name, modified: demande.modified }, true)
+
+export const cancelDemande = (demande: DemandeDetail) => call<DemandeDetail>(`${DEMANDES}.cancel_demande`, { name: demande.name, modified: demande.modified }, true)
+
+export const closeDemande = (demande: DemandeDetail) => call<DemandeDetail>(`${DEMANDES}.close_demande`, { name: demande.name, modified: demande.modified }, true)
+
+export const createDevis = (demande: DemandeDetail) => call<{ quotation: string; demande: DemandeDetail }>(`${DEMANDES}.create_devis`, { name: demande.name, modified: demande.modified }, true)
+
+export const createRetirage = (demande: DemandeDetail, dateLivraison: string) => call<{ name: string }>(`${DEMANDES}.create_retirage`, { name: demande.name, modified: demande.modified, date_livraison: dateLivraison }, true)
+
+/** Commentaires et activité d'une demande, pour le fil commun. */
+export function demandeActivity(name: string): ActivityApi {
+	return {
+		load: () => call<ActivityFeedData>(`${DEMANDES}.get_demande_activity`, { name }),
+		add: (text, mentions) => call<ActivityFeedData>(`${DEMANDES}.add_demande_comment`, { name, text, mentions }, true),
+		update: (comment, text, mentions) => call<ActivityFeedData>(`${DEMANDES}.update_demande_comment`, { name, comment, text, mentions }, true),
+		remove: (comment) => call<ActivityFeedData>(`${DEMANDES}.delete_demande_comment`, { name, comment }, true),
 		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
 	}
 }

@@ -2,6 +2,7 @@
 import { computed, type Component, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter, type RouteLocationRaw } from 'vue-router'
 import LucideBuilding2 from '~icons/lucide/building-2'
+import LucideClipboardList from '~icons/lucide/clipboard-list'
 import LucideFileText from '~icons/lucide/file-text'
 import LucidePackage from '~icons/lucide/package'
 import LucidePlus from '~icons/lucide/plus'
@@ -10,7 +11,7 @@ import LucideShoppingCart from '~icons/lucide/shopping-cart'
 import LucideTicket from '~icons/lucide/ticket'
 import LucideWallet from '~icons/lucide/wallet'
 import TicketStatus from './TicketStatus.vue'
-import { getArticles, getClients, getQueue } from '@/lib/api'
+import { getArticles, getClients, getQueue, getDemandes } from '@/lib/api'
 import { type CreateKind, filterCommands, moveCursor, PALETTE_COMMANDS, type PaletteCommand, SECTION_TITLES } from '@/lib/palette'
 
 /** Fenêtre du raccourci Cmd/Ctrl K : créer, ouvrir une liste, trouver un enregistrement. */
@@ -38,6 +39,8 @@ const ICONS: Record<PaletteCommand['icon'], Component> = {
 	ticket: LucidePlus,
 	article: LucidePlus,
 	client: LucidePlus,
+	demande: LucidePlus,
+	demandes: LucideClipboardList,
 	tickets: LucideTicket,
 	clients: LucideBuilding2,
 	articles: LucidePackage,
@@ -85,17 +88,19 @@ async function search() {
 	const request = ++lastRequest
 	const text = query.value
 	const paging = { pageLength: MAX_RESULTS }
-	const [tickets, clients, articles] = await Promise.allSettled([
+	const [tickets, demandes, clients, articles] = await Promise.allSettled([
 		Promise.all([getQueue('todo', [], text, paging), getQueue('closed', [], text, paging)]).then(([active, closed]) => {
 			const seen = new Set<string>()
 			return [...active.tickets, ...closed.tickets].filter((ticket) => !seen.has(ticket.name) && seen.add(ticket.name)).slice(0, MAX_RESULTS)
 		}),
+		getDemandes('all', [], text, paging).then((response) => response.demandes),
 		getClients('all', [], text, paging).then((response) => response.clients),
 		getArticles('all', [], text, paging).then((response) => response.articles),
 	])
 	if (request !== lastRequest) return
 	records.value = [
 		settled('tickets', 'Tickets', tickets, (ticket) => ({ id: ticket.name, label: ticket.client, detail: ticket.name, status: ticket.status, icon: 'tickets', to: { name: 'Ticket', params: { id: ticket.name } } })),
+		settled('demandes', 'Demandes', demandes, (demande) => ({ id: demande.name, label: demande.client_label, detail: demande.name, status: demande.status, icon: 'demandes', to: { name: 'Demande', params: { id: demande.name } } })),
 		settled('clients', 'Clients', clients, (client) => ({ id: client.name, label: client.client, detail: client.wilaya, icon: 'clients', to: { name: 'Client', params: { id: client.name } } })),
 		settled('articles', 'Articles', articles, (article) => ({ id: article.name, label: article.designation, detail: article.client_label, icon: 'articles', to: { name: 'Article', params: { id: article.name } } })),
 	]

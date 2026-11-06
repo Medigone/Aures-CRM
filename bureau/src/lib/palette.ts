@@ -2,11 +2,12 @@
 import type { RouteLocationRaw } from 'vue-router'
 import { ARTICLE_VIEWS } from './articles'
 import { CLIENT_VIEWS } from './clients'
+import { DEMANDE_VIEWS } from './demandes'
 import { TICKET_VIEWS } from './useQueue'
 
-export type CreateKind = 'ticket' | 'article' | 'client'
+export type CreateKind = 'ticket' | 'article' | 'client' | 'demande'
 export type PaletteSection = 'create' | 'lists' | 'elsewhere'
-export type ListKind = 'tickets' | 'clients' | 'articles'
+export type ListKind = 'tickets' | 'clients' | 'articles' | 'demandes'
 
 export type PaletteAction = { type: 'create'; kind: CreateKind } | { type: 'route'; to: RouteLocationRaw } | { type: 'href'; href: string }
 
@@ -51,7 +52,9 @@ export const PALETTE_COMMANDS: PaletteCommand[] = [
 	{ id: 'create-ticket', section: 'create', label: 'Nouveau ticket', keywords: 'créer ajouter demande', icon: 'ticket', action: { type: 'create', kind: 'ticket' } },
 	{ id: 'create-article', section: 'create', label: 'Nouvel article', keywords: 'créer ajouter produit', icon: 'article', action: { type: 'create', kind: 'article' } },
 	{ id: 'create-client', section: 'create', label: 'Nouveau prospect', keywords: 'créer ajouter client', icon: 'client', action: { type: 'create', kind: 'client' } },
+	{ id: 'create-demande', section: 'create', label: 'Nouvelle demande de faisabilité', keywords: 'créer ajouter étude', icon: 'demande', action: { type: 'create', kind: 'demande' } },
 	...viewCommands('tickets', 'Tickets', 'Home', TICKET_VIEWS, 'todo', 'ticket liste'),
+	...viewCommands('demandes', 'Demandes', 'Demandes', DEMANDE_VIEWS, 'all', 'demande faisabilité liste'),
 	...viewCommands('clients', 'Clients', 'Clients', CLIENT_VIEWS, 'all', 'client liste'),
 	...viewCommands('articles', 'Articles', 'Articles', ARTICLE_VIEWS, 'all', 'article produit liste'),
 	{ id: 'desk-commandes', section: 'elsewhere', label: 'Commandes', keywords: 'bon commande desk', icon: 'commandes', action: { type: 'href', href: '/app/sales-order' } },

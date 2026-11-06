@@ -16,7 +16,7 @@ Cahier des charges de la V1 et maquette : voir les liens transmis au projet.
 - **Temps réel** : l'événement `aures_bureau_update` (`aurescrm/bureau_events.py`) ne porte que des identifiants ; la file et le ticket ouvert se rechargent.
 - **Conflits** : chaque action envoie la date `modified` affichée. Si le ticket a changé entre-temps, l'action est refusée et l'écran se recharge, sans perdre la saisie.
 
-Les créations (demande de faisabilité, dossier essai à blanc, commande, article) restent sur le Desk jusqu'aux lots 3 et 4.
+Le dossier essai à blanc et la commande se créent encore sur le Desk. La demande de faisabilité et l'article se créent sur le poste.
 
 ## Liste, aperçu et fiche
 
@@ -69,6 +69,18 @@ Les créations (demande de faisabilité, dossier essai à blanc, commande, artic
 - **Prépresse** : une chaîne (tracé, maquette, imposition ou cliché, BAT) et la prochaine étape, puis la maquette en service, le BAT en vigueur et les historiques repliés. Référencer, activer, créer une nouvelle version et créer le BAT passent par les mêmes méthodes que les boutons du Desk, avec le droit d'écriture sur le document, et leurs conséquences s'annoncent avant.
 - **Documents** : tous les fichiers de l'article, une ligne par fichier. Le menu d'une ligne le range comme image, BAT (le champ `custom_fiche_technique_article`) ou tracé. Un dépôt marche partout sur la fiche, et l'envoi reste visible d'un onglet à l'autre.
 - **Encore sur le Desk** : l'étude de faisabilité, la création du tracé, de la maquette, de l'imposition et de l'étude technique, et la validation du BAT.
+
+## Demandes de faisabilité
+
+Page `/bureau/demandes`, avant Devis, pour suivre le cycle : Tickets, Demandes, Études, Devis, Commandes. Serveur : `aurescrm/api/bureau_demandes.py`. Les règles restent dans `demande_faisabilite.py`.
+
+- **Accès** : `Chargé Devis` et `Responsable Devis` ouvrent aussi le poste. Chargé Devis lit les demandes sans les écrire ; seuls les rôles Devis et System Manager créent le devis. Un rôle sans droit de lecture sur les clients ou les articles reçoit un message d'erreur sur ces pages.
+- **Vues** : Toutes, À confirmer, En étude, À chiffrer, Devis établis, Commandées, Closes.
+- **Fenêtre** : les articles du client à gauche, la demande à droite. Un clic ajoute une ligne, le curseur passe sur sa quantité, Entrée dans la recherche ajoute le premier article possible. « Reprendre » remet la quantité de la dernière commande. Un même article peut avoir plusieurs quantités, pas deux fois la même.
+- **Depuis un ticket** : le serveur exige un ticket En Cours, hors Essai Blanc, avec client et site Offset ou Flexo, et le droit de créer. Le Desk ne contrôle cela que dans le navigateur. Le procédé du site masque les autres articles. Sur un bon de commande, créer retire le devis retenu : la fenêtre le signale.
+- **Brouillon** : le client et la date de livraison ne se changent plus après la création (`set_only_once` du doctype). La date de l'en-tête s'applique à toutes les lignes.
+- **Actions** : Confirmer, Annuler (refusé si une étude a abouti), Créer le devis, Fermer, Retirage. Chacune contrôle droits, version et statut de départ, car les méthodes du doctype ne le font pas toutes. Études, devis et commandes s'ouvrent encore sur le Desk.
+- **Actions groupées** : modification et suppression réservées aux brouillons (clé `guard` de `BULK_DOCTYPES`). Les tags restent libres.
 
 ## Commentaires et activité
 

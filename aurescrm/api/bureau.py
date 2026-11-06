@@ -26,6 +26,7 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 
 from aurescrm.api import activity
+from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import FAISABILITE_PROCEDES, get_expected_procede_from_ticket
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
 	CHECKLIST_TERMINE_FIELDS,
 	default_niveau_urgence_pour_creation,
@@ -36,7 +37,7 @@ from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
 )
 
 TICKET = "Ticket Commercial"
-BUREAU_ROLES = {"Administrateur Ventes", "System Manager"}
+BUREAU_ROLES = {"Administrateur Ventes", "System Manager", "Chargé Devis", "Responsable Devis"}
 ROLE_BACK_OFFICE = "Administrateur Ventes"
 
 STATUS_BLOCKED = "Blocage Créance"
@@ -138,6 +139,17 @@ FILTER_LISTS = {
 		"custom_support": "Papier",
 		"item_name": "Désignation",
 		"custom_code_client": "Réf. client",
+		"_user_tags": "Tag",
+	},
+	"Demande Faisabilite": {
+		"status": "Statut",
+		"type": "Type",
+		"client": "Client",
+		"niveau_urgence": "Urgence",
+		"commercial": "Commercial",
+		"date_livraison": "Livraison souhaitée",
+		"ticket_commercial": "Ticket",
+		"n_bon_commande": "Bon de commande",
 		"_user_tags": "Tag",
 	},
 	"Customer": {
@@ -1066,7 +1078,30 @@ def get_ticket(name):
 		"cycle": cycle,
 		"commande": commande,
 		"comments": activity.comment_summary(TICKET, doc.name),
+		"demande_creation": ticket_demande_state(doc),
 	}
+
+
+def ticket_demande_state(doc):
+	"""Une demande de faisabilité peut-elle partir de ce ticket ? Conditions du bouton du Desk, contrôlées aussi à la création."""
+	procede = get_expected_procede_from_ticket(doc.name)
+
+	def state(key, reason=None):
+		return {"state": key, "reason": reason, "procede": procede}
+
+	if doc.status in CLOSED_STATUSES:
+		return state("closed", _("Ce ticket est clos."))
+	if doc.request_type == "Essai Blanc":
+		return state("essai_blanc", _("Ce type de ticket passe par un dossier d'essai, pas par une demande de faisabilité."))
+	if doc.status != "En Cours":
+		return state("not_started", _("La demande se crée quand le ticket est En Cours."))
+	if not frappe.has_permission("Demande Faisabilite", "create"):
+		return state("no_right", _("Votre rôle ne permet pas de créer une demande de faisabilité."))
+	if not doc.customer:
+		return state("no_client", _("Renseignez le client du ticket."))
+	if procede not in FAISABILITE_PROCEDES:
+		return state("no_procede", _("Le site de ce ticket n'a pas de procédé Offset ou Flexo. Renseignez le site du ticket pour pouvoir ajouter des articles."))
+	return state("ready")
 
 
 def _ticket_for_write(name, modified):

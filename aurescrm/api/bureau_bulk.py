@@ -19,6 +19,7 @@ from frappe.utils import cint, cstr, flt, get_datetime, getdate
 from aurescrm.api.bureau import TICKET, _bulk_apply, _parse, _ticket_for_write, link_search_values, require_bureau, row_tags
 from aurescrm.api.bureau_articles import ITEM, _article_for_write
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, _check_commercial, _client_for_write, _set_principal
+from aurescrm.api.bureau_demandes import DEMANDE, _demande_for_write, bulk_guard
 
 TEXT_TYPES = {"Data", "Small Text", "Text", "Long Text"}
 NUMBER_TYPES = {"Float", "Currency", "Percent"}
@@ -38,6 +39,7 @@ def _set_commercial(doc, commercial):
 # load : charge un document et contrôle droits et version.
 # excluded : champs dont l'écriture a ses propres règles, ailleurs que dans `save`.
 # setters : champs écrits par une fonction métier. Ils sont proposés même masqués sur le formulaire, et ne se vident pas.
+# guard : facultatif. `guard(doc, operation)` donne la raison de refuser une modification ou une suppression ; les tags n'y passent pas.
 BULK_DOCTYPES = {
 	TICKET: {
 		"load": _ticket_for_write,
@@ -81,6 +83,13 @@ BULK_DOCTYPES = {
 		},
 		"setters": {},
 	},
+	DEMANDE: {
+		"load": _demande_for_write,
+		# Le statut suit le cycle ; le reste décide des études ou lie la demande à d'autres pièces.
+		"excluded": {"status", "type", "client", "ticket_commercial", "is_reprint", "essai_blanc", "demande_origin"},
+		"setters": {},
+		"guard": bulk_guard,
+	},
 }
 
 
@@ -89,6 +98,11 @@ def _config(doctype):
 	if not config:
 		frappe.throw(_("Cette liste n'a pas d'action groupée."), frappe.PermissionError)
 	return config
+
+
+def _guard(config, doc, operation):
+	guard = config.get("guard")
+	return guard(doc, operation) if guard else None
 
 
 def _workflow_field(doctype):
@@ -188,6 +202,9 @@ def bulk_update(doctype, items, fieldname, value=None):
 	def apply(doc):
 		if doc.docstatus == 2:
 			return _("Document annulé.")
+		refusal = _guard(config, doc, "update")
+		if refusal:
+			return refusal
 		before = doc.get(df.fieldname)
 		if _same(df, before, value):
 			return None
@@ -212,6 +229,9 @@ def bulk_delete(doctype, items):
 
 	def apply(doc):
 		doc.check_permission("delete")
+		refusal = _guard(config, doc, "delete")
+		if refusal:
+			return refusal
 		frappe.delete_doc(doc.doctype, doc.name)
 		return None
 

@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
+import LucidePlus from '~icons/lucide/plus'
 import StatusPill from '@shared/components/StatusPill.vue'
 import { deskUrl } from '@/lib/display'
 import type { TicketDetail } from '@/types'
 
 const props = defineProps<{ ticket: TicketDetail }>()
+const emit = defineEmits<{ createDemande: [] }>()
+const canCreate = computed(() => props.ticket.demande_creation?.state === 'ready')
 
 const LABELS: Record<string, string> = {
 	Quotation: 'Devis',
@@ -24,6 +28,8 @@ const groups = computed(() => {
 		name: group.name,
 		status: group.status,
 		url: deskUrl(doctype, group.name),
+		// Les demandes ont leur page ; le reste s'ouvre encore sur le Desk.
+		to: doctype === 'Demande Faisabilite' ? { name: 'Demande', params: { id: group.name } } : undefined,
 		children: [
 			...(group.etudes || []).map((etude) => ({
 				key: etude.name,
@@ -45,7 +51,7 @@ const groups = computed(() => {
 	const commande = props.ticket.commande
 	const known = output.some((group) => group.children.some((child) => child.key === commande?.name))
 	if (commande && !known) {
-		output.push({ key: commande.name, label: 'Commande', name: commande.name, status: commande.status, url: deskUrl('Sales Order', commande.name), children: [] })
+		output.push({ key: commande.name, label: 'Commande', name: commande.name, status: commande.status, url: deskUrl('Sales Order', commande.name), to: undefined, children: [] })
 	}
 	return output
 })
@@ -53,16 +59,19 @@ const groups = computed(() => {
 
 <template>
 	<section aria-label="Cycle du dossier" class="card flex flex-col gap-1.5 p-3.5">
-		<h3 class="text-base font-semibold">Cycle du dossier</h3>
+		<div class="flex items-center justify-between gap-2">
+			<h3 class="text-base font-semibold">Cycle du dossier</h3>
+			<button v-if="canCreate" type="button" class="tag-add" @click="emit('createDemande')"><LucidePlus class="h-3 w-3" aria-hidden="true" />{{ groups.length ? 'Autre demande' : 'Créer une demande' }}</button>
+		</div>
 		<p v-if="!groups.length" class="text-ink-gray-6">Aucune demande de faisabilité ni devis pour l'instant.</p>
 		<div v-for="group in groups" :key="group.key" class="flex flex-col gap-0.5 border-t border-outline-gray-1 pt-1.5">
-			<a :href="group.url" target="_blank" rel="noopener noreferrer" class="flex min-h-[var(--ctl)] items-center justify-between gap-2 rounded-control hover:bg-surface-gray-2">
+			<component :is="group.to ? RouterLink : 'a'" v-bind="group.to ? { to: group.to } : { href: group.url, target: '_blank', rel: 'noopener noreferrer' }" class="flex min-h-[var(--ctl)] items-center justify-between gap-2 rounded-control hover:bg-surface-gray-2">
 				<span class="min-w-0">
 					<span class="block font-semibold text-link">{{ group.label }}</span>
 					<span class="block text-xs text-ink-gray-6">{{ group.name }}</span>
 				</span>
 				<StatusPill :status="group.status" />
-			</a>
+			</component>
 			<a v-for="child in group.children" :key="child.key" :href="child.url" target="_blank" rel="noopener noreferrer" class="flex min-h-[var(--ctl)] items-center justify-between gap-2 rounded-control pl-2.5 text-sm text-ink-gray-7 hover:bg-surface-gray-2">
 				<span class="min-w-0">
 					<span class="block">{{ child.label }}</span>

@@ -44,6 +44,12 @@ const TONES: Record<string, string> = {
 	'A Réaliser': 'tone-blue',
 	Réalisé: 'tone-green',
 	Archivé: 'tone-gray',
+	// Demandes de faisabilité
+	Confirmée: 'tone-blue',
+	'Partiellement Finalisée': 'tone-amber',
+	Finalisée: 'tone-green',
+	'Devis Établis': 'tone-blue',
+	Fermée: 'tone-gray',
 	// Tickets
 	Pending: 'tone-amber',
 	'Blocage Créance': 'tone-red',

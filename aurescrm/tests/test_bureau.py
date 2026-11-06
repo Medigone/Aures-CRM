@@ -14,7 +14,7 @@ from frappe.tests.utils import FrappeTestCase
 
 from frappe.desk.notifications import extract_mentions
 
-from aurescrm.api import activity, bureau, bureau_articles, bureau_bulk, bureau_clients
+from aurescrm.api import activity, bureau, bureau_articles, bureau_bulk, bureau_clients, bureau_demandes
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import generate_etude_faisabilite
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import update_assigne_a
 from aurescrm.www import bureau as bureau_page
@@ -1636,3 +1636,221 @@ class TestArticles(FrappeTestCase):
 		for call in (lambda: bureau_articles.get_articles(), lambda: bureau_articles.get_article(name), lambda: bureau_articles.get_article_options(), lambda: bureau_articles.create_article({})):
 			with self.assertRaises(frappe.PermissionError):
 				call()
+
+
+class TestDemandes(FrappeTestCase):
+	"""Liste, création depuis un ticket, cycle et droits des demandes de faisabilité."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.commit = patch("frappe.db.commit")
+		self.commit.start()
+		self.client = frappe.db.get_value("Customer", {"disabled": 0}, "name")
+		self.groupe = frappe.db.get_value("Item Group", {"name": ["!=", bureau_articles.ROOT_ITEM_GROUP]}, "name")
+		self.offset = frappe.db.get_value("Site Production", {"procede": "Offset"}, "name")
+		if not self.client or not self.offset:
+			self.skipTest("Il faut un client et un site Offset.")
+		self.article = self._article("ESSAI DEMANDE A")
+
+	def tearDown(self):
+		self.commit.stop()
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+
+	def _article(self, designation, procede="Offset"):
+		return bureau_articles.create_article({"type": "Client", "designation": designation, "client": self.client, "procede": procede, "groupe": self.groupe})["name"]
+
+	def _values(self, **extra):
+		return {"client": self.client, "type": "Premier Tirage", "date_livraison": "2026-12-01", "lines": [{"article": self.article, "quantite": 1000}], **extra}
+
+	def _ticket(self, status="En Cours", request_type="Demande de devis", site=None):
+		name = bureau.create_ticket(customer=self.client, request_type=request_type, site=site or self.offset, description="Une demande")["name"]
+		frappe.db.set_value("Ticket Commercial", name, "status", status, update_modified=False)
+		return name
+
+	def _user(self, *roles):
+		email = f"demande-{frappe.generate_hash(length=8)}@example.com"
+		user = frappe.get_doc({"doctype": "User", "email": email, "first_name": "Essai", "send_welcome_email": 0, "roles": [{"role": role} for role in roles]}).insert(ignore_permissions=True)
+		return user.name
+
+	def test_cree_un_brouillon_et_range_la_vue(self):
+		name = bureau_demandes.create_demande(self._values())["name"]
+		doc = frappe.get_doc("Demande Faisabilite", name)
+		self.assertEqual(doc.status, "Brouillon")
+		self.assertEqual(doc.liste_articles[0].date_livraison.__str__(), "2026-12-01")
+		result = bureau_demandes.get_demandes(view="confirm", search=self.article)
+		self.assertEqual(result["names"], [name])
+		self.assertNotIn("_search", result["demandes"][0])
+		self.assertEqual(bureau_demandes.get_demandes(view="commande", search=self.article)["names"], [])
+
+	def test_refuse_les_lignes_invalides(self):
+		autre = frappe.db.get_value("Customer", {"disabled": 0, "name": ["!=", self.client]}, "name")
+		cases = [
+			{"lines": []},
+			{"lines": [{"article": self.article, "quantite": 0}]},
+			{"lines": [{"article": self.article, "quantite": 10}, {"article": self.article, "quantite": 10}]},
+			{"type": "Retirage"},
+			{"date_livraison": ""},
+		]
+		if autre:
+			cases.append({"client": autre})
+		for extra in cases:
+			with self.assertRaises(frappe.ValidationError, msg=extra):
+				bureau_demandes.create_demande(self._values(**extra))
+
+	def test_meme_article_avec_deux_quantites(self):
+		name = bureau_demandes.create_demande(self._values(lines=[{"article": self.article, "quantite": 10}, {"article": self.article, "quantite": 20}]))["name"]
+		self.assertEqual(len(frappe.get_doc("Demande Faisabilite", name).liste_articles), 2)
+
+	def test_essai_blanc_coche_les_lignes(self):
+		name = bureau_demandes.create_demande(self._values(type="Essai Blanc"))["name"]
+		self.assertEqual(frappe.get_doc("Demande Faisabilite", name).liste_articles[0].essai_blanc, 1)
+
+	def test_conditions_du_ticket(self):
+		for status in ("Nouveau", "Pending", "Blocage Créance", "Terminé", "Annulé"):
+			with self.assertRaises(frappe.ValidationError, msg=status):
+				bureau_demandes.create_demande(self._values(), ticket=self._ticket(status=status))
+		with self.assertRaises(frappe.ValidationError):
+			bureau_demandes.create_demande(self._values(), ticket=self._ticket(request_type="Essai Blanc"))
+
+	def test_le_client_vient_du_ticket(self):
+		autre = frappe.db.get_value("Customer", {"disabled": 0, "name": ["!=", self.client]}, "name")
+		ticket = self._ticket()
+		if autre:
+			with self.assertRaises(frappe.ValidationError):
+				bureau_demandes.create_demande(self._values(client=autre), ticket=ticket)
+		name = bureau_demandes.create_demande(self._values(client=""), ticket=ticket)["name"]
+		doc = frappe.get_doc("Demande Faisabilite", name)
+		self.assertEqual((doc.client, doc.ticket_commercial), (self.client, ticket))
+		self.assertEqual(doc.niveau_urgence, frappe.db.get_value("Ticket Commercial", ticket, "niveau_urgence"))
+
+	def test_le_site_impose_le_procede(self):
+		flexo = self._article("ESSAI DEMANDE FLEXO", "Flexo")
+		with self.assertRaises(frappe.ValidationError):
+			bureau_demandes.create_demande(self._values(lines=[{"article": flexo, "quantite": 10}]), ticket=self._ticket())
+
+	def test_un_bon_de_commande_perd_son_devis_retenu(self):
+		ticket = self._ticket(request_type="Bon de commande")
+		frappe.db.set_value("Ticket Commercial", ticket, "devis_rapproche", None, update_modified=False)
+		self.assertEqual(bureau_demandes.get_ticket_demande_context(ticket)["state"], "ready")
+		name = bureau_demandes.create_demande(self._values(), ticket=ticket)["name"]
+		self.assertEqual(frappe.db.get_value("Ticket Commercial", ticket, "demande_faisabilite_rapprochee"), name)
+
+	def test_la_fiche_ticket_dit_si_on_peut_creer(self):
+		self.assertEqual(bureau.get_ticket(self._ticket())["demande_creation"]["state"], "ready")
+		self.assertEqual(bureau.get_ticket(self._ticket(status="Nouveau"))["demande_creation"]["state"], "not_started")
+		self.assertEqual(bureau.get_ticket(self._ticket(request_type="Essai Blanc"))["demande_creation"]["state"], "essai_blanc")
+
+	def test_liste_les_articles_du_client_sans_les_sous_articles(self):
+		parent = self._article("ESSAI DEMANDE COMPOSE")
+		bureau_articles.make_composed(parent, frappe.db.get_value("Item", parent, "modified"))
+		sous = bureau_articles.add_sous_article(parent, "ESSAI SOUS", 2)["name"]
+		choices = {row["name"]: row for row in bureau_demandes.get_demande_articles(self.client)}
+		self.assertIn(self.article, choices)
+		self.assertNotIn(sous, choices)
+		self.assertEqual(choices[parent]["compose"], 1)
+		self.assertEqual(choices[self.article]["procedes"], ["Offset"])
+
+	def test_cycle_confirmer_puis_annuler(self):
+		name = bureau_demandes.create_demande(self._values())["name"]
+		doc = bureau_demandes.get_demande(name)
+		self.assertEqual(doc["actions"][:2], ["confirm", "edit"])
+		doc = bureau_demandes.confirm_demande(name, doc["modified"])
+		self.assertEqual(doc["status"], "Confirmée")
+		self.assertEqual(len(doc["etudes"]), 1)
+		self.assertIn("cancel", doc["actions"])
+		self.assertNotIn("edit", doc["actions"])
+		with self.assertRaises(frappe.ValidationError):
+			bureau_demandes.update_demande(name, doc["modified"], self._values())
+		with self.assertRaises(frappe.ValidationError):
+			bureau_demandes.confirm_demande(name, doc["modified"])
+		doc = bureau_demandes.cancel_demande(name, doc["modified"])
+		self.assertEqual(doc["status"], "Annulée")
+		self.assertEqual(doc["etudes"], [])
+
+	def test_annuler_refuse_si_une_etude_a_abouti(self):
+		name = bureau_demandes.create_demande(self._values())["name"]
+		doc = bureau_demandes.confirm_demande(name, bureau_demandes.get_demande(name)["modified"])
+		etude = doc["etudes"][0]
+		frappe.db.set_value(etude["doctype"], etude["name"], "status", "Réalisable", update_modified=False)
+		doc = bureau_demandes.get_demande(name)
+		self.assertEqual([row["name"] for row in doc["cancel_blocking"]], [etude["name"]])
+		with self.assertRaises(frappe.ValidationError):
+			bureau_demandes.cancel_demande(name, doc["modified"])
+		self.assertEqual(frappe.db.get_value("Demande Faisabilite", name, "status"), "Confirmée")
+
+	def test_statuts_de_depart(self):
+		name = bureau_demandes.create_demande(self._values())["name"]
+		modified = bureau_demandes.get_demande(name)["modified"]
+		for action in (lambda: bureau_demandes.close_demande(name, modified), lambda: bureau_demandes.cancel_demande(name, modified), lambda: bureau_demandes.create_devis(name, modified), lambda: bureau_demandes.create_retirage(name, modified, "2026-12-10")):
+			with self.assertRaises(frappe.ValidationError):
+				action()
+		frappe.db.set_value("Demande Faisabilite", name, "status", "Finalisée", update_modified=False)
+		self.assertEqual(bureau_demandes.close_demande(name, modified)["status"], "Fermée")
+
+	def test_retirage_depuis_une_commande(self):
+		name = bureau_demandes.create_demande(self._values())["name"]
+		modified = bureau_demandes.get_demande(name)["modified"]
+		frappe.db.set_value("Demande Faisabilite", name, "status", "Commandé", update_modified=False)
+		copie = frappe.get_doc("Demande Faisabilite", bureau_demandes.create_retirage(name, modified, "2026-12-10")["name"])
+		self.assertEqual((copie.status, copie.type, copie.demande_origin), ("Brouillon", "Retirage", name))
+		self.assertEqual(str(copie.liste_articles[0].date_livraison), "2026-12-10")
+
+	def test_modifier_un_brouillon_garde_client_et_date(self):
+		name = bureau_demandes.create_demande(self._values())["name"]
+		autre = self._article("ESSAI DEMANDE B")
+		doc = bureau_demandes.update_demande(name, bureau_demandes.get_demande(name)["modified"], self._values(date_livraison="2027-03-03", lines=[{"article": autre, "quantite": 5, "est_creation": 1}]))
+		self.assertEqual(doc["livraison"], "2026-12-01")
+		self.assertEqual([(line["article"], line["quantite"], line["est_creation"], line["date_livraison"]) for line in doc["lines"]], [(autre, 5, 1, "2026-12-01")])
+
+	def test_version_perimee(self):
+		name = bureau_demandes.create_demande(self._values())["name"]
+		with self.assertRaises(frappe.TimestampMismatchError):
+			bureau_demandes.confirm_demande(name, "2020-01-01 00:00:00")
+
+	def test_droits_par_role(self):
+		name = bureau_demandes.create_demande(self._values())["name"]
+		modified = bureau_demandes.get_demande(name)["modified"]
+		frappe.db.set_value("Demande Faisabilite", name, "status", "Finalisée", update_modified=False)
+		frappe.set_user(self._user("Chargé Devis"))
+		doc = bureau_demandes.get_demande(name)
+		self.assertEqual(doc["actions"], ["devis"])
+		self.assertFalse(doc["can_write"])
+		for action in (lambda: bureau_demandes.close_demande(name, modified), lambda: bureau_demandes.create_demande(self._values())):
+			with self.assertRaises(frappe.PermissionError):
+				action()
+		frappe.set_user("Administrator")
+		frappe.set_user(self._user("Administrateur Ventes"))
+		doc = bureau_demandes.get_demande(name)
+		self.assertNotIn("devis", doc["actions"])
+		self.assertIn("close", doc["actions"])
+		with self.assertRaises(frappe.PermissionError):
+			bureau_demandes.create_devis(name, modified)
+		frappe.set_user("Administrator")
+		frappe.set_user(self._user("Commercial Sédentaire"))
+		with self.assertRaises(frappe.PermissionError):
+			bureau_demandes.get_demandes()
+
+	def test_les_roles_devis_ouvrent_le_poste(self):
+		for role in ("Chargé Devis", "Responsable Devis"):
+			frappe.set_user("Administrator")
+			user = self._user(role)
+			self.assertTrue(bureau.can_access_bureau(user))
+			frappe.set_user(user)
+			self.assertIn("all", bureau_demandes.get_demandes()["counts"])
+			self.assertIn("counts", bureau.get_queue())
+
+	def test_actions_groupees_reservees_au_brouillon(self):
+		brouillon = bureau_demandes.create_demande(self._values())["name"]
+		confirmee = bureau_demandes.create_demande(self._values())["name"]
+		doc = bureau_demandes.confirm_demande(confirmee, bureau_demandes.get_demande(confirmee)["modified"])
+		items = [{"name": brouillon, "modified": bureau_demandes.get_demande(brouillon)["modified"]}, {"name": confirmee, "modified": doc["modified"]}]
+		fields = {field["fieldname"] for field in bureau_bulk.get_bulk_options("Demande Faisabilite")["fields"]}
+		self.assertEqual(fields, {"n_bon_commande"})
+		result = bureau_bulk.bulk_update("Demande Faisabilite", json.dumps(items), "n_bon_commande", "BC-ESSAI")
+		self.assertIsNone(frappe.db.get_value("Demande Faisabilite", confirmee, "n_bon_commande"))
+		self.assertEqual(frappe.db.get_value("Demande Faisabilite", brouillon, "n_bon_commande"), "BC-ESSAI")
+		self.assertEqual(len(result["skipped"]), 1)
+		fresh = [{"name": confirmee, "modified": str(frappe.db.get_value("Demande Faisabilite", confirmee, "modified"))}]
+		self.assertEqual(len(bureau_bulk.bulk_add_tags("Demande Faisabilite", json.dumps(fresh), json.dumps(["Essai"]))["done"]), 1)
+		self.assertEqual(len(bureau_bulk.bulk_delete("Demande Faisabilite", json.dumps(fresh))["skipped"]), 1)

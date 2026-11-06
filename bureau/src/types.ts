@@ -169,6 +169,7 @@ export interface TicketDetail {
 	current_step: number | null
 	documents: TicketDocument[]
 	cycle: { demandes: CycleGroup[]; dossiers: CycleGroup[] }
+	demande_creation: { state: string; reason: string | null; procede: string | null }
 	commande: { name: string; status: string; docstatus: number } | null
 }
 
