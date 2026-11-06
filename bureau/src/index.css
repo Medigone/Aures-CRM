@@ -610,6 +610,22 @@
 		text-align: right;
 		overflow-wrap: anywhere;
 	}
+	/* Pastille d'un fichier joint : sa hauteur tient dans une ligne de .side-kv sans l'agrandir. */
+	.file-chip {
+		display: inline-flex;
+		flex: none;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.75rem;
+		height: 1.125rem;
+		padding-inline: 0.25rem;
+		border-radius: 0.25rem;
+		background-color: var(--surface-gray-3);
+		font-size: 0.625rem;
+		font-weight: 700;
+		line-height: 1;
+		@apply text-ink-gray-8 transition hover:bg-surface-gray-4;
+	}
 	.side-sens {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
