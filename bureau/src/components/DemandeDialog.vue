@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import LucideCheck from '~icons/lucide/check'
 import LucidePlus from '~icons/lucide/plus'
 import LucideSearch from '~icons/lucide/search'
@@ -7,13 +7,12 @@ import LucideX from '~icons/lucide/x'
 import FormDialog from '@shared/components/FormDialog.vue'
 import { htmlToText } from '@shared/text'
 import ArticleDialog from './ArticleDialog.vue'
-import ClientPicker from './ClientPicker.vue'
 import { createDemande, getDemandeArticles, getTicketDemandeContext, updateDemande } from '@/lib/api'
 import { BAT_TONES, catalogRows, DEMANDE_TYPES, digitsOnly, draftStatus, draftValues, duplicateLines, expectedProcede, formatDraftQuantity, typeLabel, type ArticleChoice, type CatalogRow, type DemandeDetail, type DraftLine, type TicketDemandeContext } from '@/lib/demandes'
 import type { ClientChoice } from '@/types'
 
 /**
- * Création et modification d'un brouillon : les articles du client à gauche, la demande à droite, dans la même fenêtre.
+ * Création depuis un ticket et modification d'un brouillon : les articles du client à gauche, la demande à droite.
  * Un clic ajoute une ligne ; le serveur reste seul juge des règles, l'écran ne fait qu'éviter les refus certains.
  */
 const props = defineProps<{ demande?: DemandeDetail; ticket?: string }>()
@@ -48,8 +47,6 @@ function choiceOf(name: string, label: string): ClientChoice {
 }
 
 const fromTicket = computed(() => Boolean(ticketName.value))
-// Le client et la date ne se choisissent qu'à la création : le serveur refuse ensuite de les changer.
-const fixedClient = computed(() => fromTicket.value || editing.value)
 const procede = computed(() => expectedProcede(context.value?.procede, lines.value, articles.value))
 const catalog = computed(() => catalogRows(articles.value, lines.value, { procede: procede.value, fromTicket: fromTicket.value, query: query.value }))
 const duplicates = computed(() => duplicateLines(lines.value))
@@ -68,7 +65,7 @@ const ticketBlocked = computed(() => (!editing.value && context.value && context
 const canSubmit = computed(() => !busy.value && !state.value.blocking && !ticketBlocked.value)
 const dateHint = computed(() => {
 	if (editing.value) return 'Se fixe à la création.'
-	if (!context.value) return 'Pour tous les articles.'
+	if (!context.value) return ''
 	return context.value.from_echeance ? 'Échéance du ticket.' : 'Dans 7 jours, sans échéance.'
 })
 
@@ -108,16 +105,6 @@ onMounted(async () => {
 	}
 	await loadArticles()
 })
-
-// Sans ticket, changer de client vide la demande : ses articles appartenaient à l'autre client.
-watch(
-	() => client.value?.name,
-	(name, previous) => {
-		if (!name || name === previous || fixedClient.value) return
-		if (previous) lines.value = []
-		loadArticles()
-	},
-)
 
 const list = ref<HTMLElement | null>(null)
 async function focusLine(id: number) {
@@ -178,7 +165,7 @@ async function submit() {
 <template>
 	<FormDialog class="demande-dialog" :title="editing ? `Modifier la demande ${demande!.name}` : 'Nouvelle demande de faisabilité'" :dirty="dirty" :busy="busy" @close="emit('close')" @submit="submit">
 		<template #top>
-			<p v-if="fixedClient && client" class="demande-context">
+			<p v-if="client" class="demande-context">
 				<strong>{{ client.label }}</strong>
 				<template v-if="ticketName">
 					<span aria-hidden="true">·</span>
@@ -187,10 +174,6 @@ async function submit() {
 				<template v-if="context"><span aria-hidden="true">·</span><span>{{ context.request_type }}</span></template>
 			</p>
 			<div class="demande-params">
-				<div v-if="!fixedClient" class="form-field demande-param-client">
-					<label class="field-label" for="demande-client">Client</label>
-					<ClientPicker v-model="client" input-id="demande-client" @error="loadError = $event" />
-				</div>
 				<div class="form-field demande-param-date">
 					<label class="field-label" for="demande-date">Livraison souhaitée</label>
 					<input id="demande-date" v-model="date" class="field-input" type="date" :disabled="editing" />
@@ -231,8 +214,8 @@ async function submit() {
 					<input v-model="query" class="field-input" type="search" aria-label="Rechercher un article du client" placeholder="Désignation, code ou réf. client" :disabled="!client" @keydown.enter.prevent="addFirst" />
 				</div>
 				<div class="demande-scroll demande-catalog">
-					<p v-if="!client" class="demande-empty"><strong>Choisissez un client</strong><span>Ses articles s'affichent ici.</span></p>
-					<p v-else-if="articlesLoading" class="demande-empty">Chargement des articles…</p>
+					<p v-if="loadError" class="demande-empty">Articles indisponibles.</p>
+					<p v-else-if="!client || articlesLoading" class="demande-empty">Chargement des articles…</p>
 					<p v-else-if="!catalog.rows.length && query" class="demande-empty"><strong>Aucun article ne correspond à « {{ query }} »</strong><span>Vérifiez le code ou créez l'article.</span></p>
 					<p v-else-if="!catalog.rows.length" class="demande-empty"><strong>Ce client n'a aucun article disponible</strong><span>Créez le premier ci-dessous.</span></p>
 					<button v-for="row in catalog.rows" v-else :key="row.name" type="button" class="demande-row" :class="[row.locked && 'is-locked', row.inDemande && 'is-in']" :disabled="row.locked" :title="`${row.name} · ${row.designation}`" @click="addRow(row)">

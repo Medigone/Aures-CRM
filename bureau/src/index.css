@@ -1029,10 +1029,6 @@
 		flex: none;
 		width: 170px;
 	}
-	.demande-param-client {
-		flex: none;
-		width: 260px;
-	}
 	.demande-brief {
 		display: flex;
 		flex: 1 1 0;

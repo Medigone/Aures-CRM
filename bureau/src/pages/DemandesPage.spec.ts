@@ -77,6 +77,7 @@ describe('page Demandes', () => {
 		expect(wrapper.text()).toContain('Demandes de faisabilité')
 		expect(wrapper.text()).toContain('DF-1')
 		expect(wrapper.text()).toContain('+1')
+		expect(button('Nouvelle demande')).toBeUndefined()
 		wrapper.unmount()
 	})
 

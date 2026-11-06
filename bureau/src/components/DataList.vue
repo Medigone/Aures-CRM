@@ -54,7 +54,8 @@ const props = defineProps<{
 	noun: string
 	searchLabel: string
 	searchPlaceholder: string
-	createLabel: string
+	/** Sans libellé, la liste ne propose pas de création : ces documents naissent ailleurs. */
+	createLabel?: string
 	columns: Column<Row>[]
 	visibleOf: (keys: string[]) => Column<Row>[]
 	defaultColumns: string[]
@@ -353,7 +354,7 @@ onBeforeUnmount(() => {
 			<button type="button" class="icon-btn" aria-label="Actualiser la liste" title="Actualiser" :disabled="state.loading.value" @click="state.load()">
 				<LucideRefreshCw class="h-4 w-4" :class="state.loading.value && 'animate-spin'" aria-hidden="true" />
 			</button>
-			<button type="button" class="btn-primary" @click="emit('create')">
+			<button v-if="createLabel" type="button" class="btn-primary" @click="emit('create')">
 				<LucidePlus class="h-3.5 w-3.5" aria-hidden="true" />
 				{{ createLabel }}
 			</button>

@@ -51,6 +51,8 @@ DECIDED = (
 WANTS_NEW_DEMANDE = "Nouvelle demande de faisabilité"
 NO_CANDIDATE = "Aucun candidat pertinent"
 CREANCE_OK = ("OK", "Déblocage autorisé")
+# Seuls ces tickets peuvent lancer une demande de faisabilité.
+DEMANDE_TICKET_TYPES = ("Demande de devis", "Bon de commande")
 URGENCE_RANK = {"U0": 0, "U1": 1, "U2": 2, "U3": 3}
 # Le blocage passe par la carte Créance, qui exige un motif : pas de bouton de workflow pour lui.
 HIDDEN_ACTIONS = {"Bloquer Créance"}
@@ -1083,7 +1085,7 @@ def get_ticket(name):
 
 
 def ticket_demande_state(doc):
-	"""Une demande de faisabilité peut-elle partir de ce ticket ? Conditions du bouton du Desk, contrôlées aussi à la création."""
+	"""Une demande de faisabilité peut-elle partir de ce ticket ? Contrôlé aussi à la création."""
 	procede = get_expected_procede_from_ticket(doc.name)
 
 	def state(key, reason=None):
@@ -1093,6 +1095,8 @@ def ticket_demande_state(doc):
 		return state("closed", _("Ce ticket est clos."))
 	if doc.request_type == "Essai Blanc":
 		return state("essai_blanc", _("Ce type de ticket passe par un dossier d'essai, pas par une demande de faisabilité."))
+	if doc.request_type not in DEMANDE_TICKET_TYPES:
+		return state("other_type", _("Une demande de faisabilité ne part que d'une demande de devis ou d'un bon de commande."))
 	if doc.status != "En Cours":
 		return state("not_started", _("La demande se crée quand le ticket est En Cours."))
 	if not frappe.has_permission("Demande Faisabilite", "create"):

@@ -1651,6 +1651,7 @@ class TestDemandes(FrappeTestCase):
 		if not self.client or not self.offset:
 			self.skipTest("Il faut un client et un site Offset.")
 		self.article = self._article("ESSAI DEMANDE A")
+		self.ticket = self._ticket()
 
 	def tearDown(self):
 		self.commit.stop()
@@ -1663,6 +1664,9 @@ class TestDemandes(FrappeTestCase):
 	def _values(self, **extra):
 		return {"client": self.client, "type": "Premier Tirage", "date_livraison": "2026-12-01", "lines": [{"article": self.article, "quantite": 1000}], **extra}
 
+	def _create(self, values=None):
+		return bureau_demandes.create_demande(values or self._values(), ticket=self.ticket)
+
 	def _ticket(self, status="En Cours", request_type="Demande de devis", site=None):
 		name = bureau.create_ticket(customer=self.client, request_type=request_type, site=site or self.offset, description="Une demande")["name"]
 		frappe.db.set_value("Ticket Commercial", name, "status", status, update_modified=False)
@@ -1674,7 +1678,7 @@ class TestDemandes(FrappeTestCase):
 		return user.name
 
 	def test_cree_un_brouillon_et_range_la_vue(self):
-		name = bureau_demandes.create_demande(self._values())["name"]
+		name = self._create()["name"]
 		doc = frappe.get_doc("Demande Faisabilite", name)
 		self.assertEqual(doc.status, "Brouillon")
 		self.assertEqual(doc.liste_articles[0].date_livraison.__str__(), "2026-12-01")
@@ -1682,6 +1686,20 @@ class TestDemandes(FrappeTestCase):
 		self.assertEqual(result["names"], [name])
 		self.assertNotIn("_search", result["demandes"][0])
 		self.assertEqual(bureau_demandes.get_demandes(view="commande", search=self.article)["names"], [])
+
+	def test_une_demande_part_toujours_d_un_ticket(self):
+		for ticket in (None, "", "  "):
+			with self.assertRaises(frappe.ValidationError):
+				bureau_demandes.create_demande(self._values(), ticket=ticket)
+
+	def test_seuls_les_devis_et_les_commandes_lancent_une_demande(self):
+		for request_type in ("Demande de devis", "Bon de commande"):
+			self.assertEqual(bureau_demandes.get_ticket_demande_context(self._ticket(request_type=request_type))["state"], "ready")
+		for request_type in ("Conception", "Information Production", "Mise à jour données", "Réclamation", "Autre"):
+			ticket = self._ticket(request_type=request_type)
+			self.assertEqual(bureau_demandes.get_ticket_demande_context(ticket)["state"], "other_type", request_type)
+			with self.assertRaises(frappe.ValidationError, msg=request_type):
+				bureau_demandes.create_demande(self._values(), ticket=ticket)
 
 	def test_refuse_les_lignes_invalides(self):
 		autre = frappe.db.get_value("Customer", {"disabled": 0, "name": ["!=", self.client]}, "name")
@@ -1696,14 +1714,14 @@ class TestDemandes(FrappeTestCase):
 			cases.append({"client": autre})
 		for extra in cases:
 			with self.assertRaises(frappe.ValidationError, msg=extra):
-				bureau_demandes.create_demande(self._values(**extra))
+				self._create(self._values(**extra))
 
 	def test_meme_article_avec_deux_quantites(self):
-		name = bureau_demandes.create_demande(self._values(lines=[{"article": self.article, "quantite": 10}, {"article": self.article, "quantite": 20}]))["name"]
+		name = self._create(self._values(lines=[{"article": self.article, "quantite": 10}, {"article": self.article, "quantite": 20}]))["name"]
 		self.assertEqual(len(frappe.get_doc("Demande Faisabilite", name).liste_articles), 2)
 
 	def test_essai_blanc_coche_les_lignes(self):
-		name = bureau_demandes.create_demande(self._values(type="Essai Blanc"))["name"]
+		name = self._create(self._values(type="Essai Blanc"))["name"]
 		self.assertEqual(frappe.get_doc("Demande Faisabilite", name).liste_articles[0].essai_blanc, 1)
 
 	def test_conditions_du_ticket(self):
@@ -1727,7 +1745,7 @@ class TestDemandes(FrappeTestCase):
 	def test_le_site_impose_le_procede(self):
 		flexo = self._article("ESSAI DEMANDE FLEXO", "Flexo")
 		with self.assertRaises(frappe.ValidationError):
-			bureau_demandes.create_demande(self._values(lines=[{"article": flexo, "quantite": 10}]), ticket=self._ticket())
+			self._create(self._values(lines=[{"article": flexo, "quantite": 10}]))
 
 	def test_un_bon_de_commande_perd_son_devis_retenu(self):
 		ticket = self._ticket(request_type="Bon de commande")
@@ -1752,7 +1770,7 @@ class TestDemandes(FrappeTestCase):
 		self.assertEqual(choices[self.article]["procedes"], ["Offset"])
 
 	def test_cycle_confirmer_puis_annuler(self):
-		name = bureau_demandes.create_demande(self._values())["name"]
+		name = self._create()["name"]
 		doc = bureau_demandes.get_demande(name)
 		self.assertEqual(doc["actions"][:2], ["confirm", "edit"])
 		doc = bureau_demandes.confirm_demande(name, doc["modified"])
@@ -1769,7 +1787,7 @@ class TestDemandes(FrappeTestCase):
 		self.assertEqual(doc["etudes"], [])
 
 	def test_annuler_refuse_si_une_etude_a_abouti(self):
-		name = bureau_demandes.create_demande(self._values())["name"]
+		name = self._create()["name"]
 		doc = bureau_demandes.confirm_demande(name, bureau_demandes.get_demande(name)["modified"])
 		etude = doc["etudes"][0]
 		frappe.db.set_value(etude["doctype"], etude["name"], "status", "Réalisable", update_modified=False)
@@ -1780,7 +1798,7 @@ class TestDemandes(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Demande Faisabilite", name, "status"), "Confirmée")
 
 	def test_statuts_de_depart(self):
-		name = bureau_demandes.create_demande(self._values())["name"]
+		name = self._create()["name"]
 		modified = bureau_demandes.get_demande(name)["modified"]
 		for action in (lambda: bureau_demandes.close_demande(name, modified), lambda: bureau_demandes.cancel_demande(name, modified), lambda: bureau_demandes.create_devis(name, modified), lambda: bureau_demandes.create_retirage(name, modified, "2026-12-10")):
 			with self.assertRaises(frappe.ValidationError):
@@ -1789,7 +1807,7 @@ class TestDemandes(FrappeTestCase):
 		self.assertEqual(bureau_demandes.close_demande(name, modified)["status"], "Fermée")
 
 	def test_retirage_depuis_une_commande(self):
-		name = bureau_demandes.create_demande(self._values())["name"]
+		name = self._create()["name"]
 		modified = bureau_demandes.get_demande(name)["modified"]
 		frappe.db.set_value("Demande Faisabilite", name, "status", "Commandé", update_modified=False)
 		copie = frappe.get_doc("Demande Faisabilite", bureau_demandes.create_retirage(name, modified, "2026-12-10")["name"])
@@ -1797,26 +1815,26 @@ class TestDemandes(FrappeTestCase):
 		self.assertEqual(str(copie.liste_articles[0].date_livraison), "2026-12-10")
 
 	def test_modifier_un_brouillon_garde_client_et_date(self):
-		name = bureau_demandes.create_demande(self._values())["name"]
+		name = self._create()["name"]
 		autre = self._article("ESSAI DEMANDE B")
 		doc = bureau_demandes.update_demande(name, bureau_demandes.get_demande(name)["modified"], self._values(date_livraison="2027-03-03", lines=[{"article": autre, "quantite": 5, "est_creation": 1}]))
 		self.assertEqual(doc["livraison"], "2026-12-01")
 		self.assertEqual([(line["article"], line["quantite"], line["est_creation"], line["date_livraison"]) for line in doc["lines"]], [(autre, 5, 1, "2026-12-01")])
 
 	def test_version_perimee(self):
-		name = bureau_demandes.create_demande(self._values())["name"]
+		name = self._create()["name"]
 		with self.assertRaises(frappe.TimestampMismatchError):
 			bureau_demandes.confirm_demande(name, "2020-01-01 00:00:00")
 
 	def test_droits_par_role(self):
-		name = bureau_demandes.create_demande(self._values())["name"]
+		name = self._create()["name"]
 		modified = bureau_demandes.get_demande(name)["modified"]
 		frappe.db.set_value("Demande Faisabilite", name, "status", "Finalisée", update_modified=False)
 		frappe.set_user(self._user("Chargé Devis"))
 		doc = bureau_demandes.get_demande(name)
 		self.assertEqual(doc["actions"], ["devis"])
 		self.assertFalse(doc["can_write"])
-		for action in (lambda: bureau_demandes.close_demande(name, modified), lambda: bureau_demandes.create_demande(self._values())):
+		for action in (lambda: bureau_demandes.close_demande(name, modified), lambda: self._create()):
 			with self.assertRaises(frappe.PermissionError):
 				action()
 		frappe.set_user("Administrator")
@@ -1841,8 +1859,8 @@ class TestDemandes(FrappeTestCase):
 			self.assertIn("counts", bureau.get_queue())
 
 	def test_actions_groupees_reservees_au_brouillon(self):
-		brouillon = bureau_demandes.create_demande(self._values())["name"]
-		confirmee = bureau_demandes.create_demande(self._values())["name"]
+		brouillon = self._create()["name"]
+		confirmee = self._create()["name"]
 		doc = bureau_demandes.confirm_demande(confirmee, bureau_demandes.get_demande(confirmee)["modified"])
 		items = [{"name": brouillon, "modified": bureau_demandes.get_demande(brouillon)["modified"]}, {"name": confirmee, "modified": doc["modified"]}]
 		fields = {field["fieldname"] for field in bureau_bulk.get_bulk_options("Demande Faisabilite")["fields"]}

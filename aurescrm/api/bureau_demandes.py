@@ -472,20 +472,17 @@ def _set_lines(doc, values):
 
 @frappe.whitelist(methods=["POST"])
 def create_demande(values=None, ticket=None):
-	"""Crée une demande en brouillon, depuis un ticket ou non. Le client et l'urgence viennent alors du ticket."""
+	"""Crée une demande en brouillon. Elle part toujours d'un ticket, dont elle reprend le client et l'urgence."""
 	require_bureau()
 	frappe.has_permission(DEMANDE, "create", throw=True)
+	if not cstr(ticket).strip():
+		frappe.throw(_("Une demande de faisabilité se crée depuis un ticket."))
 	values = _clean_values(values)
+	source = _check_ticket(cstr(ticket), values["client"])
 	doc = frappe.new_doc(DEMANDE)
-	if ticket:
-		source = _check_ticket(cstr(ticket), values["client"])
-		doc.ticket_commercial = source.name
-		doc.niveau_urgence = source.niveau_urgence or "U0"
-		doc.client = source.customer
-	elif not values["client"]:
-		frappe.throw(_("Choisissez le client."))
-	else:
-		doc.client = values["client"]
+	doc.ticket_commercial = source.name
+	doc.niveau_urgence = source.niveau_urgence or "U0"
+	doc.client = source.customer
 	doc.update({"type": values["type"], "date_livraison": values["date_livraison"], "n_bon_commande": values["n_bon_commande"], "status": BROUILLON})
 	_set_lines(doc, values)
 	doc.insert()

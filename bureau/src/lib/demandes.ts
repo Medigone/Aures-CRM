@@ -294,7 +294,7 @@ export interface CatalogRow extends ArticleChoice {
 	locked: boolean
 }
 
-/** Le procédé de la demande : celui du site du ticket, sinon celui du premier article ajouté. */
+/** Le procédé de la demande : celui du site du ticket. Un ancien brouillon sans ticket suit son premier article. */
 export function expectedProcede(ticketProcede: string | null | undefined, lines: DraftLine[], articles: ArticleChoice[]) {
 	if (ticketProcede) return ticketProcede
 	const first = lines[0] && articles.find((article) => article.name === lines[0].article)
@@ -312,7 +312,7 @@ function normalized(text: string) {
 
 /**
  * Liste de gauche. Depuis un ticket, le site impose le procédé : les articles d'un autre procédé sont masqués et comptés.
- * Sans ticket, ils restent visibles et grisés, car retirer le premier article rend le choix à nouveau possible.
+ * Sur un ancien brouillon sans ticket, ils restent visibles et grisés : retirer le premier article rend le choix possible.
  */
 export function catalogRows(articles: ArticleChoice[], lines: DraftLine[], options: { procede: string | null; fromTicket: boolean; query: string }) {
 	const { procede, fromTicket, query } = options
@@ -372,7 +372,7 @@ export function draftStatus({ lines, date, type, bonCommande, client }: DraftSta
 	const duplicates = duplicateLines(lines).size
 	const missing = lines.filter((line) => !line.quantity).length
 	const todo = (text: string) => ({ text, tone: 'todo' as const, blocking: true })
-	if (!client) return { text: 'Choisissez le client.', tone: 'plain' as const, blocking: true }
+	if (!client) return { text: 'Chargement…', tone: 'plain' as const, blocking: true }
 	if (!lines.length) return { text: 'Ajoutez au moins un article.', tone: 'plain' as const, blocking: true }
 	if (duplicates) return { text: plural(duplicates, 'doublon à corriger', 'doublons à corriger'), tone: 'error' as const, blocking: true }
 	if (missing) return todo(plural(missing, 'quantité à saisir', 'quantités à saisir'))

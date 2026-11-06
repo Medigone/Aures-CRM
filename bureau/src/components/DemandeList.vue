@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import StatusPill from '@shared/components/StatusPill.vue'
-import AppToast from './AppToast.vue'
 import DataList from './DataList.vue'
-import DemandeDialog from './DemandeDialog.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getDemandeOptions, getDemandes } from '@/lib/api'
@@ -17,43 +15,15 @@ import type { DemandesState } from '@/lib/useDemandes'
 const props = defineProps<{ state: DemandesState; selected?: string }>()
 const emit = defineEmits<{ pick: [name?: string]; open: [name: string, tab?: string]; changed: [] }>()
 
+// Pas de création ici : une demande part toujours d'un ticket.
 const options = ref<DemandeOptions | null>(null)
 const optionsError = ref('')
-const dataList = ref<{ revealCreated: () => Promise<void> } | null>(null)
 const fields = computed(() => options.value?.filter_fields ?? [])
 const labelOf = (condition: Condition) => describeCondition(condition, fields.value)
 async function fetchRows(query: ExportQuery, start: number, pageLength: number) {
 	const state = props.state
 	const response = await getDemandes(query.view as DemandeView, query.conditions, query.search, { start, pageLength, sort: state.sort.value?.key, direction: state.sort.value?.dir })
 	return { rows: response.demandes as DemandeRow[], total: response.total }
-}
-
-// Création : la liste reste en place, avec la nouvelle ligne surlignée et un lien vers sa fiche.
-const creating = ref(false)
-const created = ref<string | null>(null)
-let createdTimer: ReturnType<typeof setTimeout> | null = null
-function dismissCreated() {
-	if (createdTimer) clearTimeout(createdTimer)
-	created.value = null
-}
-async function onCreated(name: string) {
-	const state = props.state
-	creating.value = false
-	dismissCreated()
-	created.value = name
-	createdTimer = setTimeout(dismissCreated, 8000)
-	state.view.value = 'all'
-	state.search.value = ''
-	state.conditions.value = []
-	await nextTick()
-	await state.load()
-	await state.reveal(name)
-	await dataList.value?.revealCreated()
-}
-function openCreated() {
-	const name = created.value
-	dismissCreated()
-	if (name) emit('open', name)
 }
 
 onMounted(async () => {
@@ -63,21 +33,16 @@ onMounted(async () => {
 		optionsError.value = (e as Error).message
 	}
 })
-onBeforeUnmount(() => {
-	if (createdTimer) clearTimeout(createdTimer)
-})
 </script>
 
 <template>
 	<DataList
-		ref="dataList"
 		:state="state"
 		:rows="state.demandes.value"
 		title="Demandes de faisabilité"
 		noun="demande"
 		search-label="Rechercher une demande"
 		search-placeholder="Numéro, client, article, bon de commande"
-		create-label="Nouvelle demande"
 		:columns="DEMANDE_COLUMNS"
 		:visible-of="visibleDemandeColumns"
 		:default-columns="DEFAULT_DEMANDE_COLUMNS"
@@ -89,7 +54,6 @@ onBeforeUnmount(() => {
 		:condition-label="labelOf"
 		:fetch-rows="fetchRows"
 		:selected="selected"
-		:created="created ?? undefined"
 		:load-error="optionsError"
 		doctype="Demande Faisabilite"
 		:export-fields="fields"
@@ -97,7 +61,6 @@ onBeforeUnmount(() => {
 		@pick="emit('pick', $event)"
 		@open="emit('open', $event)"
 		@changed="emit('changed')"
-		@create="creating = true"
 	>
 		<template #filters="{ conditions, update, canSave }">
 			<FilterBuilder :model-value="conditions" :fields="fields" doctype="Demande Faisabilite" :can-save="canSave" @update:model-value="update" />
@@ -135,10 +98,5 @@ onBeforeUnmount(() => {
 		</template>
 
 		<template #drawer><slot name="drawer"></slot></template>
-
-		<DemandeDialog v-if="creating" @close="creating = false" @created="onCreated" />
-		<AppToast :message="created ? `Demande ${created} créée.` : ''" :duration="0" @close="created = null">
-			<button type="button" class="app-toast-action" @click="openCreated">Ouvrir la fiche</button>
-		</AppToast>
 	</DataList>
 </template>

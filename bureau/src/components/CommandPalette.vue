@@ -39,7 +39,6 @@ const ICONS: Record<PaletteCommand['icon'], Component> = {
 	ticket: LucidePlus,
 	article: LucidePlus,
 	client: LucidePlus,
-	demande: LucidePlus,
 	demandes: LucideClipboardList,
 	tickets: LucideTicket,
 	clients: LucideBuilding2,

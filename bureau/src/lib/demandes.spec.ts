@@ -63,7 +63,7 @@ describe('lignes de la fenêtre', () => {
 
 	it('dit ce qui bloque, le doublon avant la quantité manquante', () => {
 		const base = { date: '2026-11-20', type: 'Premier Tirage', bonCommande: '', client: 'C' }
-		expect(draftStatus({ ...base, client: null, lines: [] }).text).toBe('Choisissez le client.')
+		expect(draftStatus({ ...base, client: null, lines: [] }).text).toBe('Chargement…')
 		expect(draftStatus({ ...base, lines: [] }).text).toBe('Ajoutez au moins un article.')
 		expect(draftStatus({ ...base, lines: [line(1, 'A', '1'), line(2, 'A', '1'), line(3, 'B')] })).toMatchObject({ text: '1 doublon à corriger', tone: 'error', blocking: true })
 		expect(draftStatus({ ...base, lines: [line(1, 'A'), line(2, 'B')] })).toMatchObject({ text: '2 quantités à saisir', tone: 'todo' })
