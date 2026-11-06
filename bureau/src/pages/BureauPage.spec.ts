@@ -223,6 +223,28 @@ describe('poste de bureau', () => {
 		expect(text).not.toContain('Commercial A')
 	})
 
+	it('le tiroir : flèches, Échap et clic extérieur', async () => {
+		const { wrapper, router } = await open('/?apercu=TC-1')
+		const press = async (key: string) => {
+			document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }))
+			await flushPromises()
+			await flushPromises()
+			return router.currentRoute.value.query.apercu
+		}
+		expect(await press('ArrowDown')).toBe('TC-2')
+		expect(await press('ArrowUp')).toBe('TC-1')
+		expect(await press('Escape')).toBeUndefined()
+		expect(wrapper.find('.bureau-drawer').exists()).toBe(false)
+
+		await router.replace({ query: { apercu: 'TC-1' } })
+		await flushPromises()
+		expect(wrapper.find('.bureau-drawer').exists()).toBe(true)
+		document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+		await flushPromises()
+		expect(router.currentRoute.value.query.apercu).toBeUndefined()
+		wrapper.unmount()
+	})
+
 	it("ouvre l'aperçu au clic, change de ticket sans le fermer, puis ouvre la fiche", async () => {
 		const { wrapper, router } = await open('/')
 		await row(wrapper, 'TC-1').find('.list-row-main').trigger('click')

@@ -152,6 +152,28 @@ describe('page Clients', () => {
 		wrapper.unmount()
 	})
 
+	it('le tiroir : flèches, Échap et clic extérieur', async () => {
+		const { wrapper, router } = await open('/clients?apercu=CLI-1')
+		const press = async (key: string) => {
+			document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }))
+			await flushPromises()
+			await flushPromises()
+			return router.currentRoute.value.query.apercu
+		}
+		expect(await press('ArrowDown')).toBe('CLI-2')
+		expect(await press('ArrowUp')).toBe('CLI-1')
+		expect(await press('Escape')).toBeUndefined()
+		expect(wrapper.find('.bureau-drawer').exists()).toBe(false)
+
+		await router.replace({ query: { apercu: 'CLI-1' } })
+		await flushPromises()
+		expect(wrapper.find('.bureau-drawer').exists()).toBe(true)
+		document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+		await flushPromises()
+		expect(router.currentRoute.value.query.apercu).toBeUndefined()
+		wrapper.unmount()
+	})
+
 	it("ouvre l'aperçu au clic, puis la fiche au double clic", async () => {
 		const { wrapper, router } = await open('/clients')
 		await wrapper.find('.list-row-main').trigger('click')

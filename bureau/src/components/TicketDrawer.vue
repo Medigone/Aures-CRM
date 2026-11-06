@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideChevronDown from '~icons/lucide/chevron-down'
 import LucideChevronUp from '~icons/lucide/chevron-up'
@@ -15,6 +16,7 @@ import CommentText from '@shared/components/CommentText.vue'
 import { htmlToText } from '@shared/text'
 import { formatDay, stepHelp } from '@/lib/display'
 import TagEditor from './TagEditor.vue'
+import { useDrawerControls } from '@/lib/useDrawerControls'
 import { useTicket } from '@/lib/useTicket'
 
 const props = defineProps<{ id: string; position: string; noPrev: boolean; noNext: boolean }>()
@@ -25,6 +27,9 @@ const { ticket, error, notFound, actionError, notice, noticeTone, busy, load, pe
 	() => emit('changed'),
 )
 defineExpose({ refresh })
+
+const root = ref<HTMLElement | null>(null)
+useDrawerControls(root, { close: () => emit('close'), prev: () => emit('prev'), next: () => emit('next') })
 function onTags(tags: string[]) {
 	if (ticket.value) ticket.value.tags = tags
 	emit('changed')
@@ -32,7 +37,7 @@ function onTags(tags: string[]) {
 </script>
 
 <template>
-	<aside class="bureau-drawer" aria-label="Aperçu du ticket">
+	<aside ref="root" class="bureau-drawer" aria-label="Aperçu du ticket">
 		<div class="bureau-drawer-head">
 			<button type="button" class="icon-btn" aria-label="Ticket précédent" :disabled="noPrev" @click="emit('prev')"><LucideChevronUp class="h-4 w-4" aria-hidden="true" /></button>
 			<button type="button" class="icon-btn" aria-label="Ticket suivant" :disabled="noNext" @click="emit('next')"><LucideChevronDown class="h-4 w-4" aria-hidden="true" /></button>

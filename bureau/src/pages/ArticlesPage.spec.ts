@@ -191,6 +191,8 @@ describe('page Articles', () => {
 		expect(await press('ArrowUp', document, { shiftKey: true })).toBe('CLI-1-007')
 		expect(await press('ArrowUp', document.querySelector('.bureau-search input')!)).toBe('CLI-1-007')
 		expect(await press('ArrowUp')).toBe('CLI-1-003')
+		expect(await press('Escape')).toBeUndefined()
+		expect(wrapper.find('.bureau-drawer').exists()).toBe(false)
 		wrapper.unmount()
 	})
 

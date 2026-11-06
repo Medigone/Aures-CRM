@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideChevronDown from '~icons/lucide/chevron-down'
 import LucideChevronUp from '~icons/lucide/chevron-up'
@@ -14,12 +14,16 @@ import TagEditor from './TagEditor.vue'
 import { formatAmount } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import { useClient } from '@/lib/useClient'
+import { useDrawerControls } from '@/lib/useDrawerControls'
 
 const props = defineProps<{ id: string; position: string; noPrev: boolean; noNext: boolean }>()
 const emit = defineEmits<{ prev: []; next: []; close: []; open: [tab?: string]; changed: [] }>()
 
 const { client, error, notFound, load, refresh } = useClient(() => props.id)
 defineExpose({ refresh })
+
+const root = ref<HTMLElement | null>(null)
+useDrawerControls(root, { close: () => emit('close'), prev: () => emit('prev'), next: () => emit('next') })
 
 const openTickets = computed(() => (client.value?.tickets ?? []).filter((ticket) => ticket.is_open))
 const contact = computed(() => client.value?.contacts[0])
@@ -30,7 +34,7 @@ function onTags(tags: string[]) {
 </script>
 
 <template>
-	<aside class="bureau-drawer" aria-label="Aperçu du client">
+	<aside ref="root" class="bureau-drawer" aria-label="Aperçu du client">
 		<div class="bureau-drawer-head">
 			<button type="button" class="icon-btn" aria-label="Client précédent" :disabled="noPrev" @click="emit('prev')"><LucideChevronUp class="h-4 w-4" aria-hidden="true" /></button>
 			<button type="button" class="icon-btn" aria-label="Client suivant" :disabled="noNext" @click="emit('next')"><LucideChevronDown class="h-4 w-4" aria-hidden="true" /></button>

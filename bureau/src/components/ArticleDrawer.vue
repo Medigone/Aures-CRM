@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideChevronDown from '~icons/lucide/chevron-down'
@@ -14,6 +14,7 @@ import TagEditor from './TagEditor.vue'
 import { couleursSansDetail, posesLabel } from '@/lib/articles'
 import { formatDay } from '@/lib/display'
 import { useArticle } from '@/lib/useArticle'
+import { useDrawerControls } from '@/lib/useDrawerControls'
 
 const props = defineProps<{ id: string; position: string; noPrev: boolean; noNext: boolean }>()
 const emit = defineEmits<{ prev: []; next: []; close: []; open: [tab?: string]; changed: [] }>()
@@ -21,30 +22,8 @@ const emit = defineEmits<{ prev: []; next: []; close: []; open: [tab?: string]; 
 const { article, error, notFound, load, refresh } = useArticle(() => props.id)
 defineExpose({ refresh })
 
-/** Un clic hors du tiroir le ferme, sauf sur une ligne, qui change d'article, et dans une fenêtre ou un menu ouverts au-dessus. */
 const root = ref<HTMLElement | null>(null)
-function onPointerDown(event: PointerEvent) {
-	const target = event.target
-	if (event.button !== 0 || !(target instanceof Element) || root.value?.contains(target)) return
-	if (!target.closest('.list-row, .dialog-scrim, .app-menu')) emit('close')
-}
-/** Les flèches du clavier changent de ligne, sauf pendant une saisie et sous une fenêtre ou un menu ouverts. */
-function onKeydown(event: KeyboardEvent) {
-	if ((event.key !== 'ArrowUp' && event.key !== 'ArrowDown') || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
-	if (event.target instanceof Element && event.target.closest('input:not([type="checkbox"]), textarea, select, [contenteditable]')) return
-	if (document.querySelector('.dialog-scrim, .app-menu')) return
-	event.preventDefault()
-	if (event.key === 'ArrowUp') emit('prev')
-	else emit('next')
-}
-onMounted(() => {
-	document.addEventListener('pointerdown', onPointerDown)
-	document.addEventListener('keydown', onKeydown)
-})
-onBeforeUnmount(() => {
-	document.removeEventListener('pointerdown', onPointerDown)
-	document.removeEventListener('keydown', onKeydown)
-})
+useDrawerControls(root, { close: () => emit('close'), prev: () => emit('prev'), next: () => emit('next') })
 
 const technique = computed(() => article.value?.resume_technique)
 const teintes = computed(() => article.value?.teintes ?? [])

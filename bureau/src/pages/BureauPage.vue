@@ -45,7 +45,7 @@ const stepFromRoute = computed(() => {
 })
 
 function showPreview(name?: string) {
-	router.replace({ name: 'Home', query: listQuery(name ? { apercu: name } : {}) })
+	return router.replace({ name: 'Home', query: listQuery(name ? { apercu: name } : {}) })
 }
 function openFiche(name: string, step?: number, activity?: boolean) {
 	const query: Record<string, string> = {}
@@ -85,12 +85,13 @@ const index = computed(() => state.names.value.indexOf(active.value ?? ''))
 const position = computed(() => (index.value >= 0 ? `${index.value + 1} sur ${state.total.value}` : 'Hors de la vue'))
 const noPrev = computed(() => index.value <= 0)
 const noNext = computed(() => index.value < 0 || index.value >= state.names.value.length - 1)
-function go(offset: number) {
+async function go(offset: number) {
 	const target = state.names.value[index.value + offset]
 	if (!target) return
+	// L'adresse d'abord : changer de page la réécrit, et doit y trouver le nouvel élément.
+	if (props.id) await router.replace({ name: 'Ticket', params: { id: target } })
+	else await showPreview(target)
 	state.reveal(target)
-	if (props.id) router.replace({ name: 'Ticket', params: { id: target } })
-	else showPreview(target)
 }
 const goToActivity = computed(() => route.query.fil === '1')
 
