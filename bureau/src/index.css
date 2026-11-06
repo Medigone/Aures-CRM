@@ -1495,6 +1495,10 @@
 		height: 100%;
 		@apply text-left text-sm text-ink-gray-7;
 	}
+	/* La ligne ouverte a déjà son surlignage : le focus, qui la suit au clavier, n'ajoute pas de cadre. */
+	.list-row-main[aria-current='true']:focus-visible {
+		outline: none;
+	}
 	.list-row-main > span {
 		min-width: 0;
 		overflow: hidden;

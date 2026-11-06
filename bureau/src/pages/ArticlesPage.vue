@@ -39,7 +39,7 @@ const preview = computed(() => (typeof route.query.apercu === 'string' ? route.q
 const tabFromRoute = computed(() => (typeof route.query.onglet === 'string' ? route.query.onglet : undefined))
 
 function showPreview(name?: string) {
-	router.replace({ name: 'Articles', query: listQuery(name ? { apercu: name } : {}) })
+	return router.replace({ name: 'Articles', query: listQuery(name ? { apercu: name } : {}) })
 }
 function openFiche(name: string, tab?: string) {
 	router.push({ name: 'Article', params: { id: name }, query: tab ? { onglet: tab } : {} })
@@ -74,12 +74,13 @@ const index = computed(() => state.names.value.indexOf(active.value ?? ''))
 const position = computed(() => (index.value >= 0 ? `${index.value + 1} sur ${state.total.value}` : 'Hors de la vue'))
 const noPrev = computed(() => index.value <= 0)
 const noNext = computed(() => index.value < 0 || index.value >= state.names.value.length - 1)
-function go(offset: number) {
+async function go(offset: number) {
 	const target = state.names.value[index.value + offset]
 	if (!target) return
+	// L'adresse d'abord : changer de page la réécrit, et doit y trouver le nouvel article.
+	if (props.id) await router.replace({ name: 'Article', params: { id: target } })
+	else await showPreview(target)
 	state.reveal(target)
-	if (props.id) router.replace({ name: 'Article', params: { id: target } })
-	else showPreview(target)
 }
 
 // Temps réel : ce qui change ailleurs (Desk, collègue) remonte sans recharger la page.

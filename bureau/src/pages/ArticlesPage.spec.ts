@@ -178,6 +178,34 @@ describe('page Articles', () => {
 		wrapper.unmount()
 	})
 
+	it('les flèches du clavier changent de ligne, sauf pendant une saisie', async () => {
+		const { wrapper, router } = await open('/articles?apercu=CLI-1-003')
+		const press = async (key: string, target: EventTarget = document, init: KeyboardEventInit = {}) => {
+			target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }))
+			await flushPromises()
+			return router.currentRoute.value.query.apercu
+		}
+		expect(await press('ArrowUp')).toBe('CLI-1-003')
+		expect(await press('ArrowDown')).toBe('CLI-1-007')
+		expect(await press('ArrowDown')).toBe('CLI-1-007')
+		expect(await press('ArrowUp', document, { shiftKey: true })).toBe('CLI-1-007')
+		expect(await press('ArrowUp', document.querySelector('.bureau-search input')!)).toBe('CLI-1-007')
+		expect(await press('ArrowUp')).toBe('CLI-1-003')
+		wrapper.unmount()
+	})
+
+	it('la flèche qui change de page garde le nouvel article', async () => {
+		const names = Array.from({ length: 21 }, (_, index) => `ART-${index}`)
+		current = { ...current, 'bureau_articles.get_articles': { ...list, total: 21, names } }
+		const { wrapper, router } = await open('/articles?apercu=ART-19')
+		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }))
+		await flushPromises()
+		await flushPromises()
+		expect(router.currentRoute.value.query.apercu).toBe('ART-20')
+		expect(fetchMock.mock.calls.some((call) => String(call[0]).includes('get_articles') && String(call[0]).includes('start=20'))).toBe(true)
+		wrapper.unmount()
+	})
+
 	it('un clic hors du tiroir le ferme, pas un clic dedans ni sur une ligne', async () => {
 		const { wrapper, router } = await open('/articles')
 		const pointerdown = (selector: string) => document.querySelector(selector)!.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))

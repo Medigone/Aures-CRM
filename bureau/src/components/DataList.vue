@@ -208,7 +208,10 @@ function onDeleted(names: string[]) {
 let revealed = false
 async function revealSelected() {
 	await nextTick()
-	list.value?.querySelector('[aria-current="true"]')?.scrollIntoView?.({ block: 'nearest' })
+	const row = list.value?.querySelector<HTMLElement>('[aria-current="true"]')
+	row?.scrollIntoView?.({ block: 'nearest' })
+	// Le focus suit la ligne ouverte : Entrée ne rouvre pas l'ancienne après un passage au clavier.
+	if (document.activeElement?.closest('.list-row-main')) row?.focus({ preventScroll: true })
 }
 watch(() => props.selected, revealSelected)
 watch(props.state.response, () => {
@@ -217,8 +220,9 @@ watch(props.state.response, () => {
 		revealSelected()
 	}
 })
-// Changer de vue ou de page vide la sélection, et ramène en haut.
+// Changer de vue ou de page vide la sélection, et ramène en haut, ou sur la ligne ouverte une fois la page chargée.
 watch([props.state.view, props.state.page], () => {
+	revealed = false
 	list.value?.scrollTo?.({ top: 0 })
 	if (selectable.value) clearPicked()
 })

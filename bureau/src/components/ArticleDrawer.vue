@@ -28,8 +28,23 @@ function onPointerDown(event: PointerEvent) {
 	if (event.button !== 0 || !(target instanceof Element) || root.value?.contains(target)) return
 	if (!target.closest('.list-row, .dialog-scrim, .app-menu')) emit('close')
 }
-onMounted(() => document.addEventListener('pointerdown', onPointerDown))
-onBeforeUnmount(() => document.removeEventListener('pointerdown', onPointerDown))
+/** Les flèches du clavier changent de ligne, sauf pendant une saisie et sous une fenêtre ou un menu ouverts. */
+function onKeydown(event: KeyboardEvent) {
+	if ((event.key !== 'ArrowUp' && event.key !== 'ArrowDown') || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+	if (event.target instanceof Element && event.target.closest('input:not([type="checkbox"]), textarea, select, [contenteditable]')) return
+	if (document.querySelector('.dialog-scrim, .app-menu')) return
+	event.preventDefault()
+	if (event.key === 'ArrowUp') emit('prev')
+	else emit('next')
+}
+onMounted(() => {
+	document.addEventListener('pointerdown', onPointerDown)
+	document.addEventListener('keydown', onKeydown)
+})
+onBeforeUnmount(() => {
+	document.removeEventListener('pointerdown', onPointerDown)
+	document.removeEventListener('keydown', onKeydown)
+})
 
 const technique = computed(() => article.value?.resume_technique)
 const teintes = computed(() => article.value?.teintes ?? [])
