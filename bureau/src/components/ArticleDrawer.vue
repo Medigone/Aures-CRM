@@ -4,14 +4,18 @@ import { RouterLink } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideChevronDown from '~icons/lucide/chevron-down'
 import LucideChevronUp from '~icons/lucide/chevron-up'
+import LucideUpload from '~icons/lucide/upload'
 import LucideX from '~icons/lucide/x'
 import { exactTime, relativeTime } from '@shared/activity'
 import CommentText from '@shared/components/CommentText.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
+import AppToast from './AppToast.vue'
 import ArticleColorsResume from './ArticleColorsResume.vue'
+import BatImportDialog from './BatImportDialog.vue'
 import ClientTicketsTable from './ClientTicketsTable.vue'
 import TagEditor from './TagEditor.vue'
-import { couleursSansDetail, posesLabel } from '@/lib/articles'
+import { getArticleOptions } from '@/lib/api'
+import { couleursSansDetail, posesLabel, type ArticleDetail, type ArticleOptions } from '@/lib/articles'
 import { formatDay } from '@/lib/display'
 import { useArticle } from '@/lib/useArticle'
 import { useDrawerControls } from '@/lib/useDrawerControls'
@@ -46,6 +50,33 @@ const prepresse = computed(() => {
 })
 function onTags(tags: string[]) {
 	if (article.value) article.value.tags = tags
+	emit('changed')
+}
+
+// Comme sur la fiche : un article composé n'a pas de fiche technique à remplir depuis son BAT.
+const canImportBat = computed(() => Boolean(article.value?.can_edit && !article.value.compose))
+const options = ref<ArticleOptions | null>(null)
+const importingBat = ref(false)
+const openingBat = ref(false)
+const batError = ref('')
+const notice = ref('')
+// L'analyse a besoin du schéma de la fiche : il n'est chargé qu'au clic, pas à chaque aperçu.
+async function importBat() {
+	if (openingBat.value) return
+	openingBat.value = true
+	batError.value = ''
+	try {
+		options.value ??= await getArticleOptions()
+		importingBat.value = true
+	} catch (e) {
+		batError.value = (e as Error).message
+	} finally {
+		openingBat.value = false
+	}
+}
+function onBatSaved(updated: ArticleDetail, message: string) {
+	article.value = updated
+	notice.value = message
 	emit('changed')
 }
 </script>
@@ -115,8 +146,15 @@ function onTags(tags: string[]) {
 				<section v-if="article.type !== 'Général'" class="card flex flex-col gap-1">
 					<h3 class="text-base font-semibold">Prépresse</h3>
 					<dl class="side-kv">
-						<div v-for="item in prepresse" :key="item.label"><dt>{{ item.label }}</dt><dd :class="!item.value && 'font-normal text-ink-gray-6'">{{ item.value || 'Aucun' }}</dd></div>
+						<div v-for="item in prepresse" :key="item.label">
+							<dt class="flex items-center gap-2">
+								{{ item.label }}
+								<button v-if="item.label === 'BAT' && canImportBat" type="button" class="inline-flex items-center gap-1 text-sm text-link" :disabled="openingBat" title="Importer un BAT : le PDF est analysé pour remplir la fiche technique" @click="importBat"><LucideUpload class="h-3.5 w-3.5" aria-hidden="true" />Importer</button>
+							</dt>
+							<dd :class="!item.value && 'font-normal text-ink-gray-6'">{{ item.value || 'Aucun' }}</dd>
+						</div>
 					</dl>
+					<p v-if="batError" role="alert" class="text-sm text-tone-red">{{ batError }}</p>
 				</section>
 
 				<section class="card flex flex-col gap-1">
@@ -142,5 +180,11 @@ function onTags(tags: string[]) {
 				</section>
 			</template>
 		</div>
+
+		<!-- Le tiroir forme sa propre pile : sans ce déplacement, l'en-tête de page passerait au-dessus de la fenêtre. -->
+		<Teleport to="body">
+			<BatImportDialog v-if="importingBat && article" :article="article" :options="options" @close="importingBat = false" @saved="onBatSaved" />
+		</Teleport>
+		<AppToast :message="notice" @close="notice = ''" />
 	</aside>
 </template>
