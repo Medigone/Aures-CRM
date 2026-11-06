@@ -52,6 +52,11 @@ export function searchLabels(options: ExportColumnOption[], query: string) {
 	return searchFields(asFields, query).map((item) => byKey.get(item.value)!)
 }
 
+/** Les colonnes cochées en tête, chaque groupe gardant son ordre alphabétique. */
+export function checkedFirst(options: ExportColumnOption[], checked: Set<string>) {
+	return [...options.filter((option) => checked.has(option.key)), ...options.filter((option) => !checked.has(option.key))]
+}
+
 /** Les colonnes du fichier : celles de la liste dans leur ordre, puis les champs dans l'ordre où ils ont été cochés. */
 export function exportColumns<Row extends { name: string }>(selected: string[], columns: Column<Row>[], options: ExportColumnOption[], values: Record<string, Record<string, string | number>>): Column<Row>[] {
 	const chosen = new Set(selected)
