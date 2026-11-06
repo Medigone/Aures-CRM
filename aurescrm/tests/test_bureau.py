@@ -5,6 +5,7 @@
 Exécuter avec : bench --site [site] run-tests --module aurescrm.tests.test_bureau
 """
 
+import json
 from unittest.mock import patch
 from urllib.parse import parse_qsl
 
@@ -180,6 +181,21 @@ class TestQueueRules(FrappeTestCase):
 
 	def test_filtre_sans_valeur_ignore(self):
 		self.assertEqual(bureau.condition_filters([{"field": "type", "op": "est", "value": ""}]), [])
+
+	def test_filtre_cloche_propre_a_la_personne(self):
+		pattern = f'%"{frappe.session.user}"%'
+		for fields in (None, bureau_clients.FILTER_FIELDS, bureau_articles.FILTER_FIELDS):
+			self.assertEqual(bureau.condition_filters([{"field": "cloche", "op": "est", "value": "1"}], fields), [["_liked_by", "like", pattern]])
+			self.assertEqual(bureau.condition_filters([{"field": "cloche", "op": "nest", "value": "1"}], fields), [["_liked_by", "not like", pattern]])
+		self.assertEqual(bureau.condition_filters([{"field": "cloche", "op": "est", "value": ""}]), [])
+		with self.assertRaises(frappe.ValidationError):
+			bureau.condition_filters([{"field": "cloche", "op": "like", "value": "1"}])
+
+	def test_cloche_de_la_ligne(self):
+		user = frappe.session.user
+		self.assertTrue(bureau.row_bell(frappe._dict(_liked_by=json.dumps([user]))))
+		self.assertFalse(bureau.row_bell(frappe._dict(_liked_by=json.dumps(["autre@example.com"]))))
+		self.assertFalse(bureau.row_bell(frappe._dict(_liked_by=None)))
 
 	def test_filtre_inconnu_refuse(self):
 		with self.assertRaises(frappe.ValidationError):

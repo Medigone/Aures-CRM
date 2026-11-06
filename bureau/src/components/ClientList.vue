@@ -88,6 +88,7 @@ onBeforeUnmount(() => {
 		:selected="selected"
 		:created="created ?? undefined"
 		:load-error="optionsError"
+		doctype="Customer"
 		bulk-doctype="Customer"
 		@pick="emit('pick', $event)"
 		@open="emit('open', $event)"

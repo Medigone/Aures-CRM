@@ -13,6 +13,7 @@ from frappe.utils import cint, cstr, flt, get_fullname, strip_html, today
 
 from aurescrm.api import activity
 from aurescrm.api.bureau import (
+	BELL_FIELD,
 	CLOSED_STATUSES,
 	NOBODY,
 	TICKET,
@@ -23,6 +24,7 @@ from aurescrm.api.bureau import (
 	doctype_filter_fields,
 	page_bounds,
 	require_bureau,
+	row_bell,
 	row_tags,
 )
 from aurescrm.api.commercial_mobile import _latest_bat_status, parse_gps
@@ -50,6 +52,7 @@ LIST_FIELDS = [
 	PHONE_FIELD,
 	MAIN_PHONE_FIELD,
 	"_user_tags",
+	BELL_FIELD,
 ]
 
 # Filtre de la liste → (champ du client, nature de la valeur), au format de `bureau.condition_filters`.
@@ -154,6 +157,7 @@ def _list_row(client, soldes, visits, tickets):
 		"name": client.name,
 		"modified": client.modified,
 		"tags": row_tags(client),
+		"cloche": row_bell(client),
 		"client": client.customer_name or client.name,
 		"status": client.custom_status,
 		"wilaya": client.custom_wilaya,

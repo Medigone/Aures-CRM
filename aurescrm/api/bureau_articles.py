@@ -15,7 +15,7 @@ from frappe.utils.file_manager import get_max_file_size
 
 from aurescrm import bat_import, pantone
 from aurescrm.api import activity
-from aurescrm.api.bureau import TICKET, _parse, condition_filters, doctype_filter_fields, page_bounds, require_bureau, row_tags
+from aurescrm.api.bureau import BELL_FIELD, TICKET, _parse, condition_filters, doctype_filter_fields, page_bounds, require_bureau, row_bell, row_tags
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, bind_file, ticket_rows
 from aurescrm.api.commercial_mobile import article_fiche, article_schema
 from aurescrm.aures_crm.doctype.etude_technique.etude_technique import create_new_bat_from_etude
@@ -59,6 +59,7 @@ LIST_FIELDS = [
 	"custom_sous_article",
 	"custom_article_parent",
 	"_user_tags",
+	BELL_FIELD,
 ]
 
 # Filtre de la liste → (champ de l'article, nature de la valeur), au format de `bureau.condition_filters`.
@@ -192,6 +193,7 @@ def _list_row(item, customers, bats, orders):
 		"name": item.name,
 		"modified": item.modified,
 		"tags": row_tags(item),
+		"cloche": row_bell(item),
 		"designation": item.item_name or item.name,
 		"type": item.custom_type_article,
 		"client": item.custom_client,

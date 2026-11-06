@@ -1,8 +1,9 @@
-<script setup lang="ts" generic="Row extends { name: string; modified: string }">
+<script setup lang="ts" generic="Row extends { name: string; modified: string; cloche?: boolean }">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, watch, type CSSProperties, type Ref } from 'vue'
 import LucideArrowDown from '~icons/lucide/arrow-down'
 import LucideArrowUp from '~icons/lucide/arrow-up'
 import LucideArrowUpDown from '~icons/lucide/arrow-up-down'
+import LucideBell from '~icons/lucide/bell'
 import LucideCheck from '~icons/lucide/check'
 import LucideColumns3 from '~icons/lucide/columns-3'
 import LucideDownload from '~icons/lucide/download'
@@ -17,9 +18,10 @@ import ListState from '@shared/components/ListState.vue'
 import AppToast from './AppToast.vue'
 import BulkBar from './BulkBar.vue'
 import ExportDialog from './ExportDialog.vue'
+import { setBell } from '@/lib/api'
 import { rangeToggle } from '@/lib/bulk'
 import { saveCsv, type ExportQuery } from '@/lib/exports'
-import { isComplete, type Condition } from '@/lib/filters'
+import { hasBell, isComplete, toggleBell, type Condition } from '@/lib/filters'
 import { gridTemplate, minListWidth, nextSort, type Column, type Sort } from '@/lib/list'
 import { useBulk } from '@/lib/useBulk'
 import { PAGE_SIZES } from '@/lib/useServerList'
@@ -66,6 +68,8 @@ const props = defineProps<{
 	selected?: string
 	created?: string
 	loadError?: string
+	/** DocType des lignes, pour la cloche. */
+	doctype: string
 	/** DocType des lignes : le déclarer ajoute les cases à cocher et les actions groupées. Il doit figurer dans `bureau_bulk.BULK_DOCTYPES`. */
 	bulkDoctype?: string
 }>()
@@ -156,6 +160,29 @@ function clearFilters() {
 }
 function removeCondition(id: number) {
 	props.state.conditions.value = props.state.conditions.value.filter((condition) => condition.id !== id)
+}
+
+// Cloche : le cœur du Desk. Une ligne décochée reste à l'écran jusqu'au rechargement, pour pouvoir se raviser.
+const bellFiltered = computed(() => hasBell(props.state.conditions.value))
+const bellError = ref('')
+const bellBusy = new Set<string>()
+function toggleBellFilter() {
+	props.state.conditions.value = toggleBell(props.state.conditions.value)
+}
+async function toggleRowBell(row: Row) {
+	if (bellBusy.has(row.name)) return
+	bellBusy.add(row.name)
+	bellError.value = ''
+	const on = !row.cloche
+	row.cloche = on
+	try {
+		await setBell(props.doctype, row.name, on)
+	} catch (e) {
+		row.cloche = !on
+		bellError.value = `La cloche n'a pas pu être enregistrée : ${(e as Error).message}`
+	} finally {
+		bellBusy.delete(row.name)
+	}
 }
 
 // Tri.
@@ -353,8 +380,8 @@ onBeforeUnmount(() => {
 			<button type="button" class="px-1 text-sm text-link" @click="clearFilters">Tout effacer</button>
 		</div>
 
-		<p v-if="state.error.value || loadError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5 text-sm">
-			{{ state.error.value || loadError }}
+		<p v-if="state.error.value || loadError || bellError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5 text-sm">
+			{{ state.error.value || loadError || bellError }}
 			<button v-if="state.error.value" type="button" class="ml-1 font-semibold underline" @click="state.load()">Réessayer</button>
 		</p>
 
@@ -380,6 +407,11 @@ onBeforeUnmount(() => {
 									</span>
 								</template>
 							</div>
+							<span class="list-bell">
+								<button type="button" class="list-bell-btn" :aria-pressed="bellFiltered" :aria-label="bellFiltered ? 'Afficher toutes les lignes' : 'Afficher seulement les lignes avec ma cloche'" :title="bellFiltered ? 'Afficher toutes les lignes' : 'Seulement mes cloches'" @click="toggleBellFilter">
+									<LucideBell class="h-3.5 w-3.5" aria-hidden="true" />
+								</button>
+							</span>
 							<span v-if="hasRowMenu" class="list-more"></span>
 						</div>
 
@@ -390,6 +422,7 @@ onBeforeUnmount(() => {
 									<div class="list-cols" :style="colsStyle">
 										<span v-for="(column, position) in shown" :key="column.key" class="skeleton" :style="{ width: position === 0 ? '70%' : `${40 + ((index * 13 + position * 17) % 45)}%` }"></span>
 									</div>
+									<span class="list-bell"></span>
 									<span v-if="hasRowMenu" class="list-more"></span>
 								</div>
 								<p class="sr-only" role="status">Chargement de la liste…</p>
@@ -407,6 +440,11 @@ onBeforeUnmount(() => {
 								<button type="button" class="list-cols list-row-main" :style="colsStyle" :aria-current="row.name === selected ? 'true' : undefined" @click="onRowClick(row.name, $event)" @dblclick="emit('open', row.name)">
 									<slot name="cells" :row="row" :columns="shown"></slot>
 								</button>
+								<span class="list-bell">
+									<button type="button" class="list-bell-btn" :aria-pressed="Boolean(row.cloche)" :aria-label="`${row.cloche ? 'Retirer la cloche' : 'Mettre une cloche'} : ${row.name}`" :title="row.cloche ? 'Retirer la cloche' : 'Mettre une cloche'" @click="toggleRowBell(row)">
+										<LucideBell class="h-3.5 w-3.5" aria-hidden="true" />
+									</button>
+								</span>
 								<div v-if="hasRowMenu" class="list-more list-menu">
 									<button type="button" class="list-more-btn" :aria-label="`Actions : ${row.name}`" aria-haspopup="menu" :aria-expanded="rowMenu?.row.name === row.name" @click="toggleRowMenu(row, $event)">
 										<LucideEllipsisVertical class="h-3.5 w-3.5" aria-hidden="true" />

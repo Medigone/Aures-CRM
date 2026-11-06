@@ -1,7 +1,7 @@
 /** Règles de la page Clients : types, vues, colonnes, filtres et validation de la fenêtre. */
 import type { CommentSummary, Option } from '@/types'
 import type { Condition, FilterField } from './filters'
-import { describeCondition, withDoctypeFields } from './filters'
+import { BELL_FIELD, describeCondition, withDoctypeFields } from './filters'
 import { formatDay } from './display'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
@@ -32,6 +32,7 @@ export interface ClientRow {
 	creance: number
 	tickets: number
 	tags: string[]
+	cloche: boolean
 }
 
 export interface ClientsResponse extends ListResponse {
@@ -191,6 +192,7 @@ export const CLIENT_FILTER_FIELDS: FilterField[] = [
 	{ value: 'grand_compte', label: 'Grand compte', kind: 'choice' },
 	{ value: 'client', label: 'Raison sociale', kind: 'text' },
 	{ value: 'tag', label: 'Tag', kind: 'text' },
+	BELL_FIELD,
 ]
 
 export function clientFilterChoices(field: string, options: ClientOptions | null): Option[] {

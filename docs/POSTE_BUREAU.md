@@ -89,6 +89,14 @@ Toute liste construite sur `DataList` les obtient en déclarant `bulk-doctype`, 
 - **Suppression** : un document soumis ou lié à d'autres est refusé. Le Desk garde une copie dans `Deleted Document`. Le dossier Nextcloud d'un client supprimé reste en place.
 - **Tags** : les mêmes que sur le Desk (`_user_tags`). Voir ci-dessous.
 
+## Cloche
+
+Sur toutes les listes (`DataList`), l'équivalent du cœur du Desk : un rappel visuel propre à chaque personne.
+
+- **Ligne** : la cloche se pose et se retire à droite, sans ouvrir l'aperçu. Elle s'écrit avec `frappe.desk.like.toggle_like`, donc dans `_liked_by` : une cloche sur le poste est un cœur sur le Desk, et inversement. `modified` ne bouge pas.
+- **En-tête** : la cloche de la colonne n'affiche que les lignes marquées par la personne connectée. C'est un filtre comme un autre (`cloche`) : pastille, panneau Filtres, compteurs des vues, export.
+- **Retrait sous filtre** : la ligne reste à l'écran jusqu'au prochain rechargement, pour pouvoir se raviser.
+
 ## Tags
 
 - **Liste** : colonne en lecture seule, visible par défaut sur les clients et à ajouter par le menu Colonnes sur les tickets, faute de largeur. Elle montre les premiers tags puis le nombre restant, et tous au survol. Un filtre « Tag » existe sur les deux listes.

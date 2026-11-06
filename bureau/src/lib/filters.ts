@@ -39,6 +39,20 @@ export function searchFields(fields: FilterField[], query: string) {
 		.sort((a, b) => a.label.localeCompare(b.label, 'fr', { sensitivity: 'base' }))
 }
 
+/** La cloche de la personne connectée, commune à toutes les listes : le cœur du Desk. */
+export const BELL_FILTER = 'cloche'
+export const BELL_FIELD: FilterField = { value: BELL_FILTER, label: 'Cloche', kind: 'choice', choices: [{ value: '1', label: 'activée' }] }
+
+export const hasBell = (conditions: Condition[]) => conditions.some((condition) => condition.field === BELL_FILTER && condition.op === 'est' && isComplete(condition))
+
+/** Allume ou éteint le filtre depuis l'en-tête de la liste. */
+export function toggleBell(conditions: Condition[]): Condition[] {
+	const others = conditions.filter((condition) => condition.field !== BELL_FILTER)
+	if (hasBell(conditions)) return others
+	const id = conditions.reduce((max, condition) => Math.max(max, condition.id), 0) + 1
+	return [...others, { id, field: BELL_FILTER, op: 'est', value: '1' }]
+}
+
 export const FIELDS: FilterField[] = [
 	{ value: 'client', label: 'Client', kind: 'text' },
 	{ value: 'type', label: 'Type de ticket', kind: 'choice' },
@@ -49,6 +63,7 @@ export const FIELDS: FilterField[] = [
 	{ value: 'creance', label: 'Créance', kind: 'choice' },
 	{ value: 'echeance', label: 'Échéance', kind: 'date' },
 	{ value: 'tag', label: 'Tag', kind: 'text' },
+	BELL_FIELD,
 ]
 
 const OPERATORS: Record<FieldKind, Option[]> = {
@@ -115,7 +130,7 @@ export function describeCondition(condition: Condition, fields: FilterField[], c
 /** Texte de la pastille d'un filtre actif : « Statut est En pause ». */
 export function conditionLabel(condition: Condition, references: References | null) {
 	const fields = withDoctypeFields(FIELDS, references?.filter_fields)
-	if (!FIELDS.some((item) => item.value === condition.field)) return describeCondition(condition, fields)
+	if (condition.field === BELL_FILTER || !FIELDS.some((item) => item.value === condition.field)) return describeCondition(condition, fields)
 	const field = FIELDS.find((item) => item.value === condition.field)?.label ?? condition.field
 	const op = operatorsOf(condition.field).find((item) => item.value === condition.op)?.label ?? condition.op
 	if (!needsValue(condition)) return `${field} ${op}`

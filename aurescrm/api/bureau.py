@@ -68,6 +68,10 @@ BULK_LIMIT = 100
 BULK_ACTIONS = {"Démarrer", "Pause"}
 BULK_SAVEPOINT = "bureau_bulk_item"
 
+# Filtre « Cloche » : le cœur du Desk, propre à chaque personne, rangé dans `_liked_by`.
+BELL_FILTER = "cloche"
+BELL_FIELD = "_liked_by"
+
 QUEUE_FIELDS = [
 	"name",
 	"customer",
@@ -86,6 +90,7 @@ QUEUE_FIELDS = [
 	"nom_commercial",
 	"statut_creance",
 	"_user_tags",
+	BELL_FIELD,
 	"creation_date",
 	"decision_rapprochement",
 	"devis_rapproche",
@@ -223,11 +228,26 @@ def _doctype_field(doctype, key):
 	return None
 
 
+def _bell_filter(condition):
+	"""Lignes où la personne connectée a mis, ou n'a pas mis, sa cloche. La colonne range une liste JSON d'utilisateurs."""
+	op = cstr(condition.get("op"))
+	if op not in FILTER_OPERATORS["choice"]:
+		frappe.throw(_("Condition de filtre invalide."))
+	if not cstr(condition.get("value")).strip():
+		return None
+	return [BELL_FIELD, "like" if op == "est" else "not like", f'%"{frappe.session.user}"%']
+
+
 def condition_filters(conditions, fields=None, doctype=None):
 	"""Traduit les filtres choisis dans une liste. Un filtre sans valeur est ignoré, sauf « sans date »."""
 	filters = []
 	for condition in conditions or []:
 		key = cstr(condition.get("field"))
+		if key == BELL_FILTER:
+			bell = _bell_filter(condition)
+			if bell:
+				filters.append(bell)
+			continue
 		field = (fields or FILTER_FIELDS).get(key) or _doctype_field(doctype, key)
 		if not field:
 			frappe.throw(_("Filtre inconnu."))
@@ -339,12 +359,18 @@ def row_tags(row):
 	return [tag for tag in cstr(row.get("_user_tags")).split(",") if tag]
 
 
+def row_bell(row):
+	"""La cloche de la personne connectée sur une ligne de liste, lue dans le `_liked_by` du Desk."""
+	return frappe.session.user in (_parse(row.get(BELL_FIELD)) or [])
+
+
 def _queue_row(ticket, user, current_day, cycle=None, commande=None):
 	echeance = str(ticket.echeance) if ticket.get("echeance") else None
 	return {
 		"name": ticket.name,
 		"modified": str(ticket.modified),
 		"tags": row_tags(ticket),
+		"cloche": row_bell(ticket),
 		"client": ticket.customer_name or ticket.customer,
 		"commercial": ticket.nom_commercial or ticket.commercial,
 		"request_type": ticket.request_type,

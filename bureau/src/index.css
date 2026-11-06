@@ -1517,6 +1517,32 @@
 	.list-more-btn[aria-expanded='true'] {
 		@apply bg-surface-gray-4;
 	}
+	/* Cloche de la ligne : discrète tant qu'elle est éteinte, ambre et pleine une fois posée. */
+	.list-bell {
+		display: flex;
+		flex: none;
+		align-items: center;
+		justify-content: center;
+		width: 30px;
+	}
+	.list-bell .list-bell-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		border-radius: var(--radius-pill);
+		@apply text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8;
+	}
+	.list-bell .list-bell-btn[aria-pressed='true'] {
+		color: var(--tone-amber-ink);
+	}
+	.list-bell .list-bell-btn[aria-pressed='true'] svg {
+		fill: currentColor;
+	}
+	.list-head .list-bell .list-bell-btn[aria-pressed='true'] {
+		background-color: var(--tone-amber-soft);
+	}
 	.list-head button > span:empty {
 		display: none;
 	}

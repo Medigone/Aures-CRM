@@ -43,6 +43,7 @@ export const SORTABLE_COLUMNS = COLUMNS.filter((column) => column.sortable)
 const CHECK_WIDTH = 32
 const COLUMN_GAP = 8
 const MENU_WIDTH = 30
+const BELL_WIDTH = 30
 const TRAY_BORDER = 2
 
 /** La colonne Client reste toujours affichée ; une clé inconnue, venue d'un ancien réglage, est ignorée. */
@@ -58,7 +59,7 @@ export function gridTemplate<Row>(columns: Column<Row>[]) {
 }
 
 export function minListWidth<Row>(columns: Column<Row>[]) {
-	return CHECK_WIDTH + MENU_WIDTH + TRAY_BORDER + columns.reduce((sum, column) => sum + column.width, 0) + COLUMN_GAP * (columns.length - 1)
+	return CHECK_WIDTH + BELL_WIDTH + MENU_WIDTH + TRAY_BORDER + columns.reduce((sum, column) => sum + column.width, 0) + COLUMN_GAP * (columns.length - 1)
 }
 
 export function sortText(sort: Sort | null) {

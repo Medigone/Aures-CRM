@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { conditionLabel, conditionsForServer, describeCondition, isComplete, kindOf, newCondition, operatorsOf, searchFields, withDoctypeFields, withField, type FilterField } from './filters'
+import { conditionLabel, conditionsForServer, describeCondition, hasBell, isComplete, kindOf, newCondition, operatorsOf, searchFields, toggleBell, withDoctypeFields, withField, type Condition, type FilterField } from './filters'
 
 describe('filtres de la file', () => {
 	it('décrit un filtre actif en clair', () => {
@@ -67,5 +67,23 @@ describe('filtres sur tous les champs du doctype', () => {
 	it('la pastille d’un ticket décrit aussi un champ du doctype', () => {
 		const references = { types: [], statuses: [], urgences: [], creances: [], assignees: [], nobody: 'x', filter_fields: extra }
 		expect(conditionLabel({ id: 1, field: 'champ:custom_grammage', op: 'egal', value: '60' }, references)).toBe('Grammage égal à 60')
+	})
+})
+
+describe('cloche', () => {
+	it("s'allume puis s'éteint sans toucher aux autres filtres", () => {
+		const other: Condition = { id: 4, field: 'tag', op: 'contient', value: 'x' }
+		const on = toggleBell([other])
+		expect(on).toEqual([other, { id: 5, field: 'cloche', op: 'est', value: '1' }])
+		expect(hasBell(on)).toBe(true)
+		expect(toggleBell(on)).toEqual([other])
+	})
+
+	it("une condition « n'est pas » n'allume pas l'en-tête", () => {
+		expect(hasBell([{ id: 1, field: 'cloche', op: 'nest', value: '1' }])).toBe(false)
+	})
+
+	it('a une pastille lisible', () => {
+		expect(conditionLabel({ id: 1, field: 'cloche', op: 'est', value: '1' }, null)).toBe('Cloche est activée')
 	})
 })

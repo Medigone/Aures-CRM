@@ -2,7 +2,7 @@
 import { fieldVisible, isEmptyValue, type FicheDoc, type FicheField, type FicheSchema } from '@shared/fiche'
 import type { CommentSummary, Option } from '@/types'
 import type { ClientTicket } from './clients'
-import { describeCondition, withDoctypeFields, type Condition, type FilterField } from './filters'
+import { BELL_FIELD, describeCondition, withDoctypeFields, type Condition, type FilterField } from './filters'
 import { deskUrl, formatDay } from './display'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
@@ -26,6 +26,7 @@ export interface ArticleRow {
 	name: string
 	modified: string
 	tags: string[]
+	cloche: boolean
 	designation: string
 	type: string | null
 	client: string | null
@@ -223,7 +224,7 @@ export interface ArticleValues {
 }
 
 export const ARTICLE_COLUMNS: Column<ArticleRow>[] = [
-	{ key: 'designation', label: 'Article', width: 250, grow: 2, sortable: true, text: (row) => row.designation },
+	{ key: 'designation', label: 'Article', width: 216, grow: 2, sortable: true, text: (row) => row.designation },
 	{ key: 'name', label: 'Code', width: 118, sortable: true, text: (row) => row.name },
 	{ key: 'client_label', label: 'Client', width: 152, grow: 1, sortable: true, text: (row) => row.client_label || '' },
 	{ key: 'procede', label: 'Procédé', width: 100, sortable: true, text: (row) => row.procede || '' },
@@ -285,6 +286,7 @@ export const ARTICLE_FILTER_FIELDS: FilterField[] = [
 	{ value: 'designation', label: 'Désignation', kind: 'text' },
 	{ value: 'reference', label: 'Réf. client', kind: 'text' },
 	{ value: 'tag', label: 'Tag', kind: 'text' },
+	BELL_FIELD,
 ]
 
 export function articleFilterChoices(field: string, options: ArticleOptions | null): Option[] {

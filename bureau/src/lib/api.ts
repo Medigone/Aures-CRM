@@ -35,6 +35,9 @@ export function redirectToLogin() {
 	window.location.assign(target === HOME_PATH ? LOGIN_PATH : `${LOGIN_PATH}?redirect-to=${encodeURIComponent(target)}`)
 }
 
+/** La cloche d'une ligne : même écriture que le cœur du Desk, sans toucher à `modified`. */
+export const setBell = (doctype: string, name: string, on: boolean) => call('frappe.desk.like.toggle_like', { doctype, name, add: on ? 'Yes' : 'No' }, true)
+
 /** Connexion Frappe (même méthode que la page /login du site). */
 export const login = (usr: string, pwd: string) => call<string>('login', { usr, pwd }, true)
 
