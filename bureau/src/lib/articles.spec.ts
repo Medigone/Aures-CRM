@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activationConsequence, cmjnHex, colorsAfterCard, newTeinte, teinteHex, teintesPayload, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSigle, articleSortText, changedFields, clientTone, creationCards, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
+import { activationConsequence, cmjnHex, colorsAfterCard, couleursSansDetail, newTeinte, teinteDetail, teinteHex, teintesPayload, prepresseState, type ArticleDetail, articleConditionLabel, articleDoc, articleFilterChoices, articleSigle, articleSortText, changedFields, clientTone, creationCards, ficheCards, ficheCardValues, ficheFormValues, finishesSummary, formatQuantity, formatRate, procedeLabel, procedeTone, validateArticle, visibleArticleColumns, type ArticleOptions } from './articles'
 
 const offset = "eval: doc.custom_procédé == 'Offset'"
 const flexo = "eval: doc.custom_procédé == 'Flexo'"
@@ -168,5 +168,21 @@ describe('lecture de la fiche technique', () => {
 		const schema = { groups: [{ label: 'Offset', fields: [field('custom_tolérance_', 'Tolérance Grammage'), field('custom_support', 'Papier'), field('custom_grammage', 'Grammage')] }], fields: [] }
 		const [card] = ficheCardValues(schema, { 'custom_tolérance_': '± 5 %', custom_support: 'BBTB', custom_grammage: '275' })
 		expect(card.rows.map((row) => row.label)).toEqual(['Papier', 'Grammage', 'Tolérance Grammage'])
+	})
+})
+
+describe('couleurs du tiroir', () => {
+	it('sans détail, garde le mot du champ et annonce le nombre', () => {
+		expect(couleursSansDetail('CMJN')).toBe('CMJN')
+		expect(couleursSansDetail('CMJN + 3')).toBe('CMJN + 3')
+		expect(couleursSansDetail('1')).toBe('1 couleur, détail non renseigné')
+		expect(couleursSansDetail('4')).toBe('4 couleurs, détail non renseigné')
+		expect(couleursSansDetail('')).toBeNull()
+		expect(couleursSansDetail(null)).toBeNull()
+	})
+	it('nomme la nature de la couleur sous son code', () => {
+		expect(teinteDetail({ ...newTeinte('CMJN'), nom: 'Noir' })).toBe('CMJN · Noir')
+		expect(teinteDetail(newTeinte('Pantone'))).toBe('Pantone')
+		expect(teinteDetail({ ...newTeinte('Pantone'), needs_suffix: 1 })).toBe('Précisez C ou U')
 	})
 })

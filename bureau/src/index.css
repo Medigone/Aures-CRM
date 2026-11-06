@@ -194,6 +194,24 @@
 		margin: 0;
 		@apply font-medium;
 	}
+	.bureau-drawer-facts-3 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.bureau-drawer-facts-3 dd {
+		overflow-wrap: anywhere;
+	}
+	.bureau-drawer-colors {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin: 0;
+	}
+	.bureau-drawer-colors dt {
+		@apply text-xs text-ink-gray-6;
+	}
+	.bureau-drawer-colors dd {
+		margin: 0;
+	}
 	/* Dans le tiroir, les cartes de la fiche deviennent de simples sections. */
 	.bureau-drawer .card {
 		border-width: 1px 0 0;
@@ -850,6 +868,37 @@
 		color: var(--ink-gray-6);
 		font-size: 0.75rem;
 		line-height: 1rem;
+	}
+	.color-resume {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.5rem 0.875rem;
+		margin-bottom: 0.25rem;
+	}
+	.color-resume-line {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-width: 0;
+	}
+	.color-resume-line .color-swatch {
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: 0.25rem;
+	}
+	.color-resume-code {
+		display: block;
+		color: var(--ink-gray-9);
+		font-weight: 500;
+		line-height: 1.2;
+		font-variant-numeric: tabular-nums;
+		overflow-wrap: anywhere;
+	}
+	.color-resume-detail {
+		display: block;
+		color: var(--ink-gray-6);
+		font-size: var(--text-xs);
+		line-height: 1.25;
 	}
 	.color-inputs {
 		display: flex;

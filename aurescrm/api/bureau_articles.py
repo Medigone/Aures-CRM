@@ -114,6 +114,25 @@ def support_label(item):
 	return " ".join(part for part in (paper, f"{grammage} g" if grammage else None) if part) or None
 
 
+def technical_summary(item):
+	"""Support et grammage séparés pour le résumé du tiroir ; en Flexo et en salle blanche, l'épaisseur tient lieu de grammage."""
+	procede = item.get(PROCEDE_FIELD)
+	if procede == FLEXO:
+		epaisseur = item.get("custom_epaisseur")
+		grammage = cstr(item.get("custom_grammage_support")).replace(" Gr", "")
+		grammage = f"{grammage} g/m²" if grammage else None
+		if epaisseur and grammage:
+			mesure_label = "Épaisseur · grammage"
+		else:
+			mesure_label = "Grammage" if grammage else "Épaisseur"
+		mesure = " · ".join(part for part in (epaisseur, grammage) if part) or None
+		return {"support": item.get("custom_type_support") or None, "mesure_label": mesure_label, "mesure": mesure}
+	if procede == SALLE_BLANCHE:
+		return {"support": item.get("custom_découpe") or None, "mesure_label": "Épaisseur", "mesure": item.get("custom_epaisseur_sb") or None}
+	grammage = item.get("custom_grammage")
+	return {"support": item.get("custom_support") or None, "mesure_label": "Grammage", "mesure": f"{grammage} g/m²" if grammage else None}
+
+
 def format_label(item):
 	"""Dimensions selon le procédé, en millimètres : « 100×200×34 »."""
 	procede = item.get(PROCEDE_FIELD)
@@ -424,6 +443,7 @@ def _article_payload(doc):
 		"procede": _procede(doc),
 		"support": support_label(doc),
 		"format": format_label(doc),
+		"resume_technique": technical_summary(doc),
 		"reference": doc.custom_code_client,
 		"ancien_code": doc.custom_ancien_code,
 		"groupe": doc.item_group,

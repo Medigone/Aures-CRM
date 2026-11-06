@@ -8,9 +8,10 @@ import LucideX from '~icons/lucide/x'
 import { exactTime, relativeTime } from '@shared/activity'
 import CommentText from '@shared/components/CommentText.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
+import ArticleColorsResume from './ArticleColorsResume.vue'
 import ClientTicketsTable from './ClientTicketsTable.vue'
 import TagEditor from './TagEditor.vue'
-import { posesLabel } from '@/lib/articles'
+import { couleursSansDetail, posesLabel } from '@/lib/articles'
 import { formatDay } from '@/lib/display'
 import { useArticle } from '@/lib/useArticle'
 
@@ -30,6 +31,10 @@ function onPointerDown(event: PointerEvent) {
 onMounted(() => document.addEventListener('pointerdown', onPointerDown))
 onBeforeUnmount(() => document.removeEventListener('pointerdown', onPointerDown))
 
+const technique = computed(() => article.value?.resume_technique)
+const teintes = computed(() => article.value?.teintes ?? [])
+const couleurs = computed(() => couleursSansDetail(article.value?.couleurs))
+const ficheVide = computed(() => !technique.value?.support && !technique.value?.mesure && !article.value?.format && !teintes.value.length && !couleurs.value)
 const openTickets = computed(() => (article.value?.tickets ?? []).filter((ticket) => ticket.is_open))
 const lastOrder = computed(() => article.value?.commandes[0]?.transaction_date)
 const prepresse = computed(() => {
@@ -85,16 +90,33 @@ function onTags(tags: string[]) {
 					<TagEditor class="mt-1.5" doctype="Item" :name="article.name" :modified="article.modified" :tags="article.tags" :can-edit="article.can_edit" @changed="onTags" />
 				</div>
 
-				<dl class="bureau-drawer-facts">
-					<div><dt>Client</dt><dd class="truncate"><RouterLink v-if="article.client" class="ref-link" :to="{ name: 'Client', params: { id: article.client } }">{{ article.client_label }}</RouterLink><template v-else>—</template></dd></div>
-					<div><dt>Commercial</dt><dd class="truncate" :title="article.commercial || undefined">{{ article.commercial || '—' }}</dd></div>
-					<div><dt>Support</dt><dd class="truncate" :title="article.support || undefined">{{ article.support || '—' }}</dd></div>
-					<div><dt>Format</dt><dd class="tabular-nums">{{ article.format ? `${article.format} mm` : '—' }}</dd></div>
-					<div><dt>Couleurs</dt><dd class="truncate">{{ article.couleurs || '—' }}</dd></div>
+				<dl class="bureau-drawer-facts bureau-drawer-facts-3">
+					<div><dt>Client</dt><dd><RouterLink v-if="article.client" class="ref-link inline-link" :to="{ name: 'Client', params: { id: article.client } }">{{ article.client_label }}</RouterLink><template v-else>—</template></dd></div>
+					<div><dt>Commercial</dt><dd>{{ article.commercial || '—' }}</dd></div>
 					<div><dt>Dernière commande</dt><dd class="tabular-nums">{{ formatDay(lastOrder) || 'Aucune' }}</dd></div>
 				</dl>
 
 				<p v-if="article.ecart_bat" role="status" class="rounded-control tone-amber px-3 py-2 text-sm"><strong class="font-semibold">Le BAT validé ne couvre pas la maquette active.</strong> {{ article.ecart_bat.bat }} porte sur {{ article.ecart_bat.maquette_bat }}, la version activée est {{ article.ecart_bat.maquette_active }}.</p>
+
+				<section v-if="article.type !== 'Général' || !ficheVide" class="card flex flex-col gap-2">
+					<div class="flex items-baseline justify-between gap-2">
+						<h3 class="text-base font-semibold">Fiche technique</h3>
+						<button v-if="article.type !== 'Général' && (!ficheVide || article.can_edit)" type="button" class="text-sm text-link" @click="emit('open', 'technique')">{{ ficheVide ? 'Compléter' : 'Voir tout' }}</button>
+					</div>
+					<p v-if="ficheVide" class="text-ink-gray-6">Fiche technique non renseignée.</p>
+					<template v-else>
+						<dl class="bureau-drawer-facts bureau-drawer-facts-3">
+							<div><dt>Support</dt><dd :class="!technique?.support && 'font-normal text-ink-gray-6'">{{ technique?.support || '—' }}</dd></div>
+							<div><dt>Format</dt><dd class="tabular-nums" :class="!article.format && 'font-normal text-ink-gray-6'">{{ article.format ? `${article.format} mm` : '—' }}</dd></div>
+							<div><dt>{{ technique?.mesure_label }}</dt><dd class="tabular-nums" :class="!technique?.mesure && 'font-normal text-ink-gray-6'">{{ technique?.mesure || '—' }}</dd></div>
+						</dl>
+						<dl class="bureau-drawer-colors">
+							<dt>Couleurs<template v-if="teintes.length"> · {{ teintes.length }}</template></dt>
+							<dd v-if="teintes.length"><ArticleColorsResume :teintes="teintes" /></dd>
+							<dd v-else class="font-medium" :class="!couleurs && 'font-normal text-ink-gray-6'">{{ couleurs || 'Non renseignées' }}</dd>
+						</dl>
+					</template>
+				</section>
 
 				<section v-if="article.type !== 'Général'" class="card flex flex-col gap-1">
 					<h3 class="text-base font-semibold">Prépresse</h3>

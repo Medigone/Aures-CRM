@@ -88,6 +88,7 @@ export interface ArticleDetail {
 	type: string | null
 	procede: string | null
 	support: string | null
+	resume_technique: { support: string | null; mesure_label: string; mesure: string | null }
 	format: string | null
 	reference: string | null
 	ancien_code: string | null
@@ -177,6 +178,19 @@ export function cmjnHex(c: number, m: number, j: number, n: number) {
 
 export function teinteHex(teinte: ArticleTeinte) {
 	return teinte.type_couleur === 'CMJN' ? cmjnHex(teinte.c, teinte.m, teinte.j, teinte.n) : (teinte.hex ?? null)
+}
+
+/** Ce qu'on lit sous le code d'une couleur dans le tiroir : sa nature, puis son nom. */
+export function teinteDetail(teinte: ArticleTeinte) {
+	if (teinte.needs_suffix) return 'Précisez C ou U'
+	return [teinte.type_couleur, teinte.nom].filter(Boolean).join(' · ')
+}
+
+/** Les couleurs d'un article sans détail : le champ tel quel, « CMJN » par exemple, ou le nombre annoncé. */
+export function couleursSansDetail(couleurs: string | null | undefined) {
+	const value = (couleurs ?? '').trim()
+	if (!/^\d+$/.test(value)) return value || null
+	return `${value} ${Number(value) > 1 ? 'couleurs' : 'couleur'}, détail non renseigné`
 }
 
 /** Ce qui part au serveur : sans les lignes laissées vides ni ce qui ne sert qu'à l'affichage. */

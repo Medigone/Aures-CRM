@@ -37,6 +37,8 @@ const detail = {
 	parent_label: null,
 	quantite_parent: 0,
 	wilaya: 'Sétif',
+	resume_technique: { support: 'BBTB', mesure_label: 'Grammage', mesure: '275 g/m²' },
+	teintes: [{ type_couleur: 'Pantone', code: '186 C', nom: '', c: 0, m: 0, j: 0, n: 0, hex: '#d2142b' }, { type_couleur: 'CMJN', code: 'N100', nom: 'Noir', c: 0, m: 0, j: 0, n: 100 }],
 	commercial_user: 's@example.com',
 	image: null,
 	own_image: false,
@@ -131,6 +133,8 @@ describe('page Articles', () => {
 		expect(wrapper.text()).toContain('BAT-P Validé')
 		expect(wrapper.text()).toContain('Composé')
 		expect(wrapper.text()).toContain('Aucun')
+		expect(wrapper.find('.list-head .list-cols button').text()).toMatch(/^Article\s+2/)
+		expect(wrapper.find('.page-head .page-count').exists()).toBe(false)
 		await wrapper.findAll('.bureau-toolbar button').find((button) => button.text().startsWith('Filtres'))!.trigger('click')
 		expect(wrapper.findAll('select[aria-label="Afficher"] option').map((option) => option.text())).toContain('Sans BAT validé (1)')
 		wrapper.unmount()
@@ -145,6 +149,32 @@ describe('page Articles', () => {
 		await wrapper.find('.bureau-drawer-head .btn-primary').trigger('click')
 		await flushPromises()
 		expect(router.currentRoute.value.name).toBe('Article')
+		wrapper.unmount()
+	})
+
+	it('le tiroir résume la fiche technique, et ouvre son onglet', async () => {
+		const { wrapper, router } = await open('/articles?apercu=CLI-1-003')
+		const fiche = wrapper.findAll('.bureau-drawer section').find((section) => section.text().startsWith('Fiche technique'))!
+		expect(fiche.text()).toContain('BBTB')
+		expect(fiche.text()).toContain('100×200×34 mm')
+		expect(fiche.text()).toContain('275 g/m²')
+		expect(fiche.text()).toContain('Couleurs · 2')
+		expect(fiche.findAll('.color-resume-code').map((code) => code.text())).toEqual(['186 C', 'N100'])
+		expect(fiche.findAll('.color-resume-detail').map((detail) => detail.text())).toEqual(['Pantone', 'CMJN · Noir'])
+		expect(fiche.find('.color-swatch').attributes('style')).toContain('background')
+		await fiche.find('button').trigger('click')
+		await flushPromises()
+		expect(router.currentRoute.value.name).toBe('Article')
+		expect(router.currentRoute.value.query.onglet).toBe('technique')
+		wrapper.unmount()
+	})
+
+	it('sans détail, le tiroir garde le mot CMJN, sans carré', async () => {
+		current = { ...current, 'bureau_articles.get_article': { ...detail, teintes: [] } }
+		const { wrapper } = await open('/articles?apercu=CLI-1-003')
+		const fiche = wrapper.findAll('.bureau-drawer section').find((section) => section.text().startsWith('Fiche technique'))!
+		expect(fiche.find('.bureau-drawer-colors dd').text()).toBe('CMJN')
+		expect(fiche.find('.color-swatch').exists()).toBe(false)
 		wrapper.unmount()
 	})
 

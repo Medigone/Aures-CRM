@@ -1263,6 +1263,17 @@ class TestArticles(FrappeTestCase):
 		self.assertEqual(bureau_articles.format_label({"custom_procédé": "Salle Blanche Pharma", "custom_laize": "670 mm"}), "Laize 670")
 		self.assertIsNone(bureau_articles.support_label({"custom_procédé": "Offset"}))
 
+	def test_le_resume_technique_separe_le_support_de_sa_mesure(self):
+		from aurescrm.api import bureau_articles
+
+		summary = bureau_articles.technical_summary
+		self.assertEqual(summary({"custom_procédé": "Offset", "custom_support": "BBTB", "custom_grammage": "275"}), {"support": "BBTB", "mesure_label": "Grammage", "mesure": "275 g/m²"})
+		self.assertEqual(summary({"custom_procédé": "Offset"}), {"support": None, "mesure_label": "Grammage", "mesure": None})
+		self.assertEqual(summary({"custom_procédé": "Flexo", "custom_type_support": "BOPP Blanc Etiquette", "custom_epaisseur": "30µ"}), {"support": "BOPP Blanc Etiquette", "mesure_label": "Épaisseur", "mesure": "30µ"})
+		self.assertEqual(summary({"custom_procédé": "Flexo", "custom_epaisseur": "20µ", "custom_grammage_support": "60 Gr"})["mesure"], "20µ · 60 g/m²")
+		self.assertEqual(summary({"custom_procédé": "Flexo", "custom_grammage_support": "60 Gr"})["mesure_label"], "Grammage")
+		self.assertEqual(summary({"custom_procédé": "Salle Blanche Pharma", "custom_découpe": "Aluminium 20µ", "custom_epaisseur_sb": "20µ"}), {"support": "Aluminium 20µ", "mesure_label": "Épaisseur", "mesure": "20µ"})
+
 	def test_cree_un_article_client_avec_son_code(self):
 		name = self._create(fiche={"custom_support": frappe.db.get_value("Type Papier", {}, "name")})
 		self.assertTrue(name.startswith(f"{self.client}-"))

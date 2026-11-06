@@ -76,6 +76,7 @@ onBeforeUnmount(() => {
 		:state="state"
 		:rows="state.articles.value"
 		title="Articles"
+		count-column="designation"
 		noun="article"
 		search-label="Rechercher un article"
 		search-placeholder="Désignation, code, réf. client, client"
