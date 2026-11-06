@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import type { UploadedFile } from '@shared/api'
 import FileUploader from '@shared/components/FileUploader.vue'
 import { RouterLink, useRouter } from 'vue-router'
@@ -12,6 +12,7 @@ import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import ArticleDialog from './ArticleDialog.vue'
 import ArticleColors from './ArticleColors.vue'
+import ArticleDuplicateDialog from './ArticleDuplicateDialog.vue'
 import BatImportDialog from './BatImportDialog.vue'
 import ArticleDocuments from './ArticleDocuments.vue'
 import ArticleImage from './ArticleImage.vue'
@@ -198,6 +199,15 @@ function onBatSaved(updated: ArticleDetail, message: string) {
 	feed.value?.refresh()
 	emit('changed')
 }
+const duplicating = ref(false)
+async function onDuplicated(name: string) {
+	const origin = article.value?.name
+	emit('changed')
+	await router.push({ name: 'Article', params: { id: name } })
+	// L'arrivée sur une autre fiche efface les messages : celui-ci passe après.
+	await nextTick()
+	notice.value = `Article ${name} créé à partir de ${origin}.`
+}
 const newSous = ref(false)
 function onSousCreated(updated: ArticleDetail, name: string) {
 	article.value = updated
@@ -250,10 +260,11 @@ const decisionsBar = ref<HTMLElement | null>(null)
 							<button v-if="ticketClient" type="button" class="btn-primary flex-auto" @click="newTicket = true">Nouveau ticket</button>
 							<button v-if="article.can_edit" type="button" :class="ticketClient ? 'btn-secondary' : 'btn-primary flex-auto'" :disabled="busy" @click="editing = true">Modifier</button>
 							<MoreMenu>
+								<button v-if="article.droits_duplication.article" type="button" class="app-menu-item" role="menuitem" :disabled="busy || !options" @click="duplicating = true">Dupliquer l'article</button>
 								<button v-if="article.can_edit && !article.compose && !article.sous_article && !general" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="transform">Transformer en article composé</button>
 								<button v-if="article.can_edit && article.compose" type="button" class="app-menu-item" role="menuitem" @click="newSous = true">Créer un sous-article</button>
 								<a v-if="!general" class="app-menu-item" role="menuitem" :href="deskUrl('Item', article.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Étude de faisabilité sur le Desk</a>
-								<div v-if="!general || article.can_edit" class="app-menu-sep"></div>
+								<div v-if="!general || article.can_edit || article.droits_duplication.article" class="app-menu-sep"></div>
 								<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 								<a class="app-menu-item" role="menuitem" :href="deskUrl('Item', article.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
 							</MoreMenu>
@@ -459,6 +470,7 @@ const decisionsBar = ref<HTMLElement | null>(null)
 
 		<ArticleDialog v-if="editing && article" :article="article" @close="editing = false" @saved="onSaved" />
 		<BatImportDialog v-if="importingBat && article" :article="article" :options="options" @close="importingBat = false" @saved="onBatSaved" />
+		<ArticleDuplicateDialog v-if="duplicating && article && options" :article="article" :options="options" @close="duplicating = false" @created="onDuplicated" />
 		<SousArticleDialog v-if="newSous && article" :article="article" @close="newSous = false" @created="onSousCreated" />
 		<NewTicketDialog v-if="newTicket && ticketClient" :initial-client="ticketClient" @close="newTicket = false" @created="onTicketCreated" />
 		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />

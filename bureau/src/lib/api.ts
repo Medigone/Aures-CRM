@@ -1,4 +1,5 @@
 /** File, tickets et actions. Les règles restent côté serveur (aurescrm/api/bureau.py). */
+import type { DuplicateKeep } from './articleDuplicate'
 import type { ListLayout } from './listViews'
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
 import { call, callForm } from '@shared/api'
@@ -255,6 +256,8 @@ export function analyzeBat(name: string, file: File) {
 export const searchPantone = (query: string) => call<{ exact: PantoneMatch | null; suggestions: PantoneMatch[] }>(`${ARTICLES}.search_pantone`, { query })
 
 export const createArticle = (values: ArticleValues) => call<{ name: string }>(`${ARTICLES}.create_article`, { values }, true)
+
+export const duplicateArticle = (name: string, values: { designation: string; client: string; reference: string; groupe: string }, keep: DuplicateKeep) => call<{ name: string }>(`${ARTICLES}.duplicate_article`, { name, values, keep }, true)
 
 export const updateArticle = (article: ArticleDetail, values: ArticleValues) => call<ArticleDetail>(`${ARTICLES}.update_article`, { name: article.name, modified: article.modified, values }, true)
 

@@ -2631,3 +2631,116 @@
 		}
 	}
 }
+
+/* Dupliquer un article */
+@layer components {
+	.dup-block {
+		@apply flex flex-col gap-1.5;
+	}
+	.dup-heading {
+		@apply font-semibold text-ink-gray-9;
+	}
+	.dup-note {
+		@apply text-sm text-ink-gray-6;
+	}
+	.dup-fixed {
+		@apply flex min-h-[var(--ctl)] items-center text-ink-gray-9;
+	}
+	.dup-list {
+		@apply rounded-control border;
+		border-color: var(--outline-gray-2);
+	}
+	.dup-item + .dup-item {
+		@apply border-t;
+		border-color: var(--outline-gray-1);
+	}
+	.dup-row {
+		@apply flex items-center gap-2 px-2.5 py-1.5;
+	}
+	.dup-pick {
+		@apply flex min-w-0 flex-auto cursor-pointer items-start gap-2.5 py-0.5;
+	}
+	.dup-pick[data-off='true'] {
+		@apply cursor-not-allowed;
+	}
+	.dup-pick[data-off='true'] .dup-title {
+		@apply text-ink-gray-6;
+	}
+	.dup-pick input {
+		@apply mt-0.5;
+	}
+	.dup-text {
+		@apply flex min-w-0 flex-col gap-px;
+	}
+	.dup-title {
+		@apply font-medium text-ink-gray-9;
+	}
+	.dup-sub {
+		@apply text-sm text-ink-gray-6;
+		overflow-wrap: anywhere;
+	}
+	.dup-value {
+		@apply text-ink-gray-9;
+		overflow-wrap: anywhere;
+	}
+	.dup-chevron {
+		@apply h-7 w-7 flex-none;
+	}
+	.dup-chevron[aria-expanded='true'] svg {
+		transform: rotate(180deg);
+	}
+	.dup-fields {
+		@apply grid gap-x-4 gap-y-1.5 pb-3 pl-9 pr-3 pt-1;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.dup-dots {
+		@apply mt-1 inline-flex gap-1;
+	}
+	.dup-dot {
+		@apply mt-0.5 inline-block h-3 w-3 flex-none rounded-full border;
+		border-color: var(--outline-gray-2);
+	}
+	.dup-warning {
+		@apply rounded-control px-3 py-2 text-sm;
+	}
+	.dup-never {
+		@apply flex flex-col gap-0.5 rounded-control px-3 py-2.5 text-sm text-ink-gray-7;
+		background-color: var(--tray);
+	}
+	.dup-never strong {
+		@apply font-semibold text-ink-gray-9;
+	}
+	.dup-summary {
+		@apply grid gap-x-6 gap-y-4;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.dup-kv {
+		@apply flex flex-col gap-2.5;
+	}
+	.dup-kv dt {
+		@apply text-sm text-ink-gray-6;
+	}
+	.dup-kv dd {
+		@apply text-ink-gray-9;
+	}
+	.dup-next {
+		@apply border-t pt-3.5;
+		border-color: var(--outline-gray-1);
+	}
+	.dup-next ol {
+		@apply flex list-decimal flex-col gap-1 pl-5 text-ink-gray-8;
+	}
+	@media (max-width: 720px) {
+		.dup-fields,
+		.dup-summary {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.dup-fields {
+			@apply pl-3;
+		}
+		/* Le compteur céderait sa place en poussant le bouton principal à la ligne. */
+		.article-duplicate .dialog-foot > span {
+			display: none;
+		}
+	}
+}

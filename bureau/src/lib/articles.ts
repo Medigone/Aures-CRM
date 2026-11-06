@@ -114,6 +114,7 @@ export interface ArticleDetail {
 	fichiers: { image: string | null; fiche_technique: string | null; trace_decoupe: string | null }
 	documents: ArticleDocument[]
 	droits_prepresse: { maquette: boolean; nouvelle_version: boolean; bat: boolean }
+	droits_duplication: { article: boolean; trace: boolean; imposition: boolean; maquette: boolean; plan_flexo: boolean }
 	fiche: Record<string, string | number>
 	teintes?: ArticleTeinte[]
 	prepresse: ArticlePrepresse

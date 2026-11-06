@@ -10,7 +10,7 @@ liste vide. La fiche technique suit `article_schema`, c'est-à-dire les sections
 
 import frappe
 from frappe import _
-from frappe.utils import cint, cstr, flt, get_fullname
+from frappe.utils import cint, cstr, flt, get_fullname, today
 from frappe.utils.file_manager import get_max_file_size
 
 from aurescrm import bat_import, pantone
@@ -476,6 +476,13 @@ def _article_payload(doc):
 		"sous_articles": _sous_articles(doc.name) if cint(doc.custom_article_compose) else [],
 		"comments": activity.comment_summary(ITEM, doc.name),
 		"can_edit": bool(doc.has_permission("write")),
+		"droits_duplication": {
+			"article": bool(frappe.has_permission(ITEM, "create")),
+			"trace": bool(frappe.has_permission("Trace", "create")),
+			"imposition": bool(frappe.has_permission("Imposition", "create")),
+			"maquette": bool(frappe.has_permission("Maquette", "create")),
+			"plan_flexo": bool(frappe.has_permission("Plan Flexo", "create")),
+		},
 		"droits_prepresse": {
 			"maquette": bool(frappe.has_permission("Maquette", "write")),
 			"nouvelle_version": bool(frappe.has_permission("Maquette", "create")),
@@ -517,11 +524,15 @@ def _duplicate_message(designation, client=None, current=None):
 	filters = {"item_code": label}
 	filters.update({"custom_client": client} if client else {"custom_type_article": TYPE_GENERAL})
 	existing = frappe.db.get_value(ITEM, filters, "name")
-	if not existing or existing == current:
-		return None
-	if client:
-		return _("Le client a déjà un article « {0} ».").format(label)
-	return _("Un article général « {0} » existe déjà.").format(label)
+	if existing and existing != current:
+		if client:
+			return _("Le client a déjà un article « {0} ».").format(label)
+		return _("Un article général « {0} » existe déjà.").format(label)
+	# Le code article est unique sur tout le catalogue, quel que soit le client.
+	other = frappe.db.get_value(ITEM, {"item_code": label}, "name")
+	if other and other != current:
+		return _("L'article {0} porte déjà la désignation « {1} ».").format(other, label)
+	return None
 
 
 def _check_unique(designation, client=None, current=None):
@@ -751,6 +762,196 @@ def create_article_bat(name, etude):
 	if result.get("status") != "success":
 		frappe.throw(result.get("message") or _("Le BAT n'a pas pu être créé."))
 	return _refreshed(name)
+
+
+def _new_item_from(source, item_code, kind, groupe, client=None):
+	"""Nouvel article qui ne reprend de sa source que son type, son procédé et son unité : le reste se choisit."""
+	new = frappe.new_doc(ITEM)
+	new.update(
+		{
+			"item_code": item_code,
+			"custom_type_article": kind,
+			"item_group": groupe,
+			"stock_uom": source.stock_uom,
+			"is_stock_item": source.is_stock_item,
+		}
+	)
+	if kind != TYPE_GENERAL:
+		new.custom_client = client
+		new.set(PROCEDE_FIELD, source.get(PROCEDE_FIELD))
+	return new
+
+
+def _copy_fiche(new, source, fieldnames):
+	"""Les valeurs viennent de la source et non de l'écran. Seuls les champs de la fiche technique passent."""
+	allowed = {field["fieldname"] for group in article_schema()["groups"] for field in group["fields"]}
+	for fieldname in fieldnames:
+		if fieldname not in allowed:
+			frappe.throw(_("Le champ {0} ne se reprend pas.").format(fieldname))
+		new.set(fieldname, source.get(fieldname))
+
+
+def _kept_colors(source, indexes=None):
+	lines = pantone.item_colors(source)
+	if indexes is None:
+		return lines
+	return [lines[index] for index in sorted({cint(index) for index in indexes}) if 0 <= index < len(lines)]
+
+
+def _unique_item_code(base):
+	candidate = base
+	number = 1
+	while frappe.db.exists(ITEM, {"item_code": candidate}):
+		candidate = f"{base}-{number}"
+		number += 1
+	return candidate
+
+
+def _duplicate_sous_article(source_name, parent, source_parent):
+	"""Le sous-article garde sa fiche et ses couleurs, et son suffixe suit la désignation du nouveau parent."""
+	source = frappe.get_doc(ITEM, source_name)
+	source.check_permission("read")
+	# La désignation et non le code : d'anciens sous-articles ont leur identifiant comme code.
+	label = cstr(source.item_name or source.item_code)
+	prefix = cstr(source_parent.item_name or source_parent.item_code)
+	suffix = label[len(prefix) :] if label.startswith(prefix) else f"-{label}"
+	child = _new_item_from(source, _unique_item_code(f"{parent.item_code}{suffix}".upper()), parent.custom_type_article, parent.item_group, parent.custom_client)
+	child.custom_sous_article = 1
+	child.custom_article_parent = parent.name
+	child.custom_quantite_sous_article = source.custom_quantite_sous_article
+	_copy_fiche(child, source, [name for name in article_fiche(source, article_schema()["fields"])])
+	pantone.set_item_colors(child, _kept_colors(source))
+	child.insert()
+	return child.name
+
+
+def _copy_trace(source, new):
+	row = frappe.db.get_value("Trace", {"article": source.name}, "name", order_by="creation desc")
+	if not row:
+		frappe.throw(_("L'article d'origine n'a pas de tracé à reprendre."))
+	trace = frappe.copy_doc(frappe.get_doc("Trace", row))
+	trace.article = new.name
+	trace.client = new.custom_client
+	trace.insert()
+	return trace.name
+
+
+def _copy_maquette(source, new):
+	"""La version active, sinon la dernière encore valable : elle repart en V1, à référencer, sans son historique."""
+	rows = frappe.get_all("Maquette", filters={"article": source.name, "status": ["not in", ["Obsolète", "Détruite"]]}, fields=["name", "status"], order_by="creation desc")
+	row = next((item for item in rows if item.status == MAQUETTE_ACTIVE), rows[0] if rows else None)
+	if not row:
+		frappe.throw(_("L'article d'origine n'a pas de maquette à reprendre."))
+	maquette = frappe.copy_doc(frappe.get_doc("Maquette", row.name))
+	maquette.update(
+		{
+			"name": None,
+			"article": new.name,
+			"client": new.custom_client,
+			"designation_art": new.item_code,
+			"status": "A référencer",
+			"ver": 1,
+			"date_creation": today(),
+			"date_activation": None,
+			"parent_maquette": None,
+			"desc_changements": None,
+			"pv_destruction": None,
+			"reference_par": None,
+			"nom_reference_par": None,
+			"id_responsable": frappe.session.user,
+		}
+	)
+	maquette.insert()
+
+
+def _copy_plan_flexo(source, new):
+	row = frappe.db.get_value("Plan Flexo", {"article": source.name}, "name", order_by="creation desc")
+	if not row:
+		frappe.throw(_("L'article d'origine n'a pas de plan à reprendre."))
+	plan = frappe.copy_doc(frappe.get_doc("Plan Flexo", row))
+	plan.article = new.name
+	plan.client = new.custom_client
+	plan.designation = new.item_code
+	plan.date = today()
+	plan.insert()
+
+
+def _copy_imposition(source, new, trace):
+	row = frappe.get_all("Imposition", filters={"article": source.name}, pluck="name", order_by="defaut desc, creation desc", limit_page_length=1)
+	if not row:
+		frappe.throw(_("L'article d'origine n'a pas d'imposition à reprendre."))
+	imposition = frappe.copy_doc(frappe.get_doc("Imposition", row[0]))
+	imposition.update({"article": new.name, "client": new.custom_client, "trace": trace, "calcul_imposition": None, "origine_calcul": "Manuel"})
+	imposition.insert()
+
+
+def _copy_documents(source, new):
+	"""Mêmes fichiers sur le disque. Ceux rangés dans un champ de la fiche suivent ce champ, s'il est repris."""
+	for row in _documents(source):
+		if row["roles"]:
+			continue
+		name = frappe.db.get_value("File", {"file_url": row["file_url"], "attached_to_doctype": ITEM, "attached_to_name": source.name}, "name")
+		frappe.get_doc("File", name).create_attachment_copy(ITEM, new.name, ignore_permissions=True)
+
+
+@frappe.whitelist(methods=["POST"])
+def duplicate_article(name, values=None, keep=None):
+	"""Crée un article à partir d'un autre. Ni les BAT, ni les études, ni les ventes, ni le fil ne suivent jamais."""
+	require_bureau()
+	source = frappe.get_doc(ITEM, name)
+	source.check_permission("read")
+	values, _fiche, _teintes = _clean_values(values)
+	keep = _parse(keep) or {}
+	general = source.custom_type_article == TYPE_GENERAL
+	sous_article = cint(source.custom_sous_article)
+	compose = cint(source.custom_article_compose)
+	client = None if general else source.custom_client if sous_article else values.get("client")
+	_require(values, ["designation", "groupe"] if general or sous_article else ["designation", "client", "groupe"])
+	_check_unique(values["designation"], client)
+	prepresse = set(keep.get("prepresse") or [])
+	if "imposition" in prepresse and "trace" not in prepresse:
+		frappe.throw(_("L'imposition se reprend avec le tracé."))
+
+	new = _new_item_from(source, values["designation"], source.custom_type_article, values["groupe"], client)
+	if not general:
+		new.custom_code_client = values.get("reference") or None
+		if compose:
+			# Sa fiche n'est pas affichée, mais ses futurs sous-articles la reprendront : elle suit entière.
+			new.custom_article_compose = 1
+			_copy_fiche(new, source, list(article_fiche(source, article_schema()["fields"])))
+			pantone.set_item_colors(new, _kept_colors(source))
+		else:
+			_copy_fiche(new, source, keep.get("fields") or [])
+			pantone.set_item_colors(new, _kept_colors(source, keep.get("teintes") or []))
+		if sous_article:
+			new.custom_sous_article = 1
+			new.custom_article_parent = source.custom_article_parent
+			new.custom_quantite_sous_article = source.custom_quantite_sous_article
+	for piece in keep.get("fichiers") or []:
+		if piece not in ARTICLE_FILES:
+			frappe.throw(_("Pièce inconnue."))
+		new.set(ARTICLE_FILES[piece], source.get(ARTICLE_FILES[piece]))
+	new.insert()
+
+	for sous in keep.get("sous_articles") or []:
+		if frappe.db.get_value(ITEM, sous, "custom_article_parent") != source.name:
+			frappe.throw(_("{0} n'est pas un sous-article de {1}.").format(sous, source.name))
+		_duplicate_sous_article(sous, new, source)
+	trace = _copy_trace(source, new) if "trace" in prepresse else None
+	if "maquette" in prepresse:
+		_copy_maquette(source, new)
+	if "plan_flexo" in prepresse:
+		_copy_plan_flexo(source, new)
+	if keep.get("documents"):
+		_copy_documents(source, new)
+	if keep.get("tags"):
+		for tag in row_tags(source.as_dict()):
+			new.add_tag(tag)
+	new.add_comment("Info", _("Dupliqué depuis {0} ({1}).").format(source.name, source.item_name))
+	# En dernier : l'enregistrement d'une imposition valide la transaction, tout doit être passé avant.
+	if "imposition" in prepresse:
+		_copy_imposition(source, new, trace)
+	return {"name": new.name}
 
 
 @frappe.whitelist(methods=["POST"])

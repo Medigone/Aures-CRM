@@ -1376,6 +1376,145 @@ class TestArticles(FrappeTestCase):
 		values.update(changes)
 		return bureau_articles.create_article(values)["name"]
 
+	def _source_complete(self):
+		"""Article avec fiche, couleurs, fichiers, tracé, maquette active et BAT validé."""
+		name = bureau_articles.create_article(
+			{
+				"type": "Client",
+				"designation": f"zzz source {frappe.generate_hash(length=8)}",
+				"client": self.client,
+				"procede": "Offset",
+				"groupe": self.groupe,
+				"reference": "REF-1",
+				"fiche": {"custom_cotations_article": "100x200x34", "custom_uv": 1, "custom_recto_verso": 1},
+				"teintes": [{"type_couleur": "CMJN", "code": "", "nom": "Noir", "c": 0, "m": 0, "j": 0, "n": 100}, {"type_couleur": "CMJN", "code": "", "nom": "Cyan", "c": 100, "m": 0, "j": 0, "n": 0}],
+			}
+		)["name"]
+		image = self._attach(name, "visuel.png")
+		autre = self._attach(name, "note.png")
+		doc = frappe.get_doc("Item", name)
+		doc.image = image.file_url
+		doc.custom_fiche_technique_article = image.file_url
+		doc.save()
+		doc.add_tag("zzz-duplique")
+		frappe.get_doc({"doctype": "Trace", "article": name, "client": self.client, "dimensions": "100x200", "procede": "Offset", "fichier_trace": image.file_url}).insert()
+		frappe.get_doc({"doctype": "Maquette", "article": name, "client": self.client, "status": "Version Activée", "ver": 3, "fichier_maquette": image.file_url}).insert()
+		return doc, image, autre
+
+	def _dupliquer(self, source, keep=None, **values):
+		values = {"designation": f"zzz copie {frappe.generate_hash(length=8)}", "client": self.client, "groupe": self.groupe, **values}
+		return bureau_articles.duplicate_article(source, values, keep or {})["name"]
+
+	def test_duplication_ne_reprend_que_le_choix(self):
+		source, _image, _autre = self._source_complete()
+		name = self._dupliquer(source.name, {"fields": ["custom_cotations_article"], "teintes": [1]})
+		copie = frappe.get_doc("Item", name)
+		self.assertNotEqual(name, source.name)
+		self.assertEqual(copie.custom_cotations_article, "100x200x34")
+		self.assertFalse(copie.custom_uv)
+		self.assertFalse(copie.custom_code_client)
+		self.assertFalse(copie.image)
+		self.assertFalse(copie.custom_fiche_technique_article)
+		self.assertEqual([row.nom for row in copie.custom_couleurs_article], ["Cyan"])
+		self.assertFalse(frappe.db.exists("Trace", {"article": name}))
+		self.assertFalse(frappe.db.exists("Maquette", {"article": name}))
+
+	def test_duplication_reprend_la_prepresse_sans_activer(self):
+		source, image, autre = self._source_complete()
+		keep = {"prepresse": ["trace", "maquette"], "fichiers": ["image"], "documents": True, "tags": True}
+		name = self._dupliquer(source.name, keep)
+		trace = frappe.get_doc("Trace", {"article": name})
+		self.assertEqual((trace.dimensions, trace.fichier_trace), ("100x200", image.file_url))
+		maquette = frappe.get_doc("Maquette", {"article": name})
+		self.assertEqual((maquette.status, maquette.ver), ("A référencer", 1))
+		self.assertFalse(maquette.date_activation)
+		self.assertEqual(frappe.db.get_value("Item", name, "image"), image.file_url)
+		urls = frappe.get_all("File", filters={"attached_to_doctype": "Item", "attached_to_name": name}, pluck="file_url")
+		self.assertIn(autre.file_url, urls)
+		self.assertEqual(urls.count(image.file_url), 1)
+		self.assertIn("zzz-duplique", bureau_articles.row_tags(frappe.get_doc("Item", name).as_dict()))
+		# Ni le BAT, ni les affaires : rien ne dit que le nouvel article est validé.
+		self.assertFalse(frappe.db.exists("BAT", {"article": name}))
+		self.assertFalse(frappe.db.get_value("Item", name, "custom_fiche_technique_article"))
+		self.assertEqual(frappe.db.get_value("Maquette", {"article": source.name}, "status"), "Version Activée")
+
+	def test_duplication_laisse_une_trace_dans_le_fil(self):
+		source, _image, _autre = self._source_complete()
+		name = self._dupliquer(source.name)
+		self.assertTrue(frappe.db.exists("Comment", {"reference_doctype": "Item", "reference_name": name, "comment_type": "Info", "content": ["like", f"Dupliqué depuis {source.name}%"]}))
+
+	def test_duplication_refuse_une_designation_prise_chez_un_autre_client(self):
+		source, _image, _autre = self._source_complete()
+		autre = frappe.db.get_value("Customer", {"disabled": 0, "name": ["!=", self.client]}, "name")
+		self.assertIn("porte déjà", bureau_articles.check_article_designation(source.item_code, autre)["message"])
+		with self.assertRaises(frappe.ValidationError):
+			self._dupliquer(source.name, designation=source.item_code, client=autre)
+
+	def test_duplication_pour_un_autre_client_change_les_liens(self):
+		source, _image, _autre = self._source_complete()
+		autre = frappe.db.get_value("Customer", {"disabled": 0, "name": ["!=", self.client]}, "name")
+		name = self._dupliquer(source.name, {"prepresse": ["trace"]}, client=autre)
+		self.assertEqual(frappe.db.get_value("Item", name, "custom_client"), autre)
+		self.assertEqual(frappe.db.get_value("Trace", {"article": name}, "client"), autre)
+
+	def test_duplication_imposition_exige_le_trace(self):
+		source, _image, _autre = self._source_complete()
+		with self.assertRaises(frappe.ValidationError):
+			self._dupliquer(source.name, {"prepresse": ["imposition"]})
+
+	def test_duplication_reprend_une_imposition(self):
+		source, _image, _autre = self._source_complete()
+		trace = frappe.db.get_value("Trace", {"article": source.name}, "name")
+		# L'enregistrement d'une imposition valide la transaction : sans ce patch, l'essai resterait en base.
+		with patch("frappe.db.commit"):
+			frappe.get_doc({"doctype": "Imposition", "article": source.name, "client": self.client, "trace": trace, "nbr_poses": 6}).insert()
+			name = self._dupliquer(source.name, {"prepresse": ["trace", "imposition"]})
+		imposition = frappe.get_doc("Imposition", {"article": name})
+		self.assertEqual(imposition.nbr_poses, 6)
+		self.assertEqual(imposition.trace, frappe.db.get_value("Trace", {"article": name}, "name"))
+		self.assertNotEqual(imposition.trace, trace)
+
+	def test_duplication_refuse_un_champ_hors_de_la_fiche(self):
+		source, _image, _autre = self._source_complete()
+		with self.assertRaises(frappe.ValidationError):
+			self._dupliquer(source.name, {"fields": ["custom_client"]})
+
+	def test_duplication_article_compose_et_sous_articles(self):
+		parent = self._create_for_duplicate_compose()
+		enfants = frappe.get_all("Item", filters={"custom_article_parent": parent}, pluck="name", order_by="name asc")
+		designation = f"zzz nouveau {frappe.generate_hash(length=8)}".upper()
+		name = bureau_articles.duplicate_article(parent, {"designation": designation, "client": self.client, "groupe": self.groupe}, {"sous_articles": enfants[:1]})["name"]
+		self.assertTrue(frappe.db.get_value("Item", name, "custom_article_compose"))
+		copies = frappe.get_all("Item", filters={"custom_article_parent": name}, fields=["name", "item_code", "custom_quantite_sous_article", "custom_sous_article"])
+		self.assertEqual(len(copies), 1)
+		self.assertTrue(copies[0].item_code.startswith(designation))
+		self.assertEqual(copies[0].custom_quantite_sous_article, 2)
+		self.assertEqual(copies[0].custom_sous_article, 1)
+		self.assertEqual(frappe.db.count("Item", {"custom_article_parent": parent}), 2)
+
+	def _create_for_duplicate_compose(self):
+		parent = bureau_articles.create_article({"type": "Client", "designation": f"zzz compose {frappe.generate_hash(length=8)}", "client": self.client, "procede": "Offset", "groupe": self.groupe})["name"]
+		doc = frappe.get_doc("Item", parent)
+		bureau_articles.make_composed(parent, str(doc.modified))
+		bureau_articles.add_sous_article(parent, "etiquette", 2)
+		bureau_articles.add_sous_article(parent, "bouchon", 1)
+		return parent
+
+	def test_duplication_sous_article_reste_sous_son_parent(self):
+		parent = self._create_for_duplicate_compose()
+		enfant = frappe.get_all("Item", filters={"custom_article_parent": parent}, pluck="name", order_by="name asc")[0]
+		name = bureau_articles.duplicate_article(enfant, {"designation": f"zzz sous {frappe.generate_hash(length=8)}", "groupe": self.groupe}, {})["name"]
+		copie = frappe.get_doc("Item", name)
+		self.assertEqual(copie.custom_article_parent, parent)
+		self.assertEqual(copie.custom_client, self.client)
+		self.assertEqual(copie.custom_quantite_sous_article, 2)
+
+	def test_duplication_article_general(self):
+		source = bureau_articles.create_article({"type": "Général", "designation": f"zzz matiere {frappe.generate_hash(length=8)}", "groupe": self.groupe})["name"]
+		name = bureau_articles.duplicate_article(source, {"designation": f"zzz matiere {frappe.generate_hash(length=8)}", "groupe": self.groupe}, {})["name"]
+		self.assertEqual(frappe.db.get_value("Item", name, "custom_type_article"), "Général")
+		self.assertFalse(frappe.db.get_value("Item", name, "custom_client"))
+
 	def test_libelles_selon_le_procede(self):
 		offset = {"custom_procédé": "Offset", "custom_support": "BBTB", "custom_grammage": "275", "custom_cotations_article": "100x200x34"}
 		self.assertEqual(bureau_articles.support_label(offset), "BBTB 275 g")

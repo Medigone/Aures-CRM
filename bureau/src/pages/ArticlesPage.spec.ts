@@ -45,6 +45,7 @@ const detail = {
 	fichiers: { image: null, fiche_technique: '/private/files/ft.pdf', trace_decoupe: null },
 	documents: [{ file_name: 'ft.pdf', file_url: '/private/files/ft.pdf', file_size: 2048, owner_name: 'Back Office', creation: '2026-11-04 10:00:00', roles: ['fiche_technique'] }],
 	droits_prepresse: { maquette: true, nouvelle_version: true, bat: true },
+	droits_duplication: { article: true, trace: true, imposition: true, maquette: true, plan_flexo: true },
 	fiche: { custom_support: 'BBTB', custom_uv: 1 },
 	prepresse: {
 		maquettes: [{ name: 'MAQ-V3', status: 'Version Activée', ver: 3, resume_couleurs: 'CMJN', date_creation: '2026-10-20', desc_changements: 'Poids net', fichier_maquette: '/files/m.pdf' }],
