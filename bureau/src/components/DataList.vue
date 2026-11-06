@@ -45,8 +45,6 @@ const props = defineProps<{
 	}
 	rows: Row[]
 	title: string
-	/** Colonne dont l'en-tête porte le nombre de lignes, à la place du titre de la page. */
-	countColumn?: string
 	/** Nom d'une ligne au singulier, pour les messages : « ticket ». */
 	noun: string
 	searchLabel: string
@@ -291,7 +289,6 @@ onBeforeUnmount(() => {
 	<section :aria-label="`Liste des ${noun}s`" class="bureau-list">
 		<div class="page-head">
 			<h1 class="page-title">{{ title }}</h1>
-			<span v-if="!countColumn" class="page-count">{{ state.response.value ? state.total.value : '' }}</span>
 		</div>
 
 		<div class="bureau-toolbar">
@@ -389,15 +386,16 @@ onBeforeUnmount(() => {
 								<input type="checkbox" :aria-label="`Sélectionner tous les ${noun}s de la page`" :checked="allPicked" :indeterminate="pickedCount > 0 && !allPicked" :disabled="!rows.length" @change="toggleAll" />
 							</label>
 							<div class="list-cols" :style="colsStyle">
-								<template v-for="column in shown" :key="column.key">
-									<button v-if="column.sortable" type="button" :class="column.end && 'list-col-end'" :aria-label="`${sortLabel(column.key, column.label)}${column.key === countColumn && state.response.value ? `, ${state.total.value} ${noun}s` : ''}`" @click="setSort(column.key)">
+								<!-- La première colonne, toujours affichée, porte le nombre de lignes de la vue. -->
+								<template v-for="(column, position) in shown" :key="column.key">
+									<button v-if="column.sortable" type="button" :class="column.end && 'list-col-end'" :aria-label="`${sortLabel(column.key, column.label)}${position === 0 && state.response.value ? `, ${state.total.value} ${noun}s` : ''}`" @click="setSort(column.key)">
 										{{ column.label }}
-										<span v-if="column.key === countColumn && state.response.value" class="page-count font-normal">{{ state.total.value }}</span>
+										<span v-if="position === 0 && state.response.value" class="page-count font-normal">{{ state.total.value }}</span>
 										<span aria-hidden="true">{{ arrow(column.key) }}</span>
 									</button>
 									<span v-else class="list-head-plain gap-1">
 										{{ column.label }}
-										<span v-if="column.key === countColumn && state.response.value" class="page-count font-normal">{{ state.total.value }}</span>
+										<span v-if="position === 0 && state.response.value" class="page-count font-normal">{{ state.total.value }}</span>
 									</span>
 								</template>
 							</div>
