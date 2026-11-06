@@ -32,6 +32,8 @@ describe('affichage', () => {
 		expect(stepHelp('doc', ticket)).toContain('dossier essai à blanc')
 		expect(stepHelp('fin', ticket)).toBe('Terminez le ticket une fois la demande traitée.')
 		expect(stepHelp('fin', { ...ticket, status: 'Terminé' })).toBe('Ce ticket est clos.')
+		expect(stepHelp('fin', { ...ticket, pieces: [{ required: true, state: 'missing' }] })).toContain('Réunissez')
+		expect(stepHelp('fin', { ...ticket, pieces: [{ required: true, state: 'wait' }] })).toBe('Toutes les pièces sont réunies : vous pouvez terminer le ticket.')
 	})
 
 	it('présente les actions permises par le serveur, dans un ordre stable', () => {

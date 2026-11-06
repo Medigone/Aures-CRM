@@ -33,8 +33,8 @@ export function initials(name?: string | null) {
 	return words.length ? words.slice(0, 2).map((word) => word[0].toUpperCase()).join('') : '?'
 }
 
-/** Consigne de l'encart d'étape. */
-export function stepHelp(key: string, ticket: { request_type: string; status: string; pieces: { required: boolean }[] }) {
+/** Consigne de l'étape, affichée dans la frise. */
+export function stepHelp(key: string, ticket: { request_type: string; status: string; pieces: { required: boolean; state: string }[] }) {
 	const closed = ticket.status === 'Terminé' || ticket.status === 'Annulé'
 	switch (key) {
 		case 'recu':
@@ -57,7 +57,8 @@ export function stepHelp(key: string, ticket: { request_type: string; status: st
 			return 'Réunissez cette pièce : la carte Pièces du dossier dit ce qui manque.'
 		case 'fin':
 			if (closed) return 'Ce ticket est clos.'
-			return ticket.pieces.some((piece) => piece.required) ? 'Réunissez les pièces du dossier, puis terminez le ticket.' : 'Terminez le ticket une fois la demande traitée.'
+			if (ticket.pieces.some((piece) => piece.required && piece.state === 'missing')) return 'Réunissez les pièces du dossier, puis terminez le ticket.'
+			return ticket.pieces.some((piece) => piece.required) ? 'Toutes les pièces sont réunies : vous pouvez terminer le ticket.' : 'Terminez le ticket une fois la demande traitée.'
 		default:
 			return ''
 	}

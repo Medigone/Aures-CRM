@@ -5,7 +5,7 @@ Cahier des charges de la V1 et maquette : voir les liens transmis au projet.
 
 ## Lot 1 (livré) : lecture
 - **Liste de travail** : recherche, filtres combinables, choix de la vue avec ses compteurs dans le panneau Filtres, tri par urgence puis échéance.
-- **Ticket** : en-tête, étape active, demande du commercial, urgence à décider, pièces du dossier, créance, rapprochement, en lecture seule.
+- **Ticket** : en-tête, demande du commercial, urgence à décider, pièces du dossier, créance, rapprochement, en lecture seule.
 - **Colonne de droite** : timeline, documents (ouverts dans une nouvelle fenêtre), cycle du dossier (ouvert sur le Desk).
 - **Accès** : `Administrateur Ventes`, `System Manager`, `Administrator`. Les autres comptes reçoivent un refus, dans la page comme dans l'API.
 
@@ -127,6 +127,10 @@ Règle commune à tout `/bureau` : les actions d'un document sont dans la barre 
   - **Créance** : menu `Créance` (`HeaderMenu`). Bloquée ouvre le motif dans la carte, puis Bloquer le ticket ou Annuler le blocage dans la barre.
   - **Rapprochement** : on choisit un devis ou une autre issue et on commente dans la carte, puis Enregistrer la décision. Rien n'est écrit avant ce clic.
 - **Restent dans leur carte** : les ajouts propres à une carte (joindre un fichier, créer un sous-article).
+
+## Étapes du ticket
+
+La consigne de l'étape est dans la carte Étapes (`StepTimeline`), sous l'étape regardée : il n'y a plus d'encart au-dessus du dossier. Sur une autre étape que celle en cours, l'en-tête de la carte propose « Revenir à l'étape en cours ». L'encart `.step-hero` reste sur les fiches Demande et Article.
 
 ## Pièces du dossier
 

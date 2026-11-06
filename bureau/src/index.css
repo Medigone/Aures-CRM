@@ -2576,6 +2576,13 @@
 	}
 
 	/* Encart de l'étape affichée. */
+	.step-tip {
+		display: block;
+		margin-top: 0.125rem;
+		font-size: var(--text-sm);
+		font-weight: 400;
+		color: var(--selection-ink);
+	}
 	.step-hero {
 		@apply flex flex-col gap-1.5 rounded-card border p-3.5;
 		background-color: var(--selection);

@@ -193,16 +193,8 @@ function onTags(tags: string[]) {
 			<div class="bureau-detail">
 				<div class="bureau-center">
 					<p v-if="banner" class="rounded-control px-3.5 py-2.5" :class="banner.style">{{ banner.text }}</p>
-					<div v-if="viewed" class="step-hero">
-						<div class="flex flex-wrap items-baseline justify-between gap-2">
-							<span class="text-xs font-semibold text-selection-ink">Étape {{ viewIndex + 1 }} sur {{ ticket.steps.length }}</span>
-							<button v-if="viewIndex !== followIndex" type="button" class="min-h-[var(--ctl)] text-sm text-link" @click="viewStep = null">Revenir à l'étape en cours</button>
-						</div>
-						<h3 class="text-xl font-semibold">{{ viewed.label }}</h3>
-						<p class="text-selection-ink">{{ stepHelp(viewed.key, ticket) }}</p>
-						<p v-if="viewingDoc && !isEssai && !canCreateDemande && creation?.reason" class="rounded-control tone-amber px-3 py-2 text-sm">{{ creation.reason }}</p>
-						<p v-else-if="viewingDoc && canCreateDemande && ticket.devis_rapproche" class="text-sm text-selection-ink">Une demande reste possible si le devis ne couvre pas la commande : elle remplacera la décision de rapprochement.</p>
-					</div>
+					<p v-if="viewingDoc && !isEssai && !canCreateDemande && creation?.reason" class="rounded-control tone-amber px-3.5 py-2.5">{{ creation.reason }}</p>
+					<p v-else-if="viewingDoc && canCreateDemande && ticket.devis_rapproche" class="text-sm text-ink-gray-7">Une demande reste possible si le devis ne couvre pas la commande : elle remplacera la décision de rapprochement.</p>
 
 					<UrgenceCard v-if="urgencePending" :ticket="ticket" :busy="busy" :perform="perform" :actions-bar="decisionsBar" />
 
@@ -218,7 +210,7 @@ function onTags(tags: string[]) {
 				</div>
 
 				<div class="bureau-side">
-					<StepTimeline :steps="ticket.steps" :viewed="viewIndex" :current="ticket.current_step" @pick="pick" />
+					<StepTimeline :steps="ticket.steps" :viewed="viewIndex" :current="ticket.current_step" :focus="viewIndex" :tip="viewed ? stepHelp(viewed.key, ticket) : ''" :show-back="viewIndex !== followIndex" @pick="pick" @back="viewStep = null" />
 					<DocumentsCard :ticket="ticket" :busy="busy" :perform="perform" />
 				</div>
 			</div>

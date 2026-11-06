@@ -78,12 +78,6 @@ function onTags(tags: string[]) {
 				<p v-if="urgencePending" class="tone-amber rounded-control px-3 py-2 text-sm">Urgence {{ ticket.niveau_urgence_demande }} à décider : ouvrez la fiche pour répondre.</p>
 				<p v-if="banner" class="rounded-control px-3 py-2 text-sm" :class="banner.style">{{ banner.text }}</p>
 
-				<div class="step-hero">
-					<span class="text-xs font-semibold text-selection-ink">Étape {{ followIndex + 1 }} sur {{ ticket.steps.length }}</span>
-					<h3 class="text-base font-semibold">{{ ticket.steps[followIndex].label }}</h3>
-					<p class="text-sm text-selection-ink">{{ stepHelp(ticket.steps[followIndex].key, ticket) }}</p>
-				</div>
-
 				<dl class="bureau-drawer-facts">
 					<div><dt>Commercial</dt><dd class="truncate" :title="ticket.commercial || undefined">{{ ticket.commercial || '—' }}</dd></div>
 					<div><dt>Site</dt><dd class="truncate">{{ ticket.site || '—' }}</dd></div>
@@ -113,7 +107,7 @@ function onTags(tags: string[]) {
 						<button type="button" class="text-link" @click="emit('open', undefined, true)">Écrire le premier</button>
 					</p>
 				</section>
-				<StepTimeline :steps="ticket.steps" :viewed="-1" :current="ticket.current_step" @pick="emit('open', $event)" />
+				<StepTimeline :steps="ticket.steps" :viewed="-1" :current="ticket.current_step" :focus="followIndex" :tip="stepHelp(ticket.steps[followIndex].key, ticket)" @pick="emit('open', $event)" />
 				<DocumentsCard :ticket="ticket" :busy="busy" :perform="perform" />
 			</template>
 		</div>
