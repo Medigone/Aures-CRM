@@ -20,7 +20,7 @@ import BulkBar from './BulkBar.vue'
 import ExportDialog from './ExportDialog.vue'
 import { setBell } from '@/lib/api'
 import { rangeToggle } from '@/lib/bulk'
-import { saveCsv, type ExportQuery } from '@/lib/exports'
+import type { ExportQuery } from '@/lib/exports'
 import { hasBell, isComplete, toggleBell, type Condition, type FilterField } from '@/lib/filters'
 import { gridTemplate, minListWidth, nextSort, type Column, type Sort } from '@/lib/list'
 import { useBulk } from '@/lib/useBulk'
@@ -274,13 +274,13 @@ async function revealCreated() {
 }
 defineExpose({ revealCreated })
 
-/** Export des lignes cochées, sans passer par la fenêtre : elles sont déjà choisies. */
-function downloadSelection(rows: Row[], suffix: string) {
-	saveCsv(rows, shown.value, `${props.noun}s-${suffix}.csv`)
-}
-
 // Export : une fenêtre dédiée, ouverte sur la vue, les filtres et la recherche de la liste.
 const exportOpen = ref(false)
+const exportFromPicked = ref(false)
+function openExport(fromPicked: boolean) {
+	exportFromPicked.value = fromPicked
+	exportOpen.value = true
+}
 const exported = ref('')
 const exportFiltered = computed(() => viewFiltered.value || activeConditions.value.length > 0 || Boolean(props.state.search.value.trim()))
 
@@ -346,7 +346,7 @@ onBeforeUnmount(() => {
 					</button>
 				</div>
 			</div>
-			<button type="button" class="btn-secondary" @click="exportOpen = true">
+			<button type="button" class="btn-secondary" @click="openExport(false)">
 				<LucideDownload class="h-3.5 w-3.5" aria-hidden="true" />
 				Exporter
 			</button>
@@ -464,7 +464,7 @@ onBeforeUnmount(() => {
 				<ListPager :total="state.total.value" :page="state.page.value" :page-size="state.pageSize.value" :sizes="PAGE_SIZES" :sort-label="sortText" :disabled="state.loading.value" @update:page="state.goToPage" @update:page-size="state.setPageSize" />
 			</div>
 
-			<BulkBar v-if="bulkDoctype" :doctype="bulkDoctype" :noun="noun" :picked="picked" :bulk="bulk" @clear="clearPicked" @export="downloadSelection(picked, 'selection')" @deleted="onDeleted">
+			<BulkBar v-if="bulkDoctype" :doctype="bulkDoctype" :noun="noun" :picked="picked" :bulk="bulk" @clear="clearPicked" @export="openExport(true)" @deleted="onDeleted">
 				<template v-if="$slots.bulkActions" #default><slot name="bulkActions" :picked="picked" :bulk="bulk"></slot></template>
 			</BulkBar>
 			<slot name="drawer"></slot>
@@ -481,6 +481,9 @@ onBeforeUnmount(() => {
 			:fields="exportFields"
 			:initial="{ view: state.view.value, conditions: state.conditions.value, search: state.search.value }"
 			:filtered="exportFiltered"
+			:picked="picked"
+			:from-picked="exportFromPicked"
+			:condition-label="conditionLabel"
 			:fetch-rows="fetchRows"
 			@close="exportOpen = false"
 			@done="exported = $event; exportOpen = false"

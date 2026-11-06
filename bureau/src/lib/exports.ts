@@ -27,10 +27,13 @@ export function countText(count: number, noun: string) {
 export interface ExportColumnOption {
 	key: string
 	label: string
-	hint?: string
+	group: string
+	/** Vrai pour ce qui vient de l'application, faux pour les rubriques standard d'ERPNext. */
+	own: boolean
 	field?: FilterField
 }
 export const LINES_PER_REQUEST = 500
+export const LIST_RUBRIC = 'Colonnes de la liste'
 
 const listKey = (key: string) => `liste:${key}`
 export const listColumnKeys = <Row>(columns: Column<Row>[]) => columns.map((column) => listKey(column.key))
@@ -40,9 +43,22 @@ export function exportColumnOptions<Row>(columns: Column<Row>[], fields: FilterF
 	const taken = new Set(columns.map((column) => column.label.toLowerCase()))
 	const others = fields.filter((field) => field.field !== BELL_FILTER && (field.table || !taken.has(field.label.toLowerCase())))
 	return [
-		...columns.map((column) => ({ key: listKey(column.key), label: column.label, hint: 'Liste' })),
-		...others.map((field) => ({ key: field.value, label: fieldTitle(field), hint: field.group, field })),
+		...columns.map((column) => ({ key: listKey(column.key), label: column.label, group: LIST_RUBRIC, own: true })),
+		...others.map((field) => ({ key: field.value, label: fieldTitle(field), group: field.group ?? LIST_RUBRIC, own: !field.group || Boolean(field.own), field })),
 	]
+}
+
+/** Les rubriques : celles de la liste, puis celles qui portent des champs de l'application, puis les autres par ordre alphabétique. */
+export function exportRubrics(options: ExportColumnOption[]) {
+	const rubrics = new Map<string, { name: string; own: boolean; options: ExportColumnOption[] }>()
+	for (const option of options) {
+		const rubric = rubrics.get(option.group) ?? { name: option.group, own: false, options: [] }
+		rubric.own ||= option.own
+		rubric.options.push(option)
+		rubrics.set(option.group, rubric)
+	}
+	const all = [...rubrics.values()]
+	return [...all.filter((rubric) => rubric.own), ...all.filter((rubric) => !rubric.own).sort((a, b) => a.name.localeCompare(b.name, 'fr'))]
 }
 
 /** Recherche alphabétique, la même que pour le champ d'un filtre. */
@@ -52,16 +68,13 @@ export function searchLabels(options: ExportColumnOption[], query: string) {
 	return searchFields(asFields, query).map((item) => byKey.get(item.value)!)
 }
 
-/** Les colonnes cochées en tête, chaque groupe gardant son ordre alphabétique. */
-export function checkedFirst(options: ExportColumnOption[], checked: Set<string>) {
-	return [...options.filter((option) => checked.has(option.key)), ...options.filter((option) => !checked.has(option.key))]
-}
-
-/** Les colonnes du fichier : celles de la liste dans leur ordre, puis les champs dans l'ordre où ils ont été cochés. */
+/** Les colonnes du fichier, dans l'ordre choisi. */
 export function exportColumns<Row extends { name: string }>(selected: string[], columns: Column<Row>[], options: ExportColumnOption[], values: Record<string, Record<string, string | number>>): Column<Row>[] {
-	const chosen = new Set(selected)
+	const fromList = new Map(columns.map((column) => [listKey(column.key), column]))
 	const byKey = new Map(options.map((option) => [option.key, option]))
-	const fromFields = selected.flatMap((key) => {
+	return selected.flatMap((key) => {
+		const column = fromList.get(key)
+		if (column) return [column]
 		const option = byKey.get(key)
 		if (!option?.field) return []
 		const { field } = option
@@ -73,13 +86,31 @@ export function exportColumns<Row extends { name: string }>(selected: string[], 
 				sortable: false,
 				text: (row: Row) => {
 					const value = values[row.name]?.[key] ?? ''
-					const shown = field.choices?.find((item) => item.value === String(value))?.label
-					return shown ?? value
+					return field.choices?.find((item) => item.value === String(value))?.label ?? value
 				},
 			},
 		]
 	})
-	return [...columns.filter((column) => chosen.has(listKey(column.key))), ...fromFields]
+}
+
+const columnsKey = (doctype: string) => `bureau-export-colonnes:${doctype}`
+
+/** Le dernier choix de colonnes de cette liste, dans ce navigateur. */
+export function savedExportColumns(doctype: string): string[] | null {
+	try {
+		const saved = JSON.parse(localStorage.getItem(columnsKey(doctype)) ?? 'null')
+		return Array.isArray(saved) && saved.length && saved.every((key) => typeof key === 'string') ? saved : null
+	} catch {
+		return null
+	}
+}
+
+export function saveExportColumns(doctype: string, keys: string[]) {
+	try {
+		localStorage.setItem(columnsKey(doctype), JSON.stringify(keys))
+	} catch {
+		// Stockage indisponible : le choix vaut pour cet export.
+	}
 }
 
 export function exportTable<Row>(rows: Row[], columns: Column<Row>[]) {

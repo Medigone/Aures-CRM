@@ -249,6 +249,11 @@ def _filterable(df, permitted):
 	return df.fieldtype not in NOT_FILTERABLE_TYPES and not df.is_virtual and df.fieldname in permitted
 
 
+def _is_own_doctype(meta):
+	"""Vrai pour un doctype de cette application : ses champs ne sont pas ceux d'ERPNext."""
+	return frappe.db.get_value("Module Def", meta.module, "app_name", cache=True) == "aurescrm"
+
+
 def doctype_filter_fields(doctype, choices=None):
 	"""Tout ce qu'on peut filtrer sur une liste : ses filtres courants, puis les champs lisibles du doctype et de ses tables enfants."""
 	meta = frappe.get_meta(doctype)
@@ -264,6 +269,7 @@ def doctype_filter_fields(doctype, choices=None):
 	entries.append(
 		{"value": f"{doctype}.{BELL_FILTER}", "doctype": doctype, "field": BELL_FILTER, "label": _("Cloche"), "kind": "choice", "operators": ["=", "!="], "choices": [{"value": "1", "label": _("activée")}]}
 	)
+	own_doctype = _is_own_doctype(meta)
 	tab = section = None
 	for df in meta.fields:
 		if df.fieldtype == "Tab Break":
@@ -271,10 +277,10 @@ def doctype_filter_fields(doctype, choices=None):
 		elif df.fieldtype == "Section Break":
 			section = df.label
 		if df.fieldname not in common and _filterable(df, permitted):
-			entries.append(_filter_entry(doctype, df.fieldname, df.label, df.fieldtype, df.options, group=_(section or tab or "Autres champs")))
+			entries.append(_filter_entry(doctype, df.fieldname, df.label, df.fieldtype, df.options, group=_(section or tab or "Autres champs"), own=own_doctype or df.fieldname.startswith("custom_")))
 	for fieldname, label, fieldtype, options in SYSTEM_FILTER_FIELDS:
 		if fieldname not in common:
-			entries.append(_filter_entry(doctype, fieldname, label, fieldtype, options, group=_("Suivi")))
+			entries.append(_filter_entry(doctype, fieldname, label, fieldtype, options, group=_("Suivi"), own=True))
 	# `get_permitted_fieldnames` ne contient pas les tables : leur droit se lit à leur niveau d'accès.
 	levels = set(meta.get_permlevel_access())
 	for table in meta.get_table_fields():
@@ -283,7 +289,8 @@ def doctype_filter_fields(doctype, choices=None):
 		child = frappe.get_meta(table.options)
 		readable = set(child.get_permitted_fieldnames(parenttype=doctype))
 		label = _(table.label or table.options)
-		entries.extend(_filter_entry(table.options, df.fieldname, df.label, df.fieldtype, df.options, group=label, table=label) for df in child.fields if _filterable(df, readable))
+		own = table.fieldname.startswith("custom_") or _is_own_doctype(child)
+		entries.extend(_filter_entry(table.options, df.fieldname, df.label, df.fieldtype, df.options, group=label, table=label, own=own) for df in child.fields if _filterable(df, readable))
 	for entry in entries:
 		if entry["doctype"] == doctype and entry["field"] in (choices or {}):
 			entry["choices"] = choices[entry["field"]]

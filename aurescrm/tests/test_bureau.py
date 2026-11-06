@@ -1325,6 +1325,11 @@ class TestArticles(FrappeTestCase):
 		self.assertEqual(fields[("Article Couleur", "type_couleur")]["choices"][0]["value"], "Pantone")
 		self.assertNotIn(("Item", "custom_couleurs_article"), fields)
 		self.assertNotIn(("Article Couleur", "parent"), fields)
+		self.assertTrue(fields[("Item", "custom_grammage")].get("own") or "group" not in fields[("Item", "custom_grammage")])
+		self.assertTrue(color["own"])
+		self.assertFalse(fields[("Item", "valuation_rate")]["own"])
+		tickets = bureau.doctype_filter_fields("Ticket Commercial")
+		self.assertTrue(all(entry.get("own") for entry in tickets if entry.get("group")))
 
 	def test_filtre_sur_table_enfant_sans_doublon(self):
 		from aurescrm.api import bureau_articles

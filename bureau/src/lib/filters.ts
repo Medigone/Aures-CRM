@@ -24,6 +24,8 @@ export interface FilterField {
 	operators: string[]
 	/** Rubrique du champ ; absente pour un filtre courant de la liste. */
 	group?: string
+	/** Vrai pour un champ propre à l'application, faux pour un champ standard d'ERPNext. */
+	own?: boolean
 	/** Nom de la table enfant, quand le champ vient d'une table. */
 	table?: string
 	choices?: Option[]
