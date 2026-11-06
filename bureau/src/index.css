@@ -1517,7 +1517,7 @@
 	.list-more-btn[aria-expanded='true'] {
 		@apply bg-surface-gray-4;
 	}
-	/* Cloche de la ligne : discrète tant qu'elle est éteinte, ambre et pleine une fois posée. */
+	/* Cloche de la ligne : discrète tant qu'elle est éteinte, jaune et pleine une fois posée. */
 	.list-bell {
 		display: flex;
 		flex: none;
@@ -1535,13 +1535,13 @@
 		@apply text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8;
 	}
 	.list-bell .list-bell-btn[aria-pressed='true'] {
-		color: var(--tone-amber-ink);
+		color: var(--bell-line);
 	}
 	.list-bell .list-bell-btn[aria-pressed='true'] svg {
-		fill: currentColor;
+		fill: var(--bell-fill);
 	}
 	.list-head .list-bell .list-bell-btn[aria-pressed='true'] {
-		background-color: var(--tone-amber-soft);
+		background-color: var(--bell-soft);
 	}
 	.list-head button > span:empty {
 		display: none;

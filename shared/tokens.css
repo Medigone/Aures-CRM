@@ -67,6 +67,10 @@
 		--tone-blue-line: #b8dcfb;
 		--tone-amber-soft: #fffbe8;
 		--tone-amber-line: #f5dc8a;
+		/* Cloche des listes : le jaune franc, cerné pour rester lisible sur fond clair. */
+		--bell-fill: #facc15;
+		--bell-line: #b88a00;
+		--bell-soft: #fef9c3;
 		--tone-green-soft: #f0fcf4;
 		--tone-green-line: #b5e8c7;
 		--tone-red-soft: #fff3f3;
@@ -145,6 +149,9 @@
 		--tone-blue-line: #164a7a;
 		--tone-amber-soft: #2c1a07;
 		--tone-amber-line: #6b4210;
+		--bell-fill: #facc15;
+		--bell-line: #facc15;
+		--bell-soft: #3d3205;
 		--tone-green-soft: #0b2a1c;
 		--tone-green-line: #1a5a3b;
 		--tone-red-soft: #2b1414;
