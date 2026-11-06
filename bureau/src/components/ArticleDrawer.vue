@@ -151,7 +151,12 @@ function onBatSaved(updated: ArticleDetail, message: string) {
 								{{ item.label }}
 								<button v-if="item.label === 'BAT' && canImportBat" type="button" class="inline-flex items-center gap-1 text-sm text-link" :disabled="openingBat" title="Importer un BAT : le PDF est analysé pour remplir la fiche technique" @click="importBat"><LucideUpload class="h-3.5 w-3.5" aria-hidden="true" />Importer</button>
 							</dt>
-							<dd :class="!item.value && 'font-normal text-ink-gray-6'">{{ item.value || 'Aucun' }}</dd>
+							<!-- Le BAT importé est un fichier joint à l'article, distinct du document BAT : l'un ou l'autre suffit à ne pas afficher « Aucun ». -->
+							<dd v-if="item.label === 'BAT' && article.fichiers.fiche_technique">
+								<template v-if="item.value">{{ item.value }} · </template>
+								<a class="ref-link" :href="article.fichiers.fiche_technique" target="_blank" rel="noopener noreferrer">Ouvrir</a>
+							</dd>
+							<dd v-else :class="!item.value && 'font-normal text-ink-gray-6'">{{ item.value || 'Aucun' }}</dd>
 						</div>
 					</dl>
 					<p v-if="batError" role="alert" class="text-sm text-tone-red">{{ batError }}</p>
