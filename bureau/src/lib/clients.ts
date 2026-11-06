@@ -1,7 +1,7 @@
 /** Règles de la page Clients : types, vues, colonnes, filtres et validation de la fenêtre. */
 import type { CommentSummary, Option } from '@/types'
 import type { Condition, FilterField } from './filters'
-import { isComplete, needsValue, operatorsOf } from './filters'
+import { describeCondition, withDoctypeFields } from './filters'
 import { formatDay } from './display'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
@@ -108,6 +108,7 @@ export interface ClientDetail {
 }
 
 export interface ClientOptions {
+	filter_fields?: FilterField[]
 	statuses: string[]
 	formes: string[]
 	sensibilites: string[]
@@ -205,12 +206,7 @@ export function clientFilterChoices(field: string, options: ClientOptions | null
 
 /** Texte de la pastille d'un filtre actif : « Commercial est Nadia Haddad ». */
 export function clientConditionLabel(condition: Condition, options: ClientOptions | null) {
-	const field = CLIENT_FILTER_FIELDS.find((item) => item.value === condition.field)?.label ?? condition.field
-	const op = operatorsOf(condition.field, CLIENT_FILTER_FIELDS).find((item) => item.value === condition.op)?.label ?? condition.op
-	if (!needsValue(condition) || !isComplete(condition)) return `${field} ${op}`
-	const value = condition.value.trim()
-	const shown = clientFilterChoices(condition.field, options).find((item) => item.value === value)?.label ?? value
-	return `${field} ${op} ${shown}`
+	return describeCondition(condition, withDoctypeFields(CLIENT_FILTER_FIELDS, options?.filter_fields), clientFilterChoices(condition.field, options))
 }
 
 const REQUIRED: { field: ClientField; message: string }[] = [

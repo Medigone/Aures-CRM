@@ -10,7 +10,7 @@ import { getArticleOptions, getArticles } from '@/lib/api'
 import { ARTICLE_COLUMNS, ARTICLE_FILTER_FIELDS, ARTICLE_VIEWS, articleConditionLabel, articleFilterChoices, articleSigle, articleSortText, clientTone, DEFAULT_ARTICLE_COLUMNS, procedeLabel, procedeTone, TYPE_GENERAL, visibleArticleColumns, type ArticleOptions, type ArticleRow } from '@/lib/articles'
 import { formatAmount } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
-import type { Condition } from '@/lib/filters'
+import { withDoctypeFields, type Condition } from '@/lib/filters'
 import type { ArticlesState } from '@/lib/useArticles'
 
 const props = defineProps<{ state: ArticlesState; selected?: string }>()
@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
 		@create="creating = true"
 	>
 		<template #filters>
-			<FilterBuilder v-model="state.conditions.value" :fields="ARTICLE_FILTER_FIELDS" first-field="procede" :choices-of="(field) => articleFilterChoices(field, options)" />
+			<FilterBuilder v-model="state.conditions.value" :fields="withDoctypeFields(ARTICLE_FILTER_FIELDS, options?.filter_fields)" first-field="procede" :choices-of="(field) => articleFilterChoices(field, options)" />
 		</template>
 
 		<template #cells="{ row, columns }">

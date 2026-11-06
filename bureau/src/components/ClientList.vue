@@ -9,7 +9,7 @@ import TagCell from './TagCell.vue'
 import { getClientOptions, getClients } from '@/lib/api'
 import { CLIENT_COLUMNS, CLIENT_FILTER_FIELDS, CLIENT_VIEWS, clientConditionLabel, clientFilterChoices, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, visibleClientColumns, type ClientOptions, type ClientRow } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
-import type { Condition } from '@/lib/filters'
+import { withDoctypeFields, type Condition } from '@/lib/filters'
 import type { ClientsState } from '@/lib/useClients'
 
 const props = defineProps<{ state: ClientsState; selected?: string }>()
@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
 		@create="creating = true"
 	>
 		<template #filters>
-			<FilterBuilder v-model="state.conditions.value" :fields="CLIENT_FILTER_FIELDS" first-field="status" :choices-of="(field) => clientFilterChoices(field, options)" />
+			<FilterBuilder v-model="state.conditions.value" :fields="withDoctypeFields(CLIENT_FILTER_FIELDS, options?.filter_fields)" first-field="status" :choices-of="(field) => clientFilterChoices(field, options)" />
 		</template>
 
 		<template #cells="{ row, columns }">

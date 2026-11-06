@@ -1263,6 +1263,35 @@ class TestArticles(FrappeTestCase):
 		self.assertEqual(bureau_articles.format_label({"custom_procédé": "Salle Blanche Pharma", "custom_laize": "670 mm"}), "Laize 670")
 		self.assertIsNone(bureau_articles.support_label({"custom_procédé": "Offset"}))
 
+	def test_les_filtres_couvrent_tous_les_champs_lisibles_du_doctype(self):
+		from aurescrm.api import bureau, bureau_articles
+
+		frappe.set_user("Administrator")
+		fields = {field["value"]: field for field in bureau.doctype_filter_fields("Item", bureau_articles.FILTER_FIELDS)}
+		self.assertEqual(fields["champ:custom_grammage"]["kind"], "text")
+		self.assertEqual(fields["champ:custom_nbr_couleurs"]["kind"], "text")
+		self.assertEqual(fields["champ:disabled"]["choices"][0]["value"], "1")
+		self.assertEqual(fields["champ:creation"]["kind"], "date")
+		# Déjà proposé par la liste, et sans valeur à comparer.
+		self.assertNotIn("champ:item_name", fields)
+		self.assertFalse([value for value, field in fields.items() if frappe.get_meta("Item").get_field(value.removeprefix("champ:")) and frappe.get_meta("Item").get_field(value.removeprefix("champ:")).fieldtype in bureau.NOT_FILTERABLE_TYPES])
+
+		condition = [{"field": "champ:custom_grammage", "op": "contient", "value": "300"}]
+		self.assertEqual(bureau.condition_filters(condition, bureau_articles.FILTER_FIELDS, "Item"), [["custom_grammage", "like", "%300%"]])
+		number = [{"field": "champ:opening_stock", "op": "plus", "value": "5"}]
+		self.assertEqual(bureau.condition_filters(number, bureau_articles.FILTER_FIELDS, "Item"), [["opening_stock", ">", 5.0]])
+
+	def test_un_filtre_refuse_un_champ_inconnu_ou_interdit(self):
+		from aurescrm.api import bureau, bureau_articles
+
+		frappe.set_user("Administrator")
+		for field in ("champ:inexistant", "champ:password", "owner; drop"):
+			with self.assertRaises(frappe.ValidationError):
+				bureau.condition_filters([{"field": field, "op": "contient", "value": "x"}], bureau_articles.FILTER_FIELDS, "Item")
+		# Sans doctype déclaré, un champ libre reste refusé.
+		with self.assertRaises(frappe.ValidationError):
+			bureau.condition_filters([{"field": "champ:custom_grammage", "op": "contient", "value": "x"}], bureau_articles.FILTER_FIELDS)
+
 	def test_le_resume_technique_separe_le_support_de_sa_mesure(self):
 		from aurescrm.api import bureau_articles
 

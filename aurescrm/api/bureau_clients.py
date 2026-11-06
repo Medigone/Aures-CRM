@@ -20,6 +20,7 @@ from aurescrm.api.bureau import (
 	_commercial_users,
 	_parse,
 	condition_filters,
+	doctype_filter_fields,
 	page_bounds,
 	require_bureau,
 	row_tags,
@@ -197,7 +198,7 @@ def get_clients(view="all", conditions=None, search=None, start=0, page_length=N
 	pattern = f"%{value}%"
 	clients = frappe.get_list(
 		CUSTOMER,
-		filters=[["disabled", "=", 0], *condition_filters(_parse(conditions), FILTER_FIELDS)],
+		filters=[["disabled", "=", 0], *condition_filters(_parse(conditions), FILTER_FIELDS, CUSTOMER)],
 		or_filters=[
 			["customer_name", "like", pattern],
 			["name", "like", pattern],
@@ -242,6 +243,7 @@ def get_client_options():
 		"wilayas": frappe.get_list("Wilayas", order_by="name asc", pluck="name", limit_page_length=0),
 		"commercials": [{"value": user.name, "label": user.full_name or user.name} for user in _commercial_users()],
 		"nobody": NOBODY,
+		"filter_fields": doctype_filter_fields(CUSTOMER, FILTER_FIELDS),
 	}
 
 

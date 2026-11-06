@@ -16,7 +16,7 @@ import unicodedata
 import frappe
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_transitions
-from frappe.utils import cint, cstr, escape_html, get_fullname, getdate, strip_html, today
+from frappe.utils import cint, cstr, escape_html, flt, get_fullname, getdate, strip_html, today
 
 from aurescrm.api import activity
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
@@ -122,8 +122,15 @@ FILTER_OPERATORS = {
 	"choice": {"est", "nest"},
 	"user": {"est", "nest"},
 	"date": {"avant", "apres", "vide"},
+	"number": {"egal", "plus", "moins"},
 }
 NOBODY = "__nobody__"
+# Un filtre sur n'importe quel champ du doctype porte ce préfixe : il ne peut pas se confondre avec un filtre de la liste.
+DOCTYPE_FIELD_PREFIX = "champ:"
+NOT_FILTERABLE_TYPES = {"Section Break", "Column Break", "Tab Break", "HTML", "Button", "Table", "Table MultiSelect", "Password", "Fold", "Heading", "Image", "Signature", "Geolocation"}
+NUMBER_TYPES = {"Int", "Float", "Currency", "Percent", "Rating", "Duration"}
+DATE_TYPES = {"Date", "Datetime"}
+SYSTEM_FILTER_FIELDS = [("name", "Code", "text"), ("creation", "Créé le", "date"), ("modified", "Modifié le", "date")]
 
 
 def can_access_bureau(user=None):
@@ -159,11 +166,59 @@ def view_filters(view, user):
 	return views[view]
 
 
-def condition_filters(conditions, fields=None):
-	"""Traduit les filtres choisis dans une liste. Un filtre sans valeur est ignoré, sauf « sans échéance »."""
+def _filter_field(df):
+	"""Le champ tel que le panneau de filtres le propose : sa nature décide des conditions, et un choix porte ses valeurs."""
+	entry = {"value": DOCTYPE_FIELD_PREFIX + df.fieldname, "label": _(df.label or df.fieldname), "kind": "text"}
+	if df.fieldtype in NUMBER_TYPES:
+		entry["kind"] = "number"
+	elif df.fieldtype in DATE_TYPES:
+		entry["kind"] = "date"
+	elif df.fieldtype == "Check":
+		entry.update(kind="choice", choices=[{"value": "1", "label": _("Oui")}, {"value": "0", "label": _("Non")}])
+	elif df.fieldtype == "Select":
+		entry.update(kind="choice", choices=[{"value": option, "label": _(option)} for option in cstr(df.options).split("\n") if option])
+	return entry
+
+
+def doctype_filter_fields(doctype, curated=None):
+	"""Tous les champs filtrables que la personne a le droit de lire, hors ceux que la liste propose déjà."""
+	meta = frappe.get_meta(doctype)
+	permitted = set(meta.get_permitted_fieldnames())
+	taken = {fieldname for fieldname, _kind in (curated or {}).values()}
+	fields = []
+	tab = section = None
+	for df in meta.fields:
+		if df.fieldtype == "Tab Break":
+			tab, section = df.label, None
+		elif df.fieldtype == "Section Break":
+			section = df.label
+		if df.fieldtype in NOT_FILTERABLE_TYPES or df.is_virtual or df.fieldname not in permitted or df.fieldname in taken:
+			continue
+		fields.append({**_filter_field(df), "group": _(section or tab or "Autres champs")})
+	system = [
+		{"value": DOCTYPE_FIELD_PREFIX + fieldname, "label": _(label), "kind": kind, "group": _("Suivi")}
+		for fieldname, label, kind in SYSTEM_FILTER_FIELDS
+		if fieldname not in taken
+	]
+	return fields + system
+
+
+def _doctype_field(doctype, key):
+	"""(champ, nature) d'un filtre de champ, seulement si la personne a le droit de filtrer dessus."""
+	if not doctype or not key.startswith(DOCTYPE_FIELD_PREFIX):
+		return None
+	for field in doctype_filter_fields(doctype):
+		if field["value"] == key:
+			return key[len(DOCTYPE_FIELD_PREFIX) :], field["kind"]
+	return None
+
+
+def condition_filters(conditions, fields=None, doctype=None):
+	"""Traduit les filtres choisis dans une liste. Un filtre sans valeur est ignoré, sauf « sans date »."""
 	filters = []
 	for condition in conditions or []:
-		field = (fields or FILTER_FIELDS).get(cstr(condition.get("field")))
+		key = cstr(condition.get("field"))
+		field = (fields or FILTER_FIELDS).get(key) or _doctype_field(doctype, key)
 		if not field:
 			frappe.throw(_("Filtre inconnu."))
 		fieldname, kind = field
@@ -190,6 +245,12 @@ def condition_filters(conditions, fields=None):
 			filters.append([fieldname, "<", str(getdate(value))])
 		elif op == "apres":
 			filters.append([fieldname, ">", str(getdate(value))])
+		elif op == "egal":
+			filters.append([fieldname, "=", flt(value)])
+		elif op == "plus":
+			filters.append([fieldname, ">", flt(value)])
+		elif op == "moins":
+			filters.append([fieldname, "<", flt(value)])
 	return filters
 
 
@@ -361,7 +422,7 @@ def _queue_documents(tickets):
 def get_queue(view="todo", conditions=None, search=None, start=0, page_length=DEFAULT_PAGE_LENGTH, sort=None, direction=None):
 	"""Une page de la file, le total et l'ordre de toute la vue, et les compteurs de toutes les vues pour les mêmes filtres."""
 	user = require_bureau()
-	base = condition_filters(_parse(conditions))
+	base = condition_filters(_parse(conditions), doctype=TICKET)
 	or_filters = _search_filters(search)
 
 	counts = {}
@@ -432,6 +493,7 @@ def get_references():
 		"creances": _select_options("statut_creance"),
 		"assignees": [{"value": user.name, "label": user.full_name or user.name} for user in users],
 		"nobody": NOBODY,
+		"filter_fields": doctype_filter_fields(TICKET, FILTER_FIELDS),
 	}
 
 

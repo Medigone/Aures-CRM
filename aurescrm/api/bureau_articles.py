@@ -15,7 +15,7 @@ from frappe.utils.file_manager import get_max_file_size
 
 from aurescrm import bat_import, pantone
 from aurescrm.api import activity
-from aurescrm.api.bureau import TICKET, _parse, condition_filters, page_bounds, require_bureau, row_tags
+from aurescrm.api.bureau import TICKET, _parse, condition_filters, doctype_filter_fields, page_bounds, require_bureau, row_tags
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, bind_file, ticket_rows
 from aurescrm.api.commercial_mobile import article_fiche, article_schema
 from aurescrm.aures_crm.doctype.etude_technique.etude_technique import create_new_bat_from_etude
@@ -248,7 +248,7 @@ def get_articles(view="all", conditions=None, search=None, start=0, page_length=
 		frappe.throw(_("Vue inconnue."))
 	items = frappe.get_list(
 		ITEM,
-		filters=[["disabled", "=", 0], *condition_filters(_parse(conditions), FILTER_FIELDS)],
+		filters=[["disabled", "=", 0], *condition_filters(_parse(conditions), FILTER_FIELDS, ITEM)],
 		or_filters=_search_filters(cstr(search).strip()),
 		fields=LIST_FIELDS,
 		limit_page_length=0,
@@ -286,6 +286,7 @@ def get_article_options():
 		"groupe_defaut": ARTICLE_ITEM_GROUP,
 		"can_create": bool(frappe.has_permission(ITEM, "create")),
 		"schema": article_schema(),
+		"filter_fields": doctype_filter_fields(ITEM, FILTER_FIELDS),
 	}
 
 

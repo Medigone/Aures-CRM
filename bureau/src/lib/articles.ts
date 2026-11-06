@@ -2,7 +2,7 @@
 import { fieldVisible, isEmptyValue, type FicheDoc, type FicheField, type FicheSchema } from '@shared/fiche'
 import type { CommentSummary, Option } from '@/types'
 import type { ClientTicket } from './clients'
-import { isComplete, needsValue, operatorsOf, type Condition, type FilterField } from './filters'
+import { describeCondition, withDoctypeFields, type Condition, type FilterField } from './filters'
 import { deskUrl, formatDay } from './display'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
@@ -126,6 +126,7 @@ export interface ArticleDetail {
 }
 
 export interface ArticleOptions {
+	filter_fields?: FilterField[]
 	procedes: string[]
 	types: string[]
 	groupes: string[]
@@ -299,12 +300,7 @@ export function articleFilterChoices(field: string, options: ArticleOptions | nu
 
 /** Texte de la pastille d'un filtre actif : « Client est Biscuiterie Numidia ». */
 export function articleConditionLabel(condition: Condition, options: ArticleOptions | null) {
-	const field = ARTICLE_FILTER_FIELDS.find((item) => item.value === condition.field)?.label ?? condition.field
-	const op = operatorsOf(condition.field, ARTICLE_FILTER_FIELDS).find((item) => item.value === condition.op)?.label ?? condition.op
-	if (!needsValue(condition) || !isComplete(condition)) return `${field} ${op}`
-	const value = condition.value.trim()
-	const shown = articleFilterChoices(condition.field, options).find((item) => item.value === value)?.label ?? value
-	return `${field} ${op} ${shown}`
+	return describeCondition(condition, withDoctypeFields(ARTICLE_FILTER_FIELDS, options?.filter_fields), articleFilterChoices(condition.field, options))
 }
 
 /** Prix unitaire : deux décimales et une virgule, avec une espace pour les milliers : « 1 240,50 ». */

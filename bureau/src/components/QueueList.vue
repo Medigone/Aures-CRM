@@ -10,7 +10,7 @@ import NewTicketDialog from './NewTicketDialog.vue'
 import TicketStatus from './TicketStatus.vue'
 import { bulkAction, bulkAssign, getQueue, getReferences } from '@/lib/api'
 import { echeanceLabel } from '@/lib/display'
-import { conditionLabel, type Condition } from '@/lib/filters'
+import { conditionLabel, FIELDS, withDoctypeFields, type Condition } from '@/lib/filters'
 import { canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, isOpen, sortText, stepPercent, stepText, visibleColumns } from '@/lib/list'
 import type { BulkState } from '@/lib/useBulk'
 import { TICKET_VIEWS, type QueueState } from '@/lib/useQueue'
@@ -145,7 +145,7 @@ onBeforeUnmount(() => {
 		@create="creating = true"
 	>
 		<template #filters>
-			<FilterBuilder v-model="state.conditions.value" :references="references" />
+			<FilterBuilder v-model="state.conditions.value" :references="references" :fields="withDoctypeFields(FIELDS, references?.filter_fields)" />
 		</template>
 
 		<template #cells="{ row: ticket, columns }">

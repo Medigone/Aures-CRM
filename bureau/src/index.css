@@ -71,7 +71,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		width: 520px;
+		width: 360px;
 		max-width: 100%;
 		margin-top: 0.375rem;
 		padding: 0.5rem;
@@ -868,6 +868,71 @@
 		color: var(--ink-gray-6);
 		font-size: 0.75rem;
 		line-height: 1rem;
+	}
+	.filter-field-button {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.375rem;
+		text-align: left;
+	}
+	.filter-field-search {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+	.filter-field-search:focus-within {
+		border-color: var(--accent);
+	}
+	.filter-field-search input {
+		flex: 1 1 0;
+		min-width: 0;
+		border: 0;
+		padding: 0;
+		background: transparent;
+		color: inherit;
+		font: inherit;
+		box-shadow: none;
+		outline: none;
+	}
+	.filter-field-list {
+		max-height: 13.5rem;
+		margin-top: 0.25rem;
+		overflow-y: auto;
+		scrollbar-width: thin;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: var(--radius-field);
+		padding: 0.25rem;
+	}
+	.filter-field-group {
+		padding: 0.375rem 0.5rem 0.125rem;
+		color: var(--ink-gray-6);
+		font-size: var(--text-xs);
+		font-weight: 500;
+	}
+	.filter-field-empty {
+		padding: 0.5rem;
+		color: var(--ink-gray-6);
+	}
+	.filter-field-hint {
+		color: var(--ink-gray-6);
+		font-size: var(--text-xs);
+	}
+	.filter-field-option {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.25rem 0.5rem;
+		border-radius: 6px;
+		color: var(--ink-gray-9);
+		text-align: left;
+		overflow-wrap: anywhere;
+	}
+	.filter-field-option:hover,
+	.filter-field-option[aria-selected='true'] {
+		background-color: var(--surface-gray-2);
 	}
 	.color-resume {
 		display: grid;

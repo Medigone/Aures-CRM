@@ -2,7 +2,7 @@
 import { formatDay, statusLabel } from './display'
 import type { Option, References } from '@/types'
 
-export type FieldKind = 'text' | 'choice' | 'user' | 'date'
+export type FieldKind = 'text' | 'choice' | 'user' | 'date' | 'number'
 
 export interface Condition {
 	id: number
@@ -15,6 +15,43 @@ export interface FilterField {
 	value: string
 	label: string
 	kind: FieldKind
+	/** Rubrique du champ dans la liste de choix. */
+	group?: string
+	/** Valeurs possibles, quand le champ les porte lui-même. */
+	choices?: Option[]
+}
+
+/** La rubrique des filtres que chaque liste propose d'emblée. */
+export const COMMON_GROUP = 'Filtres courants'
+
+/** Les filtres de la liste d'abord, puis tous les champs du doctype envoyés par le serveur. */
+export function withDoctypeFields(common: FilterField[], doctypeFields: FilterField[] = []): FilterField[] {
+	return [...common, ...doctypeFields]
+}
+
+const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+
+/** Recherche d'un champ, sans tenir compte des accents ni des majuscules. Tous les mots doivent se retrouver, et un nom qui commence par la recherche passe devant. */
+export function searchFields(fields: FilterField[], query: string) {
+	const words = fold(query).split(/\s+/).filter(Boolean)
+	const found = fields.filter((field) => {
+		const label = fold(field.label)
+		return words.every((word) => label.includes(word))
+	})
+	const first = words[0]
+	return first ? [...found.filter((field) => fold(field.label).startsWith(first)), ...found.filter((field) => !fold(field.label).startsWith(first))] : found
+}
+
+/** Regroupe les champs consécutifs d'une même rubrique, dans l'ordre de la fiche. */
+export function groupFields(fields: FilterField[]) {
+	const groups: { label: string; fields: FilterField[] }[] = []
+	for (const field of fields) {
+		const label = field.group ?? COMMON_GROUP
+		const last = groups[groups.length - 1]
+		if (last?.label === label) last.fields.push(field)
+		else groups.push({ label, fields: [field] })
+	}
+	return groups
 }
 
 export const FIELDS: FilterField[] = [
@@ -45,7 +82,12 @@ const OPERATORS: Record<FieldKind, Option[]> = {
 	date: [
 		{ value: 'avant', label: 'avant le' },
 		{ value: 'apres', label: 'après le' },
-		{ value: 'vide', label: 'sans échéance' },
+		{ value: 'vide', label: 'sans date' },
+	],
+	number: [
+		{ value: 'egal', label: 'égal à' },
+		{ value: 'plus', label: 'supérieur à' },
+		{ value: 'moins', label: 'inférieur à' },
 	],
 }
 
@@ -74,8 +116,21 @@ export function isComplete(condition: Condition) {
 	return !needsValue(condition) || Boolean(condition.value.trim())
 }
 
+/** Texte de la pastille d'un filtre actif, dans toute liste : « Grammage égal à 300 ». */
+export function describeCondition(condition: Condition, fields: FilterField[], choices: Option[] = []) {
+	const definition = fields.find((item) => item.value === condition.field)
+	const field = definition?.label ?? condition.field
+	const op = operatorsOf(condition.field, fields).find((item) => item.value === condition.op)?.label ?? condition.op
+	if (!needsValue(condition) || !isComplete(condition)) return `${field} ${op}`
+	const value = condition.value.trim()
+	const shown = [...choices, ...(definition?.choices ?? [])].find((item) => item.value === value)?.label ?? (definition?.kind === 'date' ? formatDay(value) : value)
+	return `${field} ${op} ${shown}`
+}
+
 /** Texte de la pastille d'un filtre actif : « Statut est En pause ». */
 export function conditionLabel(condition: Condition, references: References | null) {
+	const fields = withDoctypeFields(FIELDS, references?.filter_fields)
+	if (!FIELDS.some((item) => item.value === condition.field)) return describeCondition(condition, fields)
 	const field = FIELDS.find((item) => item.value === condition.field)?.label ?? condition.field
 	const op = operatorsOf(condition.field).find((item) => item.value === condition.op)?.label ?? condition.op
 	if (!needsValue(condition)) return `${field} ${op}`

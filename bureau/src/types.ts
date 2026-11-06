@@ -1,3 +1,4 @@
+import type { FilterField } from '@/lib/filters'
 import type { CommentPart } from '@shared/activity'
 
 export type QueueView = 'todo' | 'mine' | 'urgent' | 'creance' | 'closed'
@@ -80,6 +81,7 @@ export interface References {
 	creances: string[]
 	assignees: Option[]
 	nobody: string
+	filter_fields?: FilterField[]
 }
 
 export type StepState = 'done' | 'current' | 'paused' | 'blocked' | 'todo'

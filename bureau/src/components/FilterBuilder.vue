@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import LucideX from '~icons/lucide/x'
+import FilterFieldPicker from './FilterFieldPicker.vue'
 import { FIELDS, kindOf, needsValue, newCondition, operatorsOf, withField, type Condition, type FilterField } from '@/lib/filters'
 import { statusLabel } from '@/lib/display'
 import type { Option, References } from '@/types'
@@ -16,6 +17,8 @@ const assigneeOptions = computed<Option[]>(() => [
 ])
 
 function choices(field: string): Option[] {
+	const own = fieldList.value.find((item) => item.value === field)?.choices
+	if (own) return own
 	if (props.choicesOf) return props.choicesOf(field)
 	const refs = props.references
 	if (!refs) return []
@@ -27,8 +30,8 @@ function choices(field: string): Option[] {
 function update(id: number, change: (condition: Condition) => Condition) {
 	emit('update:modelValue', props.modelValue.map((condition) => (condition.id === id ? change(condition) : condition)))
 }
-function setField(condition: Condition, event: Event) {
-	update(condition.id, (current) => withField(current, (event.target as HTMLSelectElement).value, fieldList.value))
+function setField(condition: Condition, field: string) {
+	update(condition.id, (current) => withField(current, field, fieldList.value))
 }
 function setOp(condition: Condition, event: Event) {
 	update(condition.id, (current) => ({ ...current, op: (event.target as HTMLSelectElement).value }))
@@ -46,13 +49,11 @@ function add() {
 </script>
 
 <template>
-	<div class="card flex max-h-[40vh] flex-none flex-col gap-1.5 overflow-y-auto p-2">
+	<div class="card flex max-h-[60vh] flex-none flex-col gap-1.5 overflow-y-auto p-2">
 		<p v-if="!modelValue.length" class="text-ink-gray-6">Aucun filtre. Chaque filtre ajouté s'ajoute aux précédents.</p>
 		<div v-for="condition in modelValue" :key="condition.id" class="flex flex-col gap-1.5 rounded-control border border-outline-gray-2 p-2">
-			<div class="flex items-center gap-1.5">
-				<select class="field-input min-w-0 flex-1" aria-label="Champ du filtre" :value="condition.field" @change="setField(condition, $event)">
-					<option v-for="field in fieldList" :key="field.value" :value="field.value">{{ field.label }}</option>
-				</select>
+			<div class="flex items-start gap-1.5">
+				<FilterFieldPicker :model-value="condition.field" :fields="fieldList" @update:model-value="setField(condition, $event)" />
 				<button type="button" class="icon-btn" aria-label="Retirer ce filtre" @click="remove(condition.id)">
 					<LucideX class="h-4 w-4" aria-hidden="true" />
 				</button>
@@ -63,6 +64,7 @@ function add() {
 				</select>
 				<template v-if="needsValue(condition)">
 					<input v-if="kindOf(condition.field, fieldList) === 'text'" class="field-input" type="text" aria-label="Valeur" placeholder="Valeur" :value="condition.value" @input="setValue(condition, $event)" />
+					<input v-else-if="kindOf(condition.field, fieldList) === 'number'" class="field-input" type="number" aria-label="Valeur" placeholder="Valeur" :value="condition.value" @input="setValue(condition, $event)" />
 					<input v-else-if="kindOf(condition.field, fieldList) === 'date'" class="field-input" type="date" aria-label="Valeur" :value="condition.value" @input="setValue(condition, $event)" />
 					<select v-else class="field-input" aria-label="Valeur" :value="condition.value" @change="setValue(condition, $event)">
 						<option value="">Choisir…</option>
