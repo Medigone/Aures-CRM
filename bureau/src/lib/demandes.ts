@@ -40,7 +40,8 @@ export interface DemandeRow {
 	commercial: string | null
 	ticket: string | null
 	bon_commande: string | null
-	creation: string | null
+	creation: string
+	date: string | null
 	cree_par: string | null
 }
 
@@ -166,7 +167,9 @@ export const DEMANDE_COLUMNS: Column<DemandeRow>[] = [
 	{ key: 'tags', label: 'Tags', width: 90, sortable: false, text: tagsText },
 	{ key: 'ticket', label: 'Ticket', width: 124, sortable: true, optional: true, text: (row) => row.ticket || '' },
 	{ key: 'bon_commande', label: 'Bon de commande', width: 130, sortable: true, optional: true, text: (row) => row.bon_commande || '' },
+	{ key: 'date', label: 'Date de la demande', width: 124, sortable: true, optional: true, text: (row) => formatDay(row.date) },
 	{ key: 'creation', label: 'Créée le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
+	{ key: 'modified', label: 'Modifiée le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
 	{ key: 'cree_par', label: 'Créée par', width: 120, sortable: true, optional: true, text: (row) => row.cree_par || '' },
 ]
 

@@ -37,6 +37,7 @@ ROOT_ITEM_GROUP = "Tous les Groupes d'Articles"
 LIST_FIELDS = [
 	"name",
 	"modified",
+	"creation",
 	"item_name",
 	"item_group",
 	"custom_type_article",
@@ -72,7 +73,7 @@ VIEWS = {
 	"compose": lambda row: bool(row["compose"]),
 	"general": lambda row: row["type"] == TYPE_GENERAL,
 }
-SORT_KEYS = {"designation", "name", "client_label", "procede", "support", "format", "bat", "commande", "reference", "commercial", "groupe", "couleurs", "consommation"}
+SORT_KEYS = {"designation", "name", "client_label", "procede", "support", "format", "bat", "commande", "reference", "commercial", "groupe", "couleurs", "consommation", "creation", "modified"}
 
 # Fichiers de la colonne d'identité → champ de l'article.
 ARTICLE_FILES = {
@@ -180,6 +181,7 @@ def _list_row(item, customers, bats, orders):
 	return {
 		"name": item.name,
 		"modified": item.modified,
+		"creation": str(item.creation),
 		"tags": row_tags(item),
 		"cloche": row_bell(item),
 		"designation": item.item_name or item.name,

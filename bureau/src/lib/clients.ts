@@ -19,6 +19,8 @@ export const CLIENT_VIEWS: { key: ClientView; label: string }[] = [
 export interface ClientRow {
 	name: string
 	modified: string
+	creation: string
+	date: string | null
 	client: string
 	status: string | null
 	wilaya: string | null
@@ -170,6 +172,9 @@ export const CLIENT_COLUMNS: Column<ClientRow>[] = [
 	{ key: 'telephone', label: 'Téléphone', width: 112, sortable: true, optional: true, text: (row) => row.telephone || '' },
 	// Masquée par défaut : les codes actuels sont mélangés et n'aident pas à repérer un client.
 	{ key: 'name', label: 'Code', width: 110, sortable: true, optional: true, text: (row) => row.name },
+	{ key: 'date', label: 'Client depuis', width: 100, sortable: true, optional: true, text: (row) => formatDay(row.date) },
+	{ key: 'creation', label: 'Créé le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
+	{ key: 'modified', label: 'Modifié le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
 ]
 export const DEFAULT_CLIENT_COLUMNS = CLIENT_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 

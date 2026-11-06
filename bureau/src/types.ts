@@ -14,6 +14,8 @@ export interface QueueStep {
 export interface QueueTicket {
 	name: string
 	modified: string
+	creation: string
+	date: string | null
 	cloche: boolean
 	client: string
 	commercial: string | null

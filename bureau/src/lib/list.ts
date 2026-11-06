@@ -1,5 +1,5 @@
 /** Règles de la liste des tickets : colonnes, tri, export et actions groupées. */
-import { statusLabel } from './display'
+import { formatDay, statusLabel } from './display'
 import type { BulkResult, QueueTicket } from '@/types'
 
 export interface Sort {
@@ -36,6 +36,9 @@ export const COLUMNS: Column[] = [
 	{ key: 'commercial', label: 'Commercial', width: 120, grow: 1.1, sortable: true, optional: true, text: (ticket) => ticket.commercial || '' },
 	{ key: 'creance', label: 'Créance', width: 104, sortable: true, optional: true, text: (ticket) => creanceText(ticket) },
 	{ key: 'tags', label: 'Tags', width: 144, grow: 1, sortable: false, optional: true, text: (ticket) => tagsText(ticket) },
+	{ key: 'date', label: 'Date du ticket', width: 100, sortable: true, optional: true, text: (ticket) => formatDay(ticket.date) },
+	{ key: 'creation', label: 'Créé le', width: 92, sortable: true, optional: true, text: (ticket) => formatDay(ticket.creation) },
+	{ key: 'modified', label: 'Modifié le', width: 92, sortable: true, optional: true, text: (ticket) => formatDay(ticket.modified) },
 ]
 
 export const DEFAULT_COLUMNS = COLUMNS.filter((column) => !column.optional).map((column) => column.key)

@@ -60,6 +60,7 @@ DEFAULT_DELAY_DAYS = 7
 LIST_FIELDS = [
 	"name",
 	"modified",
+	"creation",
 	"status",
 	"type",
 	"client",
@@ -83,7 +84,7 @@ VIEW_STATUSES = {
 	"closes": (FERMEE, "Annulée"),
 }
 VIEWS = ("all", *VIEW_STATUSES)
-SORT_KEYS = {"name", "client_label", "articles", "type", "status", "procede", "urgence", "livraison", "commercial", "ticket", "bon_commande", "creation", "cree_par"}
+SORT_KEYS = {"name", "client_label", "articles", "type", "status", "procede", "urgence", "livraison", "commercial", "ticket", "bon_commande", "creation", "date", "modified", "cree_par"}
 
 
 def _in_view(view, row):
@@ -131,7 +132,8 @@ def _list_row(demande, customers, lines):
 		"commercial": demande.commercial,
 		"ticket": demande.ticket_commercial,
 		"bon_commande": demande.n_bon_commande,
-		"creation": _day(demande.date_creation),
+		"creation": str(demande.creation),
+		"date": _day(demande.date_creation),
 		"cree_par": demande.cree_par,
 		# Recherche seulement : retirée avant l'envoi.
 		"_search": " ".join(
@@ -151,7 +153,7 @@ def _list_row(demande, customers, lines):
 
 def order_demandes(rows, sort=None, direction=None):
 	"""Les plus récentes d'abord, ou par la colonne demandée. Une ligne sans valeur reste à la fin, dans les deux sens."""
-	ordered = sorted(rows, key=lambda row: (cstr(row["creation"]), row["name"]), reverse=True)
+	ordered = sorted(rows, key=lambda row: (cstr(row.get("date")), row["name"]), reverse=True)
 	if sort not in SORT_KEYS:
 		return ordered
 	filled = [row for row in ordered if row.get(sort) not in (None, "")]

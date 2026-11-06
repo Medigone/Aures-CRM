@@ -25,6 +25,7 @@ export const TYPE_GENERAL = 'Général'
 export interface ArticleRow {
 	name: string
 	modified: string
+	creation: string
 	tags: string[]
 	cloche: boolean
 	designation: string
@@ -238,6 +239,8 @@ export const ARTICLE_COLUMNS: Column<ArticleRow>[] = [
 	{ key: 'groupe', label: 'Groupe', width: 110, sortable: true, optional: true, text: (row) => row.groupe || '' },
 	{ key: 'couleurs', label: 'Couleurs', width: 90, sortable: true, optional: true, text: (row) => row.couleurs || '' },
 	{ key: 'consommation', label: 'Conso. annuelle', width: 110, sortable: true, optional: true, end: true, text: (row) => row.consommation },
+	{ key: 'creation', label: 'Créé le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
+	{ key: 'modified', label: 'Modifié le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
 ]
 export const DEFAULT_ARTICLE_COLUMNS = ARTICLE_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 

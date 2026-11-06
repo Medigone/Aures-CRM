@@ -118,6 +118,7 @@ QUEUE_ORDER_FIELDS = [
 	"commercial",
 	"nom_commercial",
 	"statut_creance",
+	"creation_date",
 ]
 
 # Filtres courants de chaque liste : champ → libellé. Ils passent en tête, et restent proposés quel que soit le niveau de droit du champ.
@@ -584,6 +585,9 @@ QUEUE_SORTS = {
 	"creance": lambda row: row.statut_creance,
 	"commercial": lambda row: row.nom_commercial or row.commercial,
 	"assigne": lambda row: row.assigne_a_nom,
+	"creation": lambda row: str(row.creation),
+	"date": lambda row: str(row.creation_date) if row.creation_date else None,
+	"modified": lambda row: str(row.modified),
 }
 
 
@@ -640,6 +644,8 @@ def _queue_row(ticket, user, current_day, cycle=None, commande=None):
 	return {
 		"name": ticket.name,
 		"modified": str(ticket.modified),
+		"creation": str(ticket.creation),
+		"date": str(ticket.creation_date) if ticket.get("creation_date") else None,
 		"tags": row_tags(ticket),
 		"cloche": row_bell(ticket),
 		"client": ticket.customer_name or ticket.customer,

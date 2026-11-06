@@ -86,7 +86,9 @@ onMounted(async () => {
 				<TagCell v-else-if="column.key === 'tags'" :tags="row.tags" :max="1" />
 				<span v-else-if="column.key === 'ticket'" class="tabular-nums">{{ row.ticket || '—' }}</span>
 				<span v-else-if="column.key === 'bon_commande'" class="tabular-nums">{{ row.bon_commande || '—' }}</span>
+				<span v-else-if="column.key === 'date'" class="tabular-nums">{{ formatDay(row.date) || '—' }}</span>
 				<span v-else-if="column.key === 'creation'" class="tabular-nums">{{ formatDay(row.creation) || '—' }}</span>
+				<span v-else-if="column.key === 'modified'" class="tabular-nums">{{ formatDay(row.modified) || '—' }}</span>
 				<span v-else-if="column.key === 'cree_par'" :title="row.cree_par || undefined">{{ row.cree_par || '—' }}</span>
 			</template>
 		</template>

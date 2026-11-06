@@ -43,6 +43,8 @@ MAIN_PHONE_FIELD = "custom_nº_téléphone_principal"
 LIST_FIELDS = [
 	"name",
 	"modified",
+	"creation",
+	"custom_date_existence",
 	"customer_name",
 	"custom_status",
 	"custom_wilaya",
@@ -64,7 +66,7 @@ VIEWS = {
 	"creance": lambda row: row["creance"] > 0,
 	"perdu": lambda row: row["status"] in ("Perdu", "Exclu"),
 }
-SORT_KEYS = {"client", "status", "wilaya", "commercial", "visite", "creance", "tickets", "categorie", "contact", "telephone", "name"}
+SORT_KEYS = {"client", "status", "wilaya", "commercial", "visite", "creance", "tickets", "categorie", "contact", "telephone", "name", "creation", "date", "modified"}
 
 RELATED_LIMIT = 50
 COMMUNE_SEARCH_LIMIT = 12
@@ -146,6 +148,8 @@ def _list_row(client, soldes, visits, tickets):
 	return {
 		"name": client.name,
 		"modified": client.modified,
+		"creation": str(client.creation),
+		"date": str(client.custom_date_existence) if client.custom_date_existence else None,
 		"tags": row_tags(client),
 		"cloche": row_bell(client),
 		"client": client.customer_name or client.name,

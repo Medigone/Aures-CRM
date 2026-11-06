@@ -123,6 +123,8 @@ onBeforeUnmount(() => {
 				<span v-else-if="column.key === 'support'" :title="row.support || undefined">{{ row.support || '—' }}</span>
 				<span v-else-if="column.key === 'format'" class="tabular-nums">{{ row.format || '—' }}</span>
 				<span v-else-if="column.key === 'bat'"><StatusPill v-if="row.bat" :status="row.bat" /><span v-else class="text-ink-gray-6">Aucun</span></span>
+				<span v-else-if="column.key === 'creation'" class="tabular-nums">{{ formatDay(row.creation) || '—' }}</span>
+				<span v-else-if="column.key === 'modified'" class="tabular-nums">{{ formatDay(row.modified) || '—' }}</span>
 				<span v-else-if="column.key === 'commande'" :class="row.commande ? 'tabular-nums' : 'text-ink-gray-6'">{{ formatDay(row.commande) || '—' }}</span>
 				<TagCell v-else-if="column.key === 'tags'" :tags="row.tags" :max="1" />
 				<span v-else-if="column.key === 'reference'" class="tabular-nums">{{ row.reference || '—' }}</span>

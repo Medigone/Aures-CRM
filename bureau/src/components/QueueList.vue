@@ -9,7 +9,7 @@ import TagCell from './TagCell.vue'
 import NewTicketDialog from './NewTicketDialog.vue'
 import TicketStatus from './TicketStatus.vue'
 import { bulkAction, bulkAssign, getQueue, getReferences } from '@/lib/api'
-import { echeanceLabel } from '@/lib/display'
+import { echeanceLabel, formatDay } from '@/lib/display'
 import { describeCondition, ticketFilterFields, type Condition } from '@/lib/filters'
 import { canPause, canStart, COLUMNS, creanceText, DEFAULT_COLUMNS, isOpen, sortText, stepPercent, stepText, visibleColumns } from '@/lib/list'
 import type { ExportQuery } from '@/lib/exports'
@@ -167,6 +167,9 @@ onBeforeUnmount(() => {
 					<span class="truncate" :title="stepText(ticket)">{{ stepText(ticket) }}</span>
 				</span>
 				<span v-else-if="column.key === 'name'" class="tabular-nums text-ink-gray-7">{{ ticket.name }}</span>
+				<span v-else-if="column.key === 'date'" class="tabular-nums">{{ formatDay(ticket.date) || '—' }}</span>
+				<span v-else-if="column.key === 'creation'" class="tabular-nums">{{ formatDay(ticket.creation) || '—' }}</span>
+				<span v-else-if="column.key === 'modified'" class="tabular-nums">{{ formatDay(ticket.modified) || '—' }}</span>
 				<span v-else-if="column.key === 'assigne'">{{ ticket.assigne_a_nom || 'Non attribué' }}</span>
 				<span v-else-if="column.key === 'comments'" class="list-comments" :title="ticket.comments ? `${ticket.comments} commentaire${ticket.comments > 1 ? 's' : ''}` : undefined">
 					<template v-if="ticket.comments"><LucideMessageSquare class="h-3.5 w-3.5" aria-hidden="true" />{{ ticket.comments }}</template>

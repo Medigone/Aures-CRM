@@ -31,6 +31,7 @@ Le dossier essai à blanc et la commande se créent encore sur le Desk. La deman
 - **Tailles** : 20 (par défaut), 100 ou 500 lignes par page. Le choix reste sur l'appareil, et la vue et la page restent dans l'adresse (`?vue=mine&page=3`).
 - **Tri** : par colonne, ou urgence puis échéance par défaut. L'étape ne trie pas : elle se calcule ligne par ligne. Les lignes sans valeur restent à la fin dans les deux sens.
 - **Sélection** : la case de tête coche la page affichée. Changer de page, de vue ou de taille vide la sélection.
+- **Dates** : toutes les listes proposent dans le menu Colonnes et dans Trier « Créé le » (champ `creation`) et « Modifié le » (`modified`). Tickets, demandes et clients y ajoutent leur date propre : Date du ticket, Date de la demande, Client depuis. Un article n'a pas de date de document.
 - **Colonnes** : Commercial et Créance s'ajoutent par le menu Colonnes. **Exporter** écrit en CSV toute la vue avec les colonnes affichées, au format d'Excel en français.
 
 ## Créer un ticket

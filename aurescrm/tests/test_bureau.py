@@ -1872,3 +1872,51 @@ class TestDemandes(FrappeTestCase):
 		fresh = [{"name": confirmee, "modified": str(frappe.db.get_value("Demande Faisabilite", confirmee, "modified"))}]
 		self.assertEqual(len(bureau_bulk.bulk_add_tags("Demande Faisabilite", json.dumps(fresh), json.dumps(["Essai"]))["done"]), 1)
 		self.assertEqual(len(bureau_bulk.bulk_delete("Demande Faisabilite", json.dumps(fresh))["skipped"]), 1)
+
+
+class TestTriParCreation(FrappeTestCase):
+	"""Toutes les listes se trient par date de création, dans les deux sens."""
+
+	def _dated(self, doctype):
+		rows = frappe.get_list(doctype, fields=["name", "creation"], order_by="creation desc", limit_page_length=0)
+		return {row.name: str(row.creation) for row in rows}
+
+	def _check(self, names, dates):
+		values = [dates[name] for name in names]
+		self.assertEqual(values, sorted(values))
+
+	def test_tickets(self):
+		dates = self._dated("Ticket Commercial")
+		names = bureau.get_queue(view="all", sort="creation", direction="asc", page_length=500)["names"]
+		self._check(names, dates)
+		values = [dates[name] for name in bureau.get_queue(view="all", sort="creation", direction="desc", page_length=500)["names"]]
+		self.assertEqual(values, sorted(values, reverse=True))
+
+	def test_clients(self):
+		result = bureau_clients.get_clients(sort="creation", direction="asc")
+		self._check(result["names"], self._dated("Customer"))
+		self.assertTrue(result["clients"][0]["creation"])
+
+	def test_articles(self):
+		result = bureau_articles.get_articles(sort="creation", direction="asc")
+		self._check(result["names"], self._dated("Item"))
+		self.assertTrue(result["articles"][0]["creation"])
+
+	def test_date_du_document_et_derniere_modification(self):
+		for sort in ("date", "modified"):
+			names = bureau.get_queue(view="all", sort=sort, direction="desc", page_length=500)["names"]
+			self.assertTrue(isinstance(names, list))
+			self.assertTrue(bureau_clients.get_clients(sort=sort, direction="desc")["total"] >= 0)
+			self.assertTrue(bureau_demandes.get_demandes(sort=sort, direction="desc")["total"] >= 0)
+		self.assertTrue(bureau_articles.get_articles(sort="modified", direction="desc")["total"] >= 0)
+		dates = {row.name: str(row.modified) for row in frappe.get_list("Customer", fields=["name", "modified"], limit_page_length=0)}
+		values = [dates[name] for name in bureau_clients.get_clients(sort="modified", direction="desc")["names"]]
+		self.assertEqual(values, sorted(values, reverse=True))
+		row = bureau.get_queue(view="all", page_length=1)["tickets"]
+		if row:
+			self.assertEqual(row[0]["date"], str(frappe.db.get_value("Ticket Commercial", row[0]["name"], "creation_date") or "") or None)
+
+	def test_demandes(self):
+		days = [row["creation"] for row in bureau_demandes.order_demandes([{"name": "A", "creation": "2026-01-02"}, {"name": "B", "creation": "2026-03-01"}, {"name": "C", "creation": None}], "creation", "desc")]
+		self.assertEqual(days, ["2026-03-01", "2026-01-02", None])
+
