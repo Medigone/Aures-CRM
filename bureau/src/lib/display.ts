@@ -80,6 +80,11 @@ const ACTIONS: Record<string, Pick<TicketAction, 'label' | 'style' | 'confirm'>>
 	Annuler: { label: 'Annuler le ticket', style: 'btn-danger', confirm: 'Annuler ce ticket ? Cette action est définitive.' },
 }
 
+/** L'action principale selon l'étape en cours : toutes les autres restent secondaires. */
+export function primaryTicketActions(stepKey?: string) {
+	return ['Reprendre', ...(stepKey === 'charge' ? ['Démarrer'] : stepKey === 'creance' ? ['Débloquer Créance'] : stepKey === 'fin' ? ['Terminer'] : [])]
+}
+
 /** Boutons du workflow : le serveur dit lesquels sont permis, l'écran grise ce qu'il sait déjà refusé. */
 export function ticketActions(ticket: { actions: string[]; checklist: { checked: boolean }[] }): TicketAction[] {
 	const incomplete = ticket.checklist.some((item) => !item.checked)

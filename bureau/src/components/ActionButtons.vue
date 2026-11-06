@@ -4,13 +4,13 @@ import { runAction } from '@/lib/api'
 import { ticketActions, type TicketAction } from '@/lib/display'
 import type { Perform, TicketDetail } from '@/types'
 
-/** `except` : actions déjà proposées ailleurs. `secondary` : aucune action principale, elle reste à l'encart d'étape. `inMenu` : lignes du menu `⋯`. */
-const props = defineProps<{ ticket: TicketDetail; busy: boolean; perform: Perform; only?: string[]; except?: string[]; secondary?: boolean; inMenu?: boolean }>()
+/** `except` : actions proposées ailleurs. `primary` : les seules actions à garder en bouton principal. `inMenu` : lignes du menu `⋯`. */
+const props = defineProps<{ ticket: TicketDetail; busy: boolean; perform: Perform; only?: string[]; except?: string[]; primary?: string[]; inMenu?: boolean }>()
 
 const actions = computed(() => ticketActions(props.ticket).filter((item) => (!props.only || props.only.includes(item.action)) && !props.except?.includes(item.action)))
 function styleOf(item: TicketAction) {
 	if (props.inMenu) return item.style === 'btn-danger' ? 'app-menu-item text-tone-red' : 'app-menu-item'
-	return props.secondary && item.style === 'btn-primary' ? 'btn-secondary' : item.style
+	return props.primary && item.style === 'btn-primary' && !props.primary.includes(item.action) ? 'btn-secondary' : item.style
 }
 
 function start(item: TicketAction) {

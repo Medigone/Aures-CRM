@@ -227,6 +227,16 @@ export interface DemandeNext {
 	actionLabel?: string
 }
 
+export const DEMANDE_ACTION_LABELS: Record<DemandeAction, string> = { confirm: 'Confirmer', edit: 'Modifier', devis: 'Créer le devis', close: 'Fermer', retirage: 'Créer un retirage', cancel: 'Annuler la demande' }
+
+/** Les actions de l'en-tête : la prochaine action d'abord, puis une autre. Le reste passe dans le menu. */
+export function demandeHeaderActions(demande: DemandeDetail) {
+	const next = demandeNext(demande)?.action
+	const ordered = [...demande.actions].sort((a, b) => Number(b === next) - Number(a === next))
+	return ordered.filter((action) => action !== 'cancel' || ordered.length === 1).slice(0, 2)
+}
+export const isPrimaryDemandeAction = (action: DemandeAction) => ['confirm', 'devis'].includes(action)
+
 /** Encart de la fiche : ce qu'il y a à faire maintenant, selon le statut. */
 export function demandeNext(demande: DemandeDetail): DemandeNext | null {
 	const has = (action: DemandeAction) => demande.actions.includes(action)

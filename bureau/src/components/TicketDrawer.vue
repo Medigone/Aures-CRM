@@ -6,7 +6,7 @@ import LucideChevronUp from '~icons/lucide/chevron-up'
 import LucideX from '~icons/lucide/x'
 import AppToast from './AppToast.vue'
 import ActionButtons from './ActionButtons.vue'
-import AssigneeField from './AssigneeField.vue'
+import AttributionButton from './AttributionButton.vue'
 import CycleCard from './CycleCard.vue'
 import DocumentsCard from './DocumentsCard.vue'
 import StepTimeline from './StepTimeline.vue'
@@ -14,7 +14,7 @@ import TicketStatus from './TicketStatus.vue'
 import { relativeTime, exactTime } from '@shared/activity'
 import CommentText from '@shared/components/CommentText.vue'
 import { htmlToText } from '@shared/text'
-import { formatDay, stepHelp } from '@/lib/display'
+import { formatDay, stepHelp, primaryTicketActions } from '@/lib/display'
 import TagEditor from './TagEditor.vue'
 import { useDrawerControls } from '@/lib/useDrawerControls'
 import { useTicket } from '@/lib/useTicket'
@@ -69,6 +69,11 @@ function onTags(tags: string[]) {
 					<TagEditor class="mt-1.5" doctype="Ticket Commercial" :name="ticket.name" :modified="ticket.modified" :tags="ticket.tags" :can-edit="ticket.can_write" @changed="onTags" />
 				</div>
 
+				<div class="record-actions record-actions-start">
+					<AttributionButton :ticket="ticket" :options="assigneeOptions" :can-assign="canAssign" :busy="busy" @assign="assign" />
+					<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" :primary="primaryTicketActions(ticket.steps[followIndex]?.key)" :except="['Annuler']" />
+				</div>
+
 				<p v-if="actionError" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">{{ actionError }}</p>
 				<p v-if="urgencePending" class="tone-amber rounded-control px-3 py-2 text-sm">Urgence {{ ticket.niveau_urgence_demande }} à décider : ouvrez la fiche pour répondre.</p>
 				<p v-if="banner" class="rounded-control px-3 py-2 text-sm" :class="banner.style">{{ banner.text }}</p>
@@ -77,9 +82,6 @@ function onTags(tags: string[]) {
 					<span class="text-xs font-semibold text-selection-ink">Étape {{ followIndex + 1 }} sur {{ ticket.steps.length }}</span>
 					<h3 class="text-base font-semibold">{{ ticket.steps[followIndex].label }}</h3>
 					<p class="text-sm text-selection-ink">{{ stepHelp(ticket.steps[followIndex].key, ticket) }}</p>
-					<div class="flex flex-wrap gap-1.5 empty:hidden">
-						<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" :only="['Démarrer', 'Reprendre']" />
-					</div>
 				</div>
 
 				<dl class="bureau-drawer-facts">
@@ -88,10 +90,6 @@ function onTags(tags: string[]) {
 					<div><dt>Échéance</dt><dd :class="ticket.is_late && 'text-tone-red'">{{ formatDay(ticket.echeance) || 'Sans échéance' }}</dd></div>
 					<div><dt>Créé le</dt><dd>{{ formatDay(ticket.creation_date) || '—' }}</dd></div>
 					<div v-if="ticket.request_type === 'Bon de commande'"><dt>Créance</dt><dd>{{ ticket.statut_creance || 'Non vérifiée' }}</dd></div>
-					<div>
-						<dt><label for="apercu-assignee">Pris en charge par</label></dt>
-						<dd><AssigneeField input-id="apercu-assignee" :ticket="ticket" :options="assigneeOptions" :can-assign="canAssign" :busy="busy" @assign="assign" /></dd>
-					</div>
 				</dl>
 
 				<section class="card flex flex-col gap-1">

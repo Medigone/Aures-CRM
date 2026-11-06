@@ -12,7 +12,7 @@ import AppToast from './AppToast.vue'
 import DemandeActions from './DemandeActions.vue'
 import DemandeLinesTable from './DemandeLinesTable.vue'
 import TagEditor from './TagEditor.vue'
-import { demandeNext, typeLabel } from '@/lib/demandes'
+import { demandeNext, typeLabel, DEMANDE_ACTION_LABELS, demandeHeaderActions, isPrimaryDemandeAction } from '@/lib/demandes'
 import { formatDay } from '@/lib/display'
 import { useDemande } from '@/lib/useDemande'
 import { useDrawerControls } from '@/lib/useDrawerControls'
@@ -31,6 +31,7 @@ useDrawerControls(root, { close: () => emit('close'), prev: () => emit('prev'), 
 
 const actions = ref<InstanceType<typeof DemandeActions> | null>(null)
 const next = computed(() => (demande.value ? demandeNext(demande.value) : null))
+const headerActions = computed(() => (demande.value ? demandeHeaderActions(demande.value) : []))
 function onTags(tags: string[]) {
 	if (demande.value) demande.value.tags = tags
 	emit('changed')
@@ -70,6 +71,10 @@ function onTags(tags: string[]) {
 					<TagEditor class="mt-1.5" doctype="Demande Faisabilite" :name="demande.name" :modified="demande.modified" :tags="demande.tags" :can-edit="demande.can_write" @changed="onTags" />
 				</div>
 
+				<div v-if="headerActions.length" class="record-actions record-actions-start">
+					<button v-for="action in headerActions" :key="action" type="button" :class="isPrimaryDemandeAction(action) ? 'btn-primary' : 'btn-secondary'" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
+				</div>
+
 				<dl class="bureau-drawer-facts">
 					<div><dt>Client</dt><dd class="truncate" :title="demande.client_label"><RouterLink class="ref-link" :to="{ name: 'Client', params: { id: demande.client } }">{{ demande.client_label }}</RouterLink></dd></div>
 					<div><dt>Commercial</dt><dd class="truncate" :title="demande.commercial || undefined">{{ demande.commercial || 'Non attribué' }}</dd></div>
@@ -82,7 +87,6 @@ function onTags(tags: string[]) {
 				<section v-if="next" class="card flex flex-col items-start gap-1">
 					<h3 class="text-base font-semibold">Prochaine action</h3>
 					<p>{{ next.title }}. {{ next.text }}</p>
-					<button v-if="next.action" type="button" class="btn-secondary mt-0.5" :disabled="busy" @click="actions?.run(next!.action!)">{{ next.actionLabel }}</button>
 				</section>
 
 				<section class="card flex flex-col gap-1">

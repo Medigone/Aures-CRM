@@ -955,6 +955,31 @@ describe('poste de bureau', () => {
 		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
 	})
 
+	it('range les actions à droite d Attribution, et aucune dans l encart d étape', async () => {
+		const { wrapper } = await open('/ticket/TC-1')
+		const bar = wrapper.find('.record-actions')
+		expect(bar.find('.attribution-btn').exists()).toBe(true)
+		const labels = bar.findAll('button').map((item) => item.text())
+		expect(labels[0]).toContain('Attribution')
+		expect(labels).toContain('Reprendre')
+		expect(wrapper.find('.step-hero button.btn-primary').exists()).toBe(false)
+		expect(wrapper.find('#ticket-assignee').exists()).toBe(false)
+	})
+
+	it('Attribution permet de se l attribuer ou de choisir une personne', async () => {
+		const { wrapper } = await open('/ticket/TC-1')
+		await wrapper.find('.attribution-btn').trigger('click')
+		const items = () => wrapper.findAll('.attribution-menu button')
+		expect(items()[0].text()).toBe("Me l'attribuer")
+		await wrapper.find('.attribution-search').setValue('zzz')
+		expect(wrapper.find('.attribution-list').text()).toContain('Aucune personne')
+		await wrapper.find('.attribution-search').setValue('melizi')
+		await wrapper.findAll('.attribution-list button').find((item) => item.text() === 'Amine Melizi')!.trigger('click')
+		await flushPromises()
+		expect(posted()[0].url).toContain('bureau.set_assignee')
+		expect(posted()[0].body).toMatchObject({ name: 'TC-1', user: 'amine@example.com' })
+	})
+
 	it('lance une action du workflow avec la version affichée', async () => {
 		const { wrapper } = await open('/ticket/TC-1')
 		await wrapper.findAll('button').find((button) => button.text() === 'Reprendre')!.trigger('click')

@@ -11,7 +11,7 @@ import DemandeActions from './DemandeActions.vue'
 import DemandeLinesTable from './DemandeLinesTable.vue'
 import TagEditor from './TagEditor.vue'
 import { demandeActivity } from '@/lib/api'
-import { demandeNext, demandeSteps, typeLabel, type DemandeAction, type DemandeStep } from '@/lib/demandes'
+import { demandeNext, demandeSteps, typeLabel, type DemandeAction, type DemandeStep, DEMANDE_ACTION_LABELS, demandeHeaderActions, isPrimaryDemandeAction } from '@/lib/demandes'
 import { deskUrl, formatDay } from '@/lib/display'
 import { useDemande } from '@/lib/useDemande'
 
@@ -48,11 +48,9 @@ function openStep(step: DemandeStep) {
 	emit('tab', step.key === 'demande' ? 'articles' : 'etudes')
 }
 
-// Boutons de la colonne : l'action principale d'abord. Le reste passe dans le menu.
-const LABELS: Record<DemandeAction, string> = { confirm: 'Confirmer', edit: 'Modifier', devis: 'Créer le devis', close: 'Fermer', retirage: 'Créer un retirage', cancel: 'Annuler la demande' }
-const sideActions = computed(() => (demande.value?.actions ?? []).filter((action) => action !== 'cancel' || demande.value!.actions.length === 1).slice(0, 2))
+// Boutons de l'en-tête : la prochaine action d'abord. Le reste passe dans le menu.
+const sideActions = computed(() => (demande.value ? demandeHeaderActions(demande.value) : []))
 const menuActions = computed(() => (demande.value?.actions ?? []).filter((action) => !sideActions.value.includes(action)))
-const isPrimary = (action: DemandeAction) => ['confirm', 'devis'].includes(action)
 
 async function copyLink() {
 	try {
@@ -88,10 +86,10 @@ function onTags(tags: string[]) {
 						</div>
 						<p class="text-sm text-ink-gray-7">{{ [typeLabel(demande.type), demande.procede].filter(Boolean).join(' · ') }}</p>
 						<TagEditor doctype="Demande Faisabilite" :name="demande.name" :modified="demande.modified" :tags="demande.tags" :can-edit="demande.can_write" @changed="onTags" />
-						<div class="mt-1 flex items-center gap-1.5">
-							<button v-for="(action, index) in sideActions" :key="action" type="button" :class="[isPrimary(action) ? 'btn-primary' : 'btn-secondary', index === 0 && 'flex-auto']" :disabled="busy" @click="actions?.run(action)">{{ LABELS[action] }}</button>
+						<div class="record-actions record-actions-rail">
+							<button v-for="(action, index) in sideActions" :key="action" type="button" :class="[isPrimaryDemandeAction(action) ? 'btn-primary' : 'btn-secondary', index === 0 && 'flex-auto']" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
 							<MoreMenu>
-								<button v-for="action in menuActions" :key="action" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="actions?.run(action)">{{ LABELS[action] }}</button>
+								<button v-for="action in menuActions" :key="action" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
 								<div v-if="menuActions.length" class="app-menu-sep"></div>
 								<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 								<a class="app-menu-item" role="menuitem" :href="deskUrl('Demande Faisabilite', demande.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
@@ -138,10 +136,6 @@ function onTags(tags: string[]) {
 							<span class="text-xs font-semibold text-selection-ink">{{ next.eyebrow }}</span>
 							<h3 class="text-base font-semibold">{{ next.title }}</h3>
 							<p class="text-selection-ink">{{ next.text }}</p>
-							<div v-if="next.action || demande.actions.includes('edit')" class="mt-0.5 flex flex-wrap gap-1.5">
-								<button v-if="next.action" type="button" class="btn-primary" :disabled="busy" @click="actions?.run(next!.action!)">{{ next.actionLabel }}</button>
-								<button v-if="demande.actions.includes('edit')" type="button" class="btn-secondary" :disabled="busy" @click="actions?.run('edit')">Modifier</button>
-							</div>
 						</section>
 
 						<section v-if="demande.etudes.length" class="card ref-card">

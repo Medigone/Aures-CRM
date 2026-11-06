@@ -116,6 +116,14 @@ Sur toutes les listes (`DataList`), l'équivalent du cœur du Desk : un rappel v
 - **Tiroir et fiche** : au même endroit, sous la ligne d'identification. Avec le droit d'écriture, on retire un tag d'un clic et on en ajoute un parmi ceux qui existent, ou un nouveau (`add_doc_tag`, `remove_doc_tag`).
 - **Date `modified`** : poser ou retirer un tag ne la change pas, comme sur le Desk.
 
+## Actions d'une fiche
+
+Règle commune à tout `/bureau` : les actions d'un document sont dans la barre `.record-actions` de son en-tête, jamais dans un encart d'étape ou une carte de résumé. L'ordre est toujours le même : `Attribution` (sur un ticket), puis les actions, puis le menu `⋯`. Il y a une seule action principale à l'écran, celle de l'étape en cours (`primaryTicketActions`, `demandeHeaderActions`). Les autres restent secondaires.
+
+- **Attribution** (`AttributionButton`) : remplace « Me l'attribuer » et le champ « Pris en charge par ». Le bouton montre la personne actuelle. Son menu propose « Me l'attribuer » et une recherche parmi les personnes. Sans droit, il affiche seulement le nom.
+- **Étape consultée** : les actions suivent l'étape en cours du ticket, même si on regarde une autre étape dans la frise.
+- **Restent dans leur carte** : les décisions liées à une saisie (Créance, Rapprochement, Urgence, liste de contrôle), et les ajouts propres à une carte (joindre un fichier, créer un sous-article).
+
 ## Colonnes et vues
 
 Toute liste passe par `DataList` et a ces réglages sans rien de plus à déclarer que `locked-column` et `FILTER_LISTS`.

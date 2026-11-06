@@ -244,7 +244,7 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 						</div>
 						<p class="text-sm text-ink-gray-7">{{ [article.name, article.reference && `Réf. client ${article.reference}`].filter(Boolean).join(' · ') }}</p>
 						<TagEditor doctype="Item" :name="article.name" :modified="article.modified" :tags="article.tags" :can-edit="article.can_edit" @changed="onTags" />
-						<div class="mt-1 flex items-center gap-1.5">
+						<div class="record-actions record-actions-rail">
 							<button v-if="ticketClient" type="button" class="btn-primary flex-auto" @click="newTicket = true">Nouveau ticket</button>
 							<button v-if="article.can_edit" type="button" :class="ticketClient ? 'btn-secondary' : 'btn-primary flex-auto'" :disabled="busy" @click="editing = true">Modifier</button>
 							<MoreMenu>

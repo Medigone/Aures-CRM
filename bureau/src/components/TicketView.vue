@@ -6,7 +6,7 @@ import ActivityFeed from '@shared/components/ActivityFeed.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import AppToast from './AppToast.vue'
 import ActionButtons from './ActionButtons.vue'
-import AssigneeField from './AssigneeField.vue'
+import AttributionButton from './AttributionButton.vue'
 import ChecklistCard from './ChecklistCard.vue'
 import CreanceCard from './CreanceCard.vue'
 import CycleCard from './CycleCard.vue'
@@ -17,8 +17,8 @@ import StepTimeline from './StepTimeline.vue'
 import TicketStatus from './TicketStatus.vue'
 import UrgenceCard from './UrgenceCard.vue'
 import { htmlToText } from '@shared/text'
-import { setAssignee, ticketActivity } from '@/lib/api'
-import { deskUrl, formatDay, missingChecklist, stepHelp } from '@/lib/display'
+import { ticketActivity } from '@/lib/api'
+import { deskUrl, formatDay, missingChecklist, primaryTicketActions, stepHelp } from '@/lib/display'
 import TagEditor from './TagEditor.vue'
 import { useTicket } from '@/lib/useTicket'
 
@@ -86,26 +86,28 @@ const isBC = computed(() => ticket.value?.request_type === 'Bon de commande')
 const showCreance = computed(() => isBC.value && viewed.value?.key === 'creance')
 const showRappro = computed(() => isBC.value && viewed.value?.key === 'rappro')
 const showChecks = computed(() => Boolean(ticket.value?.checklist.length) && ['check', 'fin'].includes(viewed.value?.key || ''))
-// L'action principale de la fiche vit dans l'encart d'étape ; l'en-tête ne garde que des actions secondaires.
-const heroActions = computed(() => {
-	const key = viewed.value?.key
-	return ['Reprendre', ...(key === 'charge' ? ['Démarrer'] : key === 'creance' ? ['Débloquer Créance'] : key === 'fin' ? ['Terminer'] : [])]
-})
+// Toutes les actions vivent dans l'en-tête, à droite d'Attribution. Elles suivent l'étape en cours, pas l'étape consultée.
+const currentKey = computed(() => ticket.value?.steps[followIndex.value]?.key)
+const primaryActions = computed(() => primaryTicketActions(currentKey.value))
+const hasPrimaryAction = computed(() => primaryActions.value.some((action) => ticket.value?.actions.includes(action)))
 const menuActions = ['Annuler']
 const creation = computed(() => ticket.value?.demande_creation)
 const canCreateDemande = computed(() => creation.value?.state === 'ready')
 const isEssai = computed(() => ticket.value?.request_type === 'Essai Blanc')
 // Étape faite : le document existe, une autre demande passe par la carte Cycle du dossier.
-const onDoc = computed(() => !isClosed.value && viewed.value?.key === 'doc' && viewed.value.state !== 'done')
+const onDoc = computed(() => !isClosed.value && currentKey.value === 'doc' && ticket.value?.steps[followIndex.value]?.state !== 'done')
+const viewingDoc = computed(() => !isClosed.value && viewed.value?.key === 'doc' && viewed.value.state !== 'done')
 // Le devis retenu mène à la commande : la demande reste possible, en second. Sans décision, la commande garde son accès au Desk.
 const demandeFirst = computed(() => canCreateDemande.value && !ticket.value?.devis_rapproche)
 const deskForCommande = computed(() => onDoc.value && isBC.value && ticket.value?.decision_rapprochement !== 'Nouvelle demande de faisabilité')
-// Possible à toute étape d'un ticket En Cours. L'encart de l'étape Demande propose déjà le bouton : pas de doublon.
-const demandeInHeader = computed(() => canCreateDemande.value && !onDoc.value)
 const needsDesk = computed(() => onDoc.value && (isEssai.value || deskForCommande.value))
 const deskLabel = computed(() => (isEssai.value ? 'Créer le dossier sur le Desk' : 'Créer la commande sur le Desk'))
 // Encore à confirmer : la demande s'ouvre sur sa page.
-const toConfirm = computed(() => (!isClosed.value && viewed.value?.key === 'confirm' ? ticket.value?.cycle.demandes.find((demande) => demande.status === 'Brouillon') : undefined))
+const toConfirm = computed(() => (!isClosed.value && currentKey.value === 'confirm' ? ticket.value?.cycle.demandes.find((demande) => demande.status === 'Brouillon') : undefined))
+const demandeBlocked = computed(() => onDoc.value && creation.value?.state === 'no_procede')
+const demandeLabel = computed(() => (ticket.value?.cycle.demandes.length ? 'Créer une autre demande' : onDoc.value && demandeFirst.value ? 'Créer la demande' : 'Créer une demande'))
+// Une seule action principale à l'écran.
+const demandePrimary = computed(() => (onDoc.value ? demandeFirst.value : !hasPrimaryAction.value && !toConfirm.value))
 const creatingDemande = ref(false)
 const createdDemande = ref('')
 function onDemandeCreated(name: string) {
@@ -120,7 +122,6 @@ function openCreatedDemande() {
 	router.push({ name: 'Demande', params: { id: name } })
 }
 const finishHint = computed(() => (ticket.value ? missingChecklist(ticket.value) : ''))
-const window_user = window.user
 function onTags(tags: string[]) {
 	if (ticket.value) ticket.value.tags = tags
 	emit('changed')
@@ -151,10 +152,16 @@ function onTags(tags: string[]) {
 						</p>
 						<TagEditor class="mt-1.5" doctype="Ticket Commercial" :name="ticket.name" :modified="ticket.modified" :tags="ticket.tags" :can-edit="ticket.can_write" @changed="onTags" />
 					</div>
-					<div class="flex flex-wrap items-center gap-1.5">
-						<button v-if="canAssign && !ticket.mine" type="button" class="btn-secondary" :disabled="busy" @click="perform(() => setAssignee(ticket!, String(window_user)))">Me l'attribuer</button>
-						<button v-if="demandeInHeader" type="button" class="btn-primary" @click="creatingDemande = true">{{ ticket.cycle.demandes.length ? 'Créer une autre demande' : 'Créer une demande' }}</button>
-						<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" secondary :except="[...heroActions, ...menuActions]" />
+					<div class="record-actions">
+						<AttributionButton :ticket="ticket" :options="assigneeOptions" :can-assign="canAssign" :busy="busy" @assign="assign" />
+						<button v-if="canCreateDemande" type="button" :class="demandePrimary ? 'btn-primary' : 'btn-secondary'" @click="creatingDemande = true">{{ demandeLabel }}</button>
+						<button v-else-if="demandeBlocked" type="button" class="btn-primary" disabled>Créer la demande</button>
+						<a v-if="needsDesk" :class="demandeFirst ? 'btn-secondary' : 'btn-primary'" :href="deskUrl('Ticket Commercial', ticket.name)" target="_blank" rel="noopener noreferrer">
+							{{ deskLabel }}
+							<LucideArrowUpRight class="h-4 w-4" aria-hidden="true" />
+						</a>
+						<RouterLink v-if="toConfirm" class="btn-primary" :to="{ name: 'Demande', params: { id: toConfirm.name } }">Ouvrir la demande {{ toConfirm.name }}</RouterLink>
+						<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" :primary="primaryActions" :except="menuActions" />
 						<MoreMenu>
 							<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 							<a class="app-menu-item" role="menuitem" :href="deskUrl('Ticket Commercial', ticket.name)" target="_blank" rel="noopener noreferrer">
@@ -171,12 +178,6 @@ function onTags(tags: string[]) {
 					<div class="ticket-fact"><dt>Site</dt><dd>{{ ticket.site || '—' }}</dd></div>
 					<div class="ticket-fact"><dt>Échéance</dt><dd :class="ticket.is_late && 'text-tone-red'">{{ formatDay(ticket.echeance) || 'Sans échéance' }}</dd></div>
 					<div class="ticket-fact"><dt>Créé le</dt><dd>{{ formatDay(ticket.creation_date) || '—' }}</dd></div>
-					<div class="ticket-fact ticket-fact-assignee">
-						<dt><label for="ticket-assignee">Pris en charge par</label></dt>
-						<dd>
-							<AssigneeField input-id="ticket-assignee" :ticket="ticket" :options="assigneeOptions" :can-assign="canAssign" :busy="busy" @assign="assign" />
-						</dd>
-					</div>
 				</dl>
 			</div>
 
@@ -193,21 +194,8 @@ function onTags(tags: string[]) {
 						</div>
 						<h3 class="text-xl font-semibold">{{ viewed.label }}</h3>
 						<p class="text-selection-ink">{{ stepHelp(viewed.key, ticket) }}</p>
-						<div v-if="heroActions.length" class="flex flex-wrap gap-2 empty:hidden">
-							<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" :only="heroActions" />
-						</div>
-						<p v-if="onDoc && !isEssai && !canCreateDemande && creation?.reason" class="rounded-control tone-amber px-3 py-2 text-sm">{{ creation.reason }}</p>
-						<p v-else-if="onDoc && canCreateDemande && ticket.devis_rapproche" class="text-sm text-selection-ink">Une demande reste possible si le devis ne couvre pas la commande : elle remplacera la décision de rapprochement.</p>
-						<div v-if="onDoc || toConfirm" class="flex flex-wrap gap-2 empty:hidden">
-							<button v-if="onDoc && demandeFirst" type="button" class="btn-primary" @click="creatingDemande = true">Créer la demande</button>
-							<button v-else-if="onDoc && creation?.state === 'no_procede'" type="button" class="btn-primary" disabled>Créer la demande</button>
-							<a v-if="needsDesk" :class="demandeFirst ? 'btn-secondary' : 'btn-primary'" :href="deskUrl('Ticket Commercial', ticket.name)" target="_blank" rel="noopener noreferrer">
-								{{ deskLabel }}
-								<LucideArrowUpRight class="h-4 w-4" aria-hidden="true" />
-							</a>
-							<button v-if="onDoc && canCreateDemande && !demandeFirst" type="button" class="btn-secondary" @click="creatingDemande = true">Créer une demande</button>
-							<RouterLink v-if="toConfirm" class="btn-primary" :to="{ name: 'Demande', params: { id: toConfirm.name } }">Ouvrir la demande {{ toConfirm.name }}</RouterLink>
-						</div>
+						<p v-if="viewingDoc && !isEssai && !canCreateDemande && creation?.reason" class="rounded-control tone-amber px-3 py-2 text-sm">{{ creation.reason }}</p>
+						<p v-else-if="viewingDoc && canCreateDemande && ticket.devis_rapproche" class="text-sm text-selection-ink">Une demande reste possible si le devis ne couvre pas la commande : elle remplacera la décision de rapprochement.</p>
 					</div>
 
 					<UrgenceCard v-if="urgencePending" :ticket="ticket" :busy="busy" :perform="perform" />
@@ -225,7 +213,7 @@ function onTags(tags: string[]) {
 				<div class="bureau-side">
 					<StepTimeline :steps="ticket.steps" :viewed="viewIndex" :current="ticket.current_step" @pick="pick" />
 					<DocumentsCard :ticket="ticket" :busy="busy" :perform="perform" />
-					<CycleCard :ticket="ticket" @create-demande="creatingDemande = true" />
+					<CycleCard :ticket="ticket" />
 				</div>
 			</div>
 			<!-- Le fil reste visible, quelle que soit l'étape regardée. -->

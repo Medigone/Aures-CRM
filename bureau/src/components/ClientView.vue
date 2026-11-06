@@ -181,7 +181,7 @@ function onPieceUploaded(file: UploadedFile) {
 					</div>
 					<p class="text-sm text-ink-gray-7">{{ [client.forme_juridique, client.name, [client.commune_label, client.wilaya].filter(Boolean).join(', ')].filter(Boolean).join(' · ') }}</p>
 					<TagEditor doctype="Customer" :name="client.name" :modified="client.modified" :tags="client.tags" :can-edit="client.can_edit" @changed="onTags" />
-					<div class="mt-1 flex items-center gap-1.5">
+					<div class="record-actions record-actions-rail">
 						<button type="button" class="btn-primary flex-auto" @click="newTicket = true">Nouveau ticket</button>
 						<button v-if="client.can_edit" type="button" class="btn-secondary" :disabled="busy" @click="editing = true">Modifier</button>
 						<MoreMenu>

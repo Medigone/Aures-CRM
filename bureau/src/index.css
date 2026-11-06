@@ -309,9 +309,58 @@
 		white-space: nowrap;
 		@apply font-medium;
 	}
-	.ticket-fact-assignee {
-		flex: 0 1 190px;
-		min-width: 150px;
+	/* Barre d'actions d'une fiche, la même partout : Attribution d'abord, les actions à sa droite, puis le menu ⋯. */
+	.record-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0.375rem;
+		min-width: 0;
+	}
+	.record-actions-start {
+		justify-content: flex-start;
+	}
+	.record-actions-rail {
+		flex-wrap: nowrap;
+		justify-content: flex-start;
+		margin-top: 0.25rem;
+	}
+	.attribution-btn {
+		max-width: 20rem;
+	}
+	.attribution-read {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-height: var(--ctl);
+		padding-inline: 0.25rem;
+		font-weight: 500;
+		@apply text-ink-gray-8;
+	}
+	.attribution-name {
+		max-width: 10rem;
+		overflow: hidden;
+		font-weight: 400;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		@apply text-ink-gray-6;
+	}
+	.attribution-menu {
+		width: 18rem;
+	}
+	.attribution-search {
+		flex: none;
+		width: auto;
+		margin: 0.125rem 0.25rem 0.25rem;
+	}
+	.attribution-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		max-height: 15rem;
+		overflow-y: auto;
+		scrollbar-width: thin;
 	}
 }
 

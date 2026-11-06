@@ -85,7 +85,9 @@ describe('page Demandes', () => {
 		const { wrapper } = await open('/demandes/DF-1')
 		expect(wrapper.find('.record-activity').exists()).toBe(true)
 		expect(wrapper.find('.step-hero').text()).toContain('Confirmer la demande')
-		await wrapper.find('.step-hero .btn-primary').trigger('click')
+		// Aucune action dans l'encart : elles sont toutes dans l'en-tête.
+		expect(wrapper.find('.step-hero button').exists()).toBe(false)
+		await wrapper.find('.record-actions .btn-primary').trigger('click')
 		await flushPromises()
 		button('Confirmer et lancer les études')!.click()
 		await flushPromises()

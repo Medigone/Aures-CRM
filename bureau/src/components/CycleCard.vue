@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import LucidePlus from '~icons/lucide/plus'
 import StatusPill from '@shared/components/StatusPill.vue'
 import { deskUrl } from '@/lib/display'
 import type { TicketDetail } from '@/types'
 
 const props = defineProps<{ ticket: TicketDetail }>()
-const emit = defineEmits<{ createDemande: [] }>()
-const canCreate = computed(() => props.ticket.demande_creation?.state === 'ready')
 
 const LABELS: Record<string, string> = {
 	Quotation: 'Devis',
@@ -59,10 +56,7 @@ const groups = computed(() => {
 
 <template>
 	<section aria-label="Cycle du dossier" class="card flex flex-col gap-1.5 p-3.5">
-		<div class="flex items-center justify-between gap-2">
-			<h3 class="text-base font-semibold">Cycle du dossier</h3>
-			<button v-if="canCreate" type="button" class="tag-add" @click="emit('createDemande')"><LucidePlus class="h-3 w-3" aria-hidden="true" />{{ groups.length ? 'Autre demande' : 'Créer une demande' }}</button>
-		</div>
+		<h3 class="text-base font-semibold">Cycle du dossier</h3>
 		<p v-if="!groups.length" class="text-ink-gray-6">Aucune demande de faisabilité ni devis pour l'instant.</p>
 		<div v-for="group in groups" :key="group.key" class="flex flex-col gap-0.5 border-t border-outline-gray-1 pt-1.5">
 			<component :is="group.to ? RouterLink : 'a'" v-bind="group.to ? { to: group.to } : { href: group.url, target: '_blank', rel: 'noopener noreferrer' }" class="flex min-h-[var(--ctl)] items-center justify-between gap-2 rounded-control hover:bg-surface-gray-2">
