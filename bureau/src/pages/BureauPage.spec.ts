@@ -958,7 +958,7 @@ describe('poste de bureau', () => {
 	it('range les actions à droite d Attribution, et aucune dans l encart d étape', async () => {
 		const { wrapper } = await open('/ticket/TC-1')
 		const bar = wrapper.find('.record-actions')
-		expect(bar.find('.attribution-btn').exists()).toBe(true)
+		expect(bar.find('[aria-label^="Attribution"]').exists()).toBe(true)
 		const labels = bar.findAll('button').map((item) => item.text())
 		expect(labels[0]).toContain('Attribution')
 		expect(labels).toContain('Reprendre')
@@ -968,7 +968,7 @@ describe('poste de bureau', () => {
 
 	it('Attribution permet de se l attribuer ou de choisir une personne', async () => {
 		const { wrapper } = await open('/ticket/TC-1')
-		await wrapper.find('.attribution-btn').trigger('click')
+		await wrapper.find('[aria-label^="Attribution"]').trigger('click')
 		const items = () => wrapper.findAll('.attribution-menu button')
 		expect(items()[0].text()).toBe("Me l'attribuer")
 		await wrapper.find('.attribution-search').setValue('zzz')
@@ -990,7 +990,7 @@ describe('poste de bureau', () => {
 
 	it("décide l'urgence : le refus exige un commentaire", async () => {
 		const { wrapper } = await open('/ticket/TC-1')
-		const refuse = wrapper.findAll('button').find((button) => button.text() === 'Refuser')!
+		const refuse = wrapper.findAll('button').find((button) => button.text() === "Refuser l'urgence")!
 		expect(refuse.attributes('disabled')).toBeDefined()
 		await wrapper.find('textarea').setValue('Pas justifié')
 		expect(refuse.attributes('disabled')).toBeUndefined()
@@ -1016,7 +1016,7 @@ describe('poste de bureau', () => {
 				: respond(String(input)),
 		)
 		await wrapper.find('textarea').setValue('Mon commentaire')
-		await wrapper.findAll('button').find((button) => button.text() === 'Refuser')!.trigger('click')
+		await wrapper.findAll('button').find((button) => button.text() === "Refuser l'urgence")!.trigger('click')
 		await flushPromises()
 		await flushPromises()
 		expect(wrapper.text()).toContain('Refus du serveur')
@@ -1051,14 +1051,35 @@ describe('poste de bureau', () => {
 		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
 	})
 
+	it('enregistre la décision de rapprochement depuis l en-tête', async () => {
+		const enCours = { ...ticket, status: 'En Cours', actions: ['Pause', 'Terminer'] }
+		fetchMock.mockImplementation((input: RequestInfo | URL) =>
+			String(input).includes('get_ticket') ? Promise.resolve(new Response(JSON.stringify({ message: enCours }))) : respond(String(input)),
+		)
+		const { wrapper } = await open('/ticket/TC-1')
+		await wrapper.findAll('.step-button')[3].trigger('click')
+		await flushPromises()
+		const save = wrapper.findAll('.record-actions button').find((button) => button.text() === 'Enregistrer la décision')!
+		expect(save.attributes('disabled')).toBeDefined()
+		await wrapper.findAll('button').find((button) => button.text() === 'Aucun candidat pertinent')!.trigger('click')
+		expect(posted()).toEqual([])
+		expect(save.attributes('disabled')).toBeUndefined()
+		await save.trigger('click')
+		await flushPromises()
+		expect(posted()[0].url).toContain('decide_rapprochement')
+		expect(posted()[0].body).toMatchObject({ decision: 'Aucun candidat pertinent' })
+		fetchMock.mockImplementation((input: RequestInfo | URL) => respond(String(input)))
+	})
+
 	it('exige un motif pour bloquer la créance', async () => {
 		const enCours = { ...ticket, status: 'En Cours', actions: ['Pause', 'Terminer'] }
 		fetchMock.mockImplementation((input: RequestInfo | URL) =>
 			String(input).includes('get_ticket') ? Promise.resolve(new Response(JSON.stringify({ message: enCours }))) : respond(String(input)),
 		)
 		const { wrapper } = await open('/ticket/TC-1')
-		await wrapper.findAll('button').find((button) => button.text() === 'Bloquée')!.trigger('click')
-		const block = wrapper.findAll('button').find((button) => button.text() === 'Bloquer le ticket')!
+		await wrapper.find('.record-actions [aria-label^="Créance"]').trigger('click')
+		await wrapper.findAll('.record-actions button').find((button) => button.text() === 'Bloquée')!.trigger('click')
+		const block = wrapper.findAll('.record-actions button').find((button) => button.text() === 'Bloquer le ticket')!
 		expect(block.attributes('disabled')).toBeDefined()
 		expect(posted()).toEqual([])
 		await wrapper.find('input[placeholder^="Ex."]').setValue('Facture impayée')

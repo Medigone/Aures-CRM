@@ -88,7 +88,10 @@ const showRappro = computed(() => isBC.value && viewed.value?.key === 'rappro')
 const showChecks = computed(() => Boolean(ticket.value?.checklist.length) && ['check', 'fin'].includes(viewed.value?.key || ''))
 // Toutes les actions vivent dans l'en-tête, à droite d'Attribution. Elles suivent l'étape en cours, pas l'étape consultée.
 const currentKey = computed(() => ticket.value?.steps[followIndex.value]?.key)
-const primaryActions = computed(() => primaryTicketActions(currentKey.value))
+// Une décision d'urgence en attente passe avant les actions de l'étape : une seule action principale à l'écran.
+const primaryActions = computed(() => (urgencePending.value ? [] : primaryTicketActions(currentKey.value)))
+// Les cartes de décision y placent leurs boutons : leur saisie reste dans la carte.
+const decisionsBar = ref<HTMLElement | null>(null)
 const hasPrimaryAction = computed(() => primaryActions.value.some((action) => ticket.value?.actions.includes(action)))
 const menuActions = ['Annuler']
 const creation = computed(() => ticket.value?.demande_creation)
@@ -107,7 +110,7 @@ const toConfirm = computed(() => (!isClosed.value && currentKey.value === 'confi
 const demandeBlocked = computed(() => onDoc.value && creation.value?.state === 'no_procede')
 const demandeLabel = computed(() => (ticket.value?.cycle.demandes.length ? 'Créer une autre demande' : onDoc.value && demandeFirst.value ? 'Créer la demande' : 'Créer une demande'))
 // Une seule action principale à l'écran.
-const demandePrimary = computed(() => (onDoc.value ? demandeFirst.value : !hasPrimaryAction.value && !toConfirm.value))
+const demandePrimary = computed(() => !urgencePending.value && (onDoc.value ? demandeFirst.value : !hasPrimaryAction.value && !toConfirm.value && !showRappro.value))
 const creatingDemande = ref(false)
 const createdDemande = ref('')
 function onDemandeCreated(name: string) {
@@ -154,6 +157,7 @@ function onTags(tags: string[]) {
 					</div>
 					<div class="record-actions">
 						<AttributionButton :ticket="ticket" :options="assigneeOptions" :can-assign="canAssign" :busy="busy" @assign="assign" />
+						<div ref="decisionsBar" class="contents"></div>
 						<button v-if="canCreateDemande" type="button" :class="demandePrimary ? 'btn-primary' : 'btn-secondary'" @click="creatingDemande = true">{{ demandeLabel }}</button>
 						<button v-else-if="demandeBlocked" type="button" class="btn-primary" disabled>Créer la demande</button>
 						<a v-if="needsDesk" :class="demandeFirst ? 'btn-secondary' : 'btn-primary'" :href="deskUrl('Ticket Commercial', ticket.name)" target="_blank" rel="noopener noreferrer">
@@ -198,15 +202,15 @@ function onTags(tags: string[]) {
 						<p v-else-if="viewingDoc && canCreateDemande && ticket.devis_rapproche" class="text-sm text-selection-ink">Une demande reste possible si le devis ne couvre pas la commande : elle remplacera la décision de rapprochement.</p>
 					</div>
 
-					<UrgenceCard v-if="urgencePending" :ticket="ticket" :busy="busy" :perform="perform" />
+					<UrgenceCard v-if="urgencePending" :ticket="ticket" :busy="busy" :perform="perform" :actions-bar="decisionsBar" />
 
 					<div class="card flex flex-col gap-1 p-3.5">
 						<h3 class="text-base font-semibold">Demande du commercial</h3>
 						<p class="whitespace-pre-line text-ink-gray-8">{{ htmlToText(ticket.description) || 'Aucune description.' }}</p>
 					</div>
 
-					<CreanceCard v-if="showCreance" :ticket="ticket" :busy="busy" :perform="perform" />
-					<RapprochementCard v-if="showRappro" :ticket="ticket" :busy="busy" :perform="perform" />
+					<CreanceCard v-if="showCreance" :ticket="ticket" :busy="busy" :perform="perform" :actions-bar="decisionsBar" />
+					<RapprochementCard v-if="showRappro" :ticket="ticket" :busy="busy" :perform="perform" :actions-bar="decisionsBar" />
 					<ChecklistCard v-if="showChecks" :ticket="ticket" :busy="busy" :perform="perform" />
 				</div>
 

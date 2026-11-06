@@ -5,7 +5,8 @@ import { decideUrgence } from '@/lib/api'
 import { urgenceNote } from '@/lib/display'
 import type { Perform, TicketDetail } from '@/types'
 
-const props = defineProps<{ ticket: TicketDetail; busy: boolean; perform: Perform }>()
+/** La saisie reste dans la carte ; les décisions passent dans la barre d'actions de l'en-tête (`actionsBar`). */
+const props = defineProps<{ ticket: TicketDetail; busy: boolean; perform: Perform; actionsBar: HTMLElement | null }>()
 
 const LEVELS = ['U1', 'U2', 'U3']
 const level = ref('')
@@ -27,6 +28,10 @@ function decide(decision: 'validate' | 'refuse') {
 </script>
 
 <template>
+	<Teleport v-if="actionsBar" :to="actionsBar">
+		<button type="button" class="btn-secondary" :disabled="busy || readOnly || !refusable" :title="refusable ? undefined : 'Écrivez un commentaire pour refuser'" @click="decide('refuse')">Refuser l'urgence</button>
+		<button type="button" class="btn-primary" :disabled="busy || readOnly" @click="decide('validate')">Valider {{ chosen }}</button>
+	</Teleport>
 	<div class="card flex flex-col gap-2 bg-tone-amber-bg p-3.5">
 		<h3 class="text-base font-semibold">Demande d'urgence {{ ticket.niveau_urgence_demande }} à décider</h3>
 		<p class="whitespace-pre-line text-ink-gray-8">{{ htmlToText(ticket.descr_urgence) || 'Aucun motif indiqué.' }}</p>
@@ -52,9 +57,5 @@ function decide(decision: 'validate' | 'refuse') {
 			<span class="field-label">Commentaire (obligatoire pour refuser)</span>
 			<textarea v-model="comment" class="field-input" rows="2" :disabled="busy || readOnly"></textarea>
 		</label>
-		<div class="flex flex-wrap gap-2">
-			<button type="button" class="btn-primary" :disabled="busy || readOnly" @click="decide('validate')">Valider {{ chosen }}</button>
-			<button type="button" class="btn-secondary" :disabled="busy || readOnly || !refusable" @click="decide('refuse')">Refuser</button>
-		</div>
 	</div>
 </template>

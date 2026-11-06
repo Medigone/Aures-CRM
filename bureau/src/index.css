@@ -326,7 +326,7 @@
 		justify-content: flex-start;
 		margin-top: 0.25rem;
 	}
-	.attribution-btn {
+	.header-menu-btn {
 		max-width: 20rem;
 	}
 	.attribution-read {
@@ -338,13 +338,16 @@
 		font-weight: 500;
 		@apply text-ink-gray-8;
 	}
-	.attribution-name {
+	.header-menu-value {
 		max-width: 10rem;
 		overflow: hidden;
 		font-weight: 400;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		@apply text-ink-gray-6;
+	}
+	.header-menu {
+		min-width: 13rem;
 	}
 	.attribution-menu {
 		width: 18rem;

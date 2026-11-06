@@ -122,7 +122,11 @@ Règle commune à tout `/bureau` : les actions d'un document sont dans la barre 
 
 - **Attribution** (`AttributionButton`) : remplace « Me l'attribuer » et le champ « Pris en charge par ». Le bouton montre la personne actuelle. Son menu propose « Me l'attribuer » et une recherche parmi les personnes. Sans droit, il affiche seulement le nom.
 - **Étape consultée** : les actions suivent l'étape en cours du ticket, même si on regarde une autre étape dans la frise.
-- **Restent dans leur carte** : les décisions liées à une saisie (Créance, Rapprochement, Urgence, liste de contrôle), et les ajouts propres à une carte (joindre un fichier, créer un sous-article).
+- **Décisions de ticket** : leurs boutons sont aussi dans la barre, placés par un `Teleport` depuis la carte, dont la saisie reste sur place. Ils apparaissent quand leur carte est affichée, donc selon l'étape consultée.
+  - **Urgence** : Refuser l'urgence et Valider. Valider devient l'action principale tant que la décision est en attente.
+  - **Créance** : menu `Créance` (`HeaderMenu`). Bloquée ouvre le motif dans la carte, puis Bloquer le ticket ou Annuler le blocage dans la barre.
+  - **Rapprochement** : on choisit un devis ou une autre issue et on commente dans la carte, puis Enregistrer la décision. Rien n'est écrit avant ce clic.
+- **Restent dans leur carte** : les cases de la liste de contrôle, et les ajouts propres à une carte (joindre un fichier, créer un sous-article).
 
 ## Colonnes et vues
 
