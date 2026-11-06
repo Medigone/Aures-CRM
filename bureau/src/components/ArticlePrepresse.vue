@@ -14,7 +14,8 @@ import { isImageFile, posesLabel, prepresseState, type ArticleDetail } from '@/l
 import { deskUrl, formatDay } from '@/lib/display'
 
 /** Où en est l'article et quoi faire ensuite. L'historique reste replié. */
-const props = defineProps<{ article: ArticleDetail; busy: boolean; perform: (action: () => Promise<ArticleDetail>) => Promise<boolean> }>()
+/** `actionsBar` : la barre d'actions de la fiche, où va l'action de la prochaine étape. */
+const props = defineProps<{ article: ArticleDetail; busy: boolean; perform: (action: () => Promise<ArticleDetail>) => Promise<boolean>; actionsBar: HTMLElement | null }>()
 const emit = defineEmits<{ notice: [message: string]; problem: [message: string] }>()
 
 const state = computed(() => prepresseState(props.article))
@@ -67,17 +68,12 @@ function onCreated(article: ArticleDetail, name: string, failed: boolean) {
 					<span class="pp-step-sub" :class="!step.done && 'text-tone-amber font-medium'">{{ step.sub }}</span>
 				</button>
 			</div>
+			<p v-if="state.next" class="pp-next"><span>Prochaine étape</span> <b>{{ state.next.title }}.</b> {{ state.next.text }}</p>
 		</section>
-
-		<section v-if="state.next" class="step-hero" aria-label="Prochaine étape">
-			<span class="text-xs font-semibold text-selection-ink">Prochaine étape</span>
-			<h3 class="text-base font-semibold">{{ state.next.title }}</h3>
-			<p class="text-selection-ink">{{ state.next.text }}</p>
-			<div class="mt-0.5 flex flex-wrap gap-1.5">
-				<button v-if="state.next.action && canRunNext()" type="button" class="btn-primary" :disabled="busy" @click="runNext">{{ state.next.actionLabel }}</button>
-				<a v-if="state.next.desk" :class="state.next.action && canRunNext() ? 'btn-secondary' : 'btn-primary'" :href="state.next.desk" target="_blank" rel="noopener noreferrer">{{ state.next.deskLabel }}<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" /></a>
-			</div>
-		</section>
+		<Teleport v-if="actionsBar && state.next" :to="actionsBar">
+			<button v-if="state.next.action && canRunNext()" type="button" class="btn-secondary" :disabled="busy" @click="runNext">{{ state.next.actionLabel }}</button>
+			<a v-if="state.next.desk" class="btn-secondary" :href="state.next.desk" target="_blank" rel="noopener noreferrer">{{ state.next.deskLabel }}<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" /></a>
+		</Teleport>
 
 		<!-- Maquette en service. -->
 		<section id="prepresse-maquette" class="card ref-card" aria-label="Maquette en service">

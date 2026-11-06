@@ -1973,6 +1973,25 @@
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		padding: 0.875rem 0.875rem 0.75rem;
 	}
+	/* Consigne de la chaîne : une ligne, à la place d'un encart. */
+	.pp-next {
+		margin: 0;
+		padding: 0.625rem 0.875rem;
+		border-top: 1px solid var(--outline-gray-1);
+		font-size: var(--text-sm);
+		@apply text-ink-gray-7;
+	}
+	.pp-next span {
+		font-weight: 600;
+		color: var(--selection-ink);
+	}
+	.pp-next span::after {
+		content: ' :';
+	}
+	.pp-next b {
+		font-weight: 600;
+		@apply text-ink-gray-9;
+	}
 	.pp-step {
 		position: relative;
 		display: flex;

@@ -130,12 +130,7 @@ function onTags(tags: string[]) {
 									<span class="pp-step-sub" :class="step.next && 'font-medium text-tone-amber'">{{ step.sub }}</span>
 								</button>
 							</div>
-						</section>
-
-						<section v-if="next" class="step-hero" aria-label="Prochaine étape">
-							<span class="text-xs font-semibold text-selection-ink">{{ next.eyebrow }}</span>
-							<h3 class="text-base font-semibold">{{ next.title }}</h3>
-							<p class="text-selection-ink">{{ next.text }}</p>
+							<p v-if="next" class="pp-next"><span>{{ next.eyebrow }}</span> <b>{{ next.title }}.</b> {{ next.text }}</p>
 						</section>
 
 						<section v-if="demande.etudes.length" class="card ref-card">

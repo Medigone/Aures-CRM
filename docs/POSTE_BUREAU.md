@@ -130,7 +130,7 @@ Règle commune à tout `/bureau` : les actions d'un document sont dans la barre 
 
 ## Étapes du ticket
 
-La consigne de l'étape est dans la carte Étapes (`StepTimeline`), sous l'étape regardée : il n'y a plus d'encart au-dessus du dossier. Sur une autre étape que celle en cours, l'en-tête de la carte propose « Revenir à l'étape en cours ». L'encart `.step-hero` reste sur les fiches Demande et Article.
+La consigne de l'étape est dans la carte Étapes (`StepTimeline`), sous l'étape regardée : il n'y a plus d'encart au-dessus du dossier. Sur une autre étape que celle en cours, l'en-tête de la carte propose « Revenir à l'étape en cours ». Les fiches Demande et Article n'ont pas de carte Étapes : leur consigne est une ligne (`.pp-next`) en bas de leur chaîne d'avancement. L'action de la prochaine étape d'un article va dans la barre d'actions de la fiche.
 
 ## Pièces du dossier
 

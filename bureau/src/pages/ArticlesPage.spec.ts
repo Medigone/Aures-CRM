@@ -248,7 +248,8 @@ describe('page Articles', () => {
 
 	it('la prépresse dit la prochaine étape, et l’historique reste replié', async () => {
 		const { wrapper } = await open('/articles/CLI-1-003?onglet=prepresse')
-		expect(wrapper.find('.step-hero h3').text()).toBe('Refaire le BAT')
+		expect(wrapper.find('.pp-next b').text()).toBe('Refaire le BAT.')
+		expect(wrapper.find('.step-hero').exists()).toBe(false)
 		expect(wrapper.findAll('.pp-step b').map((step) => step.text())).toEqual(['Tracé', 'Maquette', 'Imposition', 'BAT'])
 		expect(wrapper.find('.pp-name').text()).toBe('MAQ-V3')
 		expect(wrapper.find('.pp-rows').exists()).toBe(false)

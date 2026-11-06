@@ -217,6 +217,8 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 	createdTicket.value = result.name
 	load()
 }
+// L'onglet Prépresse y place l'action de sa prochaine étape.
+const decisionsBar = ref<HTMLElement | null>(null)
 </script>
 
 <template>
@@ -256,6 +258,7 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 								<a class="app-menu-item" role="menuitem" :href="deskUrl('Item', article.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
 							</MoreMenu>
 						</div>
+						<div ref="decisionsBar" class="record-actions record-actions-start empty:hidden"></div>
 					</div>
 					<div v-if="article.client" class="side-block">
 						<p class="side-label">Client</p>
@@ -407,7 +410,7 @@ function onTicketCreated(result: { name: string; failedFiles: number }) {
 						</div>
 
 						<!-- Prépresse. -->
-						<ArticlePrepresse v-else-if="activeTab === 'prepresse'" :article="article" :busy="busy" :perform="perform" @notice="notice = $event" @problem="actionError = $event" />
+						<ArticlePrepresse v-else-if="activeTab === 'prepresse'" :article="article" :busy="busy" :perform="perform" :actions-bar="decisionsBar" @notice="notice = $event" @problem="actionError = $event" />
 
 						<!-- Documents : la zone de dépôt est au-dessus, avec l'envoi en cours. -->
 						<div v-else-if="activeTab === 'documents'" class="bureau-center">
