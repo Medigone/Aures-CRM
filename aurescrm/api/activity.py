@@ -39,7 +39,7 @@ HIDDEN_FIELDTYPES = {"Section Break", "Column Break", "Tab Break", "HTML", "Butt
 # Champs masqués du formulaire dont le changement compte quand même : leur valeur s'affiche ailleurs, en pastille.
 SHOWN_HIDDEN_FIELDS = {"Ticket Commercial": {"status"}}
 # Libellés du Desk que le métier nomme autrement.
-FIELD_LABELS = {"Item": {"custom_fiche_technique_article": "BAT"}}
+FIELD_LABELS = {"Item": {"custom_fiche_technique_article": "BAT"}, "Demande Faisabilite": {"liste_articles": "Articles"}}
 ATTACH_FIELDTYPES = {"Attach", "Attach Image"}
 # Frappe enregistre un envoi en plusieurs temps : ces lignes-là ne font qu'un seul événement.
 SAME_UPLOAD_SECONDS = 30
@@ -102,6 +102,11 @@ def _format_value(df, value):
 	return text if len(text) <= MAX_VALUE_LENGTH else f"{text[:MAX_VALUE_LENGTH]}…"
 
 
+def _table_label(doctype, df):
+	"""Nom d'une table dans le fil. Une table peut ne pas avoir de libellé : on prend alors son doctype."""
+	return FIELD_LABELS.get(doctype, {}).get(df.fieldname) or _(df.label or df.options or df.fieldname)
+
+
 def _version_items(doc):
 	meta = doc.meta
 	readable = set(meta.get_permlevel_access("read") or [0]) | {0}
@@ -141,7 +146,7 @@ def _version_items(doc):
 		if changes:
 			items.append({"id": version.name, "kind": "change", "changes": changes, **base})
 		tables = {row[0] for key in ("added", "removed", "row_changed") for row in data.get(key) or []}
-		labels = sorted(_(meta.get_label(table)) for table in tables if meta.get_field(table))
+		labels = sorted(_table_label(doc.doctype, meta.get_field(table)) for table in tables if meta.get_field(table))
 		if labels:
 			text = _("a modifié {0}").format(", ".join(labels))
 			items.append({"id": f"{version.name}-rows", "kind": "info", "text": text, **base})

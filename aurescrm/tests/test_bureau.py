@@ -795,6 +795,20 @@ class TestActivite(FrappeTestCase):
 		change = next(item for item in items if item["id"] == version.name)
 		self.assertEqual(change["changes"], [{"label": "Statut", "old": "Nouveau", "new": "En Cours"}])
 
+	def test_table_sans_libelle_dans_le_fil(self):
+		"""Une table sans libellé faisait tomber tout le fil de la fiche."""
+		name = frappe.db.get_value("Demande Faisabilite", {}, "name")
+		if not name:
+			self.skipTest("Aucune demande.")
+		doc = frappe.get_doc("Demande Faisabilite", name)
+		version = frappe.get_doc(
+			{"doctype": "Version", "ref_doctype": doc.doctype, "docname": name, "data": frappe.as_json({"added": [["liste_articles", {"article": "A"}]]})}
+		).insert(ignore_permissions=True)
+		item = next(item for item in activity._version_items(doc) if item["id"] == f"{version.name}-rows")
+		self.assertEqual(item["text"], "a modifié Articles")
+		df = frappe._dict(fieldname="lignes", label=None, options="Lignes Test")
+		self.assertEqual(activity._table_label("Autre", df), "Lignes Test")
+
 	def test_fichier_sans_lien_dangereux(self):
 		comment = frappe._dict(
 			name="C1", comment_type="Attachment", content='<a href="javascript:alert(1)">piege.pdf</a>', comment_by="X", owner="x", creation="2026-01-01"
