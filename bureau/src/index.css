@@ -3988,6 +3988,14 @@
 		gap: 0.625rem;
 		align-items: start;
 	}
+	/* La coquille ne défile pas : comme `.bureau-detail` sur les fiches, le corps de l'atelier porte son défilement. */
+	.atelier-grid,
+	.atelier-blank {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		padding-bottom: 0.625rem;
+	}
 	.atelier-center {
 		display: flex;
 		min-width: 0;
