@@ -1,4 +1,13 @@
 <script setup lang="ts">
+import LucideChartColumn from '~icons/lucide/chart-column'
+import LucideFileText from '~icons/lucide/file-text'
+import LucideFolder from '~icons/lucide/folder'
+import LucideHash from '~icons/lucide/hash'
+import LucidePackage from '~icons/lucide/package'
+import LucidePrinter from '~icons/lucide/printer'
+import LucideRuler from '~icons/lucide/ruler'
+import LucideScissors from '~icons/lucide/scissors'
+import RecordHeader from './RecordHeader.vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import type { UploadedFile } from '@shared/api'
 import FileUploader from '@shared/components/FileUploader.vue'
@@ -241,24 +250,27 @@ const decisionsBar = ref<HTMLElement | null>(null)
 		<div v-else-if="!article" class="card p-8 text-center text-ink-gray-6">Chargement de l'article…</div>
 
 		<template v-else>
-			<div class="client-dossier" @dragenter="onDragEnter" @dragover.prevent @dragleave="onDragLeave" @drop.prevent="onDrop">
+			<div class="record-page" @dragenter="onDragEnter" @dragover.prevent @dragleave="onDragLeave" @drop.prevent="onDrop">
 				<div v-if="dragging" class="record-drop" aria-hidden="true"><div><b>Déposer pour joindre à {{ article.designation }}</b><span>Ils arrivent dans Documents.</span></div></div>
-				<aside class="card client-side" aria-label="Identité de l'article">
-					<ArticleImage :article="article" :busy="busy" :perform="perform" />
-					<div class="side-block gap-2 !border-t-0">
-						<h2 class="page-title leading-tight">{{ article.designation }}</h2>
-						<div class="flex flex-wrap items-center gap-1.5">
-							<StatusPill v-if="article.bat" :status="article.bat" />
-							<span v-else-if="!general" class="text-sm text-ink-gray-6">Aucun BAT</span>
-							<span v-if="article.compose" class="record-flag">Composé</span>
-							<span v-if="article.sous_article" class="record-flag">Sous-article</span>
-							<span v-if="general" class="record-flag">Article général</span>
-						</div>
-						<p class="text-sm text-ink-gray-7">{{ [article.name, article.reference && `Réf. client ${article.reference}`].filter(Boolean).join(' · ') }}</p>
-						<TagEditor doctype="Item" :name="article.name" :modified="article.modified" :tags="article.tags" :can-edit="article.can_edit" @changed="onTags" />
-						<div class="record-actions record-actions-rail">
-							<button v-if="ticketClient" type="button" class="btn-primary flex-auto" @click="newTicket = true">Nouveau ticket</button>
-							<button v-if="article.can_edit" type="button" :class="ticketClient ? 'btn-secondary' : 'btn-primary flex-auto'" :disabled="busy" @click="editing = true">Modifier</button>
+				<RecordHeader>
+					<template #title>{{ article.designation }}</template>
+					<template #flags>
+						<StatusPill v-if="article.bat" :status="article.bat" />
+						<span v-else-if="!general" class="text-sm text-ink-gray-6">Aucun BAT</span>
+						<span v-if="article.compose" class="record-flag">Composé</span>
+						<span v-if="article.sous_article" class="record-flag">Sous-article</span>
+						<span v-if="general" class="record-flag">Article général</span>
+					</template>
+					<template #sub>
+						<RouterLink v-if="article.client" class="ref-link" :to="{ name: 'Client', params: { id: article.client } }">{{ article.client_label }}</RouterLink>
+						<span class="tabular-nums">{{ article.name }}</span>
+						<span v-if="article.reference">Réf. client {{ article.reference }}</span>
+						<div v-if="article.tags?.length || article.can_edit"><TagEditor doctype="Item" :name="article.name" :modified="article.modified" :tags="article.tags" :can-edit="article.can_edit" @changed="onTags" /></div>
+					</template>
+					<template #actions>
+						<div ref="decisionsBar" class="contents"></div>
+						<button v-if="ticketClient" type="button" class="btn-primary" @click="newTicket = true">Nouveau ticket</button>
+							<button v-if="article.can_edit" type="button" :class="ticketClient ? 'btn-secondary' : 'btn-primary'" :disabled="busy" @click="editing = true">Modifier</button>
 							<MoreMenu>
 								<button v-if="article.droits_duplication.article" type="button" class="app-menu-item" role="menuitem" :disabled="busy || !options" @click="duplicating = true">Dupliquer l'article</button>
 								<button v-if="article.can_edit && !article.compose && !article.sous_article && !general" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="transform">Transformer en article composé</button>
@@ -268,33 +280,25 @@ const decisionsBar = ref<HTMLElement | null>(null)
 								<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 								<a class="app-menu-item" role="menuitem" :href="deskUrl('Item', article.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
 							</MoreMenu>
-						</div>
-						<div ref="decisionsBar" class="record-actions record-actions-start empty:hidden"></div>
-					</div>
-					<div v-if="article.client" class="side-block">
-						<p class="side-label">Client</p>
-						<p><RouterLink class="ref-link font-semibold" :to="{ name: 'Client', params: { id: article.client } }">{{ article.client_label }}</RouterLink></p>
-						<p class="text-ink-gray-6">{{ [article.wilaya, article.commercial].filter(Boolean).join(' · ') || 'Non attribué' }}</p>
-					</div>
-					<div v-if="article.parent" class="side-block">
-						<p class="side-label">Article parent</p>
-						<p><RouterLink class="ref-link font-semibold" :to="{ name: 'Article', params: { id: article.parent } }">{{ article.parent_label || article.parent }}</RouterLink></p>
-						<p class="text-ink-gray-6">Quantité par article parent : {{ formatQuantity(article.quantite_parent) }}</p>
-					</div>
+					</template>
+				</RecordHeader>
+				<div class="client-dossier">
+				<aside class="card client-side" aria-label="Informations de l'article">
+					<ArticleImage :article="article" :busy="busy" :perform="perform" />
 					<div class="side-block">
-						<dl class="side-kv">
-							<div v-if="!general"><dt>Procédé</dt><dd :class="!article.procede && 'font-normal text-ink-gray-6'">{{ article.procede || 'Non renseigné' }}</dd></div>
-							<div><dt>Groupe</dt><dd>{{ article.groupe || '—' }}</dd></div>
-							<div><dt>Unité</dt><dd>{{ article.unite || '—' }}</dd></div>
-							<div v-if="!general"><dt>Consommation annuelle</dt><dd class="tabular-nums" :class="!article.consommation && 'font-normal text-ink-gray-6'">{{ article.consommation ? formatAmount(article.consommation) : '—' }}</dd></div>
-							<div v-if="article.ancien_code"><dt>Ancien code ERP</dt><dd>{{ article.ancien_code }}</dd></div>
+						<dl class="record-facts">
+							<div v-if="article.parent"><dt><LucidePackage aria-hidden="true" />Article parent</dt><dd><RouterLink class="ref-link" :to="{ name: 'Article', params: { id: article.parent } }">{{ article.parent_label || article.parent }}</RouterLink><span class="block font-normal text-ink-gray-6">Quantité par article parent : {{ formatQuantity(article.quantite_parent) }}</span></dd></div>
+							<div v-if="!general"><dt><LucidePrinter aria-hidden="true" />Procédé</dt><dd :class="!article.procede && 'record-fact-none'">{{ article.procede || 'Non renseigné' }}</dd></div>
+							<div><dt><LucideFolder aria-hidden="true" />Groupe</dt><dd>{{ article.groupe || '—' }}</dd></div>
+							<div><dt><LucideRuler aria-hidden="true" />Unité</dt><dd>{{ article.unite || '—' }}</dd></div>
+							<div v-if="!general"><dt><LucideChartColumn aria-hidden="true" />Consommation annuelle</dt><dd class="tabular-nums" :class="!article.consommation && 'record-fact-none'">{{ article.consommation ? formatAmount(article.consommation) : '—' }}</dd></div>
+							<div v-if="article.ancien_code"><dt><LucideHash aria-hidden="true" />Ancien code ERP</dt><dd>{{ article.ancien_code }}</dd></div>
 						</dl>
 					</div>
 					<div v-if="!general" class="side-block">
-						<p class="side-label">Documents</p>
-						<dl class="side-kv">
-							<div v-for="piece in [{ key: 'fiche_technique', label: 'BAT', url: article.fichiers.fiche_technique }, { key: 'trace_decoupe', label: 'Tracé forme de découpe', url: article.fichiers.trace_decoupe }]" :key="piece.key">
-								<dt>{{ piece.label }}</dt>
+						<dl class="record-facts">
+							<div v-for="piece in [{ key: 'fiche_technique', label: 'BAT', icon: LucideFileText, url: article.fichiers.fiche_technique }, { key: 'trace_decoupe', label: 'Tracé forme de découpe', icon: LucideScissors, url: article.fichiers.trace_decoupe }]" :key="piece.key">
+								<dt><component :is="piece.icon" aria-hidden="true" />{{ piece.label }}</dt>
 								<dd>
 									<a v-if="piece.url" class="ref-link" :href="piece.url" target="_blank" rel="noopener noreferrer">Ouvrir</a>
 									<button v-if="!piece.url && article.can_edit && !(piece.key === 'fiche_technique' && canImportBat)" type="button" class="ref-link" :disabled="busy" :aria-label="`Joindre : ${piece.label}`" @click="joinPiece(piece.key)">Joindre</button>
@@ -464,6 +468,7 @@ const decisionsBar = ref<HTMLElement | null>(null)
 							<ActivityFeed ref="feed" :api="activityApi" :version="article.modified" :user-name="userName" @changed="refresh()" />
 						</aside>
 					</div>
+				</div>
 				</div>
 			</div>
 		</template>

@@ -240,38 +240,83 @@
 		padding-bottom: 0.625rem;
 		scrollbar-width: thin;
 	}
-	/* Fiche Demande : informations à gauche, contenu au centre, étapes à droite. */
-	.demande-detail .bureau-center {
-		flex-basis: 480px;
+	/* En-tête des fiches : titre sur toute la largeur. Le sous-titre se sépare tout seul par des points. */
+	.record-page {
+		position: relative;
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		gap: 0.625rem;
+		min-height: 0;
 	}
-	.demande-detail .bureau-side {
-		flex-basis: 248px;
+	.record-head {
+		display: flex;
+		flex: none;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem 0.75rem;
+		padding: 0.875rem;
 	}
-	.demande-rail {
+	.record-head-title {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.375rem;
+	}
+	.record-head-sub {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0 0.375rem;
+		margin-top: 0.125rem;
+		@apply text-sm text-ink-gray-7;
+	}
+	.record-head-sub > * + *::before {
+		content: '·';
+		margin-right: 0.375rem;
+	}
+	.record-head-sub > div {
+		display: inline-flex;
+		align-items: center;
+	}
+	/* Colonne gauche des fiches : chaque information, son icône et son libellé au-dessus de la valeur. */
+	.record-rail {
 		flex: 0 0 190px;
 		padding: 0.75rem 0.875rem;
 	}
-	.demande-rail dl {
+	.record-facts {
 		display: flex;
 		flex-direction: column;
 		gap: 0.625rem;
 		margin: 0;
 	}
-	.demande-rail dt {
+	.record-facts dt {
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
 		@apply text-xs text-ink-gray-6;
 	}
-	.demande-rail dt svg {
+	.record-facts dt svg {
 		flex: none;
 		width: 0.75rem;
 		height: 0.75rem;
 	}
-	.demande-rail dd {
+	.record-facts dd {
 		margin: 0.0625rem 0 0;
 		overflow-wrap: anywhere;
 		@apply font-medium text-ink-gray-9;
+	}
+	.record-facts dd.record-fact-none {
+		font-weight: 400;
+		@apply text-ink-gray-6;
+	}
+	/* Fiche à étapes : informations à gauche, contenu au centre, étapes à droite. */
+	.demande-detail .bureau-center {
+		flex-basis: 480px;
+	}
+	.demande-detail .bureau-side {
+		flex-basis: 248px;
 	}
 	/* Aperçu de la demande : un seul bloc, trois colonnes de même hauteur. La dernière porte des numéros et des statuts longs. */
 	.demande-resume {
@@ -369,40 +414,18 @@
 			flex: none;
 			overflow: visible;
 		}
-		.demande-rail {
+		.record-page {
+			flex: none;
+		}
+		.record-rail {
 			flex: 1 1 100%;
 		}
-		.demande-rail dl {
+		.record-facts {
 			display: grid;
 			grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 		}
 	}
 
-	/* En-tête du ticket : une valeur reste sur une ligne, le groupe passe à la ligne suivante s'il manque de place. */
-	.ticket-facts {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem 1.25rem;
-		margin: 0;
-		padding-top: 0.5rem;
-		@apply border-t border-outline-gray-1;
-	}
-	.ticket-fact {
-		flex: 1 1 auto;
-		min-width: 0;
-		max-width: 100%;
-	}
-	.ticket-fact dt {
-		@apply text-xs text-ink-gray-6;
-	}
-	.ticket-fact dd {
-		display: flex;
-		align-items: center;
-		min-height: var(--ctl);
-		margin: 0;
-		white-space: nowrap;
-		@apply font-medium;
-	}
 	/* Pièces du dossier : un état, un nom, et les documents réels. */
 	.piece {
 		display: grid;
@@ -756,7 +779,7 @@
 		min-height: 0;
 	}
 	.client-dossier {
-		grid-template-columns: 19rem minmax(0, 1fr);
+		grid-template-columns: 13.75rem minmax(0, 1fr);
 	}
 	.ticket-dossier {
 		grid-template-columns: minmax(0, 1fr);
@@ -1895,6 +1918,11 @@
 	.article-visual[data-over='true'] {
 		outline: 2px solid var(--primary);
 		outline-offset: -2px;
+	}
+	/* Colonne étroite : le bouton ne doit pas couvrir le tracé. */
+	.client-side .article-visual:has(.dieline) {
+		height: 8.25rem;
+		padding-bottom: 2.25rem;
 	}
 	.article-visual-change {
 		position: absolute;

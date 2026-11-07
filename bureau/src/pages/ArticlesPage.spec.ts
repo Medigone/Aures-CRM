@@ -233,7 +233,7 @@ describe('page Articles', () => {
 		expect(main).toContain('BAT-21 porte sur MAQ-V2')
 		expect(main).toContain('8 poses · chutes 12 %')
 		expect(main).toContain('12,40 DA')
-		expect(wrapper.find('.client-side').text()).toContain('BISCUITERIE NUMIDIA')
+		expect(wrapper.find('.record-head').text()).toContain('BISCUITERIE NUMIDIA')
 		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Fiche technique', 'Prépresse, une étape à faire', 'Documents1', 'Affaires4'])
 		wrapper.unmount()
 	})
@@ -303,7 +303,7 @@ describe('page Articles', () => {
 	it('confirme un enregistrement par un message en bas à droite, qui s’en va seul', async () => {
 		const { wrapper } = await open('/articles/CLI-1-003')
 		const timers = vi.spyOn(window, 'setTimeout')
-		await wrapper.findAll('.client-side button').find((button) => button.text() === 'Modifier')!.trigger('click')
+		await wrapper.findAll('.record-head button').find((button) => button.text() === 'Modifier')!.trigger('click')
 		await flushPromises()
 		const input = wrapper.find('#article-reference')
 		await input.setValue('H300')
@@ -345,14 +345,14 @@ describe('page Articles', () => {
 	it('un article général garde Modifier comme action principale, sans prépresse', async () => {
 		current['bureau_articles.get_article'] = { ...detail, type: 'Général', client: null, client_label: null, procede: null, ecart_bat: null, fiche: {} }
 		const { wrapper } = await open('/articles/CLI-1-003')
-		expect(wrapper.find('.client-side .btn-primary').text()).toBe('Modifier')
+		expect(wrapper.find('.record-head .btn-primary').text()).toBe('Modifier')
 		expect(wrapper.findAll('.record-tab').map((tab) => tab.text())).toEqual(['Aperçu', 'Documents1', 'Affaires4'])
 		wrapper.unmount()
 	})
 
 	it('Modifier n’envoie que les champs changés', async () => {
 		const { wrapper } = await open('/articles/CLI-1-003')
-		await wrapper.findAll('.client-side button').find((button) => button.text() === 'Modifier')!.trigger('click')
+		await wrapper.findAll('.record-head button').find((button) => button.text() === 'Modifier')!.trigger('click')
 		await flushPromises()
 		await flushPromises()
 		await wrapper.find('#article-reference').setValue('H300')

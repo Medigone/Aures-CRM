@@ -386,7 +386,7 @@ describe('page Clients', () => {
 			current['bureau_bulk.remove_doc_tag'] = { tags: [] }
 			current['bureau_bulk.add_doc_tag'] = { tags: ['Grand export'] }
 			const { wrapper } = await open('/clients/CLI-1')
-			const side = wrapper.find('.client-side')
+			const side = wrapper.find('.record-head')
 			expect(side.find('.tag-pill').text()).toBe('Salon 2026')
 			await side.find('[aria-label="Retirer le tag Salon 2026"]').trigger('click')
 			await flushPromises()
@@ -404,7 +404,7 @@ describe('page Clients', () => {
 			current['bureau_bulk.get_bulk_tags'] = []
 			current['bureau_bulk.add_doc_tag'] = { tags: ['Salon 2027'] }
 			const { wrapper } = await open('/clients/CLI-1')
-			await wrapper.find('.client-side .tag-add').trigger('click')
+			await wrapper.find('.record-head .tag-add').trigger('click')
 			await flushPromises()
 			const input = wrapper.find('.tag-edit input')
 			await input.setValue('Salon, 2027')
@@ -418,7 +418,7 @@ describe('page Clients', () => {
 		it('sans le droit de modifier, les tags restent en lecture seule', async () => {
 			current['bureau_clients.get_client'] = { ...tagged, can_edit: false }
 			const { wrapper } = await open('/clients/CLI-1')
-			const side = wrapper.find('.client-side')
+			const side = wrapper.find('.record-head')
 			expect(side.find('.tag-pill').text()).toBe('Salon 2026')
 			expect(side.find('.tag-x').exists()).toBe(false)
 			expect(side.find('.tag-add').exists()).toBe(false)

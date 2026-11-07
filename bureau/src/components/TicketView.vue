@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import LucideCalendar from '~icons/lucide/calendar'
+import LucideClock from '~icons/lucide/clock'
+import LucideFactory from '~icons/lucide/factory'
+import LucideUser from '~icons/lucide/user'
+import RecordHeader from './RecordHeader.vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
@@ -50,10 +55,6 @@ watch(
 		if (name && wanted) showActivity()
 	},
 )
-const commentLabel = computed(() => {
-	const count = ticket.value?.comments.count ?? 0
-	return count ? `${count} commentaire${count > 1 ? 's' : ''}` : 'Commenter'
-})
 async function copyLink() {
 	try {
 		await navigator.clipboard.writeText(window.location.href)
@@ -141,22 +142,19 @@ function onTags(tags: string[]) {
 		<div v-else-if="!ticket" class="card p-8 text-center text-ink-gray-6">Chargement du ticket…</div>
 
 		<template v-else>
-			<div class="card flex flex-none flex-col gap-2 p-3.5">
-				<div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-					<div class="min-w-0">
-						<div class="flex flex-wrap items-center gap-1.5">
-							<h2 class="page-title">{{ ticket.request_type }}</h2>
-							<TicketStatus :status="ticket.status" />
-							<span class="urgence" :class="`urgence-${ticket.niveau_urgence}`">{{ ticket.niveau_urgence }}</span>
-						</div>
-						<p class="mt-0.5 text-sm text-ink-gray-7">
-							{{ ticket.client }} · {{ ticket.name }} ·
-							<button type="button" class="text-link" @click="showActivity">{{ commentLabel }}</button>
-						</p>
-						<TagEditor class="mt-1.5" doctype="Ticket Commercial" :name="ticket.name" :modified="ticket.modified" :tags="ticket.tags" :can-edit="ticket.can_write" @changed="onTags" />
-					</div>
-					<div class="record-actions">
-						<AttributionButton :ticket="ticket" :options="assigneeOptions" :can-assign="canAssign" :busy="busy" @assign="assign" />
+			<RecordHeader>
+				<template #title><span class="tabular-nums">{{ ticket.name }}</span></template>
+				<template #flags>
+					<TicketStatus :status="ticket.status" />
+					<span class="urgence" :class="`urgence-${ticket.niveau_urgence}`">{{ ticket.niveau_urgence }}</span>
+				</template>
+				<template #sub>
+					<RouterLink class="ref-link" :to="{ name: 'Client', params: { id: ticket.customer } }">{{ ticket.client }}</RouterLink>
+					<span>{{ ticket.request_type }}</span>
+					<div v-if="ticket.tags?.length || ticket.can_write"><TagEditor doctype="Ticket Commercial" :name="ticket.name" :modified="ticket.modified" :tags="ticket.tags" :can-edit="ticket.can_write" @changed="onTags" /></div>
+				</template>
+				<template #actions>
+					<AttributionButton :ticket="ticket" :options="assigneeOptions" :can-assign="canAssign" :busy="busy" @assign="assign" />
 						<div ref="decisionsBar" class="contents"></div>
 						<button v-if="canCreateDemande" type="button" :class="demandePrimary ? 'btn-primary' : 'btn-secondary'" @click="creatingDemande = true">{{ demandeLabel }}</button>
 						<button v-else-if="demandeBlocked" type="button" class="btn-primary" disabled>Créer la demande</button>
@@ -176,21 +174,22 @@ function onTags(tags: string[]) {
 							<button v-if="canEditDossier && articles?.verified" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="perform(() => setArticlesVerified(ticket!, false))">Retirer la vérification des articles</button>
 							<ActionButtons :ticket="ticket" :busy="busy" :perform="perform" in-menu :only="menuActions" />
 						</MoreMenu>
-					</div>
-				</div>
-				<p v-if="finishHint" class="text-right text-sm text-tone-amber">{{ finishHint }}</p>
-				<dl class="ticket-facts">
-					<div class="ticket-fact"><dt>Commercial</dt><dd><span class="truncate" :title="ticket.commercial || undefined">{{ ticket.commercial || '—' }}</span></dd></div>
-					<div class="ticket-fact"><dt>Site</dt><dd>{{ ticket.site || '—' }}</dd></div>
-					<div class="ticket-fact"><dt>Échéance</dt><dd :class="ticket.is_late && 'text-tone-red'">{{ formatDay(ticket.echeance) || 'Sans échéance' }}</dd></div>
-					<div class="ticket-fact"><dt>Créé le</dt><dd>{{ formatDay(ticket.creation_date) || '—' }}</dd></div>
-				</dl>
-			</div>
+				</template>
+			</RecordHeader>
+			<p v-if="finishHint" class="flex-none text-right text-sm text-tone-amber">{{ finishHint }}</p>
 
 			<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
 
 			<div class="ticket-dossier">
-			<div class="bureau-detail">
+			<div class="bureau-detail demande-detail">
+				<aside class="card record-rail" aria-label="Informations du ticket">
+					<dl class="record-facts">
+						<div><dt><LucideUser aria-hidden="true" />Commercial</dt><dd>{{ ticket.commercial || '—' }}</dd></div>
+						<div><dt><LucideFactory aria-hidden="true" />Site</dt><dd>{{ ticket.site || '—' }}</dd></div>
+						<div><dt><LucideClock aria-hidden="true" />Échéance</dt><dd class="tabular-nums" :class="ticket.is_late && 'text-tone-red'">{{ formatDay(ticket.echeance) || 'Sans échéance' }}</dd></div>
+						<div><dt><LucideCalendar aria-hidden="true" />Créé le</dt><dd class="tabular-nums">{{ formatDay(ticket.creation_date) || '—' }}</dd></div>
+					</dl>
+				</aside>
 				<div class="bureau-center">
 					<p v-if="banner" class="rounded-control px-3.5 py-2.5" :class="banner.style">{{ banner.text }}</p>
 					<p v-if="viewingDoc && !isEssai && !canCreateDemande && creation?.reason" class="rounded-control tone-amber px-3.5 py-2.5">{{ creation.reason }}</p>

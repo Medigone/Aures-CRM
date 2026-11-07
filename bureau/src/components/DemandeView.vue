@@ -15,6 +15,7 @@ import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import DemandeActions from './DemandeActions.vue'
 import DemandeLinesTable from './DemandeLinesTable.vue'
+import RecordHeader from './RecordHeader.vue'
 import StepTimeline from './StepTimeline.vue'
 import TagEditor from './TagEditor.vue'
 import { demandeActivity } from '@/lib/api'
@@ -93,24 +94,19 @@ function onTags(tags: string[]) {
 		<div v-else-if="!demande" class="card p-8 text-center text-ink-gray-6">Chargement de la demande…</div>
 
 		<template v-else>
-			<div class="card flex flex-none flex-wrap items-center justify-between gap-x-3 gap-y-2 p-3.5">
-				<div class="min-w-0">
-					<div class="flex flex-wrap items-center gap-1.5">
-						<h2 class="page-title tabular-nums">{{ demande.name }}</h2>
-						<StatusPill :status="demande.status" />
-						<span class="urgence" :class="`urgence-${demande.urgence}`">{{ demande.urgence }}</span>
-					</div>
-					<div class="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-ink-gray-7">
-						<RouterLink class="ref-link" :to="{ name: 'Client', params: { id: demande.client } }">{{ demande.client_label }}</RouterLink>
-						<template v-if="demande.type"><span aria-hidden="true">·</span><span>{{ typeLabel(demande.type) }}</span></template>
-						<template v-if="demande.procede"><span aria-hidden="true">·</span><span>{{ demande.procede }}</span></template>
-						<template v-if="demande.tags.length || demande.can_write">
-							<span aria-hidden="true">·</span>
-							<TagEditor doctype="Demande Faisabilite" :name="demande.name" :modified="demande.modified" :tags="demande.tags" :can-edit="demande.can_write" @changed="onTags" />
-						</template>
-					</div>
-				</div>
-				<div class="record-actions">
+			<RecordHeader>
+				<template #title><span class="tabular-nums">{{ demande.name }}</span></template>
+				<template #flags>
+					<StatusPill :status="demande.status" />
+					<span class="urgence" :class="`urgence-${demande.urgence}`">{{ demande.urgence }}</span>
+				</template>
+				<template #sub>
+					<RouterLink class="ref-link" :to="{ name: 'Client', params: { id: demande.client } }">{{ demande.client_label }}</RouterLink>
+					<span v-if="demande.type">{{ typeLabel(demande.type) }}</span>
+					<span v-if="demande.procede">{{ demande.procede }}</span>
+					<div v-if="demande.tags.length || demande.can_write"><TagEditor doctype="Demande Faisabilite" :name="demande.name" :modified="demande.modified" :tags="demande.tags" :can-edit="demande.can_write" @changed="onTags" /></div>
+				</template>
+				<template #actions>
 					<button v-for="action in sideActions" :key="action" type="button" :class="isPrimaryDemandeAction(action) ? 'btn-primary' : 'btn-secondary'" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
 					<MoreMenu>
 						<button v-for="action in menuActions" :key="action" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
@@ -118,15 +114,15 @@ function onTags(tags: string[]) {
 						<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 						<a class="app-menu-item" role="menuitem" :href="deskUrl('Demande Faisabilite', demande.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
 					</MoreMenu>
-				</div>
-			</div>
+				</template>
+			</RecordHeader>
 
 			<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
 
 			<div class="ticket-dossier">
 			<div class="bureau-detail demande-detail">
-				<aside class="card demande-rail" aria-label="Informations de la demande">
-					<dl>
+				<aside class="card record-rail" aria-label="Informations de la demande">
+					<dl class="record-facts">
 						<div><dt><LucideUser aria-hidden="true" />Commercial</dt><dd>{{ demande.commercial || 'Non attribué' }}</dd></div>
 						<div><dt><LucideTruck aria-hidden="true" />Livraison souhaitée</dt><dd class="tabular-nums">{{ formatDay(demande.livraison) || '—' }}</dd></div>
 						<div><dt><LucideTicket aria-hidden="true" />Ticket</dt><dd><RouterLink v-if="demande.ticket" class="ref-link tabular-nums" :to="{ name: 'Ticket', params: { id: demande.ticket } }">{{ demande.ticket }}</RouterLink><template v-else>Aucun</template></dd></div>

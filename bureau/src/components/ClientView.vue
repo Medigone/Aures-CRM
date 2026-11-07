@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import LucideCalendar from '~icons/lucide/calendar'
+import LucideHistory from '~icons/lucide/history'
+import LucideMapPin from '~icons/lucide/map-pin'
+import LucideSmile from '~icons/lucide/smile'
+import LucideStar from '~icons/lucide/star'
+import LucideTag from '~icons/lucide/tag'
+import LucideUser from '~icons/lucide/user'
+import RecordHeader from './RecordHeader.vue'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
@@ -171,18 +179,20 @@ function onPieceUploaded(file: UploadedFile) {
 		<div v-else-if="!client" class="card p-8 text-center text-ink-gray-6">Chargement du client…</div>
 
 		<template v-else>
-			<div class="client-dossier">
-			<aside class="card client-side" aria-label="Identité du client">
-				<div class="side-block gap-2">
-					<h2 class="page-title leading-tight">{{ client.client }}</h2>
-					<div class="flex flex-wrap items-center gap-1.5">
-						<StatusPill :status="client.status" />
-						<span v-if="client.grand_compte" class="record-flag">Grand compte</span>
-					</div>
-					<p class="text-sm text-ink-gray-7">{{ [client.forme_juridique, client.name, [client.commune_label, client.wilaya].filter(Boolean).join(', ')].filter(Boolean).join(' · ') }}</p>
-					<TagEditor doctype="Customer" :name="client.name" :modified="client.modified" :tags="client.tags" :can-edit="client.can_edit" @changed="onTags" />
-					<div class="record-actions record-actions-rail">
-						<button type="button" class="btn-primary flex-auto" @click="newTicket = true">Nouveau ticket</button>
+			<RecordHeader>
+				<template #title>{{ client.client }}</template>
+				<template #flags>
+					<StatusPill :status="client.status" />
+					<span v-if="client.grand_compte" class="record-flag">Grand compte</span>
+				</template>
+				<template #sub>
+					<span v-if="client.forme_juridique">{{ client.forme_juridique }}</span>
+					<span class="tabular-nums">{{ client.name }}</span>
+					<span v-if="client.commune_label || client.wilaya">{{ [client.commune_label, client.wilaya].filter(Boolean).join(', ') }}</span>
+					<div v-if="client.tags?.length || client.can_edit"><TagEditor doctype="Customer" :name="client.name" :modified="client.modified" :tags="client.tags" :can-edit="client.can_edit" @changed="onTags" /></div>
+				</template>
+				<template #actions>
+					<button type="button" class="btn-primary" @click="newTicket = true">Nouveau ticket</button>
 						<button v-if="client.can_edit" type="button" class="btn-secondary" :disabled="busy" @click="editing = true">Modifier</button>
 						<MoreMenu>
 							<a class="app-menu-item" role="menuitem" :href="newOnDesk('Visite Commerciale', 'client')" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Nouvelle visite</a>
@@ -192,40 +202,41 @@ function onPieceUploaded(file: UploadedFile) {
 							<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 							<a class="app-menu-item" role="menuitem" :href="deskUrl('Customer', client.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
 						</MoreMenu>
-					</div>
-				</div>
+				</template>
+			</RecordHeader>
+			<div class="client-dossier">
+			<aside class="card client-side" aria-label="Informations du client">
 				<div class="side-block">
-					<p class="side-label">Contact principal</p>
-					<template v-if="client.contacts[0]">
-						<p><span class="font-semibold text-ink-gray-9">{{ client.contacts[0].nom || 'Sans nom' }}</span><span v-if="client.contacts[0].fonction" class="text-ink-gray-6"> · {{ client.contacts[0].fonction }}</span></p>
-						<p class="contact-links">
-							<a v-if="client.contacts[0].telephone" class="ref-link tabular-nums" :href="`tel:${client.contacts[0].telephone}`"><LucidePhone class="h-3.5 w-3.5" aria-hidden="true" />{{ client.contacts[0].telephone }}</a>
-							<a v-if="client.contacts[0].email" class="ref-link" :href="`mailto:${client.contacts[0].email}`"><LucideMail class="h-3.5 w-3.5" aria-hidden="true" />{{ client.contacts[0].email }}</a>
-						</p>
-					</template>
-					<p v-else class="text-ink-gray-6">Aucun contact enregistré.</p>
-				</div>
-				<div class="side-block">
-					<dl class="side-kv">
-						<div><dt>Commercial</dt><dd>{{ client.commercial || 'Non attribué' }}</dd></div>
-						<div><dt>Catégorie</dt><dd>{{ client.categorie || '—' }}</dd></div>
-						<div><dt>Client depuis</dt><dd class="tabular-nums">{{ formatDay(client.depuis) || '—' }}</dd></div>
-						<div><dt>Dernière visite</dt><dd class="tabular-nums">{{ formatDay(client.visite) || 'Jamais' }}</dd></div>
+					<dl class="record-facts">
+						<div>
+							<dt><LucidePhone aria-hidden="true" />Contact principal</dt>
+							<dd v-if="client.contacts[0]">
+								{{ client.contacts[0].nom || 'Sans nom' }}<span v-if="client.contacts[0].fonction" class="font-normal text-ink-gray-6"> · {{ client.contacts[0].fonction }}</span>
+								<span class="contact-links font-normal">
+									<a v-if="client.contacts[0].telephone" class="ref-link tabular-nums" :href="`tel:${client.contacts[0].telephone}`">{{ client.contacts[0].telephone }}</a>
+									<a v-if="client.contacts[0].email" class="ref-link" :href="`mailto:${client.contacts[0].email}`"><LucideMail class="h-3.5 w-3.5" aria-hidden="true" />{{ client.contacts[0].email }}</a>
+								</span>
+							</dd>
+							<dd v-else class="record-fact-none">Aucun contact enregistré.</dd>
+						</div>
+						<div><dt><LucideUser aria-hidden="true" />Commercial</dt><dd>{{ client.commercial || 'Non attribué' }}</dd></div>
+						<div><dt><LucideTag aria-hidden="true" />Catégorie</dt><dd>{{ client.categorie || '—' }}</dd></div>
+						<div><dt><LucideCalendar aria-hidden="true" />Client depuis</dt><dd class="tabular-nums">{{ formatDay(client.depuis) || '—' }}</dd></div>
+						<div><dt><LucideHistory aria-hidden="true" />Dernière visite</dt><dd class="tabular-nums">{{ formatDay(client.visite) || 'Jamais' }}</dd></div>
+						<div>
+							<dt><LucideMapPin aria-hidden="true" />Adresse</dt>
+							<dd class="flex items-center justify-between gap-2">
+								<span class="min-w-0">{{ client.adresses[0].texte || [client.commune_label, client.wilaya].filter(Boolean).join(', ') || 'Non renseignée' }}</span>
+								<a v-if="client.map_url" class="icon-btn" :href="client.map_url" target="_blank" rel="noopener noreferrer" aria-label="Voir sur la carte" title="Voir sur la carte"><LucideMap class="h-4 w-4" aria-hidden="true" /></a>
+							</dd>
+						</div>
 					</dl>
 				</div>
 				<div class="side-block">
-					<p class="side-label">Adresse</p>
-					<div class="flex items-center justify-between gap-2">
-						<p class="min-w-0">{{ client.adresses[0].texte || [client.commune_label, client.wilaya].filter(Boolean).join(', ') || 'Non renseignée' }}</p>
-						<a v-if="client.map_url" class="icon-btn" :href="client.map_url" target="_blank" rel="noopener noreferrer" aria-label="Voir sur la carte" title="Voir sur la carte"><LucideMap class="h-4 w-4" aria-hidden="true" /></a>
-					</div>
-				</div>
-				<div class="side-block">
-					<p class="side-label">Profil</p>
 					<p v-if="flags.length > (client.grand_compte ? 1 : 0)" class="font-medium text-ink-gray-9">{{ flags.filter((flag) => flag !== 'Grand compte').join(' · ') }}</p>
-					<dl class="side-kv">
-						<div><dt>Qualité client</dt><dd :class="client.qualite === null && 'font-normal text-ink-gray-6'">{{ note(client.qualite) || 'Non renseignée' }}</dd></div>
-						<div><dt>Satisfaction</dt><dd :class="client.satisfaction === null && 'font-normal text-ink-gray-6'">{{ note(client.satisfaction) || 'Non renseignée' }}</dd></div>
+					<dl class="record-facts">
+						<div><dt><LucideStar aria-hidden="true" />Qualité client</dt><dd class="tabular-nums" :class="client.qualite === null && 'record-fact-none'">{{ note(client.qualite) || 'Non renseignée' }}</dd></div>
+						<div><dt><LucideSmile aria-hidden="true" />Satisfaction</dt><dd class="tabular-nums" :class="client.satisfaction === null && 'record-fact-none'">{{ note(client.satisfaction) || 'Non renseignée' }}</dd></div>
 					</dl>
 					<p class="side-label mt-1">Sensibilité</p>
 					<dl class="side-sens">

@@ -781,7 +781,6 @@ describe('poste de bureau', () => {
 			expect(feed.find('.mention').text()).toBe('@Commercial A')
 			expect(feed.text()).toContain('a changé Statut de Nouveau à En Cours')
 			expect(feed.text()).toContain('a créé ce document')
-			expect(wrapper.text()).toContain('2 commentaires')
 		})
 
 		it('filtre le fil', async () => {
