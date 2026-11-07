@@ -32,7 +32,7 @@ export const SECTION_TITLES: Record<PaletteSection, string> = {
 	elsewhere: 'Sur le Desk',
 }
 
-function viewCommands(list: ListKind, hint: string, routeName: string, views: readonly { key: string; label: string }[], defaultView: string, keywords: string, doctype: string): PaletteCommand[] {
+function viewCommands(list: ListKind, hint: string, routeName: string, views: readonly { key: string; label: string; doctype?: string }[], defaultView: string, keywords: string, doctype: string): PaletteCommand[] {
 	return [
 		{ id: `list-${list}`, section: 'lists', label: hint, keywords, doctype, icon: list, action: { type: 'route', to: { name: routeName } } },
 		...views
@@ -44,7 +44,7 @@ function viewCommands(list: ListKind, hint: string, routeName: string, views: re
 					label: view.label,
 					hint,
 					keywords,
-					doctype,
+					doctype: view.doctype ?? doctype,
 					icon: list,
 					action: { type: 'route', to: { name: routeName, query: { vue: view.key } } },
 				}),

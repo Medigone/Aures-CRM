@@ -12,6 +12,8 @@ Une seule application, plusieurs postes. Un poste choisit le menu, l'accueil et 
 - **Droits à l'écran** : le chargement de la page fournit `postes` et `droits` (lecture et création par document). Le menu et la palette retirent ce que le rôle ne peut pas lire ou créer.
 - **Page refusée** : une route déclare son document (`meta.doctype`). Sans droit de lecture, la page l'indique dans la coquille et garde son adresse.
 - **Plusieurs postes** : le libellé de la barre du haut devient un sélecteur, et le choix est retenu par navigateur.
+- **Droits de l'équipe Étude** : le Responsable d'étude lit Clients et Articles. Le rôle Étude Flexo conduit tout le workflow de ses études et lit les Demandes. Les rôles Chargé et Responsable d'étude ne modifient ni ne créent de tickets. Patch `etude_poste_droits` pour les deux premiers points sur Custom DocPerm et Workflow, dont les fixtures sont désactivées.
+- **Créance** : le solde, sa colonne et sa vue n'existent que pour un rôle qui lit `Creance Client`. Une fiche sans droit sur un document lié affiche une liste vide, sans erreur.
 Cahier des charges de la V1 et maquette : voir les liens transmis au projet.
 
 ## Accueil (`/bureau`)

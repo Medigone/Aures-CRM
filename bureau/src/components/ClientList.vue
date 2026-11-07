@@ -8,7 +8,7 @@ import DataList from './DataList.vue'
 import FilterBuilder from './FilterBuilder.vue'
 import TagCell from './TagCell.vue'
 import { getClientOptions, getClients } from '@/lib/api'
-import { CLIENT_COLUMNS, CLIENT_VIEWS, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, type ClientOptions, type ClientRow, type ClientView } from '@/lib/clients'
+import { allowedClientColumns, allowedClientViews, clientSortText, DEFAULT_CLIENT_COLUMNS, formatAmount, type ClientOptions, type ClientRow, type ClientView } from '@/lib/clients'
 import { formatDay } from '@/lib/display'
 import { describeCondition, type Condition } from '@/lib/filters'
 import type { ExportQuery } from '@/lib/exports'
@@ -65,6 +65,10 @@ onMounted(async () => {
 onBeforeUnmount(() => {
 	if (createdTimer) clearTimeout(createdTimer)
 })
+
+const columns = allowedClientColumns()
+const views = allowedClientViews()
+const defaultColumns = DEFAULT_CLIENT_COLUMNS.filter((key) => columns.some((column) => column.key === key))
 </script>
 
 <template>
@@ -77,11 +81,11 @@ onBeforeUnmount(() => {
 		search-label="Rechercher un client"
 		search-placeholder="Nom, code, wilaya, contact"
 		create-label="Nouveau prospect"
-		:columns="CLIENT_COLUMNS"
+		:columns="columns"
 		locked-column="client"
-		:default-columns="DEFAULT_CLIENT_COLUMNS"
+		:default-columns="defaultColumns"
 		list-id="clients"
-		:views="CLIENT_VIEWS"
+		:views="views"
 		:counts="state.response.value?.counts"
 		default-sort-label="Ordre par nom"
 		:sort-text="clientSortText(state.sort.value)"

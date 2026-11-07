@@ -2,9 +2,10 @@
 # For license information, please see license.txt
 from unittest.mock import patch
 
+import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from aurescrm.api import bureau, bureau_postes
+from aurescrm.api import bureau, bureau_clients, bureau_demandes, bureau_postes
 
 
 class TestPostes(FrappeTestCase):
@@ -39,3 +40,28 @@ class TestPostes(FrappeTestCase):
 		droits = bureau_postes.get_droits("Administrator")
 		self.assertEqual(set(droits), set(bureau_postes.DOCTYPES_INTERFACE))
 		self.assertTrue(all(droit["read"] for droit in droits.values()))
+
+
+class TestDroitsEtude(FrappeTestCase):
+	def test_patch_idempotent(self):
+		from aurescrm.patches import etude_poste_droits as patch_droits
+
+		patch_droits.execute()
+		patch_droits.execute()
+		for doctype in ("Customer", "Item"):
+			rows = frappe.get_all("Custom DocPerm", filters={"parent": doctype, "role": patch_droits.RESPONSABLE, "permlevel": 0}, fields=["read", "write", "create"])
+			self.assertEqual(len(rows), 1)
+			self.assertEqual((rows[0].read, rows[0].write, rows[0].create), (1, 0, 0))
+		workflow = frappe.get_doc("Workflow", patch_droits.WORKFLOW_FLEXO)
+		self.assertEqual({row.allowed for row in workflow.transitions}, {patch_droits.ETUDE_FLEXO})
+
+	def test_sans_droit_pas_de_solde(self):
+		with patch.object(bureau_clients, "_readable", return_value=False):
+			self.assertEqual(bureau_clients._soldes(), {})
+			self.assertEqual(bureau_clients._last_visits(), {})
+			self.assertEqual(bureau_clients._open_tickets(), {})
+			self.assertEqual(bureau_clients._tickets("CLI-X"), [])
+
+	def test_etudes_d_une_demande_selon_le_droit(self):
+		with patch.object(bureau_demandes.frappe, "has_permission", return_value=False), patch.object(bureau_demandes.frappe, "get_all", side_effect=AssertionError("lecture sans droit")):
+			self.assertEqual(bureau_demandes._etudes("DF-X"), [])

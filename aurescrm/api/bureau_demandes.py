@@ -203,9 +203,11 @@ def get_demande_options():
 
 
 def _etudes(name):
-	"""Mêmes études que le bloc « Liens » du Desk, Offset et Flexo : les études d'une demande lisible."""
+	"""Études d'une demande lisible, pour les seuls documents que ce rôle lit : Offset et Flexo restent séparés."""
 	rows = []
 	for doctype in ETUDES:
+		if not frappe.has_permission(doctype, "read"):
+			continue
 		found = frappe.get_all(doctype, filters={"demande_faisabilite": name}, fields=["name", "status", "article", "article_parent", "item_name", "quantite"], order_by="name asc")
 		rows.extend({**row, "doctype": doctype, "designation": row.item_name or row.article} for row in found)
 	return rows

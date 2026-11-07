@@ -1,18 +1,21 @@
 /** Règles de la page Clients : types, vues, colonnes, filtres et validation de la fenêtre. */
 import type { CommentSummary, Option } from '@/types'
 import type { FilterField } from './filters'
+import { canRead } from './droits'
 import { formatDay } from './display'
 import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
 
 export type ClientView = 'all' | 'actif' | 'prospect' | 'dormant' | 'creance' | 'perdu'
 
-export const CLIENT_VIEWS: { key: ClientView; label: string }[] = [
+export const CREANCE_DOCTYPE = 'Creance Client'
+
+export const CLIENT_VIEWS: { key: ClientView; label: string; doctype?: string }[] = [
 	{ key: 'all', label: 'Tous' },
 	{ key: 'actif', label: 'Actifs' },
 	{ key: 'prospect', label: 'Prospects' },
 	{ key: 'dormant', label: 'Dormants' },
-	{ key: 'creance', label: 'Avec créance' },
+	{ key: 'creance', label: 'Avec créance', doctype: CREANCE_DOCTYPE },
 	{ key: 'perdu', label: 'Perdus ou exclus' },
 ]
 
@@ -177,6 +180,14 @@ export const CLIENT_COLUMNS: Column<ClientRow>[] = [
 	{ key: 'modified', label: 'Modifié le', width: 92, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
 ]
 export const DEFAULT_CLIENT_COLUMNS = CLIENT_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
+
+/** La créance n'apparaît que pour un rôle qui lit les créances. */
+export function allowedClientViews() {
+	return CLIENT_VIEWS.filter((view) => canRead(view.doctype))
+}
+export function allowedClientColumns() {
+	return canRead(CREANCE_DOCTYPE) ? CLIENT_COLUMNS : CLIENT_COLUMNS.filter((column) => column.key !== 'creance')
+}
 
 export function clientSortText(sort: Sort | null) {
 	const column = sort && CLIENT_COLUMNS.find((item) => item.key === sort.key)

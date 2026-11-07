@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
+import { allowedClientColumns, allowedClientViews } from './clients'
 import { allowedCommands, PALETTE_COMMANDS } from './palette'
 import { activePoste, availablePostes, navFor, setPoste } from './postes'
 
@@ -63,5 +64,20 @@ describe('palette selon les droits', () => {
 		expect(allowed).not.toContain('create-article')
 		expect(allowed).toContain('list-articles')
 		expect(allowed).toContain('create-client')
+	})
+})
+
+describe('créance selon les droits', () => {
+	it('la garde pour qui lit les créances', () => {
+		expect(allowedClientColumns().map((column) => column.key)).toContain('creance')
+		expect(allowedClientViews().map((view) => view.key)).toContain('creance')
+	})
+
+	it('retire colonne, vue et commande aux autres', () => {
+		window.droits = noRead('Creance Client')
+		expect(allowedClientColumns().map((column) => column.key)).not.toContain('creance')
+		expect(allowedClientViews().map((view) => view.key)).not.toContain('creance')
+		expect(allowedCommands(PALETTE_COMMANDS).map((command) => command.id)).not.toContain('list-clients-creance')
+		expect(allowedCommands(PALETTE_COMMANDS).map((command) => command.id)).toContain('list-clients-prospect')
 	})
 })

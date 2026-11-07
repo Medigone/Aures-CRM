@@ -11,7 +11,8 @@ import CommentText from '@shared/components/CommentText.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import ClientTicketsTable from './ClientTicketsTable.vue'
 import TagEditor from './TagEditor.vue'
-import { formatAmount } from '@/lib/clients'
+import { CREANCE_DOCTYPE, formatAmount } from '@/lib/clients'
+import { canRead } from '@/lib/droits'
 import { formatDay } from '@/lib/display'
 import { useClient } from '@/lib/useClient'
 import { useDrawerControls } from '@/lib/useDrawerControls'
@@ -69,7 +70,7 @@ function onTags(tags: string[]) {
 				<dl class="bureau-drawer-facts">
 					<div><dt>Commercial</dt><dd class="truncate" :title="client.commercial || undefined">{{ client.commercial || 'Non attribué' }}</dd></div>
 					<div><dt>Wilaya</dt><dd class="truncate">{{ client.wilaya || '—' }}</dd></div>
-					<div><dt>Créance</dt><dd class="tabular-nums">{{ client.creance?.solde_restant ? `${formatAmount(client.creance.solde_restant)} DA` : 'Aucune' }}</dd></div>
+					<div v-if="canRead(CREANCE_DOCTYPE)"><dt>Créance</dt><dd class="tabular-nums">{{ client.creance?.solde_restant ? `${formatAmount(client.creance.solde_restant)} DA` : 'Aucune' }}</dd></div>
 					<div><dt>Dernière visite</dt><dd class="tabular-nums">{{ formatDay(client.visite) || 'Jamais' }}</dd></div>
 				</dl>
 

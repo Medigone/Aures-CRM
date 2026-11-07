@@ -59,7 +59,7 @@
    "hidden": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn \u00e9tude\nR\u00e9alisable\nNon R\u00e9alisable\nAnnul\u00e9e"
+   "options": "Nouveau\nEn étude\nRéalisable\nNon Réalisable\nAnnulée"
   },
   {
    "collapsible": 1,
@@ -73,7 +73,7 @@
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Date Cr\u00e9ation",
+   "label": "Date Création",
    "read_only": 1
   },
   {
@@ -83,14 +83,14 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Date \u00c9ch\u00e9ance"
+   "label": "Date Échéance"
   },
   {
    "fieldname": "column_break_wies",
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fetch_from": "client.custom_commercial_attribué",
    "fieldname": "id_commercial",
    "fieldtype": "Link",
    "hidden": 1,
@@ -150,11 +150,11 @@
    "read_only": 1
   },
   {
-   "fetch_from": "article.custom_proc\u00e9d\u00e9",
+   "fetch_from": "article.custom_procédé",
    "fieldname": "procede",
    "fieldtype": "Select",
    "in_standard_filter": 1,
-   "label": "Proc\u00e9d\u00e9",
+   "label": "Procédé",
    "options": "\nFlexo",
    "read_only": 1
   },
@@ -174,7 +174,7 @@
   },
   {
    "allow_on_submit": 1,
-   "description": "Obligatoire pour pouvoir passer en <strong>R\u00e9alisable</strong>",
+   "description": "Obligatoire pour pouvoir passer en <strong>Réalisable</strong>",
    "fieldname": "taux_chutes",
    "fieldtype": "Float",
    "label": "Taux de chutes",
@@ -194,7 +194,7 @@
   {
    "fieldname": "quantite",
    "fieldtype": "Int",
-   "label": "Quantit\u00e9",
+   "label": "Quantité",
    "non_negative": 1,
    "read_only": 1,
    "reqd": 1
@@ -210,7 +210,7 @@
    "fieldname": "date_livraison",
    "fieldtype": "Date",
    "in_standard_filter": 1,
-   "label": "Date Livraison Souhait\u00e9",
+   "label": "Date Livraison Souhaité",
    "read_only": 1,
    "reqd": 1
   },
@@ -242,7 +242,7 @@
   {
    "fieldname": "cliche",
    "fieldtype": "Link",
-   "label": "Clich\u00e9",
+   "label": "Cliché",
    "options": "Cliche",
    "read_only_depends_on": "eval: doc.is_reprint == 0"
   },
@@ -251,7 +251,7 @@
    "fetch_if_empty": 1,
    "fieldname": "fichier_cliche",
    "fieldtype": "Attach",
-   "label": "Fichier Clich\u00e9",
+   "label": "Fichier Cliché",
    "make_attachment_public": 1,
    "read_only": 1
   },
@@ -329,7 +329,7 @@
   {
    "fieldname": "trace",
    "fieldtype": "Link",
-   "label": "Trac\u00e9",
+   "label": "Tracé",
    "options": "Trace",
    "read_only_depends_on": "eval: doc.is_reprint == 0"
   },
@@ -339,7 +339,7 @@
    "fieldname": "fichier_trace",
    "fieldtype": "Attach",
    "hidden": 1,
-   "label": "Fichier Trac\u00e9",
+   "label": "Fichier Tracé",
    "make_attachment_public": 1,
    "read_only": 1
   },
@@ -376,7 +376,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-09 18:00:00.000000",
+ "modified": "2026-11-07 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite Flexo",
@@ -423,19 +423,19 @@
   {
    "create": 1,
    "read": 1,
-   "role": "Commercial Itin\u00e9rant",
+   "role": "Commercial Itinérant",
    "select": 1
   },
   {
    "create": 1,
    "read": 1,
-   "role": "Commercial S\u00e9dentaire",
+   "role": "Commercial Sédentaire",
    "select": 1
   },
   {
    "create": 1,
    "read": 1,
-   "role": "Charg\u00e9 Devis"
+   "role": "Chargé Devis"
   },
   {
    "create": 1,
@@ -445,6 +445,8 @@
    "select": 1
   },
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -452,8 +454,9 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "\u00c9tude Flexo",
+   "role": "Étude Flexo",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

@@ -113,7 +113,9 @@ def _readable(doctype):
 
 
 def _soldes():
-	"""Solde restant par client, sur les créances non soldées."""
+	"""Solde restant par client, sur les créances non soldées, pour qui peut lire les créances."""
+	if not _readable(CREANCE):
+		return {}
 	rows = frappe.get_all(
 		CREANCE,
 		filters={"statut": ["!=", SOLDEE]},
@@ -125,6 +127,8 @@ def _soldes():
 
 def _last_visits():
 	"""Dernière visite passée par client : une visite planifiée n'est pas encore une visite."""
+	if not _readable("Visite Commerciale"):
+		return {}
 	rows = frappe.get_all(
 		"Visite Commerciale",
 		filters={"docstatus": ["<", 2], "date": ["<=", today()]},
@@ -135,6 +139,8 @@ def _last_visits():
 
 
 def _open_tickets():
+	if not _readable(TICKET):
+		return {}
 	rows = frappe.get_all(
 		TICKET,
 		filters={"status": ["not in", CLOSED_STATUSES]},
@@ -232,18 +238,21 @@ def _select_options(fieldname):
 
 @frappe.whitelist()
 def get_client_options():
-	"""Valeurs proposées dans les filtres et dans la fenêtre du client."""
+	"""Valeurs proposées dans les filtres et dans la fenêtre du client.
+
+	Ces listes de référence ne contiennent que des noms : tout rôle du bureau les reçoit, sans droit sur chacune.
+	"""
 	require_bureau()
 	plain = lambda values: [{"value": value, "label": value} for value in values]
-	categories = frappe.get_list("Customer Group", filters={"is_group": 0}, order_by="name asc", pluck="name", limit_page_length=0)
-	wilayas = frappe.get_list("Wilayas", order_by="name asc", pluck="name", limit_page_length=0)
+	categories = frappe.get_all("Customer Group", filters={"is_group": 0}, order_by="name asc", pluck="name", limit_page_length=0)
+	wilayas = frappe.get_all("Wilayas", order_by="name asc", pluck="name", limit_page_length=0)
 	commercials = [{"value": user.name, "label": user.full_name or user.name} for user in _commercial_users()]
 	return {
 		"statuses": _select_options("custom_status"),
 		"formes": _select_options("custom_forme_juridique"),
 		"sensibilites": _select_options("custom_sensibilité_prix"),
 		"categories": categories,
-		"groupes": frappe.get_list("Groupe de societes", order_by="name asc", pluck="name", limit_page_length=0),
+		"groupes": frappe.get_all("Groupe de societes", order_by="name asc", pluck="name", limit_page_length=0),
 		"wilayas": wilayas,
 		"commercials": commercials,
 		"nobody": NOBODY,
@@ -296,6 +305,8 @@ def ticket_rows(filters=None, or_filters=None):
 
 
 def _tickets(name):
+	if not _readable(TICKET):
+		return []
 	return ticket_rows({"customer": name})
 
 

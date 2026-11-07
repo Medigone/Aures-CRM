@@ -58,7 +58,7 @@
    "hidden": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Brouillon\nConfirm\u00e9e\nEn Cours\nPartiellement Finalis\u00e9e\nFinalis\u00e9e\nDevis \u00c9tablis\nCommand\u00e9\nFerm\u00e9e\nAnnul\u00e9e"
+   "options": "Brouillon\nConfirmée\nEn Cours\nPartiellement Finalisée\nFinalisée\nDevis Établis\nCommandé\nFermée\nAnnulée"
   },
   {
    "fieldname": "section_break_ojxn",
@@ -70,7 +70,7 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Date Cr\u00e9ation",
+   "label": "Date Création",
    "read_only": 1
   },
   {
@@ -78,7 +78,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fetch_from": "client.custom_commercial_attribué",
    "fieldname": "id_commercial",
    "fieldtype": "Link",
    "hidden": 1,
@@ -170,7 +170,7 @@
    "fieldname": "cree_par",
    "fieldtype": "Data",
    "in_standard_filter": 1,
-   "label": "Cr\u00e9e Par",
+   "label": "Crée Par",
    "read_only": 1
   },
   {
@@ -183,10 +183,10 @@
    "fieldtype": "HTML"
   },
   {
-   "description": "La date ne peut \u00eatre saisie qu\u2019une seule fois\u00a0; une fois le document cr\u00e9\u00e9, elle ne peut plus \u00eatre modifi\u00e9e.\n",
+   "description": "La date ne peut être saisie qu’une seule fois ; une fois le document créé, elle ne peut plus être modifiée.\n",
    "fieldname": "date_livraison",
    "fieldtype": "Date",
-   "label": "Date de livraison souhait\u00e9e",
+   "label": "Date de livraison souhaitée",
    "reqd": 1,
    "set_only_once": 1
   },
@@ -226,7 +226,7 @@
    "fieldname": "n_bon_commande",
    "fieldtype": "Data",
    "in_standard_filter": 1,
-   "label": "N\u00ba Bon de commande",
+   "label": "Nº Bon de commande",
    "mandatory_depends_on": "eval:doc.type ==\"Retirage\""
   },
   {
@@ -244,7 +244,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-11 11:11:29.391436",
+ "modified": "2026-11-07 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Demande Faisabilite",
@@ -285,7 +285,7 @@
   },
   {
    "read": 1,
-   "role": "Charg\u00e9 Devis",
+   "role": "Chargé Devis",
    "select": 1
   },
   {
@@ -297,19 +297,19 @@
   },
   {
    "read": 1,
-   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9"
+   "role": "Chargé Étude Faisabilité"
   },
   {
    "read": 1,
-   "role": "Responsable \u00c9tude Faisabilit\u00e9"
+   "role": "Responsable Étude Faisabilité"
   },
   {
    "read": 1,
-   "role": "Commercial Itin\u00e9rant"
+   "role": "Commercial Itinérant"
   },
   {
    "read": 1,
-   "role": "Commercial S\u00e9dentaire"
+   "role": "Commercial Sédentaire"
   },
   {
    "read": 1,
@@ -318,6 +318,11 @@
   {
    "read": 1,
    "role": "Technicien Prepresse"
+  },
+  {
+   "read": 1,
+   "role": "Étude Flexo",
+   "select": 1
   }
  ],
  "row_format": "Dynamic",
@@ -330,7 +335,7 @@
   },
   {
    "color": "Blue",
-   "title": "Confirm\u00e9e"
+   "title": "Confirmée"
   },
   {
    "color": "Yellow",
@@ -338,23 +343,23 @@
   },
   {
    "color": "Orange",
-   "title": "Partiellement Finalis\u00e9e"
+   "title": "Partiellement Finalisée"
   },
   {
    "color": "Purple",
-   "title": "Finalis\u00e9e"
+   "title": "Finalisée"
   },
   {
    "color": "Green",
-   "title": "Devis \u00c9tablis"
+   "title": "Devis Établis"
   },
   {
    "color": "Green",
-   "title": "Command\u00e9"
+   "title": "Commandé"
   },
   {
    "color": "Gray",
-   "title": "Annul\u00e9e"
+   "title": "Annulée"
   }
  ],
  "track_changes": 1

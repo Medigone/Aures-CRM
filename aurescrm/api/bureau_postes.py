@@ -40,6 +40,7 @@ DOCTYPES_INTERFACE = (
 	"Quotation",
 	"Sales Order",
 	"Suivi Creance",
+	"Creance Client",
 )
 
 

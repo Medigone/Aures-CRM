@@ -275,14 +275,17 @@ def get_articles(view="all", conditions=None, search=None, start=0, page_length=
 
 @frappe.whitelist()
 def get_article_options():
-	"""Valeurs proposées dans les filtres et la fenêtre, et sections de la fiche technique telles que le Desk les présente."""
+	"""Valeurs proposées dans les filtres et la fenêtre, et sections de la fiche technique telles que le Desk les présente.
+
+	Les groupes et les supports ne sont que des noms de référence : tout rôle du bureau les reçoit.
+	"""
 	require_bureau()
 	used = frappe.get_list(ITEM, filters={"disabled": 0, "custom_client": ["is", "set"]}, pluck="custom_client", distinct=True, limit_page_length=0)
 	customers = _customers(used)
 	clients = [{"value": name, "label": customers[name].customer_name or name} for name in customers]
 	clients = sorted(clients, key=lambda client: cstr(client["label"]).casefold())
-	groupes = [name for name in frappe.get_list("Item Group", order_by="name asc", pluck="name", limit_page_length=0) if name != ROOT_ITEM_GROUP]
-	supports = frappe.get_list("Type Papier", order_by="name asc", pluck="name", limit_page_length=0)
+	groupes = [name for name in frappe.get_all("Item Group", order_by="name asc", pluck="name", limit_page_length=0) if name != ROOT_ITEM_GROUP]
+	supports = frappe.get_all("Type Papier", order_by="name asc", pluck="name", limit_page_length=0)
 	plain = lambda values: [{"value": value, "label": value} for value in values]
 	return {
 		"procedes": _select_options(PROCEDE_FIELD),
