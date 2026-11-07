@@ -6,7 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from aurescrm.api import bureau, bureau_clients, bureau_demandes, bureau_postes
+from aurescrm.api import bureau, bureau_clients, bureau_demandes, bureau_etudes, bureau_postes
 
 
 class TestPostes(FrappeTestCase):
@@ -67,3 +67,42 @@ class TestDroitsEtude(FrappeTestCase):
 	def test_etudes_d_une_demande_selon_le_droit(self):
 		with patch.object(bureau_demandes.frappe, "has_permission", return_value=False), patch.object(bureau_demandes.frappe, "get_all", side_effect=AssertionError("lecture sans droit")):
 			self.assertEqual(bureau_demandes._etudes("DF-X"), [])
+
+
+class TestEtudes(FrappeTestCase):
+	def _row(self, name, status="En étude", urgence="U0", echeance=None, creation="2026-01-01"):
+		return {"name": name, "status": status, "urgence": urgence, "echeance": echeance, "creation": creation, "retard": False}
+
+	def test_retard_seulement_sur_une_etude_ouverte(self):
+		self.assertTrue(bureau_etudes.is_late("En étude", "2026-01-01", "2026-01-02"))
+		self.assertFalse(bureau_etudes.is_late("En étude", "2026-01-02", "2026-01-02"))
+		self.assertFalse(bureau_etudes.is_late("Réalisable", "2026-01-01", "2026-01-02"))
+		self.assertFalse(bureau_etudes.is_late("En étude", None, "2026-01-02"))
+
+	def test_ordre_par_defaut(self):
+		rows = [
+			self._row("C", status="Réalisable", creation="2026-03-01"),
+			self._row("D", status="Annulée", creation="2026-04-01"),
+			self._row("B", urgence="U0", echeance="2026-01-01"),
+			self._row("A", urgence="U3", echeance="2026-06-01"),
+		]
+		self.assertEqual([row["name"] for row in bureau_etudes.order_etudes(rows)], ["A", "B", "D", "C"])
+
+	def test_tri_numerique_et_valeur_vide_a_la_fin(self):
+		rows = [{"name": "A", "quantite": 9}, {"name": "B", "quantite": 100}, {"name": "C", "quantite": ""}]
+		self.assertEqual([row["name"] for row in bureau_etudes.order_etudes(rows, "quantite", "desc")], ["B", "A", "C"])
+
+	def test_filtre_reecrit_pour_l_autre_document(self):
+		filters = [[bureau_etudes.OFFSET, "status", "=", "En étude"]]
+		self.assertEqual(bureau_etudes._filters_for(filters, bureau_etudes.FLEXO), [[bureau_etudes.FLEXO, "status", "=", "En étude"]])
+		self.assertIsNone(bureau_etudes._filters_for([[bureau_etudes.OFFSET, "imposition", "=", "X"]], bureau_etudes.FLEXO))
+
+	def test_administrateur_voit_les_deux_documents(self):
+		response = bureau_etudes.get_etudes(page_length=500)
+		self.assertEqual({row["doctype"] for row in response["etudes"]} - set(bureau_etudes.ETUDES), set())
+		self.assertEqual(response["counts"]["all"], response["total"])
+		self.assertGreaterEqual(response["counts"]["traiter"], response["counts"]["retard"])
+
+	def test_sans_droit_pas_de_liste(self):
+		with patch.object(bureau_etudes, "readable_doctypes", return_value=[]), self.assertRaises(frappe.PermissionError):
+			bureau_etudes.get_etudes()

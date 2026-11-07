@@ -94,6 +94,17 @@ Le dossier essai à blanc et la commande se créent encore sur le Desk. La deman
 - **Documents** : tous les fichiers de l'article, une ligne par fichier. Le menu d'une ligne le range comme image, BAT (le champ `custom_fiche_technique_article`) ou tracé. Un dépôt marche partout sur la fiche, et l'envoi reste visible d'un onglet à l'autre.
 - **Encore sur le Desk** : l'étude de faisabilité, la création du tracé, de la maquette, de l'imposition et de l'étude technique, et la validation du BAT.
 
+## Études de faisabilité
+
+Page `/bureau/etudes`, entre Demandes et Devis. Serveur : `aurescrm/api/bureau_etudes.py`. Les règles restent dans `etude_faisabilite.py` et le workflow.
+
+- **Accès** : tout rôle qui lit au moins une étude. Offset et Flexo sont réunis côté serveur ; chaque rôle ne reçoit que le document qu'il lit, et les compteurs le suivent.
+- **Vues** : Toutes, À traiter, En retard, Réalisables, Non réalisables, Annulées. Le poste Étude arrive sur À traiter, le back office sur Toutes.
+- **Ordre** : études ouvertes par urgence puis échéance, ensuite les plus récentes.
+- **Colonnes** : Pièces pour l'équipe Étude (tracé, imposition, machine, ou tracé et cliché en Flexo), Demande pour le back office.
+- **Filtres et vues enregistrées** : rattachés au premier document lisible. Avec les deux documents, seuls les champs communs sont proposés, et l'export n'ajoute pas de champ.
+- **Aperçu** : l'adresse porte `?apercu=<numéro>`, retrouvé parmi les documents lus. Le traitement reste sur le Desk jusqu'à la fiche.
+
 ## Demandes de faisabilité
 
 Page `/bureau/demandes`, avant Devis, pour suivre le cycle : Tickets, Demandes, Études, Devis, Commandes. Serveur : `aurescrm/api/bureau_demandes.py`. Les règles restent dans `demande_faisabilite.py`.

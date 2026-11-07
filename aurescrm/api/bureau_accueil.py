@@ -68,7 +68,7 @@ STAGES = (
 		"label": "Études",
 		"doctypes": ETUDES,
 		"statuses": (STATUS_NEW, "En étude"),
-		"href": "/app/etude-faisabilite",
+		"to": "Etudes",
 		"third_party": True,
 	},
 	{

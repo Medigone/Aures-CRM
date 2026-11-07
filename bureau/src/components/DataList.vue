@@ -81,6 +81,8 @@ const props = defineProps<{
 	loadError?: string
 	/** DocType des lignes, pour la cloche et l'export. */
 	doctype: string
+	/** Liste qui réunit plusieurs documents : celui de chaque ligne, pour sa cloche. */
+	rowDoctype?: (row: Row) => string
 	/** Champs du doctype qu'on peut ajouter à l'export. */
 	exportFields: FilterField[]
 	/** DocType des lignes : le déclarer ajoute les cases à cocher et les actions groupées. Il doit figurer dans `bureau_bulk.BULK_DOCTYPES`. */
@@ -309,7 +311,7 @@ async function toggleRowBell(row: Row) {
 	const on = !row.cloche
 	row.cloche = on
 	try {
-		await setBell(props.doctype, row.name, on)
+		await setBell(props.rowDoctype?.(row) ?? props.doctype, row.name, on)
 	} catch (e) {
 		row.cloche = !on
 		bellError.value = `La cloche n'a pas pu être enregistrée : ${(e as Error).message}`

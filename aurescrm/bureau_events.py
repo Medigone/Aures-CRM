@@ -19,6 +19,8 @@ WATCHED = {
 	TICKET: "name",
 	"Demande Faisabilite": "ticket_commercial",
 	"Dossier Essai Blanc": "ticket_commercial",
+	"Etude Faisabilite": None,
+	"Etude Faisabilite Flexo": None,
 	"Quotation": None,
 	"Sales Order": None,
 	"Customer": None,

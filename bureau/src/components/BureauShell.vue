@@ -23,7 +23,7 @@ import { useAppTheme } from '@/lib/theme'
 import { loadTodoCount, todoCount } from '@/lib/todoCount'
 
 /** Coquille du poste de bureau : la même barre et le même menu sur toutes ses pages. */
-const props = defineProps<{ crumbs: Crumb[]; active?: 'accueil' | 'tickets' | 'demandes' | 'clients' | 'articles' }>()
+const props = defineProps<{ crumbs: Crumb[]; active?: 'accueil' | 'tickets' | 'demandes' | 'etudes' | 'clients' | 'articles' }>()
 const emit = defineEmits<{ created: [kind: CreateKind] }>()
 
 const router = useRouter()

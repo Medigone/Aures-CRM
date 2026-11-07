@@ -1,0 +1,260 @@
+# Copyright (c) 2026, Medigo and contributors
+# For license information, please see license.txt
+"""Études de faisabilité du poste de bureau (/bureau/etudes) : liste et aperçu, Offset et Flexo réunis.
+
+Même contrat que `bureau_demandes.py` : les listes passent par `frappe.get_list`. Offset et Flexo sont deux documents
+distincts : un rôle ne reçoit que ceux qu'il peut lire, sans condition sur le procédé. Les règles restent dans
+`etude_faisabilite.py` et le workflow.
+"""
+
+import frappe
+from frappe import _
+from frappe.utils import cstr, getdate, strip_html, today
+
+from aurescrm.api.bureau import (
+	BELL_FIELD,
+	_parse,
+	condition_filters,
+	doctype_filter_fields,
+	has_child_filter,
+	page_bounds,
+	require_bureau,
+	row_bell,
+	row_tags,
+)
+from aurescrm.api.bureau_articles import _customers
+
+OFFSET = "Etude Faisabilite"
+FLEXO = "Etude Faisabilite Flexo"
+ETUDES = (OFFSET, FLEXO)
+
+OPEN_STATUSES = ("Nouveau", "En étude")
+URGENCE_RANK = {"U3": 0, "U2": 1, "U1": 2, "U0": 3}
+
+COMMON_FIELDS = [
+	"name",
+	"modified",
+	"creation",
+	"status",
+	"client",
+	"article",
+	"item_name",
+	"procede",
+	"quantite",
+	"niveau_urgence",
+	"date_echeance",
+	"date_livraison",
+	"date_creation",
+	"demande_faisabilite",
+	"commercial",
+	"is_reprint",
+	"trace",
+	"_user_tags",
+	BELL_FIELD,
+]
+# Ce qui fait une étude complète : ces pièces diffèrent selon le document.
+PIECES = {
+	OFFSET: (("trace", "Tracé", "Trace"), ("imposition", "Imposition", "Imposition"), ("machine_prevue", "Machine", "Machine")),
+	FLEXO: (("trace", "Tracé", "Trace"), ("cliche", "Cliché", "Cliche")),
+}
+
+VIEW_STATUSES = {
+	"traiter": OPEN_STATUSES,
+	"realisable": ("Réalisable",),
+	"non_realisable": ("Non Réalisable",),
+	"annulee": ("Annulée",),
+}
+VIEWS = ("all", "retard", *VIEW_STATUSES)
+SORT_KEYS = {"name", "designation", "client_label", "procede", "quantite", "urgence", "echeance", "status", "manquantes", "demande", "livraison", "commercial", "creation", "date", "modified"}
+
+
+def readable_doctypes():
+	return [doctype for doctype in ETUDES if frappe.has_permission(doctype, "read")]
+
+
+def is_late(status, echeance, current_day):
+	return status in OPEN_STATUSES and bool(echeance) and getdate(echeance) < getdate(current_day)
+
+
+def in_view(view, row):
+	if view == "all":
+		return True
+	if view == "retard":
+		return row["retard"]
+	return row["status"] in VIEW_STATUSES[view]
+
+
+def _day(value):
+	return str(value) if value else None
+
+
+def _pieces(doctype, etude):
+	return [{"key": key, "label": label, "value": etude.get(key) or None} for key, label, _target in PIECES[doctype]]
+
+
+def _list_row(doctype, etude, customers, current_day):
+	pieces = _pieces(doctype, etude)
+	client_label = (customers.get(etude.client) or {}).get("customer_name") or etude.client
+	return {
+		"name": etude.name,
+		"doctype": doctype,
+		"modified": str(etude.modified),
+		"tags": row_tags(etude),
+		"cloche": row_bell(etude),
+		"status": etude.status,
+		"client": etude.client,
+		"client_label": client_label,
+		"article": etude.article,
+		"designation": etude.item_name or etude.article,
+		"procede": etude.procede,
+		"quantite": etude.quantite or 0,
+		"urgence": etude.niveau_urgence or "U0",
+		"echeance": _day(etude.date_echeance),
+		"retard": is_late(etude.status, etude.date_echeance, current_day),
+		"livraison": _day(etude.date_livraison),
+		"demande": etude.demande_faisabilite,
+		"commercial": etude.commercial,
+		"retirage": bool(etude.is_reprint),
+		"pieces": pieces,
+		"manquantes": sum(1 for piece in pieces if not piece["value"]),
+		"creation": str(etude.creation),
+		"date": _day(etude.date_creation),
+		# Recherche seulement : retirée avant l'envoi.
+		"_search": " ".join(cstr(value) for value in (etude.name, etude.client, client_label, etude.article, etude.item_name, etude.demande_faisabilite, etude.commercial)).casefold(),
+	}
+
+
+def order_etudes(rows, sort=None, direction=None):
+	"""Les études ouvertes d'abord, par urgence puis échéance, ensuite les plus récentes. Ou par la colonne demandée, les lignes sans valeur à la fin."""
+	if sort in SORT_KEYS:
+		filled = [row for row in rows if row.get(sort) not in (None, "")]
+		empty = [row for row in rows if row.get(sort) in (None, "")]
+		numeric = sort in ("quantite", "manquantes")
+		key = (lambda row: row[sort]) if numeric else (lambda row: cstr(row[sort]).casefold())
+		return sorted(filled, key=key, reverse=cstr(direction) == "desc") + empty
+	opened = [row for row in rows if row["status"] in OPEN_STATUSES]
+	closed = [row for row in rows if row["status"] not in OPEN_STATUSES]
+	opened.sort(key=lambda row: (URGENCE_RANK.get(row["urgence"], 3), row.get("echeance") or "9999", row["name"]))
+	closed.sort(key=lambda row: row["creation"], reverse=True)
+	return opened + closed
+
+
+def _filters_for(filters, doctype):
+	"""Les filtres, validés sur le document principal, réécrits pour l'autre. None si l'autre n'a pas ce champ : il ne peut pas y répondre."""
+	meta = frappe.get_meta(doctype)
+	standard = {"name", "owner", "creation", "modified", "modified_by", "_user_tags", BELL_FIELD}
+	translated = []
+	for item in filters:
+		if not (meta.has_field(item[1]) or item[1] in standard):
+			return None
+		translated.append([doctype, *item[1:]])
+	return translated
+
+
+def _fetch(doctype, filters):
+	fields = list(dict.fromkeys([*COMMON_FIELDS, *(key for key, _label, _target in PIECES[doctype])]))
+	return frappe.get_list(doctype, filters=filters, distinct=has_child_filter(filters, doctype), fields=fields, limit_page_length=0)
+
+
+@frappe.whitelist()
+def get_etudes(view="all", conditions=None, search=None, start=0, page_length=None, sort=None, direction=None):
+	"""Une page de la liste, le total, l'ordre de toute la vue, et les compteurs de toutes les vues pour les mêmes filtres."""
+	require_bureau()
+	if view not in VIEWS:
+		frappe.throw(_("Vue inconnue."))
+	readable = readable_doctypes()
+	if not readable:
+		raise frappe.PermissionError
+	filters = condition_filters(_parse(conditions), readable[0])
+	current_day = today()
+	found = []
+	for doctype in readable:
+		translated = _filters_for(filters, doctype)
+		if translated is not None:
+			found.extend((doctype, etude) for etude in _fetch(doctype, translated))
+	customers = _customers(etude.client for _doctype, etude in found)
+	rows = [_list_row(doctype, etude, customers, current_day) for doctype, etude in found]
+	words = cstr(search).casefold().split()
+	if words:
+		rows = [row for row in rows if all(word in row["_search"] for word in words)]
+	for row in rows:
+		del row["_search"]
+	ordered = order_etudes([row for row in rows if in_view(view, row)], sort, direction)
+	first, length = page_bounds(len(ordered), start, page_length)
+	return {
+		"etudes": ordered[first : first + length],
+		"counts": {name: sum(1 for row in rows if in_view(name, row)) for name in VIEWS},
+		"total": len(ordered),
+		"start": first,
+		"page_length": length,
+		"names": [row["name"] for row in ordered],
+	}
+
+
+@frappe.whitelist()
+def get_etude_options():
+	"""Champs de filtre : avec les deux documents, seuls ceux qu'ils partagent peuvent répondre pour toute la liste."""
+	require_bureau()
+	readable = readable_doctypes()
+	if not readable:
+		raise frappe.PermissionError
+	primary = readable[0]
+	fields = doctype_filter_fields(primary)
+	both = len(readable) > 1
+	if both:
+		other = frappe.get_meta(readable[1])
+		standard = {"name", "owner", "creation", "modified", "modified_by", "_user_tags", "_liked_by"}
+		fields = [entry for entry in fields if entry["doctype"] == primary and (other.has_field(entry["field"]) or entry["field"] in standard or entry["field"].startswith("_"))]
+	return {"doctype": primary, "both": both, "filter_fields": fields}
+
+
+def _resolve(name):
+	"""Le document qui porte ce numéro, parmi ceux que le rôle lit. Offset et Flexo ne partagent pas leurs numéros."""
+	for doctype in readable_doctypes():
+		if frappe.db.exists(doctype, name):
+			return doctype
+	frappe.throw(_("Étude introuvable."), frappe.DoesNotExistError)
+
+
+def _piece_details(doctype, doc):
+	details = []
+	for key, label, target in PIECES[doctype]:
+		value = doc.get(key) or None
+		status = None
+		if value and target == "Cliche" and frappe.has_permission(target, "read"):
+			status = frappe.db.get_value(target, value, "status")
+		details.append({"key": key, "label": label, "value": value, "doctype": target, "status": status})
+	return details
+
+
+@frappe.whitelist()
+def get_etude(name):
+	"""Ce que montre l'aperçu d'une étude."""
+	require_bureau()
+	doctype = _resolve(name)
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("read")
+	customers = _customers([doc.client])
+	return {
+		"name": doc.name,
+		"doctype": doctype,
+		"modified": str(doc.modified),
+		"tags": row_tags(doc) if doc.get("_user_tags") else [],
+		"can_write": bool(doc.has_permission("write")),
+		"status": doc.status,
+		"client": doc.client,
+		"client_label": (customers.get(doc.client) or {}).get("customer_name") or doc.client,
+		"article": doc.article,
+		"designation": doc.item_name or doc.article,
+		"procede": doc.procede,
+		"quantite": doc.quantite or 0,
+		"retirage": bool(doc.is_reprint),
+		"urgence": doc.niveau_urgence or "U0",
+		"echeance": _day(doc.date_echeance),
+		"retard": is_late(doc.status, doc.date_echeance, today()),
+		"livraison": _day(doc.date_livraison),
+		"demande": doc.demande_faisabilite if doc.demande_faisabilite and frappe.has_permission("Demande Faisabilite", "read") else None,
+		"commercial": doc.commercial,
+		"pieces": _piece_details(doctype, doc),
+		"observations": strip_html(cstr(doc.observations)).strip() or None,
+	}

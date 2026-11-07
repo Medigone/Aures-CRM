@@ -8,6 +8,7 @@ import type { BulkItem, BulkOptions, BulkResult, CandidateDemande, ClientChoice,
 import type { BatAnalysis } from './batImport'
 import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView, PantoneMatch } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
+import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
 import type { ArticleChoice, DemandeDetail, DemandeOptions, DemandesResponse, DemandeValues, DemandeView, TicketDemandeContext } from './demandes'
 import type { Condition } from './filters'
 import { conditionsForServer } from './filters'
@@ -307,6 +308,24 @@ export const getDemandes = (view: DemandeView, conditions: Condition[], search: 
 		sort: paging.sort,
 		direction: paging.direction,
 	})
+
+/** Études de faisabilité : liste et aperçu. */
+const ETUDES = 'aurescrm.api.bureau_etudes'
+
+export const getEtudes = (view: EtudeView, conditions: Condition[], search: string, paging: QueuePaging = {}) =>
+	call<EtudesResponse>(`${ETUDES}.get_etudes`, {
+		view,
+		conditions: conditionsForServer(conditions),
+		search: search.trim() || undefined,
+		start: paging.start,
+		page_length: paging.pageLength,
+		sort: paging.sort,
+		direction: paging.direction,
+	})
+
+export const getEtude = (name: string) => call<EtudeDetail>(`${ETUDES}.get_etude`, { name })
+
+export const getEtudeOptions = () => call<EtudeOptions>(`${ETUDES}.get_etude_options`)
 
 export const getDemande = (name: string) => call<DemandeDetail>(`${DEMANDES}.get_demande`, { name })
 

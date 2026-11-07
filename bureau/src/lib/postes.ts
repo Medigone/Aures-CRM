@@ -5,7 +5,7 @@ import LucideClipboardCheck from '~icons/lucide/clipboard-check'
 import LucideClipboardList from '~icons/lucide/clipboard-list'
 import LucideFileText from '~icons/lucide/file-text'
 import LucideFactory from '~icons/lucide/factory'
-import LucideGrid from '~icons/lucide/grid-3x3'
+import LucideGrid from '~icons/lucide/layout-grid'
 import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
 import LucidePackage from '~icons/lucide/package'
 import LucidePenTool from '~icons/lucide/pen-tool'
@@ -25,8 +25,8 @@ export interface PosteNavItem {
 	icon: Component
 	to?: { name: string }
 	href?: string
-	/** Sans droit de lecture sur ce document, l'entrée n'apparaît pas. */
-	doctype?: string
+	/** Sans droit de lecture sur ce document (ou aucun de ceux-ci), l'entrée n'apparaît pas. */
+	doctype?: string | string[]
 }
 
 export interface PosteNavGroup {
@@ -34,6 +34,7 @@ export interface PosteNavGroup {
 	items: PosteNavItem[]
 }
 
+const ETUDE_DOCTYPES = ['Etude Faisabilite', 'Etude Faisabilite Flexo']
 const BACK_OFFICE: Poste = { key: 'back_office', label: 'Back office' }
 const STORAGE_KEY = 'bureau-poste'
 
@@ -54,6 +55,7 @@ const NAV: Record<string, PosteNavGroup[]> = {
 				{ id: 'accueil', label: 'Accueil', icon: LucideLayoutDashboard, to: { name: 'Home' } },
 				{ id: 'tickets', label: 'Tickets', icon: LucideTicket, to: { name: 'Tickets' }, doctype: 'Ticket Commercial' },
 				{ id: 'demandes', label: 'Demandes', icon: LucideClipboardList, to: { name: 'Demandes' }, doctype: 'Demande Faisabilite' },
+				{ id: 'etudes', label: 'Études', icon: LucideClipboardCheck, to: { name: 'Etudes' }, doctype: ETUDE_DOCTYPES },
 				{ id: 'devis', label: 'Devis', icon: LucideFileText, href: '/app/quotation', doctype: 'Quotation' },
 				{ id: 'commandes', label: 'Commandes', icon: LucideShoppingCart, href: '/app/sales-order', doctype: 'Sales Order' },
 				{ id: 'creances', label: 'Créances', icon: LucideWallet, href: '/app/suivi-creance', doctype: 'Suivi Creance' },
@@ -66,8 +68,7 @@ const NAV: Record<string, PosteNavGroup[]> = {
 			title: 'Mon travail',
 			items: [
 				{ id: 'accueil', label: 'Accueil', icon: LucideLayoutDashboard, to: { name: 'Home' } },
-				{ id: 'etudes-offset', label: 'Études Offset', icon: LucideClipboardCheck, href: '/app/etude-faisabilite', doctype: 'Etude Faisabilite' },
-				{ id: 'etudes-flexo', label: 'Études Flexo', icon: LucideClipboardCheck, href: '/app/etude-faisabilite-flexo', doctype: 'Etude Faisabilite Flexo' },
+				{ id: 'etudes', label: 'Études', icon: LucideClipboardCheck, to: { name: 'Etudes' }, doctype: ETUDE_DOCTYPES },
 				{ id: 'traces', label: 'Tracés', icon: LucidePenTool, href: '/app/trace', doctype: 'Trace' },
 				{ id: 'impositions', label: 'Impositions', icon: LucideGrid, href: '/app/imposition', doctype: 'Imposition' },
 				{ id: 'machines', label: 'Machines', icon: LucideFactory, href: '/app/machine', doctype: 'Machine' },

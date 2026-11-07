@@ -15,7 +15,7 @@ if (account) onSessionExpired(redirectToLogin)
 
 // Une page dont le rôle ne lit pas le document le dit, sans redirection : l'adresse reste celle du lien reçu.
 const route = useRoute()
-const refused = computed(() => Boolean(account) && !canRead(route.meta.doctype as string | undefined))
+const refused = computed(() => Boolean(account) && !canRead(route.meta.doctype as string | string[] | undefined))
 </script>
 
 <template>

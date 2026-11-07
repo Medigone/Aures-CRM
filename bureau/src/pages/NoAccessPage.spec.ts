@@ -55,7 +55,7 @@ describe('garde des pages et choix du poste', () => {
 			{ key: 'back_office', label: 'Back office' },
 			{ key: 'etude', label: 'Étude' },
 		]
-		window.droits = { Customer: { read: false, create: false }, 'Etude Faisabilite Flexo': { read: false, create: false } }
+		window.droits = { Customer: { read: false, create: false }, Machine: { read: false, create: false } }
 		const { wrapper } = await open('/clients')
 		const nav = () => wrapper.find('nav[aria-label="Navigation principale"]').text()
 		expect(nav()).toContain('Tickets')
@@ -63,8 +63,8 @@ describe('garde des pages et choix du poste', () => {
 		const etude = wrapper.findAll('[role="menuitemradio"]').find((item) => item.text() === 'Étude')
 		await etude!.trigger('click')
 		await flushPromises()
-		expect(nav()).toContain('Études Offset')
-		expect(nav()).not.toContain('Études Flexo')
+		expect(nav()).toContain('Tracés')
+		expect(nav()).not.toContain('Machines')
 		expect(nav()).not.toContain('Tickets')
 		expect(localStorage.getItem('bureau-poste')).toBe('etude')
 		wrapper.unmount()

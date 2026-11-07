@@ -88,7 +88,7 @@ function onSaved(saved: DemandeDetail) {
 			<p class="m-0 rounded-control tone-red px-3 py-2"><strong class="font-semibold">Annulation impossible :</strong> {{ demande.cancel_blocking.length > 1 ? 'des études ont' : 'une étude a' }} déjà abouti. La demande pourra être fermée quand toutes ses études seront terminées.</p>
 			<dl class="side-kv mt-2">
 				<div v-for="etude in demande.cancel_blocking" :key="etude.name">
-					<dt><a class="ref-link tabular-nums" :href="deskUrl(etude.doctype, etude.name)" target="_blank" rel="noopener noreferrer">{{ etude.name }}</a></dt>
+					<dt><RouterLink class="ref-link tabular-nums" :to="{ name: 'Etudes', query: { apercu: etude.name } }">{{ etude.name }}</RouterLink></dt>
 					<dd><StatusPill :status="etude.status" /></dd>
 				</div>
 			</dl>

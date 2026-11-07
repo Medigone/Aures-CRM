@@ -3634,4 +3634,36 @@
 		white-space: nowrap;
 		@apply text-sm text-ink-gray-6;
 	}
+	.etude-late {
+		font-weight: 600;
+		color: var(--tone-red-ink);
+	}
+	.etude-pieces {
+		display: inline-flex;
+		min-width: 0;
+		gap: 0.625rem;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+	.etude-piece {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: var(--tone-green-ink);
+	}
+	.etude-piece::before {
+		content: '';
+		flex: none;
+		width: 0.4375rem;
+		height: 0.4375rem;
+		border-radius: 50%;
+		background: currentColor;
+	}
+	.etude-piece[data-done='false'] {
+		@apply text-ink-gray-6;
+	}
+	.etude-piece[data-done='false']::before {
+		background: transparent;
+		border: 1.5px solid var(--control-border);
+	}
 }

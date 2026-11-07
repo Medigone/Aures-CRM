@@ -20,7 +20,7 @@ describe('postes du bureau', () => {
 	})
 
 	it('garde le menu actuel du back office', () => {
-		expect(ids('back_office')).toEqual(['accueil', 'tickets', 'demandes', 'devis', 'commandes', 'creances', 'clients', 'articles'])
+		expect(ids('back_office')).toEqual(['accueil', 'tickets', 'demandes', 'etudes', 'devis', 'commandes', 'creances', 'clients', 'articles'])
 	})
 
 	it('retient le choix et ignore un poste qui n\'est plus à ce compte', () => {
@@ -36,12 +36,10 @@ describe('postes du bureau', () => {
 
 	it('sépare Offset et Flexo par les droits, sans condition sur le procédé', () => {
 		window.droits = noRead('Etude Faisabilite', 'Imposition', 'Machine')
-		expect(ids('etude')).toContain('etudes-flexo')
-		expect(ids('etude')).not.toContain('etudes-offset')
+		expect(ids('etude')).toContain('etudes')
 		expect(ids('etude')).not.toContain('impositions')
-		window.droits = noRead('Etude Faisabilite Flexo')
-		expect(ids('etude')).toContain('etudes-offset')
-		expect(ids('etude')).not.toContain('etudes-flexo')
+		window.droits = noRead('Etude Faisabilite', 'Etude Faisabilite Flexo')
+		expect(ids('etude')).not.toContain('etudes')
 	})
 
 	it('retire un groupe resté vide', () => {

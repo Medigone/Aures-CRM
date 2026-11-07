@@ -4,6 +4,7 @@ import ArticlesPage from './pages/ArticlesPage.vue'
 import BureauPage from './pages/BureauPage.vue'
 import ClientsPage from './pages/ClientsPage.vue'
 import DemandesPage from './pages/DemandesPage.vue'
+import EtudesPage from './pages/EtudesPage.vue'
 import LoginPage from './pages/LoginPage.vue'
 
 export const routes = [
@@ -20,6 +21,7 @@ export const routes = [
 	{ path: '/ticket/:id', name: 'Ticket', component: BureauPage, props: true, meta: { doctype: 'Ticket Commercial' } },
 	{ path: '/demandes', name: 'Demandes', component: DemandesPage, meta: { doctype: 'Demande Faisabilite' } },
 	{ path: '/demandes/:id', name: 'Demande', component: DemandesPage, props: true, meta: { doctype: 'Demande Faisabilite' } },
+	{ path: '/etudes', name: 'Etudes', component: EtudesPage, meta: { doctype: ['Etude Faisabilite', 'Etude Faisabilite Flexo'] } },
 	{ path: '/clients', name: 'Clients', component: ClientsPage, meta: { doctype: 'Customer' } },
 	{ path: '/clients/:id', name: 'Client', component: ClientsPage, props: true, meta: { doctype: 'Customer' } },
 	{ path: '/articles', name: 'Articles', component: ArticlesPage, meta: { doctype: 'Item' } },

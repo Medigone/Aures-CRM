@@ -4,11 +4,12 @@ import { ARTICLE_VIEWS } from './articles'
 import { CLIENT_VIEWS } from './clients'
 import { canCreate, canRead } from './droits'
 import { DEMANDE_VIEWS } from './demandes'
+import { ETUDE_DOCTYPES, ETUDE_VIEWS } from './etudes'
 import { TICKET_VIEWS } from './useQueue'
 
 export type CreateKind = 'ticket' | 'article' | 'client'
 export type PaletteSection = 'create' | 'lists' | 'elsewhere'
-export type ListKind = 'accueil' | 'tickets' | 'clients' | 'articles' | 'demandes'
+export type ListKind = 'accueil' | 'tickets' | 'clients' | 'articles' | 'demandes' | 'etudes'
 
 export type PaletteAction = { type: 'create'; kind: CreateKind } | { type: 'route'; to: RouteLocationRaw } | { type: 'href'; href: string }
 
@@ -21,7 +22,7 @@ export interface PaletteCommand {
 	/** Mots qui trouvent aussi la commande, sans être affichés. */
 	keywords?: string
 	/** Document dont le droit décide si la commande est proposée. */
-	doctype?: string
+	doctype?: string | string[]
 	icon: CreateKind | ListKind | 'commandes' | 'devis' | 'creances'
 	action: PaletteAction
 }
@@ -32,7 +33,7 @@ export const SECTION_TITLES: Record<PaletteSection, string> = {
 	elsewhere: 'Sur le Desk',
 }
 
-function viewCommands(list: ListKind, hint: string, routeName: string, views: readonly { key: string; label: string; doctype?: string }[], defaultView: string, keywords: string, doctype: string): PaletteCommand[] {
+function viewCommands(list: ListKind, hint: string, routeName: string, views: readonly { key: string; label: string; doctype?: string }[], defaultView: string, keywords: string, doctype: string | string[]): PaletteCommand[] {
 	return [
 		{ id: `list-${list}`, section: 'lists', label: hint, keywords, doctype, icon: list, action: { type: 'route', to: { name: routeName } } },
 		...views
@@ -59,6 +60,7 @@ export const PALETTE_COMMANDS: PaletteCommand[] = [
 	{ id: 'list-accueil', section: 'lists', label: 'Accueil', keywords: 'tableau de bord dashboard', icon: 'accueil', action: { type: 'route', to: { name: 'Home' } } },
 	...viewCommands('tickets', 'Tickets', 'Tickets', TICKET_VIEWS, 'todo', 'ticket liste', 'Ticket Commercial'),
 	...viewCommands('demandes', 'Demandes', 'Demandes', DEMANDE_VIEWS, 'all', 'demande faisabilité liste', 'Demande Faisabilite'),
+	...viewCommands('etudes', 'Études', 'Etudes', ETUDE_VIEWS, 'all', 'étude faisabilité liste', ETUDE_DOCTYPES),
 	...viewCommands('clients', 'Clients', 'Clients', CLIENT_VIEWS, 'all', 'client liste', 'Customer'),
 	...viewCommands('articles', 'Articles', 'Articles', ARTICLE_VIEWS, 'all', 'article produit liste', 'Item'),
 	{ id: 'desk-commandes', section: 'elsewhere', label: 'Commandes', keywords: 'bon commande desk', doctype: 'Sales Order', icon: 'commandes', action: { type: 'href', href: '/app/sales-order' } },
