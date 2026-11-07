@@ -163,14 +163,14 @@ export function sortScenarios(rows: Scenario[], key: ScenarioSort, direction: 1 
 	return [...rows].sort((left, right) => (left[key] - right[key]) * direction)
 }
 
-/** Un format ajouté à la main : une feuille a ses deux dimensions, une bobine sa laize et un maximum facultatif. Jamais deux fois le même. */
+/** Un format ajouté à la main : une feuille a ses deux dimensions, une bobine sa laize et son maximum de coupe. Jamais deux fois le même. */
 export function manualFormat(laize: string, depl: string, existing: AtelierFormat[], bobine = false): AtelierFormat | string {
 	const width = Number(laize.replace(',', '.'))
-	const length = depl.trim() ? Number(depl.replace(',', '.')) : 0
+	const length = Number(depl.replace(',', '.'))
 	if (!(width > 0)) return 'Indiquez une laize en mm.'
-	if (!Number.isFinite(length) || length < 0 || (!bobine && !length)) return 'Indiquez un déplacement en mm.'
+	if (!(length > 0)) return bobine ? 'Indiquez le maximum de coupe en mm : sans lui, le moteur retient une coupe de 12 rangs.' : 'Indiquez un déplacement en mm.'
 	if (existing.some((row) => Boolean(row.bobine) === bobine && Math.abs(row.laize - width) < 2 && Math.abs(row.depl - length) < 2)) return 'Ce format est déjà dans la liste.'
-	const libelle = bobine ? `Bobine ${mm(width)} mm${length ? ` (max ${mm(length)})` : ''}` : `${mm(width)} × ${mm(length)}`
+	const libelle = bobine ? `Bobine ${mm(width)} mm (max ${mm(length)})` : `${mm(width)} × ${mm(length)}`
 	return { laize: width, depl: length, origine: 'Manuel', libelle, bobine: bobine ? 1 : 0, coche: true }
 }
 

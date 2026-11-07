@@ -46,15 +46,15 @@ describe('atelier', () => {
 		expect(added).toMatchObject({ laize: 780.5, depl: 700, origine: 'Manuel', coche: true })
 		expect(manualFormat('780', '700', [added as never])).toContain('déjà')
 	})
-	it('ajoute une bobine, avec ou sans maximum', () => {
-		expect(manualFormat('', '', [], true)).toContain('laize')
+	it('exige le maximum de coupe d\'une bobine', () => {
+		expect(manualFormat('', '1020', [], true)).toContain('laize')
+		expect(manualFormat('800', '', [], true)).toContain('maximum de coupe')
+		expect(manualFormat('800', '-5', [], true)).toContain('maximum de coupe')
 		expect(manualFormat('800', '', [])).toContain('déplacement')
-		expect(manualFormat('800', '-5', [], true)).toContain('déplacement')
-		const libre = manualFormat('800', '', [], true)
-		expect(libre).toMatchObject({ laize: 800, depl: 0, bobine: 1, libelle: 'Bobine 800 mm' })
-		expect(manualFormat('800', '1020', [], true)).toMatchObject({ depl: 1020, libelle: 'Bobine 800 mm (max 1020)' })
-		expect(manualFormat('800', '', [libre as never], true)).toContain('déjà')
-		expect(manualFormat('800', '700', [libre as never])).toMatchObject({ bobine: 0 })
+		const bobine = manualFormat('800', '1020', [], true)
+		expect(bobine).toMatchObject({ laize: 800, depl: 1020, bobine: 1, libelle: 'Bobine 800 mm (max 1020)' })
+		expect(manualFormat('800', '1020', [bobine as never], true)).toContain('déjà')
+		expect(manualFormat('800', '1020', [bobine as never])).toMatchObject({ bobine: 0 })
 	})
 	it('retrouve la bobine d\'une feuille', () => {
 		const format = (depl: number) => ({ laize: 800, depl, origine: 'Stock', libelle: '', bobine: 1, coche: true })

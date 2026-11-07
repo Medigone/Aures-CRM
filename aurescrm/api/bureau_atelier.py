@@ -39,6 +39,13 @@ def _same_format(left, right):
 	)
 
 
+def check_manual_rolls(formats):
+	"""Une bobine ajoutée à la main a son maximum : sans lui, le moteur retient une coupe de 12 rangs."""
+	for row in formats:
+		if row["origine"] == "Manuel" and row["bobine"] and row["depl"] <= 0:
+			frappe.throw(_("Indiquez le maximum de coupe de la bobine {0} mm.").format(f"{row['laize']:g}"))
+
+
 def merge_formats(proposes, etudies):
 	"""Les formats à cocher : ceux du support, plus ceux que le calcul a étudiés. Sans calcul, tous cochés."""
 	rows = []
@@ -230,6 +237,7 @@ def run_atelier(values):
 	formats = [_format_row(row) for row in raw.get("formats") or []]
 	if not formats:
 		frappe.throw(_("Cochez au moins un format à comparer."))
+	check_manual_rolls(formats)
 	started = lancer_calcul(formats=formats, inclure_sur_mesure=0, **args)
 	return _calcul_payload(started["calcul"])
 

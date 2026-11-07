@@ -68,10 +68,10 @@ const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Even
 			</label>
 			<div v-if="canWork" class="atelier-add-format">
 				<input v-model="laize" class="field-input tabular-nums" type="text" inputmode="decimal" placeholder="Laize" aria-label="Laize du format à ajouter" />
-				<input v-model="depl" class="field-input tabular-nums" type="text" inputmode="decimal" :placeholder="bobine ? 'Max' : 'Dépl.'" :aria-label="bobine ? 'Longueur maximale de coupe, facultative' : 'Déplacement du format à ajouter'" />
+				<input v-model="depl" class="field-input tabular-nums" type="text" inputmode="decimal" :placeholder="bobine ? 'Max' : 'Dépl.'" :aria-label="bobine ? 'Longueur maximale de coupe' : 'Déplacement du format à ajouter'" />
 				<button type="button" class="btn-secondary" @click="add">Ajouter</button>
 			</div>
-			<label v-if="canWork" class="atelier-check"><input v-model="bobine" type="checkbox" /><span>Bobine<small v-if="bobine">Laize fixe. Le maximum de coupe est facultatif : sans lui, le moteur va jusqu'à 12 rangs.</small></span></label>
+			<label v-if="canWork" class="atelier-check"><input v-model="bobine" type="checkbox" /><span>Bobine<small v-if="bobine">Laize fixe. Indiquez le maximum de coupe que la presse accepte.</small></span></label>
 			<p v-if="formatError" role="alert" class="field-error">{{ formatError }}</p>
 		</div>
 		<details class="atelier-rail-section">

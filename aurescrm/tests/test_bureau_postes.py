@@ -278,6 +278,12 @@ class TestAtelierBureau(FrappeTestCase):
 		rows = bureau_atelier.merge_formats([{"laize": 1020, "depl": 800, "bobine": 1, "libelle": "B"}], [{"laize": 1020, "depl": 800, "bobine": 0, "libelle": "F"}])
 		self.assertEqual(len(rows), 2)
 
+	def test_bobine_a_la_main_exige_un_maximum(self):
+		row = {"laize": 800, "origine": "Manuel", "bobine": 1, "depl": 0}
+		with self.assertRaises(frappe.ValidationError):
+			bureau_atelier.check_manual_rolls([row])
+		bureau_atelier.check_manual_rolls([{**row, "depl": 1020}, {**row, "origine": "Stock"}])
+
 	def test_test_rapide_exige_un_pdf(self):
 		with self.assertRaises(frappe.ValidationError):
 			bureau_atelier.calcul_arguments({"pont": 1})
