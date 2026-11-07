@@ -4,13 +4,14 @@ import { dimensionsLabel, fileLabel, mm, type AtelierCalcul, type AtelierData, t
 
 /** Colonne de gauche : le tracé, la quantité, les formats à comparer et les réglages du moteur. */
 const props = defineProps<{ data: AtelierData; calcul: AtelierCalcul | null; reglages: AtelierReglages; formats: AtelierFormat[]; support: string | null; fichier: string | null; readable: boolean; canWork: boolean }>()
-const emit = defineEmits<{ changed: []; depot: []; support: [name: string]; 'add-format': [laize: string, depl: string, done: (error: string) => void] }>()
+const emit = defineEmits<{ changed: []; depot: []; support: [name: string]; 'add-format': [laize: string, depl: string, bobine: boolean, done: (error: string) => void] }>()
 
 const laize = ref('')
 const depl = ref('')
+const bobine = ref(false)
 const formatError = ref('')
 function add() {
-	emit('add-format', laize.value, depl.value, (error) => {
+	emit('add-format', laize.value, depl.value, bobine.value, (error) => {
 		formatError.value = error
 		if (!error) {
 			laize.value = ''
@@ -67,9 +68,10 @@ const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Even
 			</label>
 			<div v-if="canWork" class="atelier-add-format">
 				<input v-model="laize" class="field-input tabular-nums" type="text" inputmode="decimal" placeholder="Laize" aria-label="Laize du format à ajouter" />
-				<input v-model="depl" class="field-input tabular-nums" type="text" inputmode="decimal" placeholder="Dépl." aria-label="Déplacement du format à ajouter" />
+				<input v-model="depl" class="field-input tabular-nums" type="text" inputmode="decimal" :placeholder="bobine ? 'Max' : 'Dépl.'" :aria-label="bobine ? 'Longueur maximale de coupe, facultative' : 'Déplacement du format à ajouter'" />
 				<button type="button" class="btn-secondary" @click="add">Ajouter</button>
 			</div>
+			<label v-if="canWork" class="atelier-check"><input v-model="bobine" type="checkbox" /><span>Bobine<small v-if="bobine">Laize fixe. Le maximum de coupe est facultatif : sans lui, le moteur va jusqu'à 12 rangs.</small></span></label>
 			<p v-if="formatError" role="alert" class="field-error">{{ formatError }}</p>
 		</div>
 		<details class="atelier-rail-section">

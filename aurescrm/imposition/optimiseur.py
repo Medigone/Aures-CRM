@@ -7,6 +7,7 @@ Trois fonctions d'entrée :
   - `dispositions()`    : génère les formats de feuille SUR MESURE
   - `evaluer_format()`  : remplit au mieux une PALETTE (laize × depl imposés)
   - `evaluer_bobine()`  : laize fixe, coupe au besoin plafonnée par depl_max
+  - `coupes_bobine()`   : les mêmes coupes, toutes, pour les comparer
 
 L'espace de recherche est minuscule (2 rotations x 12 colonnes x 12 rangs) :
 l'énumération exhaustive donne l'optimum exact. Pas d'heuristique, pas de
@@ -246,22 +247,21 @@ def evaluer_format(poly, p: Parametres, laize, depl, vars_=None):
 	return best
 
 
-def evaluer_bobine(poly, p: Parametres, laize, depl_max, vars_=None):
-	"""Laize imposée, déplacement = coupe calculée.
+def coupes_bobine(poly, p: Parametres, laize, depl_max, vars_=None):
+	"""Toutes les coupes possibles d'une bobine : laize imposée, un déplacement par nombre de rangs.
 
-	`depl_max` ≤ 0 : pas de plafond, on coupe au besoin (1 à N_MAX_RANG).
+	`depl_max` ≤ 0 : pas de plafond, de 1 à N_MAX_RANG rangs.
 	Sinon : uniquement les rangs dont la coupe tient sous le plafond.
-	On retient le min de `surface_par_pose`, départage au max de poses.
 	"""
 	try:
 		laize = float(laize or 0)
 		depl_max = float(depl_max or 0)
 	except (TypeError, ValueError):
-		return None
+		return []
 	if laize <= 0:
-		return None
+		return []
 
-	best = None
+	coupes = []
 	for v in _vars(poly, p, vars_):
 		rot, bw, bh, px, py, tcx, tcy = (
 			v.rotation,
@@ -285,28 +285,40 @@ def evaluer_bobine(poly, p: Parametres, laize, depl_max, vars_=None):
 				break
 			if not format_dans_bornes(laize, depl, p):
 				continue
-			d = Disposition(
-				libelle=f"{rot}° — {nc}x{nr}",
-				laize=round(laize, 1),
-				depl=round(depl, 1),
-				n_col=nc,
-				n_rang=nr,
-				pas_laize=px,
-				pas_depl=py,
-				rotation=rot,
-				trait_commun_laize=tcx,
-				trait_commun_depl=tcy,
-				reste_laize=round(laize_utile - (bw + (nc - 1) * px), 2),
-				reste_depl=round(depl_max - depl, 2) if depl_max > 0 else 0.0,
-				format_impose=True,
+			coupes.append(
+				Disposition(
+					libelle=f"{rot}° — {nc}x{nr}",
+					laize=round(laize, 1),
+					depl=round(depl, 1),
+					n_col=nc,
+					n_rang=nr,
+					pas_laize=px,
+					pas_depl=py,
+					rotation=rot,
+					trait_commun_laize=tcx,
+					trait_commun_depl=tcy,
+					reste_laize=round(laize_utile - (bw + (nc - 1) * px), 2),
+					reste_depl=round(depl_max - depl, 2) if depl_max > 0 else 0.0,
+					format_impose=True,
+				)
 			)
-			if best is None:
-				best = d
-				continue
-			if d.surface_par_pose < best.surface_par_pose - 1e-9:
-				best = d
-			elif abs(d.surface_par_pose - best.surface_par_pose) <= 1e-9 and d.poses > best.poses:
-				best = d
+	return coupes
+
+
+def evaluer_bobine(poly, p: Parametres, laize, depl_max, vars_=None):
+	"""Laize imposée, déplacement = coupe calculée.
+
+	On retient le min de `surface_par_pose`, départage au max de poses.
+	"""
+	best = None
+	for d in coupes_bobine(poly, p, laize, depl_max, vars_=vars_):
+		if best is None:
+			best = d
+			continue
+		if d.surface_par_pose < best.surface_par_pose - 1e-9:
+			best = d
+		elif abs(d.surface_par_pose - best.surface_par_pose) <= 1e-9 and d.poses > best.poses:
+			best = d
 	return best
 
 

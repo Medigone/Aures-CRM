@@ -2,7 +2,7 @@
 import { closeRealtime, connectRealtime, type RealtimeEvent } from '@shared/realtime'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { createAtelierImposition, getAtelier, getAtelierCalcul, getSupportFormats, keepAtelierScenario, prepareAtelier, runAtelier, simulateFormat, simulateGrid } from './api'
-import { isPdf, isRunning, manualFormat, sortScenarios, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages, type Scenario, type ScenarioSort } from './atelier'
+import { isPdf, isRunning, manualFormat, rollOf, sameSheet, sortScenarios, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages, type Scenario, type ScenarioSort } from './atelier'
 
 // Le temps réel prévient de la fin ; la relecture reste pour une coupure.
 const POLL_MS = 5000
@@ -39,6 +39,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 	const readable = computed(() => isPdf(fichier.value))
 	const canSimulate = computed(() => Boolean(calcul.value?.cache_disponible && !running.value && !stale.value))
 	const failed = computed(() => calcul.value?.statut_calcul === 'Échec')
+	const roll = computed(() => rollOf(current.value, formats.value))
 
 	function stopPolling() {
 		if (timer) clearTimeout(timer)
@@ -179,8 +180,8 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 	function changed() {
 		if (calcul.value?.scenarios.length) stale.value = true
 	}
-	function addFormat(laize: string, depl: string) {
-		const row = manualFormat(laize, depl, formats.value)
+	function addFormat(laize: string, depl: string, bobine = false) {
+		const row = manualFormat(laize, depl, formats.value, bobine)
 		if (typeof row === 'string') return row
 		formats.value = [...formats.value, row]
 		changed()
@@ -232,6 +233,18 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 	}
 	const tryFormat = (laize: string, depl: string) => simulate(() => simulateFormat(calcul.value!.name, { laize, depl, ...marges() }))
 	const tryGrid = (rotation: string, nCol: string, nRang: string) => simulate(() => simulateGrid(calcul.value!.name, { rotation, n_col: nCol, n_rang: nRang, ...marges() }))
+	/** Une coupe de la bobine : déjà calculée, on la montre ; sinon elle s'ajoute comme un essai, qu'on peut garder. */
+	function showCut(row: Scenario) {
+		simError.value = ''
+		const known = sheets.value.find((other) => sameSheet(other, row))
+		if (known) {
+			shown.value = keyOf(known)
+			return
+		}
+		const cle = `essai-${++essaiId}`
+		essais.value = [...essais.value, { ...row, cle }]
+		shown.value = cle
+	}
 	function keep(row: Scenario) {
 		return guarded(async () => {
 			const { cle: _cle, ...scenario } = row
@@ -253,5 +266,5 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 		})
 		return created as Awaited<ReturnType<typeof createAtelierImposition>> | null
 	}
-	return { data, calcul, reglages, formats, support, grammage, fichier, stale, essais, shown, retained, sort, direction, error, loadError, busy, simError, rows, sheets, current, retainedRow, running, failed, canWork, canCreate, canSimulate, readable, keyOf, load, run, useFile, changed, addFormat, chooseSupport, setSort, retain, tryFormat, tryGrid, keep, createImposition }
+	return { data, calcul, reglages, formats, support, grammage, fichier, stale, essais, shown, retained, sort, direction, error, loadError, busy, simError, rows, sheets, current, retainedRow, running, failed, canWork, canCreate, canSimulate, readable, roll, keyOf, load, run, useFile, changed, addFormat, chooseSupport, setSort, retain, tryFormat, tryGrid, showCut, keep, createImposition }
 }

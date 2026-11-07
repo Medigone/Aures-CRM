@@ -36,6 +36,7 @@ from aurescrm.imposition.optimiseur import (
 	chiffrer,
 	contrainte_bloquante,
 	dispositions,
+	coupes_bobine,
 	evaluer_bobine,
 	evaluer_format,
 	format_en_stock,
@@ -287,6 +288,17 @@ def ligne_scenario(libelle, d: Disposition, params: Parametres, surface_utile_mm
 		"alerte": " ; ".join(alertes(d, params)),
 		"retenu": 0,
 	}
+
+
+def libelle_bobine(laize, d, depl_max=0):
+	libelle = f"Bobine {laize:.0f} mm — {d.n_col}×{d.n_rang} · coupe {d.depl:.0f} mm"
+	return f"{libelle} (max {depl_max:.0f})" if depl_max > 0 else libelle
+
+
+def simuler_coupes_bobine(vars_, params: Parametres, laize, depl_max, surface_mm2):
+	"""Une ligne par coupe possible de cette bobine, dans l'ordre des rangs."""
+	coupes = coupes_bobine(None, params, laize, depl_max, vars_=vars_)
+	return [ligne_scenario(libelle_bobine(laize, d, depl_max), d, params, surface_mm2, origine="Bobine") for d in coupes]
 
 
 def simuler_format(vars_, params: Parametres, laize, depl, surface_mm2, libelle=""):
@@ -622,10 +634,7 @@ def calculer(entree: EntreeCalcul, journal):
 						"(coupe trop longue ou laize insuffisante)."
 					)
 					continue
-				libelle = f"Bobine {laize:.0f} mm — {d.n_col}×{d.n_rang} · coupe {d.depl:.0f} mm"
-				if depl > 0:
-					libelle += f" (max {depl:.0f})"
-				lignes.append(ligne_scenario(libelle, d, params, surface, origine="Bobine"))
+				lignes.append(ligne_scenario(libelle_bobine(laize, d, depl), d, params, surface, origine="Bobine"))
 				continue
 			d = evaluer_format(None, params, laize, depl, vars_=vars_)
 			if not d:

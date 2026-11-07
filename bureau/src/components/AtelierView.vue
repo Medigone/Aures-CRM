@@ -7,6 +7,7 @@ import FormDialog from '@shared/components/FormDialog.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
+import AtelierCoupes from './AtelierCoupes.vue'
 import AtelierDepot from './AtelierDepot.vue'
 import AtelierExport from './AtelierExport.vue'
 import AtelierFeuille from './AtelierFeuille.vue'
@@ -21,7 +22,7 @@ const props = defineProps<{ etude?: string; calcul?: string }>()
 const router = useRouter()
 
 const state = useAtelier(() => ({ etude: props.etude, calcul: props.calcul }), (name) => router.replace({ name: 'AtelierTest', params: { calcul: name } }))
-const { data, calcul, reglages, formats, support, grammage, fichier, stale, essais, shown, retained, error, loadError, busy, simError, rows, sheets, current, retainedRow, running, failed, canWork, canCreate, canSimulate, readable, sort, direction } = state
+const { data, calcul, reglages, formats, support, grammage, fichier, stale, essais, shown, retained, error, loadError, busy, simError, rows, sheets, current, retainedRow, running, failed, canWork, canCreate, canSimulate, readable, roll, sort, direction } = state
 
 const dialog = ref<'depot' | 'export' | 'creer' | null>(null)
 const notice = ref('')
@@ -61,8 +62,8 @@ async function onUploaded(url: string) {
 	dialog.value = null
 	if (await state.useFile(url)) notice.value = isPdf(url) ? `Tracé lu : ${fileLabel(url)}.` : ''
 }
-function onAddFormat(laize: string, depl: string, done: (error: string) => void) {
-	done(state.addFormat(laize, depl))
+function onAddFormat(laize: string, depl: string, bobine: boolean, done: (error: string) => void) {
+	done(state.addFormat(laize, depl, bobine))
 }
 async function create() {
 	const row = retainedRow.value
@@ -191,6 +192,7 @@ async function copyLink() {
 									<p v-for="alert in scenarioAlerts(current, etude?.presse)" :key="alert.text" class="atelier-alert" :data-tone="alert.tone">{{ alert.text }}</p>
 								</div>
 							</div>
+							<AtelierCoupes v-if="roll && canSimulate && calcul && reglages" :calcul="calcul.name" :roll="roll" :current="current" :reglages="reglages" :grammage="grammage" :presse="etude?.presse" @pick="state.showCut" />
 							<div v-if="rows.length" class="atelier-table-wrap" :data-stale="stale">
 								<table class="atelier-table">
 									<thead>

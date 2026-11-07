@@ -4312,6 +4312,25 @@
 		height: 100%;
 		background: var(--ink-gray-5);
 	}
+	.atelier-cuts {
+		padding: 0.5625rem 0.75rem;
+		border-top: 1px solid var(--outline-gray-1);
+	}
+	.atelier-cuts summary {
+		cursor: pointer;
+		font-weight: 600;
+		@apply text-ink-gray-9;
+	}
+	.atelier-cuts[open] summary {
+		margin-bottom: 0.5rem;
+	}
+	.atelier-cuts .atelier-table-wrap {
+		margin-inline: -0.75rem;
+		border-top: 0;
+	}
+	.atelier-cuts .atelier-table {
+		min-width: 30rem;
+	}
 	.atelier-hint {
 		margin: 0;
 		padding: 0.4375rem 0.75rem;

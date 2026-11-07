@@ -35,6 +35,7 @@ from aurescrm.imposition.optimiseur import (
 	Parametres,
 	alertes,
 	chiffrer,
+	coupes_bobine,
 	dispositions,
 	evaluer_bobine,
 	evaluer_format,
@@ -396,6 +397,24 @@ class TestBobine(unittest.TestCase):
 			depl_min=0,
 			depl_max=0,
 		)
+
+	def test_coupes_une_par_rang_sous_le_plafond(self):
+		coupes = coupes_bobine(self.rect, self.libre, 250.0, 350.0)
+		self.assertEqual([(d.n_rang, d.depl) for d in coupes], [(1, 80.0), (2, 160.0), (3, 240.0), (4, 320.0)])
+
+	def test_coupes_sans_plafond_jusqu_au_maximum_de_rangs(self):
+		coupes = coupes_bobine(self.rect, self.libre, 250.0, 0)
+		self.assertEqual(max(d.n_rang for d in coupes), 12)
+
+	def test_bobine_garde_la_meilleure_des_coupes(self):
+		rect = Polygon([(0, 0), (100, 0), (100, 80), (0, 80)])
+		p = Parametres(pince=10, marge_arriere=15, lisiere=0, pont=0, trait_commun=False, sens_fibre="0°", laize_min=0, laize_max=0, depl_min=0, depl_max=0)
+		coupes = coupes_bobine(rect, p, 250.0, 350.0)
+		meilleure = min(coupes, key=lambda d: d.surface_par_pose)
+		self.assertEqual(evaluer_bobine(rect, p, 250.0, 350.0).n_rang, meilleure.n_rang)
+
+	def test_coupes_laize_trop_etroite(self):
+		self.assertEqual(coupes_bobine(self.rect, self.libre, 50.0, 0), [])
 
 	def test_palette_impose_laize_et_depl(self):
 		d = evaluer_format(self.rect, self.libre, 250.0, 400.0)

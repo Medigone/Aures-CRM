@@ -14,8 +14,8 @@ from frappe.utils import cint, flt
 from aurescrm.api.bureau import _parse, require_bureau
 from aurescrm.api.bureau_articles import _customers
 from aurescrm.aures_crm.page.atelier_imposition.atelier_imposition import get_contexte
-from aurescrm.imposition.api import creer_imposition, get_calcul, lancer_calcul, preparer_trace
-from aurescrm.imposition.service import est_pdf, formats_connus
+from aurescrm.imposition.api import _params_avec_saisie, creer_imposition, get_calcul, lancer_calcul, preparer_trace
+from aurescrm.imposition.service import est_pdf, formats_connus, simuler_coupes_bobine
 
 CALCUL = "Calcul Imposition"
 ETUDE = "Etude Faisabilite"
@@ -166,6 +166,20 @@ def get_atelier_calcul(calcul):
 	"""Où en est le calcul : l'écran le relit tant qu'il tourne."""
 	_guard()
 	return _calcul_payload(calcul)
+
+
+@frappe.whitelist()
+def get_roll_cuts(calcul, laize, depl_max=0, quantite=None, lisiere=None, pince=None, marge_arriere=None):
+	"""Toutes les coupes d'une bobine, pour les comparer. Lecture seule, comme les essais de format."""
+	_guard()
+	doc = frappe.get_doc(CALCUL, calcul)
+	doc.check_permission("read")
+	variantes = doc.charge_variantes()
+	params = doc.charge_parametres(quantite=cint(quantite))
+	if not variantes or not params:
+		return []
+	_params_avec_saisie(doc, params, lisiere=flt(lisiere), pince=flt(pince), marge_arriere=flt(marge_arriere), ignorer_contraintes_machine=1)
+	return simuler_coupes_bobine(variantes, params, flt(laize), flt(depl_max), flt(doc.surface_utile_mm2))
 
 
 def calcul_arguments(values):

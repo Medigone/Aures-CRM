@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { commonCutLabel, downloadFile, fileLabel, isPdf, manualFormat, mm, presseAlert, replacementText, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type Scenario } from './atelier'
+import { commonCutLabel, downloadFile, fileLabel, isPdf, manualFormat, mm, presseAlert, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type Scenario } from './atelier'
 
 const scenario = (values: Partial<Scenario> = {}) => ({ libelle: 'A', origine: 'Stock', laize: 1020, depl: 700, nb_poses: 4, n_col: 2, n_rang: 2, rotation: 0, taux_chutes: 35, pas_laize: 381.96, pas_depl: 337.05, trait_commun_laize: 1, trait_commun_depl: 0, reste_laize: 240.04, reste_depl: 1.9, surface_par_pose: 1785, nb_feuilles: 25000, tonnage: 5.176, ...values }) as Scenario
 
@@ -45,6 +45,28 @@ describe('atelier', () => {
 		const added = manualFormat('780,5', '700', [])
 		expect(added).toMatchObject({ laize: 780.5, depl: 700, origine: 'Manuel', coche: true })
 		expect(manualFormat('780', '700', [added as never])).toContain('déjà')
+	})
+	it('ajoute une bobine, avec ou sans maximum', () => {
+		expect(manualFormat('', '', [], true)).toContain('laize')
+		expect(manualFormat('800', '', [])).toContain('déplacement')
+		expect(manualFormat('800', '-5', [], true)).toContain('déplacement')
+		const libre = manualFormat('800', '', [], true)
+		expect(libre).toMatchObject({ laize: 800, depl: 0, bobine: 1, libelle: 'Bobine 800 mm' })
+		expect(manualFormat('800', '1020', [], true)).toMatchObject({ depl: 1020, libelle: 'Bobine 800 mm (max 1020)' })
+		expect(manualFormat('800', '', [libre as never], true)).toContain('déjà')
+		expect(manualFormat('800', '700', [libre as never])).toMatchObject({ bobine: 0 })
+	})
+	it('retrouve la bobine d\'une feuille', () => {
+		const format = (depl: number) => ({ laize: 800, depl, origine: 'Stock', libelle: '', bobine: 1, coche: true })
+		const row = { origine: 'Bobine', laize: 800, libelle: 'Bobine 800 mm — 2×2 · coupe 698 mm (max 1020)' }
+		expect(rollOf(row, [format(800), format(1020)])?.depl).toBe(1020)
+		expect(rollOf({ ...row, libelle: 'Bobine 800 mm — 2×2 · coupe 698 mm' }, [format(1020), format(0)])?.depl).toBe(0)
+		expect(rollOf({ ...row, origine: 'Stock' }, [format(0)])).toBeNull()
+		expect(rollOf(row, [])).toEqual({ laize: 800, depl: 0 })
+	})
+	it('reconnaît une feuille déjà calculée', () => {
+		expect(sameSheet(scenario(), scenario())).toBe(true)
+		expect(sameSheet(scenario(), scenario({ n_rang: 3 }))).toBe(false)
 	})
 	it("annonce l'imposition remplacée", () => {
 		expect(replacementText({ name: 'E', imposition: 'IMP-1' })).toContain('remplacera IMP-1')

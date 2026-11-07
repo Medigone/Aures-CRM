@@ -163,14 +163,27 @@ export function sortScenarios(rows: Scenario[], key: ScenarioSort, direction: 1 
 	return [...rows].sort((left, right) => (left[key] - right[key]) * direction)
 }
 
-/** Un format ajouté à la main : mm positifs, et jamais deux fois le même. */
-export function manualFormat(laize: string, depl: string, existing: AtelierFormat[]): AtelierFormat | string {
+/** Un format ajouté à la main : une feuille a ses deux dimensions, une bobine sa laize et un maximum facultatif. Jamais deux fois le même. */
+export function manualFormat(laize: string, depl: string, existing: AtelierFormat[], bobine = false): AtelierFormat | string {
 	const width = Number(laize.replace(',', '.'))
-	const length = Number(depl.replace(',', '.'))
-	if (!(width > 0) || !(length > 0)) return 'Indiquez une laize et un déplacement en mm.'
-	if (existing.some((row) => !row.bobine && Math.abs(row.laize - width) < 2 && Math.abs(row.depl - length) < 2)) return 'Ce format est déjà dans la liste.'
-	return { laize: width, depl: length, origine: 'Manuel', libelle: `${mm(width)} × ${mm(length)}`, bobine: 0, coche: true }
+	const length = depl.trim() ? Number(depl.replace(',', '.')) : 0
+	if (!(width > 0)) return 'Indiquez une laize en mm.'
+	if (!Number.isFinite(length) || length < 0 || (!bobine && !length)) return 'Indiquez un déplacement en mm.'
+	if (existing.some((row) => Boolean(row.bobine) === bobine && Math.abs(row.laize - width) < 2 && Math.abs(row.depl - length) < 2)) return 'Ce format est déjà dans la liste.'
+	const libelle = bobine ? `Bobine ${mm(width)} mm${length ? ` (max ${mm(length)})` : ''}` : `${mm(width)} × ${mm(length)}`
+	return { laize: width, depl: length, origine: 'Manuel', libelle, bobine: bobine ? 1 : 0, coche: true }
 }
+
+/** La bobine dont vient une feuille, pour comparer ses coupes : son maximum n'est écrit que sur le format. */
+export function rollOf(row: Pick<Scenario, 'origine' | 'laize' | 'libelle'> | null | undefined, formats: AtelierFormat[]) {
+	if (row?.origine !== 'Bobine') return null
+	const rolls = formats.filter((format) => format.bobine && Math.abs(format.laize - row.laize) < 2)
+	const named = rolls.find((format) => format.depl > 0 && row.libelle.includes(`(max ${Math.round(format.depl)})`))
+	return named ?? rolls.find((format) => !format.depl) ?? rolls[0] ?? { laize: row.laize, depl: 0 }
+}
+
+/** La même feuille, déjà dans la liste : on la montre au lieu d'en créer un essai. */
+export const sameSheet = (left: Scenario, right: Scenario) => Math.abs(left.laize - right.laize) < 0.1 && Math.abs(left.depl - right.depl) < 0.1 && left.n_col === right.n_col && left.n_rang === right.n_rang && left.rotation === right.rotation
 
 /** Texte de la création : ce que devient l'étude, et l'imposition qu'on remplace. */
 export function replacementText(etude: Pick<AtelierEtude, 'name' | 'imposition'>) {
