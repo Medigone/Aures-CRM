@@ -289,6 +289,22 @@ export function lineStudyStatus(demande: Pick<DemandeDetail, 'etudes'>, line: Pi
 	return (own.find((etude) => !STUDY_DONE.includes(etude.status)) ?? own.find((etude) => etude.status === 'Non Réalisable') ?? own[0]).status
 }
 
+/** Aperçu de la fiche : les chiffres des articles et le décompte des études, sans répéter leurs tableaux. */
+export function demandeOverview(demande: Pick<DemandeDetail, 'lines' | 'etudes'>) {
+	const count = (status: string) => demande.etudes.filter((etude) => etude.status === status).length
+	return {
+		articles: demande.lines.length,
+		quantity: demande.lines.reduce((total, line) => total + line.quantite, 0),
+		creations: demande.lines.filter((line) => line.est_creation).length,
+		studies: [
+			{ label: 'En cours', count: demande.etudes.length - studiesDone(demande) },
+			{ label: 'Réalisables', count: count('Réalisable') },
+			{ label: 'Non réalisables', count: count('Non Réalisable') },
+			{ label: 'Annulées', count: count('Annulée') },
+		].filter((row) => row.count > 0),
+	}
+}
+
 export const saleTotal = (sale: DemandeSale) => (sale.total === null ? '—' : formatAmount(sale.total))
 
 /* Ajout d'articles dans la fenêtre. */

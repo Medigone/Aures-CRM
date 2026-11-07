@@ -11,7 +11,7 @@ import DemandeLinesTable from './DemandeLinesTable.vue'
 import StepTimeline from './StepTimeline.vue'
 import TagEditor from './TagEditor.vue'
 import { demandeActivity } from '@/lib/api'
-import { demandeNext, demandeSteps, demandeTimeline, typeLabel, type DemandeAction, DEMANDE_ACTION_LABELS, demandeHeaderActions, isPrimaryDemandeAction } from '@/lib/demandes'
+import { demandeNext, demandeOverview, demandeSteps, demandeTimeline, formatDraftQuantity, typeLabel, type DemandeAction, DEMANDE_ACTION_LABELS, demandeHeaderActions, isPrimaryDemandeAction } from '@/lib/demandes'
 import { deskUrl, formatDay } from '@/lib/display'
 import { useDemande } from '@/lib/useDemande'
 
@@ -42,6 +42,7 @@ const tabs = computed(() => {
 	]
 })
 const activeTab = computed(() => (tabs.value.some((tab) => tab.key === props.tab) ? props.tab! : 'apercu'))
+const overview = computed(() => (demande.value ? demandeOverview(demande.value) : null))
 const timeline = computed(() => (demande.value ? demandeTimeline(demande.value) : null))
 const next = computed(() => (demande.value ? demandeNext(demande.value) : null))
 const tip = computed(() => (next.value ? `${next.value.title}. ${next.value.text}` : ''))
@@ -136,14 +137,32 @@ function onTags(tags: string[]) {
 							{{ item.label }}<span v-if="item.count !== undefined" class="ml-1 tabular-nums text-ink-gray-6">{{ item.count }}</span><span v-if="item.todo" class="tab-todo" title="Une étape à faire"><span class="sr-only">, une étape à faire</span></span>
 						</button>
 					</div>
+					<!-- Aperçu : il résume les autres onglets. -->
 					<div v-if="activeTab === 'apercu'" class="detail-tab">
-						<section v-if="demande.etudes.length" class="card ref-card">
-							<h3>{{ demande.status === 'Confirmée' || demande.status === 'En Cours' ? 'Études de faisabilité' : 'Résultat des études' }}</h3>
-							<DemandeLinesTable :demande="demande" kind="etudes" :result-label="demande.status === 'Confirmée' || demande.status === 'En Cours' ? 'Statut' : 'Résultat'" />
-						</section>
-						<section v-else class="card ref-card">
-							<h3>Articles demandés</h3>
-							<DemandeLinesTable :demande="demande" kind="articles" />
+						<div class="client-cards">
+							<section class="card ref-card">
+								<div class="ref-card-head"><h3>Articles</h3><button type="button" class="ref-link" @click="emit('tab', 'articles')">Tout voir</button></div>
+								<dl v-if="overview" class="kv">
+									<div><dt>Articles demandés</dt><dd class="tabular-nums">{{ overview.articles }}</dd></div>
+									<div><dt>Quantité totale</dt><dd class="tabular-nums">{{ formatDraftQuantity(String(overview.quantity)) }}</dd></div>
+									<div><dt>Créations</dt><dd class="tabular-nums">{{ overview.creations || 'Aucune' }}</dd></div>
+								</dl>
+							</section>
+							<section class="card ref-card">
+								<div class="ref-card-head"><h3>Études de faisabilité</h3><button v-if="demande.etudes.length" type="button" class="ref-link" @click="emit('tab', 'etudes')">Tout voir</button></div>
+								<dl v-if="overview?.studies.length" class="kv">
+									<div v-for="row in overview.studies" :key="row.label"><dt>{{ row.label }}</dt><dd class="tabular-nums">{{ row.count }}</dd></div>
+								</dl>
+								<p v-else class="text-ink-gray-6">{{ demande.status === 'Brouillon' ? 'Les études se créent à la confirmation de la demande.' : 'Aucune étude.' }}</p>
+							</section>
+						</div>
+						<section class="card ref-card">
+							<div class="ref-card-head"><h3>Devis et commandes</h3><button v-if="demande.devis.length || demande.commandes.length" type="button" class="ref-link" @click="emit('tab', 'etudes')">Tout voir</button></div>
+							<dl v-if="demande.devis.length || demande.commandes.length" class="kv">
+								<div v-if="demande.devis[0]"><dt>Dernier devis</dt><dd><a class="ref-link inline-link tabular-nums" :href="deskUrl('Quotation', demande.devis[0].name)" target="_blank" rel="noopener noreferrer">{{ demande.devis[0].name }}</a> <StatusPill :status="demande.devis[0].status" /></dd></div>
+								<div v-if="demande.commandes[0]"><dt>Dernière commande</dt><dd><a class="ref-link inline-link tabular-nums" :href="deskUrl('Sales Order', demande.commandes[0].name)" target="_blank" rel="noopener noreferrer">{{ demande.commandes[0].name }}</a> <StatusPill :status="demande.commandes[0].status" /></dd></div>
+							</dl>
+							<p v-else class="text-ink-gray-6">Aucun devis ni commande.</p>
 						</section>
 					</div>
 

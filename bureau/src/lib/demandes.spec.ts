@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { demandeTimeline, catalogRows, demandeNext, demandeSteps, DEMANDE_COLUMNS, demandeSortText, draftStatus, draftValues, duplicateLines, expectedProcede, lineStudyStatus, type ArticleChoice, type DemandeDetail, type DraftLine } from './demandes'
+import { demandeOverview, demandeTimeline, catalogRows, demandeNext, demandeSteps, DEMANDE_COLUMNS, demandeSortText, draftStatus, draftValues, duplicateLines, expectedProcede, lineStudyStatus, type ArticleChoice, type DemandeDetail, type DraftLine } from './demandes'
 import { normalizeColumns, resolveColumns } from './listViews'
 
 const visibleDemandeColumns = (keys: string[]) => resolveColumns(DEMANDE_COLUMNS, normalizeColumns(keys.map((key) => ({ key })), 'name'))
@@ -108,6 +108,23 @@ describe('avancement de la fiche', () => {
 		expect(lineStudyStatus(record, { article: 'A', quantite: 100 })).toBe('Réalisable')
 		expect(lineStudyStatus(record, { article: 'A', quantite: 999 })).toBeNull()
 		expect(lineStudyStatus(record, { article: 'P', quantite: 100 })).toBe('En étude')
+	})
+})
+
+describe('aperçu de la fiche', () => {
+	it('additionne les lignes et compte les créations', () => {
+		const lines = [{ quantite: 50000, est_creation: 0 }, { quantite: 1500, est_creation: 1 }] as DemandeDetail['lines']
+		expect(demandeOverview(demande('Brouillon', { lines }))).toEqual({ articles: 2, quantity: 51500, creations: 1, studies: [] })
+	})
+	it('décompte les études par résultat et tait les résultats absents', () => {
+		const etudes = [etude('Réalisable'), etude('Réalisable'), etude('Non Réalisable'), etude('Annulée'), etude('En étude')]
+		expect(demandeOverview(demande('En Cours', { etudes })).studies).toEqual([
+			{ label: 'En cours', count: 1 },
+			{ label: 'Réalisables', count: 2 },
+			{ label: 'Non réalisables', count: 1 },
+			{ label: 'Annulées', count: 1 },
+		])
+		expect(demandeOverview(demande('En Cours', { etudes: [etude('Réalisable')] })).studies).toEqual([{ label: 'Réalisables', count: 1 }])
 	})
 })
 
