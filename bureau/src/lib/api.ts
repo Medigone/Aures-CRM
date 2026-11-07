@@ -367,7 +367,6 @@ export const runAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.ru
 export const createAtelierImposition = (etude: string, calcul: string, scenario_idx: number) => call<{ imposition: string; remplacee: string | null; avertissement: string | null; taux_chutes: number }>(`${ATELIER}.create_atelier_imposition`, { etude, calcul, scenario_idx }, true)
 export const getRollCuts = (calcul: string, values: object) => call<Scenario[]>(`${ATELIER}.get_roll_cuts`, { calcul, ...values })
 export const simulateFormat = (calcul: string, values: object) => call<{ scenario: Scenario | null; message?: string }>(`${MOTEUR}.simuler`, { calcul, ...values })
-export const simulateGrid = (calcul: string, values: object) => call<{ scenario: Scenario | null; message?: string }>(`${MOTEUR}.simuler_grille`, { calcul, ...values })
 export const keepAtelierScenario = (calcul: string, scenario: object) => call<{ idx: number }>(`${MOTEUR}.enregistrer_scenario`, { calcul, scenario: JSON.stringify(scenario) }, true)
 export const exportAtelier = (calcul: string, scenarios: Scenario[], format_export: string) => call<{ file_url: string; file_name: string }>(`${MOTEUR}.exporter_simulations`, { calcul, scenarios: JSON.stringify(scenarios), format_export }, true)
 

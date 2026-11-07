@@ -54,7 +54,7 @@ const marge = computed(() => calcul.value?.bornes?.marge_arriere || reglages.val
 const isEssai = (row: Scenario) => Boolean(row.cle)
 const currentEssai = computed(() => (current.value && isEssai(current.value) ? current.value : null))
 
-const sim = ref({ laize: '', depl: '', rotation: '0', col: '2', rang: '2' })
+const sim = ref({ laize: '', depl: '' })
 function sortMark(key: ScenarioSort) {
 	return sort.value === key ? (direction.value === 1 ? ' ↑' : ' ↓') : ''
 }
@@ -233,18 +233,13 @@ async function copyLink() {
 								<label class="form-field"><span class="field-label">Laize</span><input v-model="sim.laize" class="field-input tabular-nums" type="number" min="0" :disabled="!canSimulate" /></label>
 								<label class="form-field"><span class="field-label">Déplacement</span><input v-model="sim.depl" class="field-input tabular-nums" type="number" min="0" :disabled="!canSimulate" /></label>
 								<button type="button" class="btn-secondary" :disabled="!canSimulate || !sim.laize || !sim.depl" @click="state.tryFormat(sim.laize, sim.depl)">Essayer ce format</button>
-								<span class="atelier-sim-sep" aria-hidden="true"></span>
-								<label class="form-field"><span class="field-label">Rotation</span><select v-model="sim.rotation" class="field-input" :disabled="!canSimulate"><option>0</option><option>90</option></select></label>
-								<label class="form-field"><span class="field-label">Colonnes</span><input v-model="sim.col" class="field-input tabular-nums" type="number" min="1" max="12" :disabled="!canSimulate" /></label>
-								<label class="form-field"><span class="field-label">Rangs</span><input v-model="sim.rang" class="field-input tabular-nums" type="number" min="1" max="12" :disabled="!canSimulate" /></label>
-								<button type="button" class="btn-secondary" :disabled="!canSimulate" @click="state.tryGrid(sim.rotation, sim.col, sim.rang)">Essayer cette grille</button>
 							</div>
 							<p v-if="simError" role="alert" class="field-error m-0">{{ simError }}</p>
 							<p v-else-if="currentEssai" class="m-0 text-sm text-ink-gray-7">
 								{{ currentEssai.libelle }} : {{ currentEssai.nb_poses }} poses, {{ percentLabel(currentEssai.taux_chutes) }} de chutes. Rien n'est enregistré.
 								<button v-if="canWork" type="button" class="btn-secondary ml-1" :disabled="busy" @click="state.keep(currentEssai)">Garder ce scénario</button>
 							</p>
-							<p v-else class="m-0 text-sm text-ink-gray-6">{{ canSimulate ? 'Essayez un format ou une grille sans rien enregistrer.' : stale ? 'Relancez le calcul pour essayer un format.' : 'Les essais s\'ouvrent une fois le tracé lu.' }}</p>
+							<p v-else class="m-0 text-sm text-ink-gray-6">{{ canSimulate ? 'Essayez un format sans rien enregistrer.' : stale ? 'Relancez le calcul pour essayer un format.' : 'Les essais s\'ouvrent une fois le tracé lu.' }}</p>
 						</div>
 					</section>
 

@@ -4353,12 +4353,6 @@
 	.atelier-sim-row .form-field {
 		width: 4.75rem;
 	}
-	.atelier-sim-sep {
-		width: 1px;
-		height: 1.75rem;
-		margin-inline: 0.25rem;
-		background: var(--outline-gray-1);
-	}
 	.atelier-foot {
 		padding: 0;
 	}
