@@ -103,7 +103,10 @@ Page `/bureau/etudes`, entre Demandes et Devis. Serveur : `aurescrm/api/bureau_e
 - **Ordre** : études ouvertes par urgence puis échéance, ensuite les plus récentes.
 - **Colonnes** : Pièces pour l'équipe Étude (tracé, imposition, machine, ou tracé et cliché en Flexo), Demande pour le back office.
 - **Filtres et vues enregistrées** : rattachés au premier document lisible. Avec les deux documents, seuls les champs communs sont proposés, et l'export n'ajoute pas de champ.
-- **Aperçu** : l'adresse porte `?apercu=<numéro>`, retrouvé parmi les documents lus. Le traitement reste sur le Desk jusqu'à la fiche.
+- **Aperçu et fiche** : `?apercu=<numéro>` et `/etudes/<numéro>`, retrouvé parmi les documents lus. Une étude de l'autre équipe répond « introuvable ».
+- **Actions** : celles du workflow pour ce rôle, sur l'état courant. Une action permise dont la condition manque s'affiche grisée, avec ce qu'il faut renseigner, lu dans la condition du workflow. Réalisable, Non réalisable et Annuler se confirment.
+- **Attribution** : champs `assigne_a` et `assigne_a_nom` sur les deux documents. Elle se limite à l'équipe du document et aux études ouvertes. Vue Mes études.
+- **Encore sur le Desk** : renseigner le tracé, l'imposition, le cliché et la machine.
 
 ## Demandes de faisabilité
 

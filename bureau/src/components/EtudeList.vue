@@ -15,7 +15,7 @@ import { fieldCellText } from '@/lib/listViews'
 import type { EtudesState } from '@/lib/useEtudes'
 
 const props = defineProps<{ state: EtudesState; selected?: string }>()
-const emit = defineEmits<{ pick: [name?: string]; open: [row: EtudeRow]; changed: [] }>()
+const emit = defineEmits<{ pick: [name?: string]; open: [name: string]; changed: [] }>()
 
 // Pas de création ici : une étude naît toujours d'une demande.
 const doctype = primaryEtudeDoctype()
@@ -66,7 +66,7 @@ onMounted(async () => {
 		:row-doctype="(row: EtudeRow) => row.doctype"
 		:export-fields="options?.both ? [] : fields"
 		@pick="emit('pick', $event)"
-		@open="(name: string) => { const row = state.etudes.value.find((item) => item.name === name); if (row) emit('open', row) }"
+		@open="emit('open', $event)"
 		@changed="emit('changed')"
 	>
 		<template #filters="{ conditions, update, canSave }">
@@ -92,6 +92,7 @@ onMounted(async () => {
 				<span v-else-if="column.key === 'manquantes'" class="etude-pieces" :title="String(column.text(row))">
 					<span v-for="piece in row.pieces" :key="piece.key" class="etude-piece" :data-done="Boolean(piece.value)">{{ piece.label }}</span>
 				</span>
+				<span v-else-if="column.key === 'assigne'" :class="!row.assigne && 'text-ink-gray-6'" :title="row.assigne || undefined">{{ row.assigne || 'Non attribuée' }}</span>
 				<span v-else-if="column.key === 'demande'" class="tabular-nums">{{ row.demande || '—' }}</span>
 				<TagCell v-else-if="column.key === 'tags'" :tags="row.tags" :max="1" />
 				<span v-else-if="column.key === 'livraison'" class="tabular-nums">{{ formatDay(row.livraison) || '—' }}</span>
@@ -104,6 +105,7 @@ onMounted(async () => {
 		</template>
 
 		<template #rowMenu="{ row }">
+			<button type="button" class="app-menu-item" role="menuitem" @click="emit('open', row.name)">Ouvrir la fiche</button>
 			<a class="app-menu-item" role="menuitem" :href="deskUrl(row.doctype, row.name)" target="_blank" rel="noopener noreferrer">Ouvrir sur le Desk</a>
 			<RouterLink v-if="row.demande && canSeeDemande" class="app-menu-item" role="menuitem" :to="{ name: 'Demande', params: { id: row.demande } }">Voir la demande</RouterLink>
 			<RouterLink class="app-menu-item" role="menuitem" :to="{ name: 'Article', params: { id: row.article } }">Voir l'article</RouterLink>

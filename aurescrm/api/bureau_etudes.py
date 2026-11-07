@@ -1,18 +1,23 @@
 # Copyright (c) 2026, Medigo and contributors
 # For license information, please see license.txt
-"""Études de faisabilité du poste de bureau (/bureau/etudes) : liste et aperçu, Offset et Flexo réunis.
+"""Études de faisabilité du poste de bureau (/bureau/etudes) : liste, fiche et décisions, Offset et Flexo réunis.
 
 Même contrat que `bureau_demandes.py` : les listes passent par `frappe.get_list`. Offset et Flexo sont deux documents
 distincts : un rôle ne reçoit que ceux qu'il peut lire, sans condition sur le procédé. Les règles restent dans
 `etude_faisabilite.py` et le workflow.
 """
 
+import re
+
 import frappe
 from frappe import _
-from frappe.utils import cstr, getdate, strip_html, today
+from frappe.model.workflow import apply_workflow, get_transitions, get_workflow_name
+from frappe.utils import cstr, flt, get_fullname, getdate, strip_html, today
 
+from aurescrm.api import activity
 from aurescrm.api.bureau import (
 	BELL_FIELD,
+	NOBODY,
 	_parse,
 	condition_filters,
 	doctype_filter_fields,
@@ -49,6 +54,8 @@ COMMON_FIELDS = [
 	"commercial",
 	"is_reprint",
 	"trace",
+	"assigne_a",
+	"assigne_a_nom",
 	"_user_tags",
 	BELL_FIELD,
 ]
@@ -64,8 +71,10 @@ VIEW_STATUSES = {
 	"non_realisable": ("Non Réalisable",),
 	"annulee": ("Annulée",),
 }
-VIEWS = ("all", "retard", *VIEW_STATUSES)
-SORT_KEYS = {"name", "designation", "client_label", "procede", "quantite", "urgence", "echeance", "status", "manquantes", "demande", "livraison", "commercial", "creation", "date", "modified"}
+VIEWS = ("all", "mine", "retard", *VIEW_STATUSES)
+SORT_KEYS = {"name", "designation", "client_label", "procede", "quantite", "urgence", "echeance", "status", "manquantes", "assigne", "demande", "livraison", "commercial", "creation", "date", "modified"}
+# Rôles à qui attribuer une étude : l'équipe de ce document.
+ASSIGNABLE_ROLES = {OFFSET: ("Chargé Étude Faisabilité", "Responsable Étude Faisabilité"), FLEXO: ("Étude Flexo",)}
 
 
 def readable_doctypes():
@@ -81,6 +90,8 @@ def in_view(view, row):
 		return True
 	if view == "retard":
 		return row["retard"]
+	if view == "mine":
+		return row["mine"] and row["status"] in OPEN_STATUSES
 	return row["status"] in VIEW_STATUSES[view]
 
 
@@ -115,6 +126,8 @@ def _list_row(doctype, etude, customers, current_day):
 		"demande": etude.demande_faisabilite,
 		"commercial": etude.commercial,
 		"retirage": bool(etude.is_reprint),
+		"assigne": etude.get("assigne_a_nom") or None,
+		"mine": bool(etude.get("assigne_a")) and etude.get("assigne_a") == frappe.session.user,
 		"pieces": pieces,
 		"manquantes": sum(1 for piece in pieces if not piece["value"]),
 		"creation": str(etude.creation),
@@ -152,7 +165,10 @@ def _filters_for(filters, doctype):
 
 
 def _fetch(doctype, filters):
-	fields = list(dict.fromkeys([*COMMON_FIELDS, *(key for key, _label, _target in PIECES[doctype])]))
+	# Tant que la migration n'a pas créé l'attribution, la liste reste utilisable sans elle.
+	meta = frappe.get_meta(doctype)
+	wanted = dict.fromkeys([*COMMON_FIELDS, *(key for key, _label, _target in PIECES[doctype])])
+	fields = [field for field in wanted if not field.startswith("assigne_a") or meta.has_field(field)]
 	return frappe.get_list(doctype, filters=filters, distinct=has_child_filter(filters, doctype), fields=fields, limit_page_length=0)
 
 
@@ -199,7 +215,8 @@ def get_etude_options():
 	if not readable:
 		raise frappe.PermissionError
 	primary = readable[0]
-	fields = doctype_filter_fields(primary)
+	people = [{"value": NOBODY, "label": _("Non attribuée")}, *_assignees(primary)]
+	fields = doctype_filter_fields(primary, {"assigne_a": people})
 	both = len(readable) > 1
 	if both:
 		other = frappe.get_meta(readable[1])
@@ -227,20 +244,68 @@ def _piece_details(doctype, doc):
 	return details
 
 
+def _assignees(doctype):
+	users = frappe.get_all("Has Role", filters={"role": ["in", ASSIGNABLE_ROLES[doctype]], "parenttype": "User"}, pluck="parent", distinct=True)
+	rows = frappe.get_all("User", filters={"name": ["in", users], "enabled": 1}, fields=["name", "full_name"], order_by="full_name asc")
+	return [{"value": row.name, "label": row.full_name or row.name} for row in rows if row.name != "Administrator"]
+
+
+def condition_fields(condition):
+	"""Champs lus par la condition d'une action du workflow, dans leur ordre."""
+	return list(dict.fromkeys(re.findall(r"\bdoc\.(\w+)", cstr(condition))))
+
+
+def _actions(doc):
+	actions = []
+	for transition in get_transitions(doc):
+		if transition.action not in actions:
+			actions.append(transition.action)
+	return actions
+
+
+def _blocked_actions(doc, available):
+	"""Actions permises à ce rôle dans cet état, mais dont la condition manque encore, avec ce qu'il faut renseigner."""
+	workflow = get_workflow_name(doc.doctype)
+	if not workflow:
+		return []
+	roles = set(frappe.get_roles())
+	meta = frappe.get_meta(doc.doctype)
+	blocked = []
+	for transition in frappe.get_doc("Workflow", workflow).transitions:
+		if transition.state != doc.status or transition.allowed not in roles or transition.action in available or not transition.condition:
+			continue
+		missing = [_(meta.get_label(field)) for field in condition_fields(transition.condition) if not doc.get(field)]
+		if missing:
+			blocked.append({"action": transition.action, "missing": missing})
+	return blocked
+
+
 @frappe.whitelist()
 def get_etude(name):
-	"""Ce que montre l'aperçu d'une étude."""
-	require_bureau()
+	"""Une étude pour l'aperçu et la fiche : champs, pièces, actions possibles pour ce rôle."""
+	user = require_bureau()
 	doctype = _resolve(name)
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	customers = _customers([doc.client])
+	actions = _actions(doc)
+	can_write = bool(doc.has_permission("write"))
+	can_assign = can_write and doc.status in OPEN_STATUSES and frappe.get_meta(doctype).has_field("assigne_a")
 	return {
 		"name": doc.name,
 		"doctype": doctype,
 		"modified": str(doc.modified),
 		"tags": row_tags(doc) if doc.get("_user_tags") else [],
-		"can_write": bool(doc.has_permission("write")),
+		"can_write": can_write,
+		"can_assign": can_assign,
+		"assigne_a": doc.get("assigne_a") or None,
+		"assigne_a_nom": doc.get("assigne_a_nom") or None,
+		"mine": bool(doc.get("assigne_a")) and doc.get("assigne_a") == user,
+		"assignees": _assignees(doctype) if can_assign else [],
+		"actions": actions,
+		"blocked": _blocked_actions(doc, actions),
+		"taux_chutes": flt(doc.get("taux_chutes")) if doc.meta.has_field("imposition") else None,
+		"date": _day(doc.date_creation),
 		"status": doc.status,
 		"client": doc.client,
 		"client_label": (customers.get(doc.client) or {}).get("customer_name") or doc.client,
@@ -257,4 +322,66 @@ def get_etude(name):
 		"commercial": doc.commercial,
 		"pieces": _piece_details(doctype, doc),
 		"observations": strip_html(cstr(doc.observations)).strip() or None,
+		"comments": activity.comment_summary(doctype, doc.name),
 	}
+
+
+def _etude_for_action(name, modified):
+	"""Étude à faire avancer : version identique à celle affichée à l'écran. Les droits sont ceux du workflow ou de l'écriture."""
+	require_bureau()
+	doc = frappe.get_doc(_resolve(name), name)
+	doc.check_permission("read")
+	if modified and cstr(modified) != str(doc.modified):
+		frappe.throw(
+			_("Cette étude vient d'être modifiée par ailleurs. Elle a été rechargée : vérifiez-la, puis recommencez."),
+			frappe.TimestampMismatchError,
+		)
+	return doc
+
+
+@frappe.whitelist(methods=["POST"])
+def run_etude_action(name, modified, action):
+	"""Lance une action du workflow. Le rôle et la condition sont contrôlés par `apply_workflow`."""
+	apply_workflow(_etude_for_action(name, modified), cstr(action))
+	return get_etude(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def set_etude_assignee(name, modified, user):
+	"""Attribue une étude ouverte à une personne de l'équipe, ou à soi-même."""
+	doc = _etude_for_action(name, modified)
+	doc.check_permission("write")
+	if doc.status not in OPEN_STATUSES:
+		frappe.throw(_("Une étude conclue ne s'attribue plus."))
+	user = cstr(user)
+	if user != frappe.session.user and user not in {row["value"] for row in _assignees(doc.doctype)}:
+		frappe.throw(_("Cette personne n'appartient pas à l'équipe de cette étude."))
+	doc.assigne_a = user
+	doc.assigne_a_nom = get_fullname(user)
+	doc.save()
+	return get_etude(name)
+
+
+def _doctype_of(name):
+	require_bureau()
+	return _resolve(name)
+
+
+@frappe.whitelist()
+def get_etude_activity(name):
+	return activity.get_feed(_doctype_of(name), name)
+
+
+@frappe.whitelist(methods=["POST"])
+def add_etude_comment(name, text, mentions=None):
+	return activity.add_comment(_doctype_of(name), name, text, mentions)
+
+
+@frappe.whitelist(methods=["POST"])
+def update_etude_comment(name, comment, text, mentions=None):
+	return activity.update_comment(_doctype_of(name), name, comment, text, mentions)
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_etude_comment(name, comment):
+	return activity.delete_comment(_doctype_of(name), name, comment)

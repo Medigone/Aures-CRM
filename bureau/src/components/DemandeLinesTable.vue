@@ -37,7 +37,7 @@ const sales = (): DemandeSale[] => (props.kind === 'devis' ? props.demande.devis
 			<thead><tr><th>Étude</th><th>Article</th><th class="end">Quantité</th><th>{{ resultLabel || 'Résultat' }}</th></tr></thead>
 			<tbody>
 				<tr v-for="etude in demande.etudes" :key="etude.name">
-					<td><RouterLink class="ref-link tabular-nums" :to="{ name: 'Etudes', query: { apercu: etude.name } }">{{ etude.name }}</RouterLink></td>
+					<td><RouterLink class="ref-link tabular-nums" :to="{ name: 'Etude', params: { id: etude.name } }">{{ etude.name }}</RouterLink></td>
 					<td class="!whitespace-normal">{{ etude.designation }}</td>
 					<td class="end tabular-nums">{{ quantity(etude.quantite) }}</td>
 					<td><StatusPill :status="etude.status" /></td>

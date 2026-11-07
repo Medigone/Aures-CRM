@@ -22,6 +22,7 @@ export const routes = [
 	{ path: '/demandes', name: 'Demandes', component: DemandesPage, meta: { doctype: 'Demande Faisabilite' } },
 	{ path: '/demandes/:id', name: 'Demande', component: DemandesPage, props: true, meta: { doctype: 'Demande Faisabilite' } },
 	{ path: '/etudes', name: 'Etudes', component: EtudesPage, meta: { doctype: ['Etude Faisabilite', 'Etude Faisabilite Flexo'] } },
+	{ path: '/etudes/:id', name: 'Etude', component: EtudesPage, props: true, meta: { doctype: ['Etude Faisabilite', 'Etude Faisabilite Flexo'] } },
 	{ path: '/clients', name: 'Clients', component: ClientsPage, meta: { doctype: 'Customer' } },
 	{ path: '/clients/:id', name: 'Client', component: ClientsPage, props: true, meta: { doctype: 'Customer' } },
 	{ path: '/articles', name: 'Articles', component: ArticlesPage, meta: { doctype: 'Item' } },

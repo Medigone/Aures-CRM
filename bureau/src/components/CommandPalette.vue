@@ -110,7 +110,7 @@ async function search() {
 	records.value = [
 		settled('tickets', 'Tickets', tickets, (ticket) => ({ id: ticket.name, label: ticket.client, detail: ticket.name, status: ticket.status, icon: 'tickets', to: { name: 'Ticket', params: { id: ticket.name } } })),
 		settled('demandes', 'Demandes', demandes, (demande) => ({ id: demande.name, label: demande.client_label, detail: demande.name, status: demande.status, icon: 'demandes', to: { name: 'Demande', params: { id: demande.name } } })),
-		settled('etudes', 'Études', etudes, (etude) => ({ id: etude.name, label: etude.designation, detail: etude.name, status: etude.status, icon: 'etudes', to: { name: 'Etudes', query: { apercu: etude.name } } })),
+		settled('etudes', 'Études', etudes, (etude) => ({ id: etude.name, label: etude.designation, detail: etude.name, status: etude.status, icon: 'etudes', to: { name: 'Etude', params: { id: etude.name } } })),
 		settled('clients', 'Clients', clients, (client) => ({ id: client.name, label: client.client, detail: client.wilaya, icon: 'clients', to: { name: 'Client', params: { id: client.name } } })),
 		settled('articles', 'Articles', articles, (article) => ({ id: article.name, label: article.designation, detail: article.client_label, icon: 'articles', to: { name: 'Article', params: { id: article.name } } })),
 	]

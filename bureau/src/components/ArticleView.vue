@@ -455,7 +455,7 @@ const decisionsBar = ref<HTMLElement | null>(null)
 								<p v-if="!article.etudes.length" class="text-ink-gray-6">Aucune étude de faisabilité pour cet article.</p>
 								<div v-else class="ref-scroll"><table class="ref-table">
 									<thead><tr><th>Numéro</th><th>Date</th><th>Statut</th><th class="end">Quantité</th></tr></thead>
-									<tbody><tr v-for="row in article.etudes" :key="row.name"><td><RouterLink class="ref-link" :to="{ name: 'Etudes', query: { apercu: row.name } }">{{ row.name }}</RouterLink></td><td class="tabular-nums">{{ formatDay(row.date_creation) || '—' }}</td><td><StatusPill :status="row.status" /></td><td class="end tabular-nums">{{ row.quantite ? formatQuantity(row.quantite) : '—' }}</td></tr></tbody>
+									<tbody><tr v-for="row in article.etudes" :key="row.name"><td><RouterLink class="ref-link" :to="{ name: 'Etude', params: { id: row.name } }">{{ row.name }}</RouterLink></td><td class="tabular-nums">{{ formatDay(row.date_creation) || '—' }}</td><td><StatusPill :status="row.status" /></td><td class="end tabular-nums">{{ row.quantite ? formatQuantity(row.quantite) : '—' }}</td></tr></tbody>
 								</table></div>
 							</section>
 							<section v-if="!general" class="card ref-card">

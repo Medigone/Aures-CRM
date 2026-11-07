@@ -327,6 +327,20 @@ export const getEtude = (name: string) => call<EtudeDetail>(`${ETUDES}.get_etude
 
 export const getEtudeOptions = () => call<EtudeOptions>(`${ETUDES}.get_etude_options`)
 
+export const runEtudeAction = (etude: EtudeDetail, action: string) => call<EtudeDetail>(`${ETUDES}.run_etude_action`, { name: etude.name, modified: etude.modified, action }, true)
+
+export const setEtudeAssignee = (etude: EtudeDetail, user: string) => call<EtudeDetail>(`${ETUDES}.set_etude_assignee`, { name: etude.name, modified: etude.modified, user }, true)
+
+export function etudeActivity(name: string): ActivityApi {
+	return {
+		load: () => call<ActivityFeedData>(`${ETUDES}.get_etude_activity`, { name }),
+		add: (text, mentions) => call<ActivityFeedData>(`${ETUDES}.add_etude_comment`, { name, text, mentions }, true),
+		update: (comment, text, mentions) => call<ActivityFeedData>(`${ETUDES}.update_etude_comment`, { name, comment, text, mentions }, true),
+		remove: (comment) => call<ActivityFeedData>(`${ETUDES}.delete_etude_comment`, { name, comment }, true),
+		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
+	}
+}
+
 export const getDemande = (name: string) => call<DemandeDetail>(`${DEMANDES}.get_demande`, { name })
 
 export const getDemandeOptions = () => call<DemandeOptions>(`${DEMANDES}.get_demande_options`)

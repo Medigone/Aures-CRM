@@ -16,6 +16,8 @@
   "column_break_wies",
   "date_echeance",
   "date_livraison",
+  "assigne_a",
+  "assigne_a_nom",
   "id_commercial",
   "section_break_dazt",
   "client",
@@ -371,12 +373,27 @@
   {
    "fieldname": "column_break_cliche",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigne_a",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Attribué à",
+   "options": "User",
+   "search_index": 1
+  },
+  {
+   "fieldname": "assigne_a_nom",
+   "fieldtype": "Data",
+   "label": "Attribué à",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-07 16:00:00.000000",
+ "modified": "2026-11-07 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite Flexo",

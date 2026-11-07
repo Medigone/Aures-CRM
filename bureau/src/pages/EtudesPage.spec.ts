@@ -14,11 +14,12 @@ vi.mock('@shared/realtime', async (original) => ({
 const row = { name: 'ETF-1', doctype: 'Etude Faisabilite', modified: '2026-11-04 10:00:00', tags: [], cloche: false, status: 'En étude', client: 'CLI-1', client_label: 'BISCUITERIE SAI', article: 'CLI-1-001', designation: 'QAADA BOÎTE', procede: 'Offset', quantite: 50000, urgence: 'U3', echeance: '2026-01-02', retard: true, livraison: null, demande: 'DF-1', commercial: null, retirage: true, pieces: [{ key: 'trace', label: 'Tracé', value: 'TRA-1' }, { key: 'imposition', label: 'Imposition', value: null }], manquantes: 1, creation: '2026-01-01 10:00:00', date: '2026-01-01' }
 const flexo = { ...row, name: '2ld234ra01', doctype: 'Etude Faisabilite Flexo', procede: 'Flexo', retard: false, urgence: 'U0', retirage: false, pieces: [{ key: 'trace', label: 'Tracé', value: 'TRA-2' }, { key: 'cliche', label: 'Cliché', value: 'CLF-1' }], manquantes: 0 }
 const list = { etudes: [row, flexo], counts: { all: 2, traiter: 2, retard: 1, realisable: 0, non_realisable: 0, annulee: 0 }, total: 2, start: 0, page_length: 20, names: ['ETF-1', '2ld234ra01'] }
-const detail = { ...row, can_write: false, observations: null, pieces: [{ key: 'trace', label: 'Tracé', value: 'TRA-1', doctype: 'Trace', status: null }, { key: 'imposition', label: 'Imposition', value: null, doctype: 'Imposition', status: null }] }
+const detail = { ...row, can_write: false, can_assign: false, assigne_a: null, assigne_a_nom: null, mine: false, assignees: [], actions: [] as string[], blocked: [] as { action: string; missing: string[] }[], taux_chutes: 0, date: '2026-01-01', comments: { count: 0, last: null }, observations: null, pieces: [{ key: 'trace', label: 'Tracé', value: 'TRA-1', doctype: 'Trace', status: null }, { key: 'imposition', label: 'Imposition', value: null, doctype: 'Imposition', status: null }] }
 
+let current = detail
 const fetchMock = vi.fn((input: RequestInfo | URL, _init?: RequestInit) => {
 	const url = String(input)
-	const body = url.includes('get_etudes') ? list : url.includes('get_etude_options') ? { doctype: 'Etude Faisabilite', both: true, filter_fields: [] } : url.includes('get_etude') ? detail : url.includes('get_queue') ? { tickets: [], counts: { todo: 0 }, total: 0, start: 0, page_length: 1, names: [] } : null
+	const body = url.includes('get_etudes') ? list : url.includes('get_etude_options') ? { doctype: 'Etude Faisabilite', both: true, filter_fields: [] } : url.includes('run_etude_action') ? { ...current, status: 'En étude', actions: [] } : url.includes('get_etude_activity') ? { items: [], comment_count: 0 } : url.includes('get_etude') ? current : url.includes('get_queue') ? { tickets: [], counts: { todo: 0 }, total: 0, start: 0, page_length: 1, names: [] } : null
 	return Promise.resolve(new Response(JSON.stringify({ message: body }), { status: 200 }))
 })
 const sent = (method: string) => {
@@ -41,6 +42,7 @@ describe('page Études', () => {
 	beforeEach(() => {
 		window.can_access = true
 		window.user = 'bo@example.com'
+		current = detail
 		fetchMock.mockClear()
 		vi.stubGlobal('fetch', fetchMock)
 	})
@@ -87,9 +89,46 @@ describe('page Études', () => {
 		const { wrapper } = await open('/etudes?apercu=ETF-1')
 		await flushPromises()
 		const drawer = wrapper.find('.bureau-drawer')
-		expect(drawer.text()).toContain('Manque : imposition')
-		expect(drawer.text()).toContain('Ouvrir sur le Desk')
+		expect(drawer.text()).toContain('Aucun document')
+		expect(drawer.text()).toContain('Ouvrir la fiche')
 		expect(drawer.find('a[href="/app/trace/TRA-1"]').exists()).toBe(true)
+		wrapper.unmount()
+	})
+
+	it('la fiche ne propose rien au back office, qui suit en lecture seule', async () => {
+		const { wrapper } = await open('/etudes/ETF-1')
+		const head = wrapper.find('.record-actions')
+		expect(head.text()).not.toContain('Réalisable')
+		expect(head.find('.btn-primary').exists()).toBe(false)
+		expect(head.text()).toContain('Non attribué')
+		wrapper.unmount()
+	})
+
+	it('démarre une étude et rend compte', async () => {
+		current = { ...detail, status: 'Nouveau', can_write: true, actions: ['Démarrer'] }
+		const { wrapper } = await open('/etudes/ETF-1')
+		await wrapper.find('.record-actions .btn-primary').trigger('click')
+		await flushPromises()
+		expect(sent('run_etude_action').action).toBe('Démarrer')
+		wrapper.unmount()
+	})
+
+	it('explique pourquoi une conclusion n\'est pas encore possible', async () => {
+		current = { ...detail, can_write: true, actions: ['Non Réalisable'], blocked: [{ action: 'Réalisable', missing: ['Imposition', 'Taux de chutes'] }] }
+		const { wrapper } = await open('/etudes/ETF-1')
+		const primary = wrapper.find('.record-actions .btn-primary')
+		expect(primary.text()).toBe('Réalisable')
+		expect(primary.attributes('disabled')).toBeDefined()
+		expect(wrapper.find('.etude-blocked').text()).toBe('Pour passer à Réalisable, il manque : imposition, taux de chutes.')
+		wrapper.unmount()
+	})
+
+	it('demande confirmation avant de conclure', async () => {
+		current = { ...detail, can_write: true, actions: ['Réalisable', 'Non Réalisable'] }
+		const { wrapper } = await open('/etudes/ETF-1')
+		await wrapper.find('.record-actions .btn-primary').trigger('click')
+		expect(sent('run_etude_action')).toBeUndefined()
+		expect(document.body.textContent).toContain('Conclure cette étude réalisable ?')
 		wrapper.unmount()
 	})
 

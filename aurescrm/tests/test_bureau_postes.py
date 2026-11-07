@@ -103,6 +103,15 @@ class TestEtudes(FrappeTestCase):
 		self.assertEqual(response["counts"]["all"], response["total"])
 		self.assertGreaterEqual(response["counts"]["traiter"], response["counts"]["retard"])
 
+	def test_vue_mes_etudes_seulement_ouvertes(self):
+		self.assertTrue(bureau_etudes.in_view("mine", {"mine": True, "status": "En étude"}))
+		self.assertFalse(bureau_etudes.in_view("mine", {"mine": True, "status": "Réalisable"}))
+		self.assertFalse(bureau_etudes.in_view("mine", {"mine": False, "status": "En étude"}))
+
+	def test_champs_d_une_condition(self):
+		self.assertEqual(bureau_etudes.condition_fields("doc.trace and doc.imposition and doc.taux_chutes"), ["trace", "imposition", "taux_chutes"])
+		self.assertEqual(bureau_etudes.condition_fields(""), [])
+
 	def test_sans_droit_pas_de_liste(self):
 		with patch.object(bureau_etudes, "readable_doctypes", return_value=[]), self.assertRaises(frappe.PermissionError):
 			bureau_etudes.get_etudes()

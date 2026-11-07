@@ -153,6 +153,7 @@ FILTER_LISTS = {
 		"procede": "Procédé",
 		"date_echeance": "Échéance",
 		"demande_faisabilite": "Demande",
+		"assigne_a": "Attribué à",
 		"_user_tags": "Tag",
 	},
 	"Etude Faisabilite Flexo": {
@@ -163,6 +164,7 @@ FILTER_LISTS = {
 		"procede": "Procédé",
 		"date_echeance": "Échéance",
 		"demande_faisabilite": "Demande",
+		"assigne_a": "Attribué à",
 		"_user_tags": "Tag",
 	},
 	"Demande Faisabilite": {

@@ -1,4 +1,5 @@
 /** Règles de la page Études de faisabilité : types, vues et colonnes. Offset et Flexo y sont réunis selon les droits du rôle. */
+import type { CommentSummary, Option, Step } from '@/types'
 import type { FilterField } from './filters'
 import { canRead } from './droits'
 import { formatDay } from './display'
@@ -10,11 +11,12 @@ export const ETUDE_OFFSET = 'Etude Faisabilite'
 export const ETUDE_FLEXO = 'Etude Faisabilite Flexo'
 export const ETUDE_DOCTYPES = [ETUDE_OFFSET, ETUDE_FLEXO]
 
-export type EtudeView = 'all' | 'traiter' | 'retard' | 'realisable' | 'non_realisable' | 'annulee'
+export type EtudeView = 'all' | 'traiter' | 'mine' | 'retard' | 'realisable' | 'non_realisable' | 'annulee'
 
 export const ETUDE_VIEWS: { key: EtudeView; label: string }[] = [
 	{ key: 'all', label: 'Toutes' },
 	{ key: 'traiter', label: 'À traiter' },
+	{ key: 'mine', label: 'Mes études' },
 	{ key: 'retard', label: 'En retard' },
 	{ key: 'realisable', label: 'Réalisables' },
 	{ key: 'non_realisable', label: 'Non réalisables' },
@@ -63,6 +65,8 @@ export interface EtudeRow {
 	demande: string | null
 	commercial: string | null
 	retirage: boolean
+	assigne: string | null
+	mine: boolean
 	pieces: EtudePiece[]
 	manquantes: number
 	creation: string
@@ -87,6 +91,16 @@ export interface EtudeDetail {
 	modified: string
 	tags: string[]
 	can_write: boolean
+	can_assign: boolean
+	assigne_a: string | null
+	assigne_a_nom: string | null
+	mine: boolean
+	assignees: Option[]
+	actions: string[]
+	blocked: { action: string; missing: string[] }[]
+	taux_chutes: number | null
+	date: string | null
+	comments: CommentSummary
 	status: string
 	client: string
 	client_label: string
@@ -128,6 +142,7 @@ export const ETUDE_COLUMNS: Column<EtudeRow>[] = [
 	{ key: 'echeance', label: 'Échéance', width: 88, minWidth: 76, sortable: true, text: (row) => formatDay(row.echeance) },
 	{ key: 'status', label: 'Statut', width: 124, minWidth: 104, sortable: true, text: (row) => row.status },
 	{ key: 'manquantes', label: 'Pièces', width: 196, minWidth: 120, sortable: true, text: piecesText },
+	{ key: 'assigne', label: 'Attribution', width: 130, minWidth: 88, sortable: true, text: (row) => row.assigne || 'Non attribuée' },
 	{ key: 'demande', label: 'Demande', width: 124, minWidth: 96, sortable: true, text: (row) => row.demande || '' },
 	{ key: 'tags', label: 'Tags', width: 90, minWidth: 72, sortable: false, optional: true, text: tagsText },
 	{ key: 'livraison', label: 'Livraison', width: 84, minWidth: 72, sortable: true, optional: true, text: (row) => formatDay(row.livraison) },
@@ -139,12 +154,53 @@ export const ETUDE_COLUMNS: Column<EtudeRow>[] = [
 
 /** Le back office suit par demande, l'équipe Étude travaille par pièce. Chacun peut changer ses colonnes. */
 export function defaultEtudeColumns() {
-	const hidden = activePoste().key === 'etude' ? 'demande' : 'manquantes'
-	return ETUDE_COLUMNS.filter((column) => !column.optional && column.key !== hidden).map((column) => column.key)
+	const hidden = activePoste().key === 'etude' ? ['demande'] : ['manquantes', 'assigne']
+	return ETUDE_COLUMNS.filter((column) => !column.optional && !hidden.includes(column.key)).map((column) => column.key)
 }
 
 export function etudeSortText(sort: Sort | null) {
 	const column = sort && ETUDE_COLUMNS.find((item) => item.key === sort.key)
 	if (!column) return 'Urgence puis échéance'
 	return `${column.label} ${sort.dir === 'asc' ? '↑' : '↓'}`
+}
+
+export const ACTION_LABELS: Record<string, string> = { 'Non Réalisable': 'Non réalisable', Annuler: "Annuler l'étude" }
+export const actionLabel = (action: string) => ACTION_LABELS[action] ?? action
+
+/** Boutons de l'en-tête, la prochaine étape d'abord. Annuler reste dans le menu : ce n'est pas une suite normale. */
+export function etudeHeaderActions(etude: Pick<EtudeDetail, 'actions' | 'blocked'>) {
+	const rank = (action: string) => ['Démarrer', 'Réalisable', 'Non Réalisable'].indexOf(action)
+	const buttons = [...etude.actions.map((action) => ({ action, missing: [] as string[] })), ...etude.blocked.map(({ action, missing }) => ({ action, missing }))]
+	return buttons.filter(({ action }) => action !== 'Annuler').sort((a, b) => rank(a.action) - rank(b.action))
+}
+
+export function isPrimaryEtudeAction(action: string) {
+	return action === 'Démarrer' || action === 'Réalisable'
+}
+
+/** Ce qui manque avant de conclure, tel que le workflow l'exige. */
+export function blockedText(etude: Pick<EtudeDetail, 'blocked'>) {
+	const first = etude.blocked[0]
+	return first ? `Pour passer à ${actionLabel(first.action)}, il manque : ${first.missing.join(', ').toLowerCase()}.` : ''
+}
+
+const CONCLUDED = ['Réalisable', 'Non Réalisable']
+
+export function etudeTimeline(etude: Pick<EtudeDetail, 'status' | 'assigne_a_nom' | 'date'>) {
+	const started = etude.status !== 'Nouveau'
+	const concluded = CONCLUDED.includes(etude.status)
+	const cancelled = etude.status === 'Annulée'
+	const steps: Step[] = [
+		{ key: 'nouveau', label: 'Créée', state: 'done', detail: formatDay(etude.date) },
+		{ key: 'etude', label: 'En étude', state: started ? (etude.status === 'En étude' ? 'current' : 'done') : 'current', detail: etude.assigne_a_nom || (started ? '' : 'À démarrer') },
+		{ key: 'decision', label: concluded ? etude.status.replace('Non Réalisable', 'Non réalisable') : cancelled ? 'Annulée' : 'Décision', state: concluded ? 'done' : cancelled ? 'blocked' : 'todo', detail: '' },
+	]
+	const current = concluded || cancelled ? null : 1
+	return { steps, current, focus: concluded || cancelled ? 2 : 1 }
+}
+
+export function etudeTip(etude: Pick<EtudeDetail, 'status' | 'blocked'>) {
+	if (etude.status === 'Nouveau') return 'Démarrez l\'étude pour la prendre en main.'
+	if (etude.status === 'En étude') return blockedText(etude) || 'Renseignez les pièces, puis concluez.'
+	return ''
 }

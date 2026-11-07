@@ -16,6 +16,8 @@
   "column_break_wies",
   "date_echeance",
   "date_livraison",
+  "assigne_a",
+  "assigne_a_nom",
   "id_commercial",
   "section_break_dazt",
   "client",
@@ -77,7 +79,7 @@
    "hidden": 1,
    "in_standard_filter": 1,
    "label": "Statut",
-   "options": "Nouveau\nEn \u00e9tude\nR\u00e9alisable\nNon R\u00e9alisable\nAnnul\u00e9e"
+   "options": "Nouveau\nEn étude\nRéalisable\nNon Réalisable\nAnnulée"
   },
   {
    "collapsible": 1,
@@ -91,7 +93,7 @@
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Date Cr\u00e9ation",
+   "label": "Date Création",
    "read_only": 1
   },
   {
@@ -101,14 +103,14 @@
    "fieldtype": "Date",
    "in_filter": 1,
    "in_standard_filter": 1,
-   "label": "Date \u00c9ch\u00e9ance"
+   "label": "Date Échéance"
   },
   {
    "fieldname": "column_break_wies",
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "client.custom_commercial_attribu\u00e9",
+   "fetch_from": "client.custom_commercial_attribué",
    "fieldname": "id_commercial",
    "fieldtype": "Link",
    "hidden": 1,
@@ -167,11 +169,11 @@
    "read_only": 1
   },
   {
-   "fetch_from": "article.custom_proc\u00e9d\u00e9",
+   "fetch_from": "article.custom_procédé",
    "fieldname": "procede",
    "fieldtype": "Select",
    "in_standard_filter": 1,
-   "label": "Proc\u00e9d\u00e9",
+   "label": "Procédé",
    "options": "\nOffset\nFlexo",
    "read_only": 1
   },
@@ -181,22 +183,22 @@
   },
   {
    "collapsible": 1,
-   "description": "Le moteur propose, l'ing\u00e9nieur d\u00e9cide : aucun sc\u00e9nario n'est appliqu\u00e9 sans validation.",
+   "description": "Le moteur propose, l'ingénieur décide : aucun scénario n'est appliqué sans validation.",
    "fieldname": "imposition_auto_section",
    "fieldtype": "Section Break",
    "label": "Imposition automatique (Moteur v1)"
   },
   {
    "allow_on_submit": 1,
-   "description": "La contrainte bloquante est presque toujours la platine de d\u00e9coupe, pas la presse.",
+   "description": "La contrainte bloquante est presque toujours la platine de découpe, pas la presse.",
    "fieldname": "machine_decoupe",
    "fieldtype": "Link",
-   "label": "Machine d\u00e9coupe",
+   "label": "Machine découpe",
    "options": "Machine"
   },
   {
    "allow_on_submit": 1,
-   "description": "Jeu minimal entre deux poses. Pr\u00e9-rempli depuis le support technique de l'article.",
+   "description": "Jeu minimal entre deux poses. Pré-rempli depuis le support technique de l'article.",
    "fieldname": "pont",
    "fieldtype": "Float",
    "label": "Pont mini (mm)",
@@ -208,16 +210,16 @@
    "default": "1",
    "fieldname": "trait_commun_autorise",
    "fieldtype": "Check",
-   "label": "Trait commun autoris\u00e9"
+   "label": "Trait commun autorisé"
   },
   {
    "allow_on_submit": 1,
    "default": "Libre",
-   "description": "Contrainte bloquante : un sens impos\u00e9 \u00e9limine la moiti\u00e9 des orientations.",
+   "description": "Contrainte bloquante : un sens imposé élimine la moitié des orientations.",
    "fieldname": "sens_fibre",
    "fieldtype": "Select",
    "label": "Sens fibre",
-   "options": "Libre\n0\u00b0\n90\u00b0"
+   "options": "Libre\n0°\n90°"
   },
   {
    "fieldname": "column_break_imposition_auto",
@@ -227,7 +229,7 @@
    "allow_on_submit": 1,
    "fieldname": "developpe_calcule_l",
    "fieldtype": "Float",
-   "label": "D\u00e9velopp\u00e9 calcul\u00e9 \u2014 laize (mm)",
+   "label": "Développé calculé — laize (mm)",
    "precision": "2",
    "read_only": 1
   },
@@ -235,7 +237,7 @@
    "allow_on_submit": 1,
    "fieldname": "developpe_calcule_d",
    "fieldtype": "Float",
-   "label": "D\u00e9velopp\u00e9 calcul\u00e9 \u2014 d\u00e9placement (mm)",
+   "label": "Développé calculé — déplacement (mm)",
    "precision": "2",
    "read_only": 1
   },
@@ -243,13 +245,13 @@
    "allow_on_submit": 1,
    "fieldname": "surface_utile",
    "fieldtype": "Float",
-   "label": "Surface utile (cm\u00b2)",
+   "label": "Surface utile (cm²)",
    "precision": "1",
    "read_only": 1
   },
   {
    "allow_on_submit": 1,
-   "description": "Sous 75 % il y a du potentiel d'embo\u00eetement ; au-del\u00e0 de 85 % la forme est quasi rectangulaire.",
+   "description": "Sous 75 % il y a du potentiel d'emboîtement ; au-delà de 85 % la forme est quasi rectangulaire.",
    "fieldname": "remplissage_bbox",
    "fieldtype": "Percent",
    "label": "Remplissage bbox",
@@ -295,7 +297,7 @@
   {
    "fieldname": "quantite",
    "fieldtype": "Int",
-   "label": "Quantit\u00e9",
+   "label": "Quantité",
    "non_negative": 1,
    "read_only": 1,
    "reqd": 1
@@ -311,7 +313,7 @@
    "fieldname": "date_livraison",
    "fieldtype": "Date",
    "in_standard_filter": 1,
-   "label": "Date Livraison Souhait\u00e9",
+   "label": "Date Livraison Souhaité",
    "read_only": 1,
    "reqd": 1
   },
@@ -319,7 +321,7 @@
    "default": "0",
    "fieldname": "numerique",
    "fieldtype": "Check",
-   "label": "Impression en num\u00e9rique"
+   "label": "Impression en numérique"
   },
   {
    "fieldname": "column_break_wanl",
@@ -328,7 +330,7 @@
   {
    "fieldname": "trace",
    "fieldtype": "Link",
-   "label": "Trac\u00e9",
+   "label": "Tracé",
    "options": "Trace",
    "read_only_depends_on": "eval: doc.is_reprint == 0"
   },
@@ -347,7 +349,7 @@
   {
    "fieldname": "demande_faisabilite",
    "fieldtype": "Link",
-   "label": "Demande Faisabilit\u00e9",
+   "label": "Demande Faisabilité",
    "options": "Demande Faisabilite",
    "read_only": 1,
    "search_index": 1
@@ -406,7 +408,7 @@
    "fieldname": "fichier_trace",
    "fieldtype": "Attach",
    "hidden": 1,
-   "label": "Fichier Trac\u00e9",
+   "label": "Fichier Tracé",
    "make_attachment_public": 1,
    "read_only": 1
   },
@@ -459,7 +461,7 @@
   {
    "fieldname": "machine_section",
    "fieldtype": "Section Break",
-   "label": "Machine pr\u00e9vue"
+   "label": "Machine prévue"
   },
   {
    "allow_on_submit": 1,
@@ -468,7 +470,7 @@
    "hidden": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Machine pr\u00e9vue",
+   "label": "Machine prévue",
    "options": "Machine"
   },
   {
@@ -489,7 +491,7 @@
    "fieldname": "format_machine",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Format machine (laize x d\u00e9v.)",
+   "label": "Format machine (laize x dév.)",
    "read_only": 1
   },
   {
@@ -509,7 +511,7 @@
    "fieldname": "charge_feuilles",
    "fieldtype": "Float",
    "hidden": 1,
-   "label": "Charge presse (feuilles \u00d7 passages)",
+   "label": "Charge presse (feuilles × passages)",
    "non_negative": 1,
    "precision": "2",
    "read_only": 1
@@ -517,18 +519,33 @@
   {
    "fieldname": "html_machine",
    "fieldtype": "HTML",
-   "label": "D\u00e9tail machine"
+   "label": "Détail machine"
   },
   {
    "fieldname": "section_break_cxua",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "assigne_a",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_standard_filter": 1,
+   "label": "Attribué à",
+   "options": "User",
+   "search_index": 1
+  },
+  {
+   "fieldname": "assigne_a_nom",
+   "fieldtype": "Data",
+   "label": "Attribué à",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-13 10:00:00",
+ "modified": "2026-11-07 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Etude Faisabilite",
@@ -575,18 +592,18 @@
   {
    "create": 1,
    "read": 1,
-   "role": "Commercial Itin\u00e9rant",
+   "role": "Commercial Itinérant",
    "select": 1
   },
   {
    "create": 1,
    "read": 1,
-   "role": "Commercial S\u00e9dentaire",
+   "role": "Commercial Sédentaire",
    "select": 1
   },
   {
    "read": 1,
-   "role": "Charg\u00e9 \u00c9tude Faisabilit\u00e9",
+   "role": "Chargé Étude Faisabilité",
    "write": 1
   },
   {
@@ -595,14 +612,14 @@
    "email": 1,
    "read": 1,
    "report": 1,
-   "role": "Responsable \u00c9tude Faisabilit\u00e9",
+   "role": "Responsable Étude Faisabilité",
    "submit": 1,
    "write": 1
   },
   {
    "create": 1,
    "read": 1,
-   "role": "Charg\u00e9 Devis"
+   "role": "Chargé Devis"
   },
   {
    "create": 1,
@@ -631,19 +648,19 @@
   },
   {
    "color": "Orange",
-   "title": "En \u00e9tude"
+   "title": "En étude"
   },
   {
    "color": "Green",
-   "title": "R\u00e9alisable"
+   "title": "Réalisable"
   },
   {
    "color": "Red",
-   "title": "Non R\u00e9alisable"
+   "title": "Non Réalisable"
   },
   {
    "color": "Gray",
-   "title": "Annul\u00e9e"
+   "title": "Annulée"
   }
  ],
  "track_changes": 1
