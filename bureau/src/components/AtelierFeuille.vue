@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { mm, type Scenario, type SilhouetteVue } from '@/lib/atelier'
 
-/** La feuille à l'échelle. Molette pour zoomer, glisser pour se déplacer, double clic pour revenir. Le moteur compte depuis la pince, en bas. */
+/** La feuille à l'échelle. Ctrl ou Cmd avec la molette (ou le pincement) pour zoomer, la molette seule fait défiler la page, glisser pour se déplacer, double clic pour revenir. Le moteur compte depuis la pince, en bas. */
 const props = defineProps<{ scenario: Scenario; silhouette: Record<string, SilhouetteVue>; lisiere: number; pince: number; marge: number }>()
 
 const paths = computed(() => props.silhouette[String(props.scenario.rotation || 0)] ?? props.silhouette['0'])
@@ -25,6 +25,9 @@ function zoom(factor: number) {
 	view.value = { x: x + (width - nextWidth) / 2, y: y + (height - nextHeight) / 2, width: nextWidth, height: nextHeight }
 }
 function onWheel(event: WheelEvent) {
+	// La feuille occupe presque tout l'écran : la molette seule doit faire défiler la page.
+	if (!event.ctrlKey && !event.metaKey) return
+	event.preventDefault()
 	zoom(event.deltaY > 0 ? 1.1 : 0.9)
 }
 let last: { x: number; y: number } | null = null
@@ -47,7 +50,7 @@ const label = computed(() => `Feuille ${mm(props.scenario.laize)} par ${mm(props
 
 <template>
 	<div class="atelier-sheet">
-		<svg :viewBox="viewBox" :style="{ aspectRatio: `${scenario.laize} / ${scenario.depl}` }" role="img" :aria-label="label" @wheel.prevent="onWheel" @pointerdown="onDown" @pointermove="onMove" @pointerup="onUp" @pointercancel="onUp" @dblclick="fit">
+		<svg :viewBox="viewBox" :style="{ aspectRatio: `${scenario.laize} / ${scenario.depl}` }" role="img" :aria-label="label" @wheel="onWheel" @pointerdown="onDown" @pointermove="onMove" @pointerup="onUp" @pointercancel="onUp" @dblclick="fit">
 			<g :transform="`translate(0 ${scenario.depl}) scale(1 -1)`">
 				<rect class="atelier-sheet-paper" :width="scenario.laize" :height="scenario.depl" />
 				<rect class="atelier-sheet-useful" :x="lisiere" :y="pince" :width="scenario.laize - 2 * lisiere" :height="scenario.depl - pince - marge" />
@@ -61,7 +64,7 @@ const label = computed(() => `Feuille ${mm(props.scenario.laize)} par ${mm(props
 			<button type="button" class="btn-secondary" aria-label="Agrandir" @click="zoom(0.7)">+</button>
 			<button type="button" class="btn-secondary" aria-label="Réduire" @click="zoom(1.4)">−</button>
 			<button type="button" class="btn-secondary" @click="fit">Ajuster</button>
-			<span>Noir : coupe. Rouge : rainage. Pointillé : zone utile. Pince en bas.</span>
+			<span>Noir : coupe. Rouge : rainage. Pointillé : zone utile. Pince en bas. Ctrl ou ⌘ + molette pour zoomer.</span>
 		</div>
 	</div>
 </template>
