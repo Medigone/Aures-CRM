@@ -948,6 +948,8 @@ def _remonter_etude(calcul_doc, imposition, fichier_url, scenario):
 	statut = frappe.db.get_value("Etude Faisabilite", etude, "docstatus")
 	if cint(statut) == 2:
 		frappe.throw("L'Étude de faisabilité est annulée : impossible d'y remonter l'Imposition.")
+	if cint(statut) == 1:
+		frappe.throw("L'Étude de faisabilité est conclue : son imposition ne change plus.")
 	ef = frappe.get_doc("Etude Faisabilite", etude)
 	ef.add_comment(
 		"Comment",

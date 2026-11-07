@@ -7,7 +7,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from aurescrm import item_cotations
-from aurescrm.api import bureau, bureau_clients, bureau_demandes, bureau_etudes, bureau_etudes_accueil, bureau_etudes_pieces, bureau_postes
+from aurescrm.api import bureau, bureau_atelier, bureau_clients, bureau_demandes, bureau_etudes, bureau_etudes_accueil, bureau_etudes_pieces, bureau_postes
 
 
 class TestPostes(FrappeTestCase):
@@ -256,3 +256,69 @@ class TestOrigineCotations(FrappeTestCase):
 		item_cotations.record_bat_cotations(doc, "80x40x100")
 		self.assertIsNone(doc.custom_cotations_trace_par)
 		self.assertEqual(doc.custom_cotations_bat, "80x40x100")
+
+
+class TestAtelierBureau(FrappeTestCase):
+	"""Règles de l'atelier du bureau. Annulé en fin de test : aucun calcul n'est lancé."""
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_formats_sans_calcul_tous_coches(self):
+		rows = bureau_atelier.merge_formats([{"laize": 1020, "depl": 700, "libelle": "A"}], [])
+		self.assertEqual([(row["libelle"], row["coche"]) for row in rows], [("A", True)])
+
+	def test_formats_coches_selon_le_calcul_et_format_manuel_garde(self):
+		proposes = [{"laize": 1020, "depl": 700, "libelle": "A"}, {"laize": 780, "depl": 700, "libelle": "B"}]
+		etudies = [{"laize": 1020.5, "depl": 700, "libelle": "A"}, {"laize": 500, "depl": 400, "origine": "Manuel", "libelle": "C"}]
+		rows = bureau_atelier.merge_formats(proposes, etudies)
+		self.assertEqual([(row["libelle"], row["coche"]) for row in rows], [("A", True), ("B", False), ("C", True)])
+
+	def test_feuille_et_bobine_ne_se_confondent_pas(self):
+		rows = bureau_atelier.merge_formats([{"laize": 1020, "depl": 800, "bobine": 1, "libelle": "B"}], [{"laize": 1020, "depl": 800, "bobine": 0, "libelle": "F"}])
+		self.assertEqual(len(rows), 2)
+
+	def test_test_rapide_exige_un_pdf(self):
+		with self.assertRaises(frappe.ValidationError):
+			bureau_atelier.calcul_arguments({"pont": 1})
+
+	def test_test_rapide_sans_article(self):
+		args, _values = bureau_atelier.calcul_arguments({"fichier_trace": "/private/files/x.pdf", "pont": 1, "quantite": 5000, "trait_commun": 1})
+		self.assertIsNone(args["etude"])
+		self.assertNotIn("article", args)
+		self.assertEqual((args["quantite"], args["ignorer_contraintes_machine"]), (5000, 1))
+
+	def _etude(self, status):
+		name = frappe.db.get_value("Etude Faisabilite", {"status": status}, "name")
+		if not name:
+			self.skipTest(f"Aucune étude {status} sur ce site.")
+		return name
+
+	def test_etude_impose_sa_quantite_et_son_article(self):
+		name = self._etude("En étude")
+		doc = frappe.get_doc("Etude Faisabilite", name)
+		if not doc.trace:
+			self.skipTest("Étude sans tracé.")
+		args, _values = bureau_atelier.calcul_arguments({"etude": name, "fichier_trace": "/private/files/x.pdf", "pont": 1, "quantite": 1, "trait_commun": 1})
+		self.assertEqual((args["quantite"], args["article"], args["trace"]), (doc.quantite, doc.article, doc.trace))
+
+	def test_etude_conclue_ne_se_calcule_pas(self):
+		name = self._etude("Réalisable")
+		with self.assertRaises(frappe.ValidationError):
+			bureau_atelier.calcul_arguments({"etude": name, "fichier_trace": "/private/files/x.pdf", "pont": 1})
+
+	def test_calcul_d_une_autre_etude_refuse(self):
+		name = self._etude("En étude")
+		calcul = frappe.db.get_value("Calcul Imposition", {"etude_faisabilite": ["not in", [name]]}, "name")
+		if not calcul:
+			self.skipTest("Aucun autre calcul.")
+		with self.assertRaises(frappe.ValidationError):
+			bureau_atelier.calcul_arguments({"etude": name, "calcul": calcul, "fichier_trace": "/private/files/x.pdf", "pont": 1})
+
+	def test_creation_refusee_sur_etude_conclue(self):
+		name = self._etude("Réalisable")
+		with self.assertRaises(frappe.ValidationError):
+			bureau_atelier.create_atelier_imposition(name, "x", 1)
+
+	def test_lien_du_menu_selon_les_droits(self):
+		self.assertIn("Calcul Imposition", bureau_postes.DOCTYPES_INTERFACE)

@@ -36,6 +36,7 @@ DOCTYPES_INTERFACE = (
 	"Etude Faisabilite Flexo",
 	"Trace",
 	"Imposition",
+	"Calcul Imposition",
 	"Machine",
 	"Quotation",
 	"Sales Order",

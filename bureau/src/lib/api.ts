@@ -10,6 +10,7 @@ import type { BatAnalysis } from './batImport'
 import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView, PantoneMatch } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
+import type { AtelierCalcul, AtelierData, AtelierFormat, Scenario } from './atelier'
 import type { ClicheOptions, EtudePieces, ImpositionRow, MachineRow, PiecesResult, SaveTraceResult, TraceReference } from './etudePieces'
 import type { ArticleChoice, DemandeDetail, DemandeOptions, DemandesResponse, DemandeValues, DemandeView, TicketDemandeContext } from './demandes'
 import type { Condition } from './filters'
@@ -354,6 +355,20 @@ export const setPieceFile = (etude: EtudeVersion, piece: string, file_url: strin
 export const linkExistingPieces = (etude: EtudeVersion) => call<PiecesResult>(`${PIECES}.link_existing_pieces`, versionOf(etude), true)
 export const savePlanFlexo = (etude: EtudeVersion, values: { dimensions: string; laize: string; sens_der: string }) => call<PiecesResult>(`${PIECES}.save_plan_flexo`, { ...versionOf(etude), ...values }, true)
 export const createCliche = (etude: EtudeVersion, values: { laize: string; nbr_couleurs: string; developpement: string; hauteur_cliche: string; site_prod: string }) => call<PiecesResult>(`${PIECES}.create_cliche`, { ...versionOf(etude), ...values }, true)
+
+/** Atelier d'imposition : les règles du bureau d'un côté, le moteur tel quel de l'autre. */
+const ATELIER = 'aurescrm.api.bureau_atelier'
+const MOTEUR = 'aurescrm.imposition.api'
+export const getAtelier = (etude?: string, calcul?: string) => call<AtelierData>(`${ATELIER}.get_atelier`, { etude, calcul })
+export const getAtelierCalcul = (calcul: string) => call<AtelierCalcul>(`${ATELIER}.get_atelier_calcul`, { calcul })
+export const getSupportFormats = (support: string) => call<{ grammage: number; pont_mini: number; formats: AtelierFormat[] }>(`${ATELIER}.get_support_formats`, { support })
+export const prepareAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.prepare_atelier`, { values: JSON.stringify(values) }, true)
+export const runAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.run_atelier`, { values: JSON.stringify(values) }, true)
+export const createAtelierImposition = (etude: string, calcul: string, scenario_idx: number) => call<{ imposition: string; remplacee: string | null; avertissement: string | null; taux_chutes: number }>(`${ATELIER}.create_atelier_imposition`, { etude, calcul, scenario_idx }, true)
+export const simulateFormat = (calcul: string, values: object) => call<{ scenario: Scenario | null; message?: string }>(`${MOTEUR}.simuler`, { calcul, ...values })
+export const simulateGrid = (calcul: string, values: object) => call<{ scenario: Scenario | null; message?: string }>(`${MOTEUR}.simuler_grille`, { calcul, ...values })
+export const keepAtelierScenario = (calcul: string, scenario: object) => call<{ idx: number }>(`${MOTEUR}.enregistrer_scenario`, { calcul, scenario: JSON.stringify(scenario) }, true)
+export const exportAtelier = (calcul: string, scenarios: Scenario[], format_export: string) => call<{ file_url: string }>(`${MOTEUR}.exporter_simulations`, { calcul, scenarios: JSON.stringify(scenarios), format_export }, true)
 
 export function etudeActivity(name: string): ActivityApi {
 	return {

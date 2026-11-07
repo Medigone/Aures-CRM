@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
+import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import FormDialog from '@shared/components/FormDialog.vue'
 import { chooseImposition, getEtudeImpositions } from '@/lib/api'
 import { percentLabel, quantityLabel, type EtudePieces, type ImpositionRow, type PiecesResult } from '@/lib/etudePieces'
 import type { EtudeDetail } from '@/lib/etudes'
 
 /** Les impositions du tracé, le meilleur taux de chutes d'abord. Choisir reporte le taux sur l'étude. */
-const props = defineProps<{ etude: EtudeDetail; pieces: EtudePieces; atelierUrl: string }>()
+const props = defineProps<{ etude: EtudeDetail; pieces: EtudePieces; atelierRoute: RouteLocationRaw }>()
 const emit = defineEmits<{ close: []; saved: [result: PiecesResult, message: string]; manual: []; failed: [] }>()
 
 const rows = ref<ImpositionRow[] | null>(null)
@@ -60,7 +60,7 @@ async function choose(row: ImpositionRow) {
 			</li>
 		</ul>
 		<template #hint>
-			<a v-if="pieces.imposition?.atelier" class="btn-ghost mr-auto" :href="atelierUrl" target="_blank" rel="noopener noreferrer">Calculer dans l'atelier<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" /></a>
+			<RouterLink v-if="pieces.imposition?.atelier" class="btn-ghost mr-auto" :to="atelierRoute">Calculer dans l'atelier</RouterLink>
 			<span v-else class="mr-auto"></span>
 		</template>
 		<template #actions><button v-if="pieces.imposition?.can_create" type="button" class="btn-secondary" :disabled="busy" @click="emit('manual')">Saisir à la main</button></template>

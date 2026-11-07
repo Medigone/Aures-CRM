@@ -61,6 +61,7 @@ export const PALETTE_COMMANDS: PaletteCommand[] = [
 	...viewCommands('tickets', 'Tickets', 'Tickets', TICKET_VIEWS, 'todo', 'ticket liste', 'Ticket Commercial'),
 	...viewCommands('demandes', 'Demandes', 'Demandes', DEMANDE_VIEWS, 'all', 'demande faisabilité liste', 'Demande Faisabilite'),
 	...viewCommands('etudes', 'Études', 'Etudes', ETUDE_VIEWS, 'all', 'étude faisabilité liste', ETUDE_DOCTYPES),
+	{ id: 'list-atelier', section: 'lists', label: "Atelier d'imposition", keywords: 'test rapide faisabilité calcul poses chutes', doctype: 'Calcul Imposition', icon: 'etudes', action: { type: 'route', to: { name: 'Atelier' } } },
 	...viewCommands('clients', 'Clients', 'Clients', CLIENT_VIEWS, 'all', 'client liste', 'Customer'),
 	...viewCommands('articles', 'Articles', 'Articles', ARTICLE_VIEWS, 'all', 'article produit liste', 'Item'),
 	{ id: 'desk-commandes', section: 'elsewhere', label: 'Commandes', keywords: 'bon commande desk', doctype: 'Sales Order', icon: 'commandes', action: { type: 'href', href: '/app/sales-order' } },

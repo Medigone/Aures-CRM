@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideCheck from '~icons/lucide/check'
 import StatusPill from '@shared/components/StatusPill.vue'
@@ -40,7 +41,7 @@ async function load() {
 }
 watch(() => [props.etude.name, props.etude.modified], load, { immediate: true })
 
-// L'atelier s'ouvre dans un autre onglet : au retour, la fiche montre ce qu'il a créé.
+// Maquette, cliché, Desk s'ouvrent dans un autre onglet : au retour, la fiche montre ce qui a changé.
 function onReturn() {
 	if (document.visibilityState === 'visible' && !dialog.value) emit('reload')
 }
@@ -77,7 +78,7 @@ const imposition = computed(() => pieces.value?.imposition)
 const current = computed(() => imposition.value?.courante)
 const machine = computed(() => pieces.value?.machine)
 const machineBlocked = computed(() => machine.value?.alertes?.some((alert) => alert.tone === 'red'))
-const atelierUrl = computed(() => `/app/atelier-imposition?etude=${encodeURIComponent(props.etude.name)}`)
+const atelierRoute = computed(() => ({ name: 'EtudeAtelier', params: { id: props.etude.name } }))
 const origin = computed(() => cotationsOriginText(pieces.value?.cotations?.origine))
 const flexoRows = computed(() => (pieces.value?.plan_flexo ? [pieces.value.plan_flexo, pieces.value.maquette, pieces.value.cliche] : []))
 const unlinked = computed(() => Boolean(pieces.value?.travail) && flexoRows.value.some((row) => row?.name && !row.linked))
@@ -148,7 +149,7 @@ const unlinked = computed(() => Boolean(pieces.value?.travail) && flexoRows.valu
 					<div v-if="pieces.travail && trace?.linked" class="etude-work-actions">
 						<button v-if="imposition?.can_create || imposition?.can_edit" type="button" :class="current ? 'btn-secondary' : 'btn-primary'" @click="dialog = 'imposition'">{{ current ? 'Changer' : 'Choisir ou créer' }}</button>
 						<button v-if="current && imposition?.can_edit" type="button" class="btn-secondary" @click="dialog = 'impositionEdit'">Mettre à jour</button>
-						<a v-if="imposition?.atelier" class="btn-secondary" :href="atelierUrl" target="_blank" rel="noopener noreferrer">Atelier<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" /></a>
+						<RouterLink v-if="imposition?.atelier" class="btn-secondary" :to="atelierRoute">Atelier</RouterLink>
 					</div>
 				</div>
 
@@ -245,7 +246,7 @@ const unlinked = computed(() => Boolean(pieces.value?.travail) && flexoRows.valu
 		</div>
 
 		<EtudeTraceDialog v-if="dialog === 'trace' && pieces" :etude="etude" :pieces="pieces" @close="dialog = null" @saved="onSaved" @failed="onFailed" />
-		<EtudeImpositionDialog v-else-if="dialog === 'imposition' && pieces" :etude="etude" :pieces="pieces" :atelier-url="atelierUrl" @close="dialog = null" @saved="onSaved" @failed="onFailed" @manual="dialog = 'impositionNew'" />
+		<EtudeImpositionDialog v-else-if="dialog === 'imposition' && pieces" :etude="etude" :pieces="pieces" :atelier-route="atelierRoute" @close="dialog = null" @saved="onSaved" @failed="onFailed" @manual="dialog = 'impositionNew'" />
 		<EtudeImpositionForm v-else-if="dialog === 'impositionNew'" :etude="etude" @close="dialog = null" @saved="onSaved" @failed="onFailed" />
 		<EtudeImpositionForm v-else-if="dialog === 'impositionEdit'" :etude="etude" :imposition="current" @close="dialog = null" @saved="onSaved" @failed="onFailed" />
 		<EtudeMachineDialog v-else-if="dialog === 'machine'" :etude="etude" :current="machine?.name ?? null" :has-imposition="Boolean(current)" @close="dialog = null" @saved="onSaved" @failed="onFailed" />

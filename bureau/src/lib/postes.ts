@@ -9,6 +9,7 @@ import LucideGrid from '~icons/lucide/layout-grid'
 import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
 import LucidePackage from '~icons/lucide/package'
 import LucidePenTool from '~icons/lucide/pen-tool'
+import LucideScissors from '~icons/lucide/scissors'
 import LucideShoppingCart from '~icons/lucide/shopping-cart'
 import LucideTicket from '~icons/lucide/ticket'
 import LucideWallet from '~icons/lucide/wallet'
@@ -69,6 +70,7 @@ const NAV: Record<string, PosteNavGroup[]> = {
 			items: [
 				{ id: 'accueil', label: 'Accueil', icon: LucideLayoutDashboard, to: { name: 'Home' } },
 				{ id: 'etudes', label: 'Études', icon: LucideClipboardCheck, to: { name: 'Etudes' }, doctype: ETUDE_DOCTYPES },
+				{ id: 'atelier', label: 'Atelier', icon: LucideScissors, to: { name: 'Atelier' }, doctype: 'Calcul Imposition' },
 				{ id: 'traces', label: 'Tracés', icon: LucidePenTool, href: '/app/trace', doctype: 'Trace' },
 				{ id: 'impositions', label: 'Impositions', icon: LucideGrid, href: '/app/imposition', doctype: 'Imposition' },
 				{ id: 'machines', label: 'Machines', icon: LucideFactory, href: '/app/machine', doctype: 'Machine' },

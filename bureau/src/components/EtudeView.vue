@@ -20,6 +20,7 @@ import RecordHeader from './RecordHeader.vue'
 import StepTimeline from './StepTimeline.vue'
 import TagEditor from './TagEditor.vue'
 import { etudeActivity, setEtudeObservations } from '@/lib/api'
+import { takePendingNotice } from '@/lib/atelier'
 import type { PiecesResult } from '@/lib/etudePieces'
 import { deskUrl, formatDay } from '@/lib/display'
 import { actionLabel, blockedText, etudeHeaderActions, etudeTimeline, etudeTip, formatQuantity, isPrimaryEtudeAction } from '@/lib/etudes'
@@ -32,6 +33,8 @@ const { etude, assigneeOptions, assign, error, notFound, actionError, notice, no
 	() => props.id,
 	() => emit('changed'),
 )
+// Retour de l'atelier : ce qu'il vient de créer.
+notice.value = takePendingNotice()
 const feed = ref<InstanceType<typeof ActivityFeed> | null>(null)
 const actions = ref<InstanceType<typeof EtudeActions> | null>(null)
 const activityApi = computed(() => etudeActivity(props.id))
