@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { commonCutLabel, fileLabel, isPdf, manualFormat, mm, presseAlert, replacementText, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type Scenario } from './atelier'
+import { describe, expect, it, vi } from 'vitest'
+import { commonCutLabel, downloadFile, fileLabel, isPdf, manualFormat, mm, presseAlert, replacementText, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type Scenario } from './atelier'
 
 const scenario = (values: Partial<Scenario> = {}) => ({ libelle: 'A', origine: 'Stock', laize: 1020, depl: 700, nb_poses: 4, n_col: 2, n_rang: 2, rotation: 0, taux_chutes: 35, pas_laize: 381.96, pas_depl: 337.05, trait_commun_laize: 1, trait_commun_depl: 0, reste_laize: 240.04, reste_depl: 1.9, surface_par_pose: 1785, nb_feuilles: 25000, tonnage: 5.176, ...values }) as Scenario
 
@@ -49,6 +49,19 @@ describe('atelier', () => {
 	it("annonce l'imposition remplacée", () => {
 		expect(replacementText({ name: 'E', imposition: 'IMP-1' })).toContain('remplacera IMP-1')
 		expect(replacementText({ name: 'E', imposition: null })).toContain('sera liée')
+	})
+	it('télécharge sans ouvrir de fenêtre', () => {
+		const opened = vi.spyOn(window, 'open')
+		const clicked: { download: string; href: string }[] = []
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+			clicked.push({ download: this.download, href: this.getAttribute('href') ?? '' })
+		})
+		downloadFile('/private/files/a.pdf', 'a.pdf')
+		expect(clicked).toEqual([{ download: 'a.pdf', href: '/private/files/a.pdf' }])
+		expect(opened).not.toHaveBeenCalled()
+		expect(document.querySelector('a[download]')).toBeNull()
+		click.mockRestore()
+		opened.mockRestore()
 	})
 	it('garde le message de retour une seule fois', () => {
 		setPendingNotice('ok')

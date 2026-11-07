@@ -368,7 +368,7 @@ export const createAtelierImposition = (etude: string, calcul: string, scenario_
 export const simulateFormat = (calcul: string, values: object) => call<{ scenario: Scenario | null; message?: string }>(`${MOTEUR}.simuler`, { calcul, ...values })
 export const simulateGrid = (calcul: string, values: object) => call<{ scenario: Scenario | null; message?: string }>(`${MOTEUR}.simuler_grille`, { calcul, ...values })
 export const keepAtelierScenario = (calcul: string, scenario: object) => call<{ idx: number }>(`${MOTEUR}.enregistrer_scenario`, { calcul, scenario: JSON.stringify(scenario) }, true)
-export const exportAtelier = (calcul: string, scenarios: Scenario[], format_export: string) => call<{ file_url: string }>(`${MOTEUR}.exporter_simulations`, { calcul, scenarios: JSON.stringify(scenarios), format_export }, true)
+export const exportAtelier = (calcul: string, scenarios: Scenario[], format_export: string) => call<{ file_url: string; file_name: string }>(`${MOTEUR}.exporter_simulations`, { calcul, scenarios: JSON.stringify(scenarios), format_export }, true)
 
 export function etudeActivity(name: string): ActivityApi {
 	return {

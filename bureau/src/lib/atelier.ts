@@ -177,6 +177,16 @@ export function replacementText(etude: Pick<AtelierEtude, 'name' | 'imposition'>
 	return etude.imposition ? `Elle remplacera ${etude.imposition} sur l'étude ${etude.name}, qui reprendra son taux de chutes et son nombre de feuilles. L'ancienne imposition reste dans la liste du tracé.` : `Elle sera liée à l'étude ${etude.name}, qui reprendra son taux de chutes et son nombre de feuilles.`
 }
 
+/** Télécharge sans ouvrir de fenêtre : un PDF met plusieurs secondes à se préparer, et le navigateur bloque alors toute fenêtre ouverte après le clic. */
+export function downloadFile(url: string, name: string) {
+	const link = document.createElement('a')
+	link.href = url
+	link.download = name
+	document.body.append(link)
+	link.click()
+	link.remove()
+}
+
 /** Message à montrer sur la fiche au retour de l'atelier. */
 let pending = ''
 export function setPendingNotice(message: string) {
