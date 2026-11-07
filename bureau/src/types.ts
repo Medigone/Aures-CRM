@@ -215,6 +215,8 @@ export type Perform = (action: () => Promise<TicketDetail>) => Promise<boolean>
 declare global {
 	interface Window {
 		can_access?: boolean
+		postes?: { key: string; label: string }[]
+		droits?: Record<string, { read: boolean; create: boolean }>
 		user_fullname?: string | null
 	}
 }

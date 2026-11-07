@@ -16,14 +16,14 @@ export const routes = [
 		// La liste des tickets était à la racine : un ancien lien garde sa vue et son aperçu.
 		beforeEnter: (to: RouteLocationNormalized) => (to.query.vue || to.query.apercu || to.query.page ? { name: 'Tickets', query: to.query } : true),
 	},
-	{ path: '/tickets', name: 'Tickets', component: BureauPage },
-	{ path: '/ticket/:id', name: 'Ticket', component: BureauPage, props: true },
-	{ path: '/demandes', name: 'Demandes', component: DemandesPage },
-	{ path: '/demandes/:id', name: 'Demande', component: DemandesPage, props: true },
-	{ path: '/clients', name: 'Clients', component: ClientsPage },
-	{ path: '/clients/:id', name: 'Client', component: ClientsPage, props: true },
-	{ path: '/articles', name: 'Articles', component: ArticlesPage },
-	{ path: '/articles/:id', name: 'Article', component: ArticlesPage, props: true },
+	{ path: '/tickets', name: 'Tickets', component: BureauPage, meta: { doctype: 'Ticket Commercial' } },
+	{ path: '/ticket/:id', name: 'Ticket', component: BureauPage, props: true, meta: { doctype: 'Ticket Commercial' } },
+	{ path: '/demandes', name: 'Demandes', component: DemandesPage, meta: { doctype: 'Demande Faisabilite' } },
+	{ path: '/demandes/:id', name: 'Demande', component: DemandesPage, props: true, meta: { doctype: 'Demande Faisabilite' } },
+	{ path: '/clients', name: 'Clients', component: ClientsPage, meta: { doctype: 'Customer' } },
+	{ path: '/clients/:id', name: 'Client', component: ClientsPage, props: true, meta: { doctype: 'Customer' } },
+	{ path: '/articles', name: 'Articles', component: ArticlesPage, meta: { doctype: 'Item' } },
+	{ path: '/articles/:id', name: 'Article', component: ArticlesPage, props: true, meta: { doctype: 'Item' } },
 	{ path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 

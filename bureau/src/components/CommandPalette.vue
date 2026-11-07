@@ -13,7 +13,8 @@ import LucideTicket from '~icons/lucide/ticket'
 import LucideWallet from '~icons/lucide/wallet'
 import TicketStatus from './TicketStatus.vue'
 import { getArticles, getClients, getQueue, getDemandes } from '@/lib/api'
-import { type CreateKind, filterCommands, moveCursor, PALETTE_COMMANDS, type PaletteCommand, SECTION_TITLES } from '@/lib/palette'
+import { canRead } from '@/lib/droits'
+import { allowedCommands, type CreateKind, filterCommands, moveCursor, PALETTE_COMMANDS, type PaletteCommand, SECTION_TITLES } from '@/lib/palette'
 
 /** Fenêtre du raccourci Cmd/Ctrl K : créer, ouvrir une liste, trouver un enregistrement. */
 const emit = defineEmits<{ close: []; create: [kind: CreateKind]; done: [] }>()
@@ -59,7 +60,7 @@ const records = ref<Group[]>([])
 const hasQuery = computed(() => query.value.trim().length > 0)
 
 const groups = computed<Group[]>(() => {
-	const commands = filterCommands(PALETTE_COMMANDS, query.value)
+	const commands = filterCommands(allowedCommands(PALETTE_COMMANDS), query.value)
 	const sections: Group[] = (Object.keys(SECTION_TITLES) as PaletteCommand['section'][]).map((section) => ({
 		id: section,
 		title: SECTION_TITLES[section],
@@ -90,13 +91,16 @@ async function search() {
 	const text = query.value
 	const paging = { pageLength: MAX_RESULTS }
 	const [tickets, demandes, clients, articles] = await Promise.allSettled([
-		Promise.all([getQueue('todo', [], text, paging), getQueue('closed', [], text, paging)]).then(([active, closed]) => {
-			const seen = new Set<string>()
-			return [...active.tickets, ...closed.tickets].filter((ticket) => !seen.has(ticket.name) && seen.add(ticket.name)).slice(0, MAX_RESULTS)
-		}),
-		getDemandes('all', [], text, paging).then((response) => response.demandes),
-		getClients('all', [], text, paging).then((response) => response.clients),
-		getArticles('all', [], text, paging).then((response) => response.articles),
+		// Un document que le rôle ne lit pas n'est pas cherché : il n'affiche ni résultat ni erreur.
+		canRead('Ticket Commercial')
+			? Promise.all([getQueue('todo', [], text, paging), getQueue('closed', [], text, paging)]).then(([active, closed]) => {
+					const seen = new Set<string>()
+					return [...active.tickets, ...closed.tickets].filter((ticket) => !seen.has(ticket.name) && seen.add(ticket.name)).slice(0, MAX_RESULTS)
+				})
+			: [],
+		canRead('Demande Faisabilite') ? getDemandes('all', [], text, paging).then((response) => response.demandes) : [],
+		canRead('Customer') ? getClients('all', [], text, paging).then((response) => response.clients) : [],
+		canRead('Item') ? getArticles('all', [], text, paging).then((response) => response.articles) : [],
 	])
 	if (request !== lastRequest) return
 	records.value = [

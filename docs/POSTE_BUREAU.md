@@ -1,6 +1,17 @@
 # Poste de bureau Aures (`/bureau`)
 
 Application de bureau pour les équipes internes, à côté du Desk. Le premier module sert au back office (rôle `Administrateur Ventes`).
+
+## Postes
+
+Une seule application, plusieurs postes. Un poste choisit le menu, l'accueil et les vues par défaut, et n'accorde aucun droit : la sécurité reste celle de Frappe.
+
+- **Déclaration** : rôles et état dans `POSTES` (`aurescrm/api/bureau_postes.py`), menu dans `bureau/src/lib/postes.ts`. `BUREAU_ROLES` en découle : seuls les postes ouverts donnent accès au bureau.
+- **État** : Back office ouvert. Étude (Chargé et Responsable Étude Faisabilité, Étude Flexo) déclaré et fermé jusqu'à l'ouverture à l'équipe. Prépresse viendra ensuite, pour les études techniques.
+- **Offset et Flexo** : même poste, mais chaque équipe ne voit que ses études. La séparation vient des droits sur les deux documents, jamais d'une condition sur le procédé dans les pages. Le back office voit les deux.
+- **Droits à l'écran** : le chargement de la page fournit `postes` et `droits` (lecture et création par document). Le menu et la palette retirent ce que le rôle ne peut pas lire ou créer.
+- **Page refusée** : une route déclare son document (`meta.doctype`). Sans droit de lecture, la page l'indique dans la coquille et garde son adresse.
+- **Plusieurs postes** : le libellé de la barre du haut devient un sélecteur, et le choix est retenu par navigateur.
 Cahier des charges de la V1 et maquette : voir les liens transmis au projet.
 
 ## Accueil (`/bureau`)

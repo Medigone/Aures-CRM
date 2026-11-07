@@ -2,6 +2,7 @@
 import type { RouteLocationRaw } from 'vue-router'
 import { ARTICLE_VIEWS } from './articles'
 import { CLIENT_VIEWS } from './clients'
+import { canCreate, canRead } from './droits'
 import { DEMANDE_VIEWS } from './demandes'
 import { TICKET_VIEWS } from './useQueue'
 
@@ -19,6 +20,8 @@ export interface PaletteCommand {
 	hint?: string
 	/** Mots qui trouvent aussi la commande, sans être affichés. */
 	keywords?: string
+	/** Document dont le droit décide si la commande est proposée. */
+	doctype?: string
 	icon: CreateKind | ListKind | 'commandes' | 'devis' | 'creances'
 	action: PaletteAction
 }
@@ -29,9 +32,9 @@ export const SECTION_TITLES: Record<PaletteSection, string> = {
 	elsewhere: 'Sur le Desk',
 }
 
-function viewCommands(list: ListKind, hint: string, routeName: string, views: readonly { key: string; label: string }[], defaultView: string, keywords: string): PaletteCommand[] {
+function viewCommands(list: ListKind, hint: string, routeName: string, views: readonly { key: string; label: string }[], defaultView: string, keywords: string, doctype: string): PaletteCommand[] {
 	return [
-		{ id: `list-${list}`, section: 'lists', label: hint, keywords, icon: list, action: { type: 'route', to: { name: routeName } } },
+		{ id: `list-${list}`, section: 'lists', label: hint, keywords, doctype, icon: list, action: { type: 'route', to: { name: routeName } } },
 		...views
 			.filter((view) => view.key !== defaultView)
 			.map(
@@ -41,6 +44,7 @@ function viewCommands(list: ListKind, hint: string, routeName: string, views: re
 					label: view.label,
 					hint,
 					keywords,
+					doctype,
 					icon: list,
 					action: { type: 'route', to: { name: routeName, query: { vue: view.key } } },
 				}),
@@ -49,18 +53,23 @@ function viewCommands(list: ListKind, hint: string, routeName: string, views: re
 }
 
 export const PALETTE_COMMANDS: PaletteCommand[] = [
-	{ id: 'create-ticket', section: 'create', label: 'Nouveau ticket', keywords: 'créer ajouter demande', icon: 'ticket', action: { type: 'create', kind: 'ticket' } },
-	{ id: 'create-article', section: 'create', label: 'Nouvel article', keywords: 'créer ajouter produit', icon: 'article', action: { type: 'create', kind: 'article' } },
-	{ id: 'create-client', section: 'create', label: 'Nouveau prospect', keywords: 'créer ajouter client', icon: 'client', action: { type: 'create', kind: 'client' } },
+	{ id: 'create-ticket', section: 'create', label: 'Nouveau ticket', keywords: 'créer ajouter demande', doctype: 'Ticket Commercial', icon: 'ticket', action: { type: 'create', kind: 'ticket' } },
+	{ id: 'create-article', section: 'create', label: 'Nouvel article', keywords: 'créer ajouter produit', doctype: 'Item', icon: 'article', action: { type: 'create', kind: 'article' } },
+	{ id: 'create-client', section: 'create', label: 'Nouveau prospect', keywords: 'créer ajouter client', doctype: 'Customer', icon: 'client', action: { type: 'create', kind: 'client' } },
 	{ id: 'list-accueil', section: 'lists', label: 'Accueil', keywords: 'tableau de bord dashboard', icon: 'accueil', action: { type: 'route', to: { name: 'Home' } } },
-	...viewCommands('tickets', 'Tickets', 'Tickets', TICKET_VIEWS, 'todo', 'ticket liste'),
-	...viewCommands('demandes', 'Demandes', 'Demandes', DEMANDE_VIEWS, 'all', 'demande faisabilité liste'),
-	...viewCommands('clients', 'Clients', 'Clients', CLIENT_VIEWS, 'all', 'client liste'),
-	...viewCommands('articles', 'Articles', 'Articles', ARTICLE_VIEWS, 'all', 'article produit liste'),
-	{ id: 'desk-commandes', section: 'elsewhere', label: 'Commandes', keywords: 'bon commande desk', icon: 'commandes', action: { type: 'href', href: '/app/sales-order' } },
-	{ id: 'desk-devis', section: 'elsewhere', label: 'Devis', keywords: 'desk', icon: 'devis', action: { type: 'href', href: '/app/quotation' } },
-	{ id: 'desk-creances', section: 'elsewhere', label: 'Créances', keywords: 'suivi desk', icon: 'creances', action: { type: 'href', href: '/app/suivi-creance' } },
+	...viewCommands('tickets', 'Tickets', 'Tickets', TICKET_VIEWS, 'todo', 'ticket liste', 'Ticket Commercial'),
+	...viewCommands('demandes', 'Demandes', 'Demandes', DEMANDE_VIEWS, 'all', 'demande faisabilité liste', 'Demande Faisabilite'),
+	...viewCommands('clients', 'Clients', 'Clients', CLIENT_VIEWS, 'all', 'client liste', 'Customer'),
+	...viewCommands('articles', 'Articles', 'Articles', ARTICLE_VIEWS, 'all', 'article produit liste', 'Item'),
+	{ id: 'desk-commandes', section: 'elsewhere', label: 'Commandes', keywords: 'bon commande desk', doctype: 'Sales Order', icon: 'commandes', action: { type: 'href', href: '/app/sales-order' } },
+	{ id: 'desk-devis', section: 'elsewhere', label: 'Devis', keywords: 'desk', doctype: 'Quotation', icon: 'devis', action: { type: 'href', href: '/app/quotation' } },
+	{ id: 'desk-creances', section: 'elsewhere', label: 'Créances', keywords: 'suivi desk', doctype: 'Suivi Creance', icon: 'creances', action: { type: 'href', href: '/app/suivi-creance' } },
 ]
+
+/** Ce que ce compte peut lancer : une création demande le droit de créer, le reste celui de lire. */
+export function allowedCommands(commands: PaletteCommand[]) {
+	return commands.filter((command) => (command.action.type === 'create' ? canCreate(command.doctype) : canRead(command.doctype)))
+}
 
 /** Sans accents ni majuscules : « creance » trouve « Créances ». */
 export function normalize(text: string) {

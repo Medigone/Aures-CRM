@@ -14,6 +14,7 @@ import frappe
 from frappe import _
 
 from aurescrm.api.bureau import can_access_bureau
+from aurescrm.api.bureau_postes import get_droits, get_postes
 
 no_cache = 1
 
@@ -67,5 +68,7 @@ def get_boot():
 			"user": user if user != "Guest" else None,
 			"user_fullname": frappe.utils.get_fullname(user) if user != "Guest" else None,
 			"can_access": can_access_bureau(user),
+			"postes": get_postes(user),
+			"droits": get_droits(user),
 		}
 	)

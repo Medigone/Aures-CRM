@@ -47,7 +47,7 @@ onBeforeUnmount(() => {
 				<LucidePanelLeft class="h-4 w-4" aria-hidden="true" />
 			</button>
 			<span title="Aures Emballages"><BrandMark mark-only /></span>
-			<span class="app-poste">{{ poste }}</span>
+			<slot name="poste"><span class="app-poste">{{ poste }}</span></slot>
 			<nav class="app-crumbs" aria-label="Fil d'Ariane">
 				<template v-for="(crumb, index) in crumbs" :key="index">
 					<span class="app-crumb-sep" aria-hidden="true">/</span>

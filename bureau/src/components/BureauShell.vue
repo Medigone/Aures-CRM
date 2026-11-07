@@ -2,17 +2,9 @@
 import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
-import LucideBuilding2 from '~icons/lucide/building-2'
-import LucideClipboardList from '~icons/lucide/clipboard-list'
-import LucideFileText from '~icons/lucide/file-text'
-import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
 import LucideLogOut from '~icons/lucide/log-out'
 import LucideMoon from '~icons/lucide/moon'
-import LucidePackage from '~icons/lucide/package'
-import LucideShoppingCart from '~icons/lucide/shopping-cart'
 import LucideSun from '~icons/lucide/sun'
-import LucideTicket from '~icons/lucide/ticket'
-import LucideWallet from '~icons/lucide/wallet'
 import AppShell from '@shared/components/AppShell.vue'
 import { realtimeConnected } from '@shared/realtime'
 import type { Crumb, NavGroup } from '@shared/shell'
@@ -21,15 +13,17 @@ import ArticleDialog from './ArticleDialog.vue'
 import ClientDialog from './ClientDialog.vue'
 import CommandPalette from './CommandPalette.vue'
 import GlobalSearch from './GlobalSearch.vue'
+import HeaderMenu from './HeaderMenu.vue'
 import NewTicketDialog from './NewTicketDialog.vue'
 import { logout } from '@/lib/api'
 import { initials } from '@/lib/display'
 import type { CreateKind } from '@/lib/palette'
+import { activePoste, availablePostes, navFor, setPoste } from '@/lib/postes'
 import { useAppTheme } from '@/lib/theme'
 import { loadTodoCount, todoCount } from '@/lib/todoCount'
 
 /** Coquille du poste de bureau : la même barre et le même menu sur toutes ses pages. */
-const props = defineProps<{ crumbs: Crumb[]; active: 'accueil' | 'tickets' | 'demandes' | 'clients' | 'articles' }>()
+const props = defineProps<{ crumbs: Crumb[]; active?: 'accueil' | 'tickets' | 'demandes' | 'clients' | 'articles' }>()
 const emit = defineEmits<{ created: [kind: CreateKind] }>()
 
 const router = useRouter()
@@ -40,27 +34,23 @@ function toggleTheme() {
 	theme.setPreference(theme.resolved.value === 'dark' ? 'light' : 'dark')
 }
 
-// Menu : les écrans pas encore repris dans le poste de bureau s'ouvrent sur le Desk.
-const navGroups = computed<NavGroup[]>(() => [
-	{
-		title: 'Mon travail',
-		items: [
-			{ id: 'accueil', label: 'Accueil', icon: LucideLayoutDashboard, to: { name: 'Home' }, active: props.active === 'accueil' },
-			{ id: 'tickets', label: 'Tickets', icon: LucideTicket, to: { name: 'Tickets' }, count: todoCount.value, active: props.active === 'tickets' },
-			{ id: 'demandes', label: 'Demandes', icon: LucideClipboardList, to: { name: 'Demandes' }, active: props.active === 'demandes' },
-			{ id: 'devis', label: 'Devis', icon: LucideFileText, href: '/app/quotation' },
-			{ id: 'commandes', label: 'Commandes', icon: LucideShoppingCart, href: '/app/sales-order' },
-			{ id: 'creances', label: 'Créances', icon: LucideWallet, href: '/app/suivi-creance' },
-		],
-	},
-	{
-		title: 'Référentiel',
-		items: [
-			{ id: 'clients', label: 'Clients', icon: LucideBuilding2, to: { name: 'Clients' }, active: props.active === 'clients' },
-			{ id: 'articles', label: 'Articles', icon: LucidePackage, to: { name: 'Articles' }, active: props.active === 'articles' },
-		],
-	},
-])
+const postes = availablePostes()
+const currentPoste = computed(() => activePoste())
+function choosePoste(key: string) {
+	setPoste(key)
+	router.push({ name: 'Home' })
+}
+
+const navGroups = computed<NavGroup[]>(() =>
+	navFor(currentPoste.value.key).map((group) => ({
+		title: group.title,
+		items: group.items.map(({ doctype: _doctype, ...item }) => ({
+			...item,
+			active: props.active === item.id,
+			count: item.id === 'tickets' ? todoCount.value : undefined,
+		})),
+	})),
+)
 
 // Palette de commandes : elle crée depuis n'importe quelle page, sans quitter celle-ci.
 const searchBar = ref<InstanceType<typeof GlobalSearch> | null>(null)
@@ -105,7 +95,14 @@ function openCreated() {
 </script>
 
 <template>
-	<AppShell poste="Back office" :groups="navGroups" :crumbs="crumbs" :user-name="userName" :initials="initials(userName)" storage-key="bureau-menu">
+	<AppShell :poste="currentPoste.label" :groups="navGroups" :crumbs="crumbs" :user-name="userName" :initials="initials(userName)" storage-key="bureau-menu">
+		<template v-if="postes.length > 1" #poste>
+			<HeaderMenu :label="currentPoste.label" value="" aria-label="Changer de poste">
+				<template #default="{ close }">
+					<button v-for="poste in postes" :key="poste.key" type="button" class="app-menu-item" :class="poste.key === currentPoste.key && 'font-semibold'" role="menuitemradio" :aria-checked="poste.key === currentPoste.key" @click="close(); choosePoste(poste.key)">{{ poste.label }}</button>
+				</template>
+			</HeaderMenu>
+		</template>
 		<template #search>
 			<GlobalSearch ref="searchBar" @toggle="togglePalette" />
 		</template>

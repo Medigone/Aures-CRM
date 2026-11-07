@@ -26,6 +26,7 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 
 from aurescrm.api import activity
+from aurescrm.api.bureau_postes import BUREAU_ROLES
 from aurescrm.aures_crm.doctype.demande_faisabilite.demande_faisabilite import FAISABILITE_PROCEDES, get_expected_procede_from_ticket
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_pieces import apply_pieces, dossier_pieces
 from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
@@ -38,7 +39,6 @@ from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import (
 )
 
 TICKET = "Ticket Commercial"
-BUREAU_ROLES = {"Administrateur Ventes", "System Manager", "Chargé Devis", "Responsable Devis"}
 ROLE_BACK_OFFICE = "Administrateur Ventes"
 
 STATUS_BLOCKED = "Blocage Créance"
@@ -205,7 +205,7 @@ def can_access_bureau(user=None):
 
 def require_bureau():
 	if not can_access_bureau():
-		frappe.throw(_("Le poste de bureau est réservé au back office."), frappe.PermissionError)
+		frappe.throw(_("Votre compte n'a pas accès au poste de bureau."), frappe.PermissionError)
 	return frappe.session.user
 
 

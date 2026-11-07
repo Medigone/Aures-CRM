@@ -1,18 +1,26 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import { onSessionExpired } from '@shared/api'
 import BrandMark from '@shared/components/BrandMark.vue'
 import LoginLayout from '@/components/LoginLayout.vue'
 import { logout, redirectToLogin } from '@/lib/api'
+import { canRead } from '@/lib/droits'
+import NoAccessPage from '@/pages/NoAccessPage.vue'
 
 // Un visiteur sans session ne reçoit du serveur que la page de connexion.
 const account = window.user
 const showApp = !account || Boolean(window.can_access)
 if (account) onSessionExpired(redirectToLogin)
+
+// Une page dont le rôle ne lit pas le document le dit, sans redirection : l'adresse reste celle du lien reçu.
+const route = useRoute()
+const refused = computed(() => Boolean(account) && !canRead(route.meta.doctype as string | undefined))
 </script>
 
 <template>
-	<RouterView v-if="showApp" />
+	<NoAccessPage v-if="showApp && refused" />
+	<RouterView v-else-if="showApp" />
 	<LoginLayout v-else>
 		<header class="flex flex-col items-start gap-5 px-1">
 			<BrandMark size="lg" />
