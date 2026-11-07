@@ -306,7 +306,7 @@ const decisionsBar = ref<HTMLElement | null>(null)
 									<span v-else-if="!piece.url" class="font-normal text-ink-gray-6">Aucun</span>
 								</dd>
 							</div>
-							<div v-if="article.cotations_origine"><dt><LucideRuler aria-hidden="true" />Cotations</dt><dd>{{ cotationsOriginText(article.cotations_origine) }}</dd></div>
+							<div v-if="article.cotations_origine"><dt><LucideRuler aria-hidden="true" />Cotations</dt><dd class="font-normal">{{ cotationsOriginText(article.cotations_origine) }}</dd></div>
 						</dl>
 						<button v-if="canImportBat" type="button" class="btn-secondary mt-1" :disabled="busy" @click="importingBat = true">{{ article.fichiers.fiche_technique ? 'Importer un autre BAT' : 'Joindre le BAT' }}</button>
 						<button v-if="article.can_edit" type="button" class="btn-secondary mt-1" @click="uploader?.pick()">Joindre des fichiers</button>
