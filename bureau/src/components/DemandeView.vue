@@ -2,6 +2,13 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
+import LucideCalendar from '~icons/lucide/calendar'
+import LucideFileText from '~icons/lucide/file-text'
+import LucideRepeat from '~icons/lucide/repeat'
+import LucideTicket from '~icons/lucide/ticket'
+import LucideTruck from '~icons/lucide/truck'
+import LucideUser from '~icons/lucide/user'
+import LucideUserPlus from '~icons/lucide/user-plus'
 import ActivityFeed from '@shared/components/ActivityFeed.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
@@ -49,10 +56,6 @@ const tip = computed(() => (next.value ? `${next.value.title}. ${next.value.text
 function openStep(index: number) {
 	emit('tab', timeline.value?.steps[index]?.key === 'demande' ? 'articles' : 'etudes')
 }
-const commentLabel = computed(() => {
-	const count = demande.value?.comments.count ?? 0
-	return count ? `${count} commentaire${count > 1 ? 's' : ''}` : 'Commenter'
-})
 async function showActivity() {
 	await nextTick()
 	feed.value?.root?.scrollIntoView?.({ block: 'start' })
@@ -90,47 +93,49 @@ function onTags(tags: string[]) {
 		<div v-else-if="!demande" class="card p-8 text-center text-ink-gray-6">Chargement de la demande…</div>
 
 		<template v-else>
-			<div class="card flex flex-none flex-col gap-2 p-3.5">
-				<div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-					<div class="min-w-0">
-						<div class="flex flex-wrap items-center gap-1.5">
-							<h2 class="page-title">{{ typeLabel(demande.type) || 'Demande' }}</h2>
-							<StatusPill :status="demande.status" />
-							<span class="urgence" :class="`urgence-${demande.urgence}`">{{ demande.urgence }}</span>
-						</div>
-						<p class="mt-0.5 text-sm text-ink-gray-7">
-							<RouterLink class="ref-link" :to="{ name: 'Client', params: { id: demande.client } }">{{ demande.client_label }}</RouterLink>
-							· <span class="tabular-nums">{{ demande.name }}</span><template v-if="demande.procede"> · {{ demande.procede }}</template> ·
-							<button type="button" class="text-link" @click="showActivity">{{ commentLabel }}</button>
-						</p>
-						<TagEditor class="mt-1.5" doctype="Demande Faisabilite" :name="demande.name" :modified="demande.modified" :tags="demande.tags" :can-edit="demande.can_write" @changed="onTags" />
+			<div class="card flex flex-none flex-wrap items-center justify-between gap-x-3 gap-y-2 p-3.5">
+				<div class="min-w-0">
+					<div class="flex flex-wrap items-center gap-1.5">
+						<h2 class="page-title tabular-nums">{{ demande.name }}</h2>
+						<StatusPill :status="demande.status" />
+						<span class="urgence" :class="`urgence-${demande.urgence}`">{{ demande.urgence }}</span>
 					</div>
-					<div class="record-actions">
-						<button v-for="action in sideActions" :key="action" type="button" :class="isPrimaryDemandeAction(action) ? 'btn-primary' : 'btn-secondary'" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
-						<MoreMenu>
-								<button v-for="action in menuActions" :key="action" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
-								<div v-if="menuActions.length" class="app-menu-sep"></div>
-								<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
-								<a class="app-menu-item" role="menuitem" :href="deskUrl('Demande Faisabilite', demande.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
-							</MoreMenu>
+					<div class="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-ink-gray-7">
+						<RouterLink class="ref-link" :to="{ name: 'Client', params: { id: demande.client } }">{{ demande.client_label }}</RouterLink>
+						<template v-if="demande.type"><span aria-hidden="true">·</span><span>{{ typeLabel(demande.type) }}</span></template>
+						<template v-if="demande.procede"><span aria-hidden="true">·</span><span>{{ demande.procede }}</span></template>
+						<template v-if="demande.tags.length || demande.can_write">
+							<span aria-hidden="true">·</span>
+							<TagEditor doctype="Demande Faisabilite" :name="demande.name" :modified="demande.modified" :tags="demande.tags" :can-edit="demande.can_write" @changed="onTags" />
+						</template>
 					</div>
 				</div>
-				<dl class="ticket-facts">
-					<div class="ticket-fact"><dt>Commercial</dt><dd><span class="truncate" :title="demande.commercial || undefined">{{ demande.commercial || 'Non attribué' }}</span></dd></div>
-					<div class="ticket-fact"><dt>Wilaya</dt><dd>{{ demande.wilaya || '—' }}</dd></div>
-					<div class="ticket-fact"><dt>Livraison souhaitée</dt><dd class="tabular-nums">{{ formatDay(demande.livraison) || '—' }}</dd></div>
-					<div class="ticket-fact"><dt>Ticket</dt><dd><RouterLink v-if="demande.ticket" class="ref-link tabular-nums" :to="{ name: 'Ticket', params: { id: demande.ticket } }">{{ demande.ticket }}</RouterLink><template v-else>Aucun</template></dd></div>
-					<div class="ticket-fact"><dt>Créée le</dt><dd class="tabular-nums">{{ formatDay(demande.creation) || '—' }}</dd></div>
-					<div class="ticket-fact"><dt>Créée par</dt><dd>{{ demande.cree_par || '—' }}</dd></div>
-					<div v-if="demande.bon_commande" class="ticket-fact"><dt>Bon de commande</dt><dd class="tabular-nums">{{ demande.bon_commande }}</dd></div>
-					<div v-if="demande.demande_origin" class="ticket-fact"><dt>Demande d'origine</dt><dd><RouterLink class="ref-link tabular-nums" :to="{ name: 'Demande', params: { id: demande.demande_origin } }">{{ demande.demande_origin }}</RouterLink></dd></div>
-				</dl>
+				<div class="record-actions">
+					<button v-for="action in sideActions" :key="action" type="button" :class="isPrimaryDemandeAction(action) ? 'btn-primary' : 'btn-secondary'" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
+					<MoreMenu>
+						<button v-for="action in menuActions" :key="action" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="actions?.run(action)">{{ DEMANDE_ACTION_LABELS[action] }}</button>
+						<div v-if="menuActions.length" class="app-menu-sep"></div>
+						<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
+						<a class="app-menu-item" role="menuitem" :href="deskUrl('Demande Faisabilite', demande.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
+					</MoreMenu>
+				</div>
 			</div>
 
 			<p v-if="actionError" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ actionError }}</p>
 
 			<div class="ticket-dossier">
-			<div class="bureau-detail">
+			<div class="bureau-detail demande-detail">
+				<aside class="card demande-rail" aria-label="Informations de la demande">
+					<dl>
+						<div><dt><LucideUser aria-hidden="true" />Commercial</dt><dd>{{ demande.commercial || 'Non attribué' }}</dd></div>
+						<div><dt><LucideTruck aria-hidden="true" />Livraison souhaitée</dt><dd class="tabular-nums">{{ formatDay(demande.livraison) || '—' }}</dd></div>
+						<div><dt><LucideTicket aria-hidden="true" />Ticket</dt><dd><RouterLink v-if="demande.ticket" class="ref-link tabular-nums" :to="{ name: 'Ticket', params: { id: demande.ticket } }">{{ demande.ticket }}</RouterLink><template v-else>Aucun</template></dd></div>
+						<div><dt><LucideCalendar aria-hidden="true" />Créée le</dt><dd class="tabular-nums">{{ formatDay(demande.creation) || '—' }}</dd></div>
+						<div><dt><LucideUserPlus aria-hidden="true" />Créée par</dt><dd>{{ demande.cree_par || '—' }}</dd></div>
+						<div v-if="demande.bon_commande"><dt><LucideFileText aria-hidden="true" />Bon de commande</dt><dd class="tabular-nums">{{ demande.bon_commande }}</dd></div>
+						<div v-if="demande.demande_origin"><dt><LucideRepeat aria-hidden="true" />Demande d'origine</dt><dd><RouterLink class="ref-link tabular-nums" :to="{ name: 'Demande', params: { id: demande.demande_origin } }">{{ demande.demande_origin }}</RouterLink></dd></div>
+					</dl>
+				</aside>
 				<div class="bureau-center">
 					<div class="record-tabs" role="tablist">
 						<button v-for="item in tabs" :key="item.key" type="button" class="record-tab" role="tab" :aria-selected="activeTab === item.key" @click="emit('tab', item.key)">
@@ -139,30 +144,33 @@ function onTags(tags: string[]) {
 					</div>
 					<!-- Aperçu : il résume les autres onglets. -->
 					<div v-if="activeTab === 'apercu'" class="detail-tab">
-						<div class="client-cards">
-							<section class="card ref-card">
-								<div class="ref-card-head"><h3>Articles</h3><button type="button" class="ref-link" @click="emit('tab', 'articles')">Tout voir</button></div>
-								<dl v-if="overview" class="kv">
-									<div><dt>Articles demandés</dt><dd class="tabular-nums">{{ overview.articles }}</dd></div>
-									<div><dt>Quantité totale</dt><dd class="tabular-nums">{{ formatDraftQuantity(String(overview.quantity)) }}</dd></div>
-									<div><dt>Créations</dt><dd class="tabular-nums">{{ overview.creations || 'Aucune' }}</dd></div>
-								</dl>
-							</section>
-							<section class="card ref-card">
-								<div class="ref-card-head"><h3>Études de faisabilité</h3><button v-if="demande.etudes.length" type="button" class="ref-link" @click="emit('tab', 'etudes')">Tout voir</button></div>
-								<dl v-if="overview?.studies.length" class="kv">
-									<div v-for="row in overview.studies" :key="row.label"><dt>{{ row.label }}</dt><dd class="tabular-nums">{{ row.count }}</dd></div>
-								</dl>
-								<p v-else class="text-ink-gray-6">{{ demande.status === 'Brouillon' ? 'Les études se créent à la confirmation de la demande.' : 'Aucune étude.' }}</p>
-							</section>
-						</div>
-						<section class="card ref-card">
-							<div class="ref-card-head"><h3>Devis et commandes</h3><button v-if="demande.devis.length || demande.commandes.length" type="button" class="ref-link" @click="emit('tab', 'etudes')">Tout voir</button></div>
-							<dl v-if="demande.devis.length || demande.commandes.length" class="kv">
-								<div v-if="demande.devis[0]"><dt>Dernier devis</dt><dd><a class="ref-link inline-link tabular-nums" :href="deskUrl('Quotation', demande.devis[0].name)" target="_blank" rel="noopener noreferrer">{{ demande.devis[0].name }}</a> <StatusPill :status="demande.devis[0].status" /></dd></div>
-								<div v-if="demande.commandes[0]"><dt>Dernière commande</dt><dd><a class="ref-link inline-link tabular-nums" :href="deskUrl('Sales Order', demande.commandes[0].name)" target="_blank" rel="noopener noreferrer">{{ demande.commandes[0].name }}</a> <StatusPill :status="demande.commandes[0].status" /></dd></div>
-							</dl>
-							<p v-else class="text-ink-gray-6">Aucun devis ni commande.</p>
+						<section v-if="overview" class="card demande-resume">
+							<div class="demande-resume-grid">
+								<div class="ref-card">
+									<div class="ref-card-head"><h3>Articles</h3><button type="button" class="ref-link" @click="emit('tab', 'articles')">Tout voir</button></div>
+									<dl>
+										<div><dt>Articles demandés</dt><dd>{{ overview.articles }}</dd></div>
+										<div><dt>Quantité totale</dt><dd>{{ formatDraftQuantity(String(overview.quantity)) }}</dd></div>
+										<div><dt>Créations</dt><dd>{{ overview.creations }}</dd></div>
+									</dl>
+								</div>
+								<div class="ref-card">
+									<div class="ref-card-head"><h3>Études</h3><button type="button" class="ref-link" @click="emit('tab', 'etudes')">Tout voir</button></div>
+									<dl>
+										<div v-for="row in overview.studies" :key="row.label"><dt>{{ row.label }}</dt><dd>{{ row.count }}</dd></div>
+									</dl>
+								</div>
+								<div class="ref-card">
+									<div class="ref-card-head"><h3>Devis et commandes</h3><button type="button" class="ref-link" @click="emit('tab', 'etudes')">Tout voir</button></div>
+									<dl>
+										<div v-if="demande.devis[0]"><dt><a class="ref-link inline-link" :title="demande.devis[0].name" :href="deskUrl('Quotation', demande.devis[0].name)" target="_blank" rel="noopener noreferrer">{{ demande.devis[0].name }}</a></dt><dd><StatusPill :status="demande.devis[0].status" /></dd></div>
+										<div v-else><dt>Devis</dt><dd class="demande-resume-none">Aucun</dd></div>
+										<div><dt>Montant du devis</dt><dd :class="{ 'demande-resume-none': overview.devisAmount === '—' }">{{ overview.devisAmount }}</dd></div>
+										<div v-if="demande.commandes[0]"><dt><a class="ref-link inline-link" :title="demande.commandes[0].name" :href="deskUrl('Sales Order', demande.commandes[0].name)" target="_blank" rel="noopener noreferrer">{{ demande.commandes[0].name }}</a></dt><dd><StatusPill :status="demande.commandes[0].status" /></dd></div>
+										<div v-else><dt>Commande</dt><dd class="demande-resume-none">Aucune</dd></div>
+									</dl>
+								</div>
+							</div>
 						</section>
 					</div>
 

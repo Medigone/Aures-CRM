@@ -290,8 +290,10 @@ export function lineStudyStatus(demande: Pick<DemandeDetail, 'etudes'>, line: Pi
 }
 
 /** Aperçu de la fiche : les chiffres des articles et le décompte des études, sans répéter leurs tableaux. */
-export function demandeOverview(demande: Pick<DemandeDetail, 'lines' | 'etudes'>) {
+export function demandeOverview(demande: Pick<DemandeDetail, 'lines' | 'etudes' | 'devis'>) {
 	const count = (status: string) => demande.etudes.filter((etude) => etude.status === status).length
+	const cancelled = count('Annulée')
+	const lastDevis = demande.devis[0]
 	return {
 		articles: demande.lines.length,
 		quantity: demande.lines.reduce((total, line) => total + line.quantite, 0),
@@ -300,8 +302,9 @@ export function demandeOverview(demande: Pick<DemandeDetail, 'lines' | 'etudes'>
 			{ label: 'En cours', count: demande.etudes.length - studiesDone(demande) },
 			{ label: 'Réalisables', count: count('Réalisable') },
 			{ label: 'Non réalisables', count: count('Non Réalisable') },
-			{ label: 'Annulées', count: count('Annulée') },
-		].filter((row) => row.count > 0),
+			...(cancelled ? [{ label: 'Annulées', count: cancelled }] : []),
+		],
+		devisAmount: lastDevis && lastDevis.total !== null ? `${formatAmount(lastDevis.total)} DA` : '—',
 	}
 }
 

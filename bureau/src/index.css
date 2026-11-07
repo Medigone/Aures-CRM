@@ -240,6 +240,93 @@
 		padding-bottom: 0.625rem;
 		scrollbar-width: thin;
 	}
+	/* Fiche Demande : informations à gauche, contenu au centre, étapes à droite. */
+	.demande-detail .bureau-center {
+		flex-basis: 480px;
+	}
+	.demande-detail .bureau-side {
+		flex-basis: 248px;
+	}
+	.demande-rail {
+		flex: 0 0 190px;
+		padding: 0.75rem 0.875rem;
+	}
+	.demande-rail dl {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		margin: 0;
+	}
+	.demande-rail dt {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		@apply text-xs text-ink-gray-6;
+	}
+	.demande-rail dt svg {
+		flex: none;
+		width: 0.75rem;
+		height: 0.75rem;
+	}
+	.demande-rail dd {
+		margin: 0.0625rem 0 0;
+		overflow-wrap: anywhere;
+		@apply font-medium text-ink-gray-9;
+	}
+	/* Aperçu de la demande : un seul bloc, trois colonnes de même hauteur. La dernière porte des numéros et des statuts longs. */
+	.demande-resume {
+		container-type: inline-size;
+	}
+	.demande-resume-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.8fr);
+	}
+	.demande-resume-grid > .ref-card + .ref-card {
+		border-left: 1px solid var(--outline-gray-1);
+	}
+	.demande-resume-grid h3 {
+		white-space: nowrap;
+	}
+	.demande-resume-grid dl {
+		display: flex;
+		flex-direction: column;
+		margin: 0;
+	}
+	.demande-resume-grid dl > div {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		min-height: 1.625rem;
+		border-top: 1px solid var(--outline-gray-1);
+	}
+	.demande-resume-grid dt {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		@apply text-ink-gray-6;
+	}
+	.demande-resume-grid dd {
+		flex: none;
+		margin: 0;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+		@apply font-medium text-ink-gray-9;
+	}
+	.demande-resume-grid dd.demande-resume-none {
+		font-weight: 400;
+		@apply text-ink-gray-6;
+	}
+	@container (max-width: 720px) {
+		.demande-resume-grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.demande-resume-grid > .ref-card + .ref-card {
+			border-top: 1px solid var(--outline-gray-1);
+			border-left: 0;
+		}
+	}
 	.bureau-center {
 		display: flex;
 		flex: 999 1 320px;
@@ -281,6 +368,13 @@
 		.bureau-detail {
 			flex: none;
 			overflow: visible;
+		}
+		.demande-rail {
+			flex: 1 1 100%;
+		}
+		.demande-rail dl {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 		}
 	}
 
@@ -2550,13 +2644,62 @@
 		color: var(--tone-red-ink);
 	}
 
-	/* Encart de l'étape affichée. */
+	/* Consigne de l'étape : en infobulle, vers le contenu. Sans survol possible, elle reste affichée dans l'étape. */
+	.step-info {
+		display: inline-block;
+		width: 0.75rem;
+		height: 0.75rem;
+		margin-left: 0.25rem;
+		vertical-align: -0.125rem;
+	}
 	.step-tip {
+		position: absolute;
+		z-index: 3;
+		top: 0;
+		right: calc(100% + 1rem);
+		display: none;
+		width: 272px;
+		padding: 0.5rem 0.625rem;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: var(--radius-control);
+		background-color: var(--surface-modal);
+		box-shadow: var(--shadow-overlay);
+		pointer-events: none;
+		@apply text-sm text-ink-gray-8;
+	}
+	.step-item:hover .step-tip,
+	.step-button:focus-visible ~ .step-tip {
 		display: block;
-		margin-top: 0.125rem;
-		font-size: var(--text-sm);
-		font-weight: 400;
-		color: var(--selection-ink);
+	}
+	/* Pas de place à gauche dans l'aperçu ni sur écran étroit : la consigne passe sous l'étape. */
+	.bureau-drawer .step-tip {
+		top: calc(100% + 2px);
+		right: 0;
+		left: 0;
+		width: auto;
+	}
+	@media (max-width: 900px) {
+		.step-tip {
+			top: calc(100% + 2px);
+			right: 0;
+			left: 0;
+			width: auto;
+		}
+	}
+	@media (hover: none) {
+		.step-info {
+			display: none;
+		}
+		.step-tip,
+		.bureau-drawer .step-tip {
+			position: static;
+			display: block;
+			width: auto;
+			padding: 0 0.375rem 0.375rem 2.5rem;
+			border: 0;
+			background: none;
+			box-shadow: none;
+		}
 	}
 	.step-hero {
 		@apply flex flex-col gap-1.5 rounded-card border p-3.5;

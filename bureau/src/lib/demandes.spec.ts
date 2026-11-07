@@ -112,11 +112,16 @@ describe('avancement de la fiche', () => {
 })
 
 describe('aperçu de la fiche', () => {
-	it('additionne les lignes et compte les créations', () => {
+	const none = [
+		{ label: 'En cours', count: 0 },
+		{ label: 'Réalisables', count: 0 },
+		{ label: 'Non réalisables', count: 0 },
+	]
+	it('additionne les lignes, compte les créations et garde les lignes des études à zéro', () => {
 		const lines = [{ quantite: 50000, est_creation: 0 }, { quantite: 1500, est_creation: 1 }] as DemandeDetail['lines']
-		expect(demandeOverview(demande('Brouillon', { lines }))).toEqual({ articles: 2, quantity: 51500, creations: 1, studies: [] })
+		expect(demandeOverview(demande('Brouillon', { lines }))).toEqual({ articles: 2, quantity: 51500, creations: 1, studies: none, devisAmount: '—' })
 	})
-	it('décompte les études par résultat et tait les résultats absents', () => {
+	it('décompte les études par résultat et ne montre les annulées que s’il y en a', () => {
 		const etudes = [etude('Réalisable'), etude('Réalisable'), etude('Non Réalisable'), etude('Annulée'), etude('En étude')]
 		expect(demandeOverview(demande('En Cours', { etudes })).studies).toEqual([
 			{ label: 'En cours', count: 1 },
@@ -124,7 +129,12 @@ describe('aperçu de la fiche', () => {
 			{ label: 'Non réalisables', count: 1 },
 			{ label: 'Annulées', count: 1 },
 		])
-		expect(demandeOverview(demande('En Cours', { etudes: [etude('Réalisable')] })).studies).toEqual([{ label: 'Réalisables', count: 1 }])
+		expect(demandeOverview(demande('En Cours', { etudes: [etude('Réalisable')] })).studies.map((row) => row.label)).toEqual(['En cours', 'Réalisables', 'Non réalisables'])
+	})
+	it('reprend le montant du dernier devis, sauf s’il n’est pas chiffré', () => {
+		const sale = (total: number | null) => ({ name: 'D', status: 'Open', date: null, total })
+		expect(demandeOverview(demande('Finalisée', { devis: [sale(1250000)] })).devisAmount).toMatch(/^1\s250\s000 DA$/)
+		expect(demandeOverview(demande('Finalisée', { devis: [sale(null)] })).devisAmount).toBe('—')
 	})
 })
 
