@@ -8,6 +8,7 @@ distincts : un rôle ne reçoit que ceux qu'il peut lire, sans condition sur le 
 """
 
 import re
+from html import unescape
 
 import frappe
 from frappe import _
@@ -321,9 +322,15 @@ def get_etude(name):
 		"demande": doc.demande_faisabilite if doc.demande_faisabilite and frappe.has_permission("Demande Faisabilite", "read") else None,
 		"commercial": doc.commercial,
 		"pieces": _piece_details(doctype, doc),
-		"observations": strip_html(cstr(doc.observations)).strip() or None,
+		"observations": plain_text(doc.observations) or None,
 		"comments": activity.comment_summary(doctype, doc.name),
 	}
+
+
+def plain_text(value):
+	"""Un champ riche en texte simple, ses retours à la ligne gardés."""
+	text = re.sub(r"(?i)<br\s*/?>|</p>", "\n", cstr(value))
+	return unescape(strip_html(text)).strip()
 
 
 def _etude_for_action(name, modified):

@@ -11,7 +11,7 @@ import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import AttributionButton from './AttributionButton.vue'
 import EtudeActions from './EtudeActions.vue'
-import EtudePieces from './EtudePieces.vue'
+import EtudePiecesResume from './EtudePiecesResume.vue'
 import TagEditor from './TagEditor.vue'
 import { formatDay } from '@/lib/display'
 import { actionLabel, blockedText, etudeHeaderActions, formatQuantity, isPrimaryEtudeAction } from '@/lib/etudes'
@@ -87,7 +87,7 @@ function onTags(tags: string[]) {
 
 				<p v-if="actionError" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">{{ actionError }}</p>
 
-				<EtudePieces :etude="etude" />
+				<EtudePiecesResume :etude="etude" />
 
 				<section v-if="etude.observations" class="card flex flex-col gap-1">
 					<h3 class="text-base font-semibold">Observations</h3>

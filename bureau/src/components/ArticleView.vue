@@ -33,6 +33,7 @@ import TagEditor from './TagEditor.vue'
 import { articleActivity, getArticleOptions, makeComposed, setArticleFile } from '@/lib/api'
 import { articleDoc, colorsAfterCard, ficheCards, ficheCardValues, finishesSummary, formatQuantity, formatRate, posesLabel, prepresseState, PROCEDE_FLEXO, TYPE_GENERAL, type ArticleDetail, type ArticleOptions } from '@/lib/articles'
 import { formatAmount } from '@/lib/clients'
+import { cotationsOriginText } from '@/lib/etudePieces'
 import { deskUrl, formatDay } from '@/lib/display'
 import { useArticle } from '@/lib/useArticle'
 import type { ClientChoice } from '@/types'
@@ -305,6 +306,7 @@ const decisionsBar = ref<HTMLElement | null>(null)
 									<span v-else-if="!piece.url" class="font-normal text-ink-gray-6">Aucun</span>
 								</dd>
 							</div>
+							<div v-if="article.cotations_origine"><dt><LucideRuler aria-hidden="true" />Cotations</dt><dd>{{ cotationsOriginText(article.cotations_origine) }}</dd></div>
 						</dl>
 						<button v-if="canImportBat" type="button" class="btn-secondary mt-1" :disabled="busy" @click="importingBat = true">{{ article.fichiers.fiche_technique ? 'Importer un autre BAT' : 'Joindre le BAT' }}</button>
 						<button v-if="article.can_edit" type="button" class="btn-secondary mt-1" @click="uploader?.pick()">Joindre des fichiers</button>

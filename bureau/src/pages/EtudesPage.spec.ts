@@ -17,9 +17,17 @@ const list = { etudes: [row, flexo], counts: { all: 2, traiter: 2, retard: 1, re
 const detail = { ...row, can_write: false, can_assign: false, assigne_a: null, assigne_a_nom: null, mine: false, assignees: [], actions: [] as string[], blocked: [] as { action: string; missing: string[] }[], taux_chutes: 0, date: '2026-01-01', comments: { count: 0, last: null }, observations: null, pieces: [{ key: 'trace', label: 'Tracé', value: 'TRA-1', doctype: 'Trace', status: null }, { key: 'imposition', label: 'Imposition', value: null, doctype: 'Imposition', status: null }] }
 
 let current = detail
+const emptyPieces = { travail: false, ouverte: true, manque: [] as string[], trace: { name: 'TRA-1', linked: true, can_edit: false, can_create: false, dimensions: '72x46.5x107', points_colle: 3, fichier: null, ecart: false }, imposition: { can_edit: false, can_create: false, atelier: false, nombre: 0, courante: null }, machine: { can_change: false, name: null }, nbr_feuilles: 0, cotations: { valeur: '72x46.5x107', origine: null } }
+let pieces = emptyPieces
+const confirmation = { actuelles: '72x46.5x107', nouvelles: '80x40x100', par: 'Lina', le: '2026-11-03 10:00:00' }
+// La première demande revient avec la confirmation, la seconde enregistre.
+function traceResponse() {
+	const sentBefore = fetchMock.mock.calls.filter((item) => String(item[0]).includes('save_trace')).length
+	return sentBefore > 1 ? { etude: current, pieces, piece: 'TRA-1' } : { confirmation }
+}
 const fetchMock = vi.fn((input: RequestInfo | URL, _init?: RequestInit) => {
 	const url = String(input)
-	const body = url.includes('get_etudes') ? list : url.includes('get_etude_options') ? { doctype: 'Etude Faisabilite', both: true, filter_fields: [] } : url.includes('run_etude_action') ? { ...current, status: 'En étude', actions: [] } : url.includes('get_etude_activity') ? { items: [], comment_count: 0 } : url.includes('get_etude') ? current : url.includes('get_queue') ? { tickets: [], counts: { todo: 0 }, total: 0, start: 0, page_length: 1, names: [] } : null
+	const body = url.includes('get_etudes') ? list : url.includes('get_etude_options') ? { doctype: 'Etude Faisabilite', both: true, filter_fields: [] } : url.includes('run_etude_action') ? { ...current, status: 'En étude', actions: [] } : url.includes('get_etude_activity') ? { items: [], comment_count: 0 } : url.includes('get_etude_pieces') ? pieces : url.includes('save_trace') ? traceResponse() : url.includes('get_etude') ? current : url.includes('get_queue') ? { tickets: [], counts: { todo: 0 }, total: 0, start: 0, page_length: 1, names: [] } : null
 	return Promise.resolve(new Response(JSON.stringify({ message: body }), { status: 200 }))
 })
 const sent = (method: string) => {
@@ -43,6 +51,7 @@ describe('page Études', () => {
 		window.can_access = true
 		window.user = 'bo@example.com'
 		current = detail
+		pieces = emptyPieces
 		fetchMock.mockClear()
 		vi.stubGlobal('fetch', fetchMock)
 	})
@@ -115,11 +124,55 @@ describe('page Études', () => {
 
 	it('explique pourquoi une conclusion n\'est pas encore possible', async () => {
 		current = { ...detail, can_write: true, actions: ['Non Réalisable'], blocked: [{ action: 'Réalisable', missing: ['Imposition', 'Taux de chutes'] }] }
+		pieces = { ...emptyPieces, manque: ['Imposition', 'Taux de chutes'] }
 		const { wrapper } = await open('/etudes/ETF-1')
 		const primary = wrapper.find('.record-actions .btn-primary')
 		expect(primary.text()).toBe('Réalisable')
 		expect(primary.attributes('disabled')).toBeDefined()
-		expect(wrapper.find('.etude-blocked').text()).toBe('Pour passer à Réalisable, il manque : imposition, taux de chutes.')
+		expect(wrapper.find('.etude-pieces-banner').text()).toBe('Pour passer à Réalisable, il manque : imposition, taux de chutes.')
+		wrapper.unmount()
+	})
+
+	it("montre à qui renseigne ce qu'il peut faire, à qui lit seulement aucun bouton", async () => {
+		const reader = await open('/etudes/ETF-1')
+		expect(reader.wrapper.find('.etude-work-actions').exists()).toBe(false)
+		expect(reader.wrapper.text()).toContain('72 × 46,5 × 107 mm')
+		reader.wrapper.unmount()
+
+		pieces = { ...emptyPieces, travail: true, trace: { ...emptyPieces.trace, can_edit: true }, imposition: { ...emptyPieces.imposition, can_create: true, can_edit: true }, machine: { can_change: true, name: null } }
+		const worker = await open('/etudes/ETF-1')
+		const labels = worker.wrapper.findAll('.etude-work-actions button').map((button) => button.text())
+		expect(labels).toEqual(['Mettre à jour', 'Choisir ou créer', 'Choisir la presse'])
+		worker.wrapper.unmount()
+	})
+
+	it('verrouille les pièces tant que l\'étude n\'est pas démarrée', async () => {
+		current = { ...detail, status: 'Nouveau' }
+		pieces = { ...emptyPieces, trace: { ...emptyPieces.trace, name: null as unknown as string, linked: false } }
+		const { wrapper } = await open('/etudes/ETF-1')
+		expect(wrapper.text()).toContain("Démarrez l'étude pour renseigner les pièces.")
+		expect(wrapper.find('.etude-work-actions').exists()).toBe(false)
+		wrapper.unmount()
+	})
+
+	it('demande confirmation avant de remplacer des cotations venues du BAT', async () => {
+		pieces = { ...emptyPieces, travail: true, trace: { ...emptyPieces.trace, can_edit: true, fichier: { url: '/f.pdf', name: 'f.pdf' } as never } }
+		const { wrapper } = await open('/etudes/ETF-1')
+		await wrapper.find('.etude-work-actions .btn-secondary').trigger('click')
+		await flushPromises()
+		const dialog = () => document.body
+		const field = wrapper.find('.dialog input[type="text"]')
+		await field.setValue('80x40x100')
+		expect(dialog().textContent).toContain('seront mises à jour')
+		await wrapper.find('.dialog-foot .btn-primary').trigger('click')
+		await flushPromises()
+		expect(sent('save_trace').confirm_bat).toBe(0)
+		expect(wrapper.find('.dialog').text()).toContain('viennent du BAT importé par Lina le 03/11/2026')
+		await wrapper.find('.dialog-foot .btn-primary').trigger('click')
+		await flushPromises()
+		const last = fetchMock.mock.calls.filter((item) => String(item[0]).includes('save_trace')).at(-1)
+		expect(JSON.parse(String((last?.[1] as RequestInit).body)).confirm_bat).toBe(1)
+		expect(wrapper.find('.dialog').exists()).toBe(false)
 		wrapper.unmount()
 	})
 

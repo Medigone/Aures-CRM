@@ -10,6 +10,7 @@ import type { BatAnalysis } from './batImport'
 import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView, PantoneMatch } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
+import type { ClicheOptions, EtudePieces, ImpositionRow, MachineRow, PiecesResult, SaveTraceResult, TraceReference } from './etudePieces'
 import type { ArticleChoice, DemandeDetail, DemandeOptions, DemandesResponse, DemandeValues, DemandeView, TicketDemandeContext } from './demandes'
 import type { Condition } from './filters'
 import { conditionsForServer } from './filters'
@@ -333,6 +334,26 @@ export const getEtudeOptions = () => call<EtudeOptions>(`${ETUDES}.get_etude_opt
 export const runEtudeAction = (etude: Pick<EtudeDetail, 'name' | 'modified'>, action: string) => call<EtudeDetail>(`${ETUDES}.run_etude_action`, { name: etude.name, modified: etude.modified, action }, true)
 
 export const setEtudeAssignee = (etude: EtudeDetail, user: string) => call<EtudeDetail>(`${ETUDES}.set_etude_assignee`, { name: etude.name, modified: etude.modified, user }, true)
+
+const PIECES = 'aurescrm.api.bureau_etudes_pieces'
+type EtudeVersion = Pick<EtudeDetail, 'name' | 'modified'>
+const versionOf = (etude: EtudeVersion) => ({ name: etude.name, modified: etude.modified })
+
+export const getEtudePieces = (name: string) => call<EtudePieces>(`${PIECES}.get_etude_pieces`, { name })
+export const getEtudeImpositions = (name: string) => call<ImpositionRow[]>(`${PIECES}.get_etude_impositions`, { name })
+export const getEtudeMachines = (name: string) => call<MachineRow[]>(`${PIECES}.get_etude_machines`, { name })
+export const getTraceReferences = (name: string) => call<TraceReference[]>(`${PIECES}.get_trace_references`, { name })
+export const getClicheOptions = (name: string) => call<ClicheOptions>(`${PIECES}.get_cliche_options`, { name })
+export const saveTrace = (etude: EtudeVersion, values: { dimensions: string; points_colle: number; confirm_bat: number }) => call<SaveTraceResult>(`${PIECES}.save_trace`, { ...versionOf(etude), ...values }, true)
+export const duplicateTrace = (etude: EtudeVersion, values: { source: string; dimensions: string; points_colle: number; with_impositions: number; confirm_bat: number }) => call<SaveTraceResult>(`${PIECES}.duplicate_trace`, { ...versionOf(etude), ...values }, true)
+export const chooseImposition = (etude: EtudeVersion, imposition: string) => call<PiecesResult>(`${PIECES}.choose_imposition`, { ...versionOf(etude), imposition }, true)
+export const saveImposition = (etude: EtudeVersion, values: { laize_pal: string; format_laize_palette: string; format_imp: string; nbr_poses: string; taux_chutes: string; imposition?: string }) => call<PiecesResult>(`${PIECES}.save_imposition`, { ...versionOf(etude), ...values }, true)
+export const setEtudeMachine = (etude: EtudeVersion, machine: string) => call<PiecesResult>(`${PIECES}.set_etude_machine`, { ...versionOf(etude), machine }, true)
+export const setEtudeObservations = (etude: EtudeVersion, text: string) => call<PiecesResult>(`${PIECES}.set_etude_observations`, { ...versionOf(etude), text }, true)
+export const setPieceFile = (etude: EtudeVersion, piece: string, file_url: string) => call<PiecesResult>(`${PIECES}.set_piece_file`, { ...versionOf(etude), piece, file_url }, true)
+export const linkExistingPieces = (etude: EtudeVersion) => call<PiecesResult>(`${PIECES}.link_existing_pieces`, versionOf(etude), true)
+export const savePlanFlexo = (etude: EtudeVersion, values: { dimensions: string; laize: string; sens_der: string }) => call<PiecesResult>(`${PIECES}.save_plan_flexo`, { ...versionOf(etude), ...values }, true)
+export const createCliche = (etude: EtudeVersion, values: { laize: string; nbr_couleurs: string; developpement: string; hauteur_cliche: string; site_prod: string }) => call<PiecesResult>(`${PIECES}.create_cliche`, { ...versionOf(etude), ...values }, true)
 
 export function etudeActivity(name: string): ActivityApi {
 	return {

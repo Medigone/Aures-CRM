@@ -1,4 +1,5 @@
 /** Règles de la page Articles : types, vues, colonnes, filtres, fiche technique et validation de la fenêtre. */
+import type { CotationsOrigin } from './etudePieces'
 import { fieldVisible, isEmptyValue, type FicheDoc, type FicheField, type FicheSchema } from '@shared/fiche'
 import type { CommentSummary, Option } from '@/types'
 import type { ClientTicket } from './clients'
@@ -93,6 +94,7 @@ export interface ArticleDetail {
 	support: string | null
 	resume_technique: { support: string | null; mesure_label: string; mesure: string | null }
 	format: string | null
+	cotations_origine: CotationsOrigin | null
 	reference: string | null
 	ancien_code: string | null
 	groupe: string | null
@@ -224,6 +226,8 @@ export interface ArticleValues {
 	consommation?: string
 	fiche?: Record<string, string>
 	teintes?: TeintePayload[]
+	/** Cotations que l'article tient du BAT importé : le serveur en garde l'origine. */
+	bat_cotations?: string
 }
 
 export const ARTICLE_COLUMNS: Column<ArticleRow>[] = [

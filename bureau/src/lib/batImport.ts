@@ -31,6 +31,7 @@ export interface BatRow {
 	checked: boolean
 }
 
+const COTATIONS_FIELD = 'custom_cotations_article'
 export const BAT_PDF_REFUSAL = 'Choisissez un fichier PDF.'
 export function batFileCheck(file: File) {
 	return file.type === 'application/pdf' || /\.pdf$/i.test(file.name) ? '' : BAT_PDF_REFUSAL
@@ -61,8 +62,17 @@ export function batRows(proposals: BatProposal[], article: ArticleDetail, fieldO
 	return { rows, same, hidden }
 }
 
+/** Les cotations que l'article tient de ce BAT : reprises, ou déjà identiques. Une valeur différente laissée de côté n'en vient pas. */
+export function batCotations(proposals: BatProposal[], rows: BatRow[]) {
+	const proposal = proposals.find((item) => item.fieldname === COTATIONS_FIELD)
+	if (!proposal) return null
+	const row = rows.find((item) => item.fieldname === COTATIONS_FIELD)
+	if (!row) return proposal.value
+	return row.checked && row.value.trim() ? row.value.trim() : null
+}
+
 /** Ce que coche l'utilisateur, ou rien : le fichier peut alors partir seul. */
-export function batUpdate(rows: BatRow[], teintes: ArticleTeinte[] | null): ArticleValues | null {
+export function batUpdate(rows: BatRow[], teintes: ArticleTeinte[] | null, cotations: string | null = null): ArticleValues | null {
 	const chosen = rows.filter((row) => row.checked && row.value.trim())
 	const fiche = Object.fromEntries(chosen.filter((row) => row.fieldname).map((row) => [row.fieldname!, row.value.trim()]))
 	const reference = chosen.find((row) => !row.fieldname)
@@ -70,6 +80,7 @@ export function batUpdate(rows: BatRow[], teintes: ArticleTeinte[] | null): Arti
 	if (reference) values.reference = reference.value.trim()
 	if (Object.keys(fiche).length) values.fiche = fiche
 	if (teintes) values.teintes = teintesPayload(teintes)
+	if (cotations) values.bat_cotations = cotations
 	return Object.keys(values).length ? values : null
 }
 

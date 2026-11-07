@@ -114,7 +114,9 @@ Page `/bureau/etudes`, entre Demandes et Devis. Serveur : `aurescrm/api/bureau_e
 - **Aperçu et fiche** : `?apercu=<numéro>` et `/etudes/<numéro>`, retrouvé parmi les documents lus. Une étude de l'autre équipe répond « introuvable ».
 - **Actions** : celles du workflow pour ce rôle, sur l'état courant. Une action permise dont la condition manque s'affiche grisée, avec ce qu'il faut renseigner, lu dans la condition du workflow. Réalisable, Non réalisable et Annuler se confirment.
 - **Attribution** : champs `assigne_a` et `assigne_a_nom` sur les deux documents. Elle se limite à l'équipe du document et aux études ouvertes. Vue Mes études.
-- **Encore sur le Desk** : renseigner le tracé, l'imposition, le cliché et la machine.
+- **Pièces** : `aurescrm/api/bureau_etudes_pieces.py`, une seule carte sur la fiche, dans l'ordre où elles dépendent l'une de l'autre : tracé, imposition, machine, ou en Flexo tracé, plan, maquette, cliché. Chaque écriture passe par les droits Frappe de la pièce puis par la sauvegarde de l'étude, seule à calculer format, passages, charge et feuilles. La machine n'est pas exigée pour conclure. Une alerte de presse n'empêche pas de choisir. Sur une étude conclue, seul qui peut valider change la presse.
+- **Cotations et BAT** : en Offset, les dimensions du tracé deviennent les cotations de l'article, même pour un rôle sans droit sur l'article. Si ces cotations sont encore celles d'un BAT importé, le serveur renvoie `confirmation` sans rien écrire, et l'écran demande de confirmer. L'origine reste sur l'article (`custom_cotations_bat*`, `custom_cotations_trace_*`), affichée sur la fiche article et le tracé, et le changement entre dans le fil de l'article. Sur le Desk le changement est gardé, mais sans confirmation.
+- **Encore sur le Desk** : l'atelier d'imposition (lot à part), le circuit de la maquette et du cliché, le dossier d'essai blanc, « Impression en numérique », la création d'une machine.
 
 ## Demandes de faisabilité
 

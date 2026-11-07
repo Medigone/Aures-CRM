@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ArticleDetail } from './articles'
 import { newTeinte } from './articles'
-import { batFileCheck, batRows, batUpdate, sameColors, type BatProposal } from './batImport'
+import { batCotations, batFileCheck, batRows, batUpdate, sameColors, type BatProposal } from './batImport'
 
 const proposal = (key: string, fieldname: string | null, value: string, fieldtype = 'Data'): BatProposal => ({ key, fieldname, label: key, fieldtype, value, raw: `lu ${key}`, source: 'Support' })
 const field = (fieldname: string, fieldtype = 'Data') => ({ fieldname, label: fieldname, fieldtype, conditions: [] })
@@ -42,5 +42,27 @@ describe('import du BAT', () => {
 		const line = (code: string) => ({ ...newTeinte('Pantone'), code })
 		expect(sameColors([line('186 C'), line('315 C')], [line('315 C'), line('186 C')])).toBe(true)
 		expect(sameColors([line('186 C')], [line('315 C')])).toBe(false)
+	})
+
+	describe('cotations tenues du BAT', () => {
+		const proposal = { key: 'c', fieldname: 'custom_cotations_article', label: 'Format', fieldtype: 'Data', value: '72x46.5x107', raw: '72x46.5x107', source: 'Dimension' } as BatProposal
+		const row = (checked: boolean, value = '72x46.5x107') => ({ key: 'c', fieldname: 'custom_cotations_article', field: { fieldname: 'custom_cotations_article', label: 'Format', fieldtype: 'Data', conditions: [] }, value, current: '80x40', checked })
+
+		it('reprises : la valeur retenue, même corrigée', () => {
+			expect(batCotations([proposal], [row(true, '72x46x107')])).toBe('72x46x107')
+		})
+		it('déjà identiques : le BAT les confirme', () => {
+			expect(batCotations([proposal], [])).toBe('72x46.5x107')
+		})
+		it('différentes et laissées de côté : elles ne viennent pas du BAT', () => {
+			expect(batCotations([proposal], [row(false)])).toBeNull()
+		})
+		it('BAT sans cotations', () => {
+			expect(batCotations([], [])).toBeNull()
+		})
+		it("part avec la mise à jour, même sans autre champ", () => {
+			expect(batUpdate([], null, '72x46.5x107')).toEqual({ bat_cotations: '72x46.5x107' })
+			expect(batUpdate([], null, null)).toBeNull()
+		})
 	})
 })

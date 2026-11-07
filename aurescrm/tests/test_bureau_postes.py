@@ -6,7 +6,8 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from aurescrm.api import bureau, bureau_clients, bureau_demandes, bureau_etudes, bureau_etudes_accueil, bureau_postes
+from aurescrm import item_cotations
+from aurescrm.api import bureau, bureau_clients, bureau_demandes, bureau_etudes, bureau_etudes_accueil, bureau_etudes_pieces, bureau_postes
 
 
 class TestPostes(FrappeTestCase):
@@ -150,3 +151,108 @@ class TestAccueilEtude(FrappeTestCase):
 		self.assertEqual([stage["key"] for stage in response["stages"]], ["etudes_flexo"])
 		self.assertEqual({row["doctype"] for group in response["queue"] for row in group["rows"]} - {bureau_etudes.FLEXO}, set())
 		self.assertFalse(response["both"])
+
+
+class TestPiecesEtude(FrappeTestCase):
+	"""Règles des pièces sans document : contrôles de la presse, format de la feuille, origine des cotations."""
+
+	def _machine(self, **values):
+		return frappe._dict({"status": "Operationnelle", "format_max_laize": 1020, "format_max_developpement": 720, "min_qt": 5000, **values})
+
+	def test_format_de_la_feuille(self):
+		self.assertEqual(bureau_etudes_pieces.sheet_size({"format_laize": 1020, "format_developpement": 600}), (1020, 600))
+		self.assertEqual(bureau_etudes_pieces.sheet_size({"format_imp": "650 x 500"}), (650, 500))
+		self.assertEqual(bureau_etudes_pieces.sheet_size({"format_imp": "720,5x450"}), (720.5, 450))
+		self.assertEqual(bureau_etudes_pieces.sheet_size({"format_imp": "voir fichier"}), (0, 0))
+
+	def test_presse_sans_alerte(self):
+		self.assertEqual(bureau_etudes_pieces.machine_alerts(self._machine(), {"format_imp": "1020x600"}, 83334), [])
+
+	def test_format_trop_grand_en_rouge(self):
+		alerts = bureau_etudes_pieces.machine_alerts(self._machine(format_max_laize=800), {"format_imp": "1020x800"}, 83334)
+		self.assertEqual([alert["tone"] for alert in alerts], ["red", "red"])
+		self.assertIn("1020 mm", alerts[0]["text"])
+
+	def test_presse_arretee_et_petite_quantite_a_verifier(self):
+		alerts = bureau_etudes_pieces.machine_alerts(self._machine(status="En Maintenance"), {"format_imp": "1020x600"}, 1000)
+		self.assertEqual([alert["tone"] for alert in alerts], ["amber", "amber"])
+
+	def test_sans_imposition_seul_l_etat_de_la_presse_compte(self):
+		self.assertEqual(bureau_etudes_pieces.machine_alerts(self._machine(), None, 0), [])
+		self.assertEqual(len(bureau_etudes_pieces.machine_alerts(self._machine(status="En Panne"), None, 0)), 1)
+
+	def test_dessin_absent_d_une_imposition_manuelle(self):
+		self.assertIsNone(bureau_etudes_pieces.sheet_drawing({"n_col": 0, "n_rang": 0, "calcul_imposition": None}))
+
+	def test_valeurs_d_imposition_controlees(self):
+		values = bureau_etudes_pieces._imposition_values("Laize", "1020", "1020 x 600", 12, "22,8")
+		self.assertEqual((values["format_imp"], values["format_laize"], values["format_developpement"], values["taux_chutes"]), ("1020x600", 1020, 600, 22.8))
+		for bad in (("Laize", "720x450", "1020x600", 12, 0), ("Palette", "720", "1020x600", 12, 0), ("Laize", "720", "1020", 12, 0), ("Laize", "720", "1020x600", 0, 0), ("Laize", "720", "1020x600", 12, 120), ("", "720", "1020x600", 12, 0)):
+			with self.assertRaises(frappe.ValidationError):
+				bureau_etudes_pieces._imposition_values(*bad)
+
+	def test_observations_en_texte_simple(self):
+		self.assertEqual(bureau_etudes.plain_text("<p>Pli à l'envers</p><p>Voir &amp; revoir</p>"), "Pli à l'envers\nVoir & revoir")
+		self.assertEqual(bureau_etudes.plain_text("un<br>deux"), "un\ndeux")
+		self.assertEqual(bureau_etudes.plain_text(None), "")
+
+
+class TestOrigineCotations(FrappeTestCase):
+	"""Cotations venues d'un BAT, puis remplacées depuis le tracé : la confirmation et ce qui en reste. Annulé en fin de test."""
+
+	def setUp(self):
+		if not frappe.get_meta("Item").has_field("custom_cotations_bat"):
+			self.skipTest("Champs d'origine pas encore migrés.")
+		self.item = frappe.db.get_value("Item", {"custom_type_article": "Client"}, "name")
+		self.assertTrue(self.item)
+		frappe.db.set_value("Item", self.item, {"custom_cotations_article": "72x46.5x107", "custom_cotations_bat": None, "custom_cotations_trace_par": None})
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _doc(self):
+		return frappe.get_doc("Item", self.item)
+
+	def _import_bat(self):
+		doc = self._doc()
+		item_cotations.record_bat_cotations(doc, "72x46,5x107")
+		frappe.db.set_value("Item", self.item, {"custom_cotations_bat": doc.custom_cotations_bat, "custom_cotations_bat_par": doc.custom_cotations_bat_par, "custom_cotations_bat_le": doc.custom_cotations_bat_le})
+
+	def test_sans_bat_aucune_confirmation(self):
+		self.assertIsNone(item_cotations.bat_confirmation(self.item, "80x40x100"))
+		self.assertIsNone(item_cotations.cotations_origin(self._doc()))
+
+	def test_valeur_du_bat_normalisee_et_etat_bat(self):
+		self._import_bat()
+		origin = item_cotations.cotations_origin(self._doc())
+		self.assertEqual((origin["bat"], origin["etat"]), ("72x46.5x107", "bat"))
+
+	def test_memes_dimensions_rien_a_confirmer(self):
+		self._import_bat()
+		self.assertIsNone(item_cotations.bat_confirmation(self.item, "72 × 46,5 × 107"))
+
+	def test_autres_dimensions_a_confirmer(self):
+		self._import_bat()
+		confirmation = item_cotations.bat_confirmation(self.item, "80x40x100")
+		self.assertEqual((confirmation["actuelles"], confirmation["nouvelles"]), ("72x46.5x107", "80x40x100"))
+
+	def test_remplacement_garde_qui_et_le_fil(self):
+		self._import_bat()
+		frappe.db.delete("Trace", {"article": self.item})
+		item_cotations.apply_cotations_from_user_string(self.item, "80x40x100", ignore_permissions=True)
+		doc = self._doc()
+		self.assertEqual(doc.custom_cotations_article, "80x40x100")
+		self.assertEqual(doc.custom_cotations_trace_par, frappe.session.user)
+		self.assertTrue(frappe.db.exists("Comment", {"reference_doctype": "Item", "reference_name": self.item, "comment_type": "Info", "content": ["like", "%72x46.5x107%80x40x100%"]}))
+		# Sans tracé qui porte ces cotations, le changement ne peut pas lui être attribué.
+		self.assertEqual(item_cotations.cotations_origin(doc)["etat"], "fiche")
+		# Une fois remplacées, les suivantes ne viennent plus du BAT : plus de confirmation.
+		self.assertIsNone(item_cotations.bat_confirmation(self.item, "90x40x100"))
+
+	def test_nouvel_import_efface_le_remplacement(self):
+		self._import_bat()
+		item_cotations.apply_cotations_from_user_string(self.item, "80x40x100", ignore_permissions=True)
+		doc = self._doc()
+		item_cotations.record_bat_cotations(doc, "80x40x100")
+		self.assertIsNone(doc.custom_cotations_trace_par)
+		self.assertEqual(doc.custom_cotations_bat, "80x40x100")

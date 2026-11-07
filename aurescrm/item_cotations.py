@@ -7,7 +7,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import cint
+from frappe.utils import cint, get_fullname, now_datetime
 
 # Segments : entiers ou décimales (56, 56.3, 56,3). Séparateur entre cotes : x (après normalisation du ×).
 _NUM = r"\d+(?:[.,]\d+)?"
@@ -84,16 +84,18 @@ def _apply_non_empty_user_cotations(doc, raw):
 	validate_cotations_article_format(doc.custom_cotations_article)
 
 
-def apply_cotations_from_user_string(item_name, dimensions_str):
+def apply_cotations_from_user_string(item_name, dimensions_str, ignore_permissions=False):
 	"""
 	Met à jour Item.custom_cotations_article depuis une chaîne (ex. dimensions Trace),
 	avec les mêmes règles que le formulaire Item. Utilise db.set_value après normalisation.
+
+	`ignore_permissions` : conséquence d'un tracé que l'utilisateur a le droit de modifier, sans droit sur l'article.
 	"""
 	if not item_name:
 		frappe.throw(_("Article manquant."))
 	if not frappe.db.exists("Item", item_name):
 		frappe.throw(_("Article introuvable."))
-	if not frappe.has_permission("Item", "write", item_name):
+	if not ignore_permissions and not frappe.has_permission("Item", "write", item_name):
 		frappe.throw(_("Permission refusée pour modifier l'article {0}.").format(item_name))
 
 	raw = (dimensions_str or "").strip()
@@ -101,6 +103,7 @@ def apply_cotations_from_user_string(item_name, dimensions_str):
 		frappe.throw(_("Les dimensions sont obligatoires pour synchroniser l'article."))
 
 	doc = frappe.get_doc("Item", item_name)
+	previous = doc.get("custom_cotations_article")
 	_apply_non_empty_user_cotations(doc, raw)
 	frappe.db.set_value(
 		"Item",
@@ -109,7 +112,99 @@ def apply_cotations_from_user_string(item_name, dimensions_str):
 		doc.custom_cotations_article,
 		update_modified=True,
 	)
+	if _normalized_for_trace_item_compare(previous) != _normalized_for_trace_item_compare(doc.custom_cotations_article):
+		_note_change_from_trace(doc, previous)
 	return doc.custom_cotations_article
+
+
+def _has_origin_fields():
+	return frappe.get_meta("Item").has_field("custom_cotations_bat")
+
+
+def _note_change_from_trace(item, previous):
+	"""Garde la trace du changement : le fil de l'article, et qui a remplacé des cotations venues d'un BAT."""
+	trace = frappe.db.get_value("Trace", {"article": item.name}, "name")
+	# Dans le fil, une ligne d'information nomme elle-même son auteur.
+	who = get_fullname(frappe.session.user)
+	if previous:
+		text = _("{0} a remplacé les cotations {1} par {2} depuis le tracé {3}").format(who, previous, item.custom_cotations_article, trace)
+	else:
+		text = _("{0} a renseigné les cotations {1} depuis le tracé {2}").format(who, item.custom_cotations_article, trace)
+	item.add_comment("Info", text)
+	if _has_origin_fields() and item.get("custom_cotations_bat"):
+		frappe.db.set_value(
+			"Item",
+			item.name,
+			{"custom_cotations_trace_par": frappe.session.user, "custom_cotations_trace_le": now_datetime()},
+			update_modified=False,
+		)
+
+
+def record_bat_cotations(item, value):
+	"""À l'import d'un BAT : les cotations de l'article viennent de ce BAT, tout changement antérieur par le tracé est dépassé."""
+	norm = normalize_cotations_article(value)
+	if not norm or not _has_origin_fields():
+		return
+	item.custom_cotations_bat = norm
+	item.custom_cotations_bat_par = frappe.session.user
+	item.custom_cotations_bat_le = now_datetime()
+	item.custom_cotations_trace_par = None
+	item.custom_cotations_trace_le = None
+
+
+def bat_confirmation(item_name, dimensions):
+	"""Ce qu'il faut faire confirmer si ces dimensions remplacent des cotations encore telles que le BAT les a données. None sinon."""
+	if not _has_origin_fields():
+		return None
+	item = frappe.db.get_value(
+		"Item",
+		item_name,
+		["custom_cotations_article", "custom_cotations_bat", "custom_cotations_bat_par", "custom_cotations_bat_le"],
+		as_dict=True,
+	)
+	if not item or not item.custom_cotations_bat:
+		return None
+	current = _normalized_for_trace_item_compare(item.custom_cotations_article)
+	if current != _normalized_for_trace_item_compare(item.custom_cotations_bat):
+		return None
+	if current == _normalized_for_trace_item_compare(dimensions):
+		return None
+	return {
+		"actuelles": item.custom_cotations_article,
+		"nouvelles": normalize_cotations_article(dimensions),
+		"par": get_fullname(item.custom_cotations_bat_par) if item.custom_cotations_bat_par else None,
+		"le": str(item.custom_cotations_bat_le) if item.custom_cotations_bat_le else None,
+	}
+
+
+def cotations_origin(item):
+	"""D'où viennent les cotations d'un article : du BAT, et si elles en ont bougé, par le tracé ou sur la fiche. None si aucun BAT n'en a donné."""
+	if not _has_origin_fields() or not item.get("custom_cotations_bat"):
+		return None
+	current = _normalized_for_trace_item_compare(item.get("custom_cotations_article"))
+	origin = {
+		"bat": item.get("custom_cotations_bat"),
+		"bat_par": get_fullname(item.get("custom_cotations_bat_par")) if item.get("custom_cotations_bat_par") else None,
+		"bat_le": str(item.get("custom_cotations_bat_le")) if item.get("custom_cotations_bat_le") else None,
+		"etat": "bat",
+		"trace": None,
+		"trace_par": None,
+		"trace_le": None,
+	}
+	if current == _normalized_for_trace_item_compare(item.get("custom_cotations_bat")):
+		return origin
+	trace = frappe.db.get_value("Trace", {"article": item.get("name")}, ["name", "dimensions"], as_dict=True)
+	by_trace = item.get("custom_cotations_trace_par") and trace and _normalized_for_trace_item_compare(trace.dimensions) == current
+	if not by_trace:
+		origin["etat"] = "fiche"
+		return origin
+	origin.update(
+		etat="trace",
+		trace=trace.name,
+		trace_par=get_fullname(item.get("custom_cotations_trace_par")),
+		trace_le=str(item.get("custom_cotations_trace_le")) if item.get("custom_cotations_trace_le") else None,
+	)
+	return origin
 
 
 @frappe.whitelist()

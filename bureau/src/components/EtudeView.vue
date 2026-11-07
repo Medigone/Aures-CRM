@@ -9,6 +9,7 @@ import LucidePackage from '~icons/lucide/package'
 import LucideTruck from '~icons/lucide/truck'
 import LucideUser from '~icons/lucide/user'
 import ActivityFeed from '@shared/components/ActivityFeed.vue'
+import FormDialog from '@shared/components/FormDialog.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
@@ -18,7 +19,8 @@ import EtudePieces from './EtudePieces.vue'
 import RecordHeader from './RecordHeader.vue'
 import StepTimeline from './StepTimeline.vue'
 import TagEditor from './TagEditor.vue'
-import { etudeActivity } from '@/lib/api'
+import { etudeActivity, setEtudeObservations } from '@/lib/api'
+import type { PiecesResult } from '@/lib/etudePieces'
 import { deskUrl, formatDay } from '@/lib/display'
 import { actionLabel, blockedText, etudeHeaderActions, etudeTimeline, etudeTip, formatQuantity, isPrimaryEtudeAction } from '@/lib/etudes'
 import { useEtude } from '@/lib/useEtude'
@@ -60,6 +62,39 @@ async function copyLink() {
 		actionError.value = "Le navigateur a refusé la copie : copiez l'adresse de la page."
 	}
 }
+function onPiecesSaved(result: PiecesResult, message: string) {
+	etude.value = result.etude
+	notice.value = message
+	feed.value?.refresh()
+	emit('changed')
+}
+
+// Comme les pièces : l'équipe de l'étude renseigne tant que l'étude est en cours.
+const canWriteObservations = computed(() => etude.value?.can_write && etude.value.status === 'En étude')
+const observationsOpen = ref(false)
+const observations = ref('')
+const observationsBusy = ref(false)
+const observationsError = ref('')
+function openObservations() {
+	observations.value = etude.value?.observations ?? ''
+	observationsError.value = ''
+	observationsOpen.value = true
+}
+async function saveObservations() {
+	if (!etude.value || observationsBusy.value) return
+	observationsBusy.value = true
+	observationsError.value = ''
+	try {
+		onPiecesSaved(await setEtudeObservations(etude.value, observations.value), 'Observations enregistrées.')
+		observationsOpen.value = false
+	} catch (e) {
+		observationsError.value = (e as Error).message
+		refreshAll()
+	} finally {
+		observationsBusy.value = false
+	}
+}
+
 function onTags(tags: string[]) {
 	if (etude.value) etude.value.tags = tags
 	emit('changed')
@@ -118,10 +153,13 @@ function onTags(tags: string[]) {
 						</dl>
 					</aside>
 					<div class="bureau-center">
-						<EtudePieces :etude="etude" />
-						<section v-if="etude.observations" class="card ref-card">
-							<h3>Observations</h3>
-							<p class="m-0 whitespace-pre-line">{{ etude.observations }}</p>
+						<EtudePieces :etude="etude" @saved="onPiecesSaved" @reload="refreshAll()" />
+						<section v-if="etude.observations || canWriteObservations" class="card ref-card">
+							<div class="ref-card-head">
+								<h3>Observations</h3>
+								<button v-if="canWriteObservations" type="button" class="btn-secondary" @click="openObservations">Modifier</button>
+							</div>
+							<p class="m-0 whitespace-pre-line" :class="!etude.observations && 'text-ink-gray-6'">{{ etude.observations || 'Aucune observation.' }}</p>
 						</section>
 						<!-- Le fil vient après le contenu. -->
 						<aside class="record-activity" aria-label="Commentaires et activité de l'étude">
@@ -134,6 +172,11 @@ function onTags(tags: string[]) {
 				</div>
 			</div>
 			<EtudeActions ref="actions" :etude="etude" :busy="busy" :perform="perform" @done="notice = $event" />
+			<FormDialog v-if="observationsOpen" title="Modifier les observations" :dirty="false" hint="" :busy="observationsBusy" @close="observationsOpen = false" @submit="saveObservations">
+				<p v-if="observationsError" role="alert" class="rounded-control tone-red px-3 py-2 text-sm">{{ observationsError }}</p>
+				<label class="form-field"><span class="field-label">Observations</span><textarea v-model="observations" class="field-input" rows="5"></textarea></label>
+				<template #actions><button type="button" class="btn-primary" :disabled="observationsBusy" @click="saveObservations">Enregistrer</button></template>
+			</FormDialog>
 		</template>
 		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />
 	</main>

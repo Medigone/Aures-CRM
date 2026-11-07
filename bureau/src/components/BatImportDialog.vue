@@ -8,7 +8,7 @@ import ArticleColorsInput from './ArticleColorsInput.vue'
 import FicheInput from './FicheInput.vue'
 import { analyzeBat, setArticleFile, updateArticle } from '@/lib/api'
 import { articleDoc, teintesForEdit, type ArticleDetail, type ArticleOptions, type ArticleTeinte } from '@/lib/articles'
-import { batFileCheck, batRows, batUpdate, sameColors, type BatAnalysis, type BatGap, type BatRow } from '@/lib/batImport'
+import { batCotations, batFileCheck, batRows, batUpdate, sameColors, type BatAnalysis, type BatGap, type BatRow } from '@/lib/batImport'
 
 /** Joindre un BAT : l'analyse propose des valeurs, l'utilisateur les ajuste, et seule sa vérification écrit sur l'article. */
 const props = defineProps<{ article: ArticleDetail; options: ArticleOptions | null }>()
@@ -135,9 +135,9 @@ async function save() {
 			return
 		}
 		if (!updated) {
-			const values = batUpdate(rows.value, replaceColors.value && !colorsIdentical.value && colorsToDecide.value ? teintes.value : null)
+			const values = batUpdate(rows.value, replaceColors.value && !colorsIdentical.value && colorsToDecide.value ? teintes.value : null, batCotations(analysis.value?.propositions ?? [], rows.value))
 			updated = values ? await updateArticle(props.article, values) : props.article
-			fieldsUpdated = Boolean(values)
+			fieldsUpdated = Boolean(values && Object.keys(values).some((key) => key !== 'bat_cotations'))
 		}
 		if (uploader.value?.items.some((item) => item.status === 'error')) uploader.value.retryAll()
 		else uploader.value?.start({ doctype: 'Item', docname: props.article.name })

@@ -13,7 +13,7 @@ from frappe import _
 from frappe.utils import cint, cstr, flt, get_fullname, today
 from frappe.utils.file_manager import get_max_file_size
 
-from aurescrm import bat_import, pantone
+from aurescrm import bat_import, item_cotations, pantone
 from aurescrm.api import activity
 from aurescrm.api.bureau import BELL_FIELD, TICKET, _parse, condition_filters, doctype_filter_fields, has_child_filter, page_bounds, require_bureau, row_bell, row_tags
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, bind_file, ticket_rows
@@ -454,6 +454,7 @@ def _article_payload(doc):
 		"procede": _procede(doc),
 		"support": support_label(doc),
 		"format": format_label(doc),
+		"cotations_origine": item_cotations.cotations_origin(doc),
 		"resume_technique": technical_summary(doc),
 		"reference": doc.custom_code_client,
 		"ancien_code": doc.custom_ancien_code,
@@ -647,6 +648,7 @@ def update_article(name, modified, values=None):
 	"""Seuls les champs changés arrivent : ce qu'un autre a modifié sur le Desk entre-temps sur un autre champ reste."""
 	doc = _article_for_write(name, modified)
 	values, fiche, teintes = _clean_values(values)
+	bat_cotations = values.pop("bat_cotations", None)
 	_require(values, [key for key in ("designation", "groupe") if key in values])
 	if "designation" in values:
 		_check_unique(values["designation"], doc.custom_client, doc.name)
@@ -666,6 +668,8 @@ def update_article(name, modified, values=None):
 	_apply_fiche(doc, fiche)
 	if teintes is not None:
 		pantone.set_item_colors(doc, teintes)
+	if bat_cotations:
+		item_cotations.record_bat_cotations(doc, bat_cotations)
 	doc.save()
 	return _article_payload(doc)
 
