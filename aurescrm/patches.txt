@@ -46,4 +46,3 @@ aurescrm.patches.rename_bareme_cout_fixe_to_series
 aurescrm.patches.migrate_calcul_imposition_depuis_etude
 aurescrm.patches.check_demande_on_ticket_checklist
 aurescrm.patches.sync_ticket_pieces
-aurescrm.patches.etude_poste_droits

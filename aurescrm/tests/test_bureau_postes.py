@@ -1,5 +1,6 @@
 # Copyright (c) 2026, Medigo and contributors
 # For license information, please see license.txt
+import json
 from unittest.mock import patch
 
 import frappe
@@ -43,17 +44,18 @@ class TestPostes(FrappeTestCase):
 
 
 class TestDroitsEtude(FrappeTestCase):
-	def test_patch_idempotent(self):
-		from aurescrm.patches import etude_poste_droits as patch_droits
+	def _fixture(self, name):
+		with open(frappe.get_app_path("aurescrm", "fixtures", name), encoding="utf-8") as handle:
+			return json.load(handle)
 
-		patch_droits.execute()
-		patch_droits.execute()
-		for doctype in ("Customer", "Item"):
-			rows = frappe.get_all("Custom DocPerm", filters={"parent": doctype, "role": patch_droits.RESPONSABLE, "permlevel": 0}, fields=["read", "write", "create"])
-			self.assertEqual(len(rows), 1)
-			self.assertEqual((rows[0].read, rows[0].write, rows[0].create), (1, 0, 0))
-		workflow = frappe.get_doc("Workflow", patch_droits.WORKFLOW_FLEXO)
-		self.assertEqual({row.allowed for row in workflow.transitions}, {patch_droits.ETUDE_FLEXO})
+	def test_fixture_responsable_lit_le_referentiel(self):
+		rows = [row for row in self._fixture("custom_docperm.json") if row["role"] == "Responsable Étude Faisabilité" and row["parent"] in ("Customer", "Item")]
+		self.assertEqual(sorted(row["parent"] for row in rows), ["Customer", "Item"])
+		self.assertTrue(all(row["read"] == 1 and row["write"] == 0 and row["create"] == 0 for row in rows))
+
+	def test_fixture_workflow_flexo(self):
+		workflow = next(row for row in self._fixture("workflow.json") if row["name"] == "Etude Faisabilite Flexo")
+		self.assertEqual({row["allowed"] for row in workflow["transitions"]}, {"Étude Flexo"})
 
 	def test_sans_droit_pas_de_solde(self):
 		with patch.object(bureau_clients, "_readable", return_value=False):
