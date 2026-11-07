@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import App from '@/App.vue'
 import NewTicketDialog from '@/components/NewTicketDialog.vue'
+import { tableStorageKey } from '@/lib/tableDisplay'
 import { routes } from '@/router'
 
 vi.mock('@shared/realtime', async (original) => ({
@@ -462,7 +463,7 @@ describe('poste de bureau', () => {
 
 	it("n'offre pas le tri par étape", async () => {
 		const { wrapper } = await open('/tickets')
-		expect(wrapper.find('.list-head [aria-label*="Étape"]').exists()).toBe(false)
+		expect(wrapper.find('.list-head button[aria-label*="Étape"]').exists()).toBe(false)
 		expect(wrapper.find('.list-head').text()).toContain('Étape')
 	})
 
@@ -536,18 +537,93 @@ describe('poste de bureau', () => {
 		})
 	})
 
-	it('choisit les colonnes et garde ce choix', async () => {
-		localStorage.removeItem('bureau-tickets-colonnes')
-		const { wrapper } = await open('/tickets')
-		await wrapper.findAll('.bureau-toolbar button').find((button) => button.text() === 'Colonnes')!.trigger('click')
-		await wrapper.findAll('.export-field').find((item) => item.text() === 'Commercial')!.find('input').setValue(true)
-		expect(row(wrapper, 'TC-1').text()).toContain('Commercial A')
-		expect(JSON.parse(localStorage.getItem('bureau-tickets-colonnes')!)).toContain('commercial')
-		// La colonne ajoutée passe en dernier : l'ordre choisi compte désormais.
-		expect(wrapper.find('.list-head .list-cols').findAll('.list-th').at(-1)!.text()).toBe('Commercial')
-		expect(wrapper.find('.view-modified').text()).toBe('Modifiée')
-		localStorage.removeItem('bureau-tickets-colonnes')
-		localStorage.removeItem('bureau-tickets-colonnes:largeurs')
+	describe('tableau personnalisable', () => {
+		const storageKey = () => tableStorageKey('tickets', window.location.host, window.user)
+		const heads = (wrapper: Awaited<ReturnType<typeof open>>['wrapper']) => wrapper.find('.list-head .list-cols').findAll('.list-th')
+		const openPanel = async (wrapper: Awaited<ReturnType<typeof open>>['wrapper']) => {
+			await wrapper.findAll('.bureau-toolbar button').find((button) => button.text() === 'Colonnes')!.trigger('click')
+			return wrapper.find('.table-panel-panel')
+		}
+		const panelRow = (wrapper: Awaited<ReturnType<typeof open>>['wrapper'], label: string) => wrapper.findAll('.table-panel-columns li').find((item) => item.text() === label)!
+		const clear = () => {
+			for (const suffix of ['', ':largeurs', ':affichage', ':vue']) localStorage.removeItem(storageKey() + suffix)
+		}
+		beforeEach(clear)
+		afterEach(clear)
+
+		it('ajoute une colonne depuis la fenêtre des autres champs et garde ce choix', async () => {
+			const { wrapper } = await open('/tickets')
+			await openPanel(wrapper)
+			await wrapper.findAll('.table-panel-panel button').find((button) => button.text() === 'Autres champs…')!.trigger('click')
+			await wrapper.findAll('.export-field').find((item) => item.text() === 'Commercial')!.find('input').setValue(true)
+			expect(row(wrapper, 'TC-1').text()).toContain('Commercial A')
+			expect(JSON.parse(localStorage.getItem(storageKey())!)).toContain('commercial')
+			// La colonne ajoutée passe en dernier : l'ordre choisi compte désormais.
+			expect(heads(wrapper).at(-1)!.text()).toBe('Commercial')
+			expect(wrapper.find('.view-modified').text()).toBe('Modifiée')
+		})
+
+		it('masque et réaffiche une colonne, sans permettre de retirer Client', async () => {
+			const { wrapper } = await open('/tickets')
+			await openPanel(wrapper)
+			expect(panelRow(wrapper, 'Client').find('[role=switch]').attributes('disabled')).toBeDefined()
+			await panelRow(wrapper, 'Type').find('[role=switch]').trigger('change')
+			expect(heads(wrapper).map((head) => head.text())).not.toContain('Type')
+			await panelRow(wrapper, 'Type').find('[role=switch]').trigger('change')
+			expect(heads(wrapper).at(-1)!.text()).toBe('Type')
+		})
+
+		it('épingle une colonne : elle passe derrière Client, pas dans l\'ordre enregistré ni au tri', async () => {
+			const { wrapper } = await open('/tickets')
+			const before = localStorage.getItem(storageKey())
+			await openPanel(wrapper)
+			await panelRow(wrapper, 'N° ticket').find('.table-panel-pin').trigger('click')
+			expect(heads(wrapper).slice(0, 2).map((head) => head.text().replace(/\d+$/, ''))).toEqual(['Client', 'N° ticket'])
+			expect(wrapper.find('.table-custom').attributes('data-sticky')).toBe('2')
+			expect(localStorage.getItem(storageKey())).toBe(before)
+			expect(JSON.parse(localStorage.getItem(`${storageKey()}:affichage`)!)).toEqual({ v: 1, pinned: ['name'], density: 'normal' })
+			expect(wrapper.find('.view-modified').exists()).toBe(false)
+		})
+
+		it('retrouve densité et épinglage après rechargement, et les efface à la réinitialisation sans toucher aux filtres', async () => {
+			localStorage.setItem(`${storageKey()}:affichage`, JSON.stringify({ v: 1, pinned: ['status'], density: 'compact' }))
+			localStorage.setItem('bureau-clients-colonnes', '["nom"]')
+			const { wrapper } = await open('/tickets')
+			const table = wrapper.find('.table-custom')
+			expect(table.attributes('data-density')).toBe('compact')
+			expect(heads(wrapper)[1].text()).toBe('Statut')
+			await wrapper.find('.list-head .list-th button').trigger('click')
+			const sorted = heads(wrapper)[0].find('button').attributes('aria-label')
+			await openPanel(wrapper)
+			await wrapper.findAll('.table-panel-panel button').find((button) => button.text() === "Réinitialiser l'affichage")!.trigger('click')
+			expect(table.attributes('data-density')).toBe('normal')
+			expect(heads(wrapper)[1].text()).toBe('Type')
+			expect(localStorage.getItem(`${storageKey()}:affichage`)).toBeNull()
+			expect(localStorage.getItem(storageKey())).toBeNull()
+			expect(localStorage.getItem('bureau-clients-colonnes')).toBe('["nom"]')
+			expect(heads(wrapper)[0].find('button').attributes('aria-label')).toBe(sorted)
+			localStorage.removeItem('bureau-clients-colonnes')
+		})
+
+		it('ne reprend pas les réglages d\'un autre compte du même navigateur', async () => {
+			window.user = 'autre@example.com'
+			localStorage.setItem(`${tableStorageKey('tickets', window.location.host, 'autre@example.com')}:affichage`, JSON.stringify({ v: 1, pinned: [], density: 'comfortable' }))
+			window.user = 'bo@example.com'
+			const { wrapper } = await open('/tickets')
+			expect(wrapper.find('.table-custom').attributes('data-density')).toBe('normal')
+			localStorage.removeItem(`${tableStorageKey('tickets', window.location.host, 'autre@example.com')}:affichage`)
+		})
+
+		it('règle la largeur au clavier sans toucher au tri', async () => {
+			const { wrapper } = await open('/tickets')
+			const grip = heads(wrapper)[1].find('.list-th-grip')
+			expect(grip.attributes('role')).toBe('separator')
+			await grip.trigger('keydown', { key: 'ArrowRight' })
+			const widths = JSON.parse(localStorage.getItem(`${storageKey()}:largeurs`)!)
+			expect(widths.type).toBeGreaterThanOrEqual(80)
+			expect(wrapper.find('.view-modified').exists()).toBe(true)
+			expect(heads(wrapper)[1].find('button').attributes('aria-label')).toBe('Trier par Type')
+		})
 	})
 
 	it("distingue une vue vide d'une recherche sans résultat", async () => {

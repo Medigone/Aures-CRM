@@ -13,6 +13,8 @@ export interface Column<Row = QueueTicket> {
 	label: string
 	/** Largeur fixe en pixels, ou minimum d'une colonne qui partage la place restante. */
 	width: number
+	/** Largeur en dessous de laquelle la colonne devient illisible quand on la réduit. */
+	minWidth?: number
 	grow?: number
 	sortable: boolean
 	/** Absente de l'affichage par défaut : elle s'ajoute par le menu Colonnes. */
@@ -26,22 +28,22 @@ export interface Column<Row = QueueTicket> {
 }
 
 export const COLUMNS: Column[] = [
-	{ key: 'client', label: 'Client', width: 140, grow: 1.5, sortable: true, text: (ticket) => ticket.client },
-	{ key: 'type', label: 'Type', width: 110, grow: 1.1, sortable: true, text: (ticket) => ticket.request_type },
-	{ key: 'status', label: 'Statut', width: 132, sortable: true, text: (ticket) => statusLabel(ticket.status) },
-	{ key: 'urgence', label: 'Urg.', width: 84, sortable: true, text: (ticket) => ticket.niveau_urgence },
-	{ key: 'echeance', label: 'Échéance', width: 92, sortable: true, text: (ticket) => ticket.echeance || '' },
+	{ key: 'client', label: 'Client', width: 140, minWidth: 120, grow: 1.5, sortable: true, text: (ticket) => ticket.client },
+	{ key: 'type', label: 'Type', width: 110, minWidth: 80, grow: 1.1, sortable: true, text: (ticket) => ticket.request_type },
+	{ key: 'status', label: 'Statut', width: 132, minWidth: 112, sortable: true, text: (ticket) => statusLabel(ticket.status) },
+	{ key: 'urgence', label: 'Urg.', width: 84, minWidth: 64, sortable: true, text: (ticket) => ticket.niveau_urgence },
+	{ key: 'echeance', label: 'Échéance', width: 92, minWidth: 80, sortable: true, text: (ticket) => ticket.echeance || '' },
 	// L'étape se calcule ligne par ligne sur le serveur : elle ne peut pas trier toute la vue.
-	{ key: 'step', label: 'Étape', width: 140, grow: 1.3, sortable: false, text: (ticket) => stepText(ticket) },
-	{ key: 'name', label: 'N° ticket', width: 104, sortable: true, text: (ticket) => ticket.name },
-	{ key: 'assigne', label: 'Pris en charge', width: 120, grow: 1.1, sortable: true, text: (ticket) => ticket.assigne_a_nom || '' },
-	{ key: 'comments', label: 'Comm.', width: 56, sortable: false, text: (ticket) => ticket.comments },
-	{ key: 'commercial', label: 'Commercial', width: 120, grow: 1.1, sortable: true, optional: true, text: (ticket) => ticket.commercial || '' },
-	{ key: 'creance', label: 'Créance', width: 104, sortable: true, optional: true, text: (ticket) => creanceText(ticket) },
-	{ key: 'tags', label: 'Tags', width: 144, grow: 1, sortable: false, optional: true, text: (ticket) => tagsText(ticket) },
-	{ key: 'date', label: 'Date du ticket', width: 100, sortable: true, optional: true, text: (ticket) => formatDay(ticket.date) },
-	{ key: 'creation', label: 'Créé le', width: 92, sortable: true, optional: true, text: (ticket) => formatDay(ticket.creation) },
-	{ key: 'modified', label: 'Modifié le', width: 92, sortable: true, optional: true, text: (ticket) => formatDay(ticket.modified) },
+	{ key: 'step', label: 'Étape', width: 140, minWidth: 96, grow: 1.3, sortable: false, text: (ticket) => stepText(ticket) },
+	{ key: 'name', label: 'N° ticket', width: 104, minWidth: 88, sortable: true, text: (ticket) => ticket.name },
+	{ key: 'assigne', label: 'Pris en charge', width: 120, minWidth: 88, grow: 1.1, sortable: true, text: (ticket) => ticket.assigne_a_nom || '' },
+	{ key: 'comments', label: 'Comm.', width: 56, minWidth: 56, sortable: false, text: (ticket) => ticket.comments },
+	{ key: 'commercial', label: 'Commercial', width: 120, minWidth: 88, grow: 1.1, sortable: true, optional: true, text: (ticket) => ticket.commercial || '' },
+	{ key: 'creance', label: 'Créance', width: 104, minWidth: 72, sortable: true, optional: true, text: (ticket) => creanceText(ticket) },
+	{ key: 'tags', label: 'Tags', width: 144, minWidth: 88, grow: 1, sortable: false, optional: true, text: (ticket) => tagsText(ticket) },
+	{ key: 'date', label: 'Date du ticket', width: 100, minWidth: 80, sortable: true, optional: true, text: (ticket) => formatDay(ticket.date) },
+	{ key: 'creation', label: 'Créé le', width: 92, minWidth: 80, sortable: true, optional: true, text: (ticket) => formatDay(ticket.creation) },
+	{ key: 'modified', label: 'Modifié le', width: 92, minWidth: 80, sortable: true, optional: true, text: (ticket) => formatDay(ticket.modified) },
 ]
 
 export const DEFAULT_COLUMNS = COLUMNS.filter((column) => !column.optional).map((column) => column.key)

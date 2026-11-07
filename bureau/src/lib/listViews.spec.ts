@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { FilterField } from './filters'
 import type { Column } from './list'
-import { cleanLayout, fieldCellText, fieldColumn, layoutSignature, layoutSummary, moveColumnBefore, normalizeColumns, readStandardColumns, resizeColumn, resolveColumns, withColumnKeys, writeStandardColumns } from './listViews'
+import { cleanLayout, fieldCellText, fieldColumn, layoutSignature, layoutSummary, moveColumnAfter, moveColumnBefore, readActiveView, normalizeColumns, readStandardColumns, resizeColumn, resolveColumns, withColumnKeys, writeStandardColumns } from './listViews'
 
 interface Row {
 	name: string
@@ -87,5 +87,30 @@ describe('Vue standard sur cet appareil', () => {
 		expect(readStandardColumns('test-colonnes', [])).toEqual([{ key: 'client' }, { key: 'status', width: 200 }])
 		localStorage.removeItem('test-colonnes')
 		localStorage.removeItem('test-colonnes:largeurs')
+	})
+})
+
+describe('dépôt en dernière position et réglages abîmés', () => {
+	const settings = [{ key: 'client' }, { key: 'a' }, { key: 'b' }]
+
+	it('place une colonne après une autre, jusqu\'en dernière position', () => {
+		expect(moveColumnAfter(settings, 'a', 'b', 'client').map(({ key }) => key)).toEqual(['client', 'b', 'a'])
+		expect(moveColumnAfter(settings, 'client', 'b', 'client')).toBe(settings)
+	})
+
+	it('écarte les largeurs et les clés invalides des colonnes enregistrées', () => {
+		localStorage.setItem('abime-colonnes', '["client", 3, "a"]')
+		localStorage.setItem('abime-colonnes:largeurs', '{"client":"grand","a":-4}')
+		expect(readStandardColumns('abime-colonnes', [])).toEqual([{ key: 'client' }, { key: 'a' }])
+		localStorage.removeItem('abime-colonnes')
+		localStorage.removeItem('abime-colonnes:largeurs')
+	})
+
+	it('écarte une vue active abîmée', () => {
+		localStorage.setItem('abime-colonnes:vue', '{"name":"V","config":{"columns":[null]}}')
+		expect(readActiveView('abime-colonnes')).toBeNull()
+		localStorage.setItem('abime-colonnes:vue', '{}')
+		expect(readActiveView('abime-colonnes')).toEqual({})
+		localStorage.removeItem('abime-colonnes:vue')
 	})
 })

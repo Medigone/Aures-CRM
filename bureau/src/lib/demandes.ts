@@ -156,22 +156,22 @@ export interface DemandeValues {
 const articlesText = (row: DemandeRow) => (row.articles ? `${row.articles}${row.articles_count > 1 ? ` +${row.articles_count - 1}` : ''}` : '')
 
 export const DEMANDE_COLUMNS: Column<DemandeRow>[] = [
-	{ key: 'name', label: 'Demande', width: 110, sortable: true, text: (row) => row.name },
-	{ key: 'client_label', label: 'Client', width: 120, grow: 1, sortable: true, text: (row) => row.client_label },
-	{ key: 'articles', label: 'Articles', width: 140, grow: 1.6, sortable: true, text: articlesText },
-	{ key: 'type', label: 'Type', width: 88, sortable: true, text: (row) => typeLabel(row.type) },
-	{ key: 'status', label: 'Statut', width: 164, sortable: true, text: (row) => row.status },
-	{ key: 'procede', label: 'Procédé', width: 64, sortable: true, text: (row) => row.procede || '' },
-	{ key: 'urgence', label: 'Urg.', width: 52, sortable: true, text: (row) => row.urgence },
-	{ key: 'livraison', label: 'Livraison', width: 84, sortable: true, text: (row) => formatDay(row.livraison) },
-	{ key: 'commercial', label: 'Commercial', width: 96, sortable: true, text: (row) => row.commercial || '' },
-	{ key: 'tags', label: 'Tags', width: 90, sortable: false, text: tagsText },
-	{ key: 'ticket', label: 'Ticket', width: 124, sortable: true, optional: true, text: (row) => row.ticket || '' },
-	{ key: 'bon_commande', label: 'Bon de commande', width: 130, sortable: true, optional: true, text: (row) => row.bon_commande || '' },
-	{ key: 'date', label: 'Date de la demande', width: 124, sortable: true, optional: true, text: (row) => formatDay(row.date) },
-	{ key: 'creation', label: 'Créée le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
-	{ key: 'modified', label: 'Modifiée le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
-	{ key: 'cree_par', label: 'Créée par', width: 120, sortable: true, optional: true, text: (row) => row.cree_par || '' },
+	{ key: 'name', label: 'Demande', width: 110, minWidth: 88, sortable: true, text: (row) => row.name },
+	{ key: 'client_label', label: 'Client', width: 120, minWidth: 88, grow: 1, sortable: true, text: (row) => row.client_label },
+	{ key: 'articles', label: 'Articles', width: 140, minWidth: 88, grow: 1.6, sortable: true, text: articlesText },
+	{ key: 'type', label: 'Type', width: 88, minWidth: 64, sortable: true, text: (row) => typeLabel(row.type) },
+	{ key: 'status', label: 'Statut', width: 164, minWidth: 120, sortable: true, text: (row) => row.status },
+	{ key: 'procede', label: 'Procédé', width: 64, minWidth: 56, sortable: true, text: (row) => row.procede || '' },
+	{ key: 'urgence', label: 'Urg.', width: 52, minWidth: 52, sortable: true, text: (row) => row.urgence },
+	{ key: 'livraison', label: 'Livraison', width: 84, minWidth: 72, sortable: true, text: (row) => formatDay(row.livraison) },
+	{ key: 'commercial', label: 'Commercial', width: 96, minWidth: 72, sortable: true, text: (row) => row.commercial || '' },
+	{ key: 'tags', label: 'Tags', width: 90, minWidth: 72, sortable: false, text: tagsText },
+	{ key: 'ticket', label: 'Ticket', width: 124, minWidth: 88, sortable: true, optional: true, text: (row) => row.ticket || '' },
+	{ key: 'bon_commande', label: 'Bon de commande', width: 130, minWidth: 88, sortable: true, optional: true, text: (row) => row.bon_commande || '' },
+	{ key: 'date', label: 'Date de la demande', width: 124, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.date) },
+	{ key: 'creation', label: 'Créée le', width: 92, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
+	{ key: 'modified', label: 'Modifiée le', width: 92, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
+	{ key: 'cree_par', label: 'Créée par', width: 120, minWidth: 72, sortable: true, optional: true, text: (row) => row.cree_par || '' },
 ]
 
 export const DEFAULT_DEMANDE_COLUMNS = DEMANDE_COLUMNS.filter((column) => !column.optional).map((column) => column.key)

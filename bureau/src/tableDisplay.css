@@ -1,0 +1,332 @@
+/* Tableau personnalisable de DataList : épinglage, densité, largeurs et panneau Colonnes. */
+
+/* Fond de chaque état de ligne : cellules fixes et fond fixe doivent rester opaques. */
+.table-custom .list-row {
+	--row-bg: var(--tray);
+	--row-line: var(--line-soft);
+	isolation: isolate;
+}
+.table-custom .list-row-checked {
+	--row-bg: var(--selection-checked);
+}
+.table-custom .list-row:hover {
+	--row-bg: var(--surface-gray-2);
+}
+.table-custom .list-row-on,
+.table-custom .list-row-on:hover {
+	--row-bg: var(--selection);
+	--row-line: transparent;
+}
+.table-custom .list-row-on + .list-row {
+	--row-line: transparent;
+}
+.table-custom .list-row:first-child {
+	--row-line: transparent;
+}
+.table-custom .list-head {
+	--row-bg: var(--surface-cards);
+	--row-line: transparent;
+	z-index: 6;
+}
+
+/* La zone garde ses empilements pour elle ; un menu de ligne ouvert repasse devant la barre groupée. */
+.table-custom .bureau-list-scroll {
+	position: relative;
+	z-index: 0;
+	scroll-padding-right: 60px;
+	scroll-padding-left: var(--pin-end, 0);
+}
+.table-custom .bureau-list-scroll:has(.list-more-btn[aria-expanded='true']) {
+	z-index: 5;
+}
+.table-custom .list-row:has(.list-more-btn[aria-expanded='true']) {
+	z-index: 1;
+}
+
+/* Densité : la hauteur change, jamais la taille du texte. */
+.table-custom[data-density='compact'] .list-row {
+	height: 36px;
+}
+.table-custom[data-density='comfortable'] .list-row {
+	height: 56px;
+}
+@media (pointer: coarse) {
+	.table-custom[data-density='compact'] .list-row {
+		height: 44px;
+	}
+}
+
+/* Épinglage. Un fond fixe, sous les cellules, couvre aussi les espaces entre colonnes. */
+.table-custom .list-pin-plate {
+	position: sticky;
+	left: 0;
+	z-index: 2;
+	flex: none;
+	align-self: stretch;
+	width: var(--pin-end);
+	margin-right: calc(-1 * var(--pin-end));
+	background:
+		linear-gradient(var(--row-line), var(--row-line)) 8px 0 / 100% 1px no-repeat,
+		var(--row-bg);
+	pointer-events: none;
+	transition: box-shadow 120ms ease;
+}
+.table-custom[data-scrolled] .list-pin-plate {
+	box-shadow:
+		1px 0 0 var(--line-soft),
+		6px 0 8px -6px rgb(0 0 0 / 0.22);
+}
+.table-custom[data-sticky='0'] .list-pin-plate {
+	display: none;
+}
+.table-custom:not([data-sticky='0']) .list-check {
+	position: sticky;
+	left: 1px;
+	z-index: 3;
+}
+.table-custom .list-cols > :nth-child(1) {
+	--pin-left: var(--pin-left-1);
+}
+.table-custom .list-cols > :nth-child(2) {
+	--pin-left: var(--pin-left-2);
+}
+.table-custom .list-cols > :nth-child(3) {
+	--pin-left: var(--pin-left-3);
+}
+.table-custom .list-cols > :nth-child(4) {
+	--pin-left: var(--pin-left-4);
+}
+.table-custom .list-cols > :nth-child(5) {
+	--pin-left: var(--pin-left-5);
+}
+.table-custom[data-sticky='1'] .list-cols > :nth-child(-n + 1),
+.table-custom[data-sticky='2'] .list-cols > :nth-child(-n + 2),
+.table-custom[data-sticky='3'] .list-cols > :nth-child(-n + 3),
+.table-custom[data-sticky='4'] .list-cols > :nth-child(-n + 4),
+.table-custom[data-sticky='5'] .list-cols > :nth-child(-n + 5) {
+	position: sticky;
+	left: var(--pin-left);
+	z-index: 3;
+}
+.table-custom .list-th-pin {
+	flex: none;
+	margin-left: 0.25rem;
+	color: var(--ink-gray-5);
+}
+
+/* Une valeur alignée à droite occupe toute sa colonne : fixe, elle ne glisse pas à gauche au défilement. */
+.table-custom .list-cols > .list-col-end {
+	justify-self: stretch;
+}
+
+/* Cloche et menu de ligne restent à portée, à droite. */
+.table-custom .list-bell,
+.table-custom .list-more {
+	position: sticky;
+	z-index: 3;
+	align-self: stretch;
+	background:
+		linear-gradient(var(--row-line), var(--row-line)) 0 0 / 100% 1px no-repeat,
+		var(--row-bg);
+}
+.table-custom .list-bell {
+	right: 30px;
+}
+.table-custom .list-more,
+.table-custom .list-bell:last-child {
+	right: 0;
+}
+.table-custom[data-more-right] .list-bell {
+	box-shadow:
+		-1px 0 0 var(--line-soft),
+		-6px 0 8px -6px rgb(0 0 0 / 0.22);
+}
+
+/* Largeur : trait de repère pendant le geste, poignée atteignable au clavier. */
+.table-custom .list-th-grip:focus-visible {
+	background-color: var(--accent);
+	outline: 1px solid var(--accent);
+	outline-offset: 1px;
+}
+.table-custom .list-th-grip-on::after {
+	content: '';
+	position: absolute;
+	top: -0.5rem;
+	left: 2px;
+	width: 1px;
+	height: 100vh;
+	background-color: var(--accent);
+	pointer-events: none;
+}
+.table-custom .list-th-drop-after::before {
+	right: -5px;
+	left: auto;
+}
+@media (pointer: coarse) {
+	.table-custom .list-th-grip {
+		display: none;
+	}
+	.table-custom .list-th-move {
+		cursor: default;
+	}
+}
+
+/* Panneau Colonnes. */
+.table-custom .table-panel-panel {
+	width: 21rem;
+	max-width: calc(100vw - 2rem);
+	max-height: min(70vh, 34rem);
+	overflow-y: auto;
+	padding: 0.5rem;
+}
+.table-custom .table-panel-panel:focus {
+	outline: none;
+}
+@media (max-width: 720px) {
+	.table-custom .table-panel-panel {
+		position: fixed;
+		top: auto;
+		right: 0.5rem;
+		bottom: 0.5rem;
+		left: 0.5rem;
+		width: auto;
+		max-width: none;
+	}
+}
+.table-panel-density {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 2px;
+	margin: 0 0 0.25rem;
+	padding: 0;
+	border: 0;
+}
+.table-panel-density legend {
+	float: left;
+	grid-column: 1 / -1;
+	width: 100%;
+}
+.table-panel-density label {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2rem;
+	border-radius: var(--radius-pill);
+	background-color: var(--surface-gray-2);
+	color: var(--ink-gray-7);
+	font-size: 0.8125rem;
+	cursor: pointer;
+}
+.table-panel-density label.is-on {
+	background-color: var(--primary);
+	color: var(--on-primary);
+	font-weight: 500;
+}
+.table-panel-density label:focus-within {
+	outline: 2px solid var(--accent);
+	outline-offset: 1px;
+}
+.table-panel-columns {
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.table-panel-columns li {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	min-height: 2rem;
+	padding-inline: 0.5rem 0.25rem;
+	border-radius: var(--radius-control, 6px);
+}
+.table-panel-columns li:hover {
+	background-color: var(--surface-gray-2);
+}
+.table-panel-label {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	font-size: 0.8125rem;
+	color: var(--ink-gray-8);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.table-panel-label.is-hidden {
+	color: var(--ink-gray-6);
+}
+.table-panel-pin {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: var(--radius-pill);
+	color: var(--ink-gray-5);
+}
+.table-panel-pin:hover:not(:disabled) {
+	background-color: var(--surface-gray-4);
+	color: var(--ink-gray-9);
+}
+.table-panel-pin[aria-pressed='true'] {
+	color: var(--accent);
+}
+.table-panel-pin[aria-pressed='true'] svg {
+	fill: currentColor;
+}
+.table-panel-pin:disabled:not([aria-pressed='true']) {
+	opacity: 0.35;
+}
+/* Le socle pose un style sur toute case à cocher : il faut au moins sa précision. */
+:root input.table-panel-switch[type='checkbox'] {
+	position: relative;
+	flex: none;
+	width: 1.875rem;
+	height: 1.125rem;
+	margin: 0 0 0 0.25rem;
+	border: 0;
+	border-radius: 999px;
+	background: var(--surface-gray-4);
+	transition: background-color 120ms ease;
+}
+:root input.table-panel-switch[type='checkbox']::after {
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 0.875rem;
+	height: 0.875rem;
+	border-radius: 50%;
+	background-color: #fff;
+	box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+	transition: transform 120ms ease;
+}
+:root input.table-panel-switch[type='checkbox']:checked {
+	background: var(--primary);
+}
+:root input.table-panel-switch[type='checkbox']:checked::after {
+	transform: translateX(0.75rem);
+	background-color: var(--on-primary);
+}
+:root input.table-panel-switch[type='checkbox']:disabled {
+	opacity: 0.45;
+}
+:root input.table-panel-switch[type='checkbox']:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+.table-panel-note {
+	margin: 0.25rem 0.5rem 0.125rem;
+	font-size: 0.75rem;
+	line-height: 1.35;
+	color: var(--ink-gray-6);
+}
+@media (prefers-reduced-motion: reduce) {
+	.table-custom .list-pin-plate,
+	:root input.table-panel-switch[type='checkbox'],
+	:root input.table-panel-switch[type='checkbox']::after {
+		transition: none;
+	}
+}

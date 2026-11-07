@@ -8,6 +8,7 @@ import LucideColumns3 from '~icons/lucide/columns-3'
 import LucideDownload from '~icons/lucide/download'
 import LucideEllipsisVertical from '~icons/lucide/ellipsis-vertical'
 import LucideListFilter from '~icons/lucide/list-filter'
+import LucidePin from '~icons/lucide/pin'
 import LucidePlus from '~icons/lucide/plus'
 import LucideRefreshCw from '~icons/lucide/refresh-cw'
 import LucideSearch from '~icons/lucide/search'
@@ -18,6 +19,7 @@ import AppToast from './AppToast.vue'
 import BulkBar from './BulkBar.vue'
 import ColumnsDialog from './ColumnsDialog.vue'
 import ExportDialog from './ExportDialog.vue'
+import TableColumnsPanel from './TableColumnsPanel.vue'
 import ViewSaveDialog from './ViewSaveDialog.vue'
 import ViewSwitcher from './ViewSwitcher.vue'
 import { getExportValues, setBell } from '@/lib/api'
@@ -25,9 +27,10 @@ import { rangeToggle } from '@/lib/bulk'
 import type { ExportQuery } from '@/lib/exports'
 import { fieldTitle, hasBell, isComplete, toggleBell, BELL_FILTER, type Condition, type FilterField } from '@/lib/filters'
 import { gridTemplate, minListWidth, nextSort, type Column, type Sort } from '@/lib/list'
-import { fieldColumn, layoutSummary, resolveColumns } from '@/lib/listViews'
+import { fieldColumn, layoutSummary, MAX_COLUMN_WIDTH, resolveColumns } from '@/lib/listViews'
 import { useBulk } from '@/lib/useBulk'
 import { useListViews } from '@/lib/useListViews'
+import { minColumnWidth, tableStorageKey, useTableDisplay, WIDTH_STEP, WIDTH_STEP_LARGE } from '@/lib/tableDisplay'
 import { PAGE_SIZES } from '@/lib/useServerList'
 
 export interface ListView {
@@ -65,7 +68,8 @@ const props = defineProps<{
 	defaultColumns: string[]
 	/** Colonne principale, toujours affichée et en tête : elle porte le nombre de lignes. */
 	lockedColumn: string
-	columnsKey: string
+	/** Nom court de la liste, dans la clé de ses réglages : « tickets ». */
+	listId: string
 	views: ListView[]
 	counts?: Record<string, number>
 	defaultSortLabel: string
@@ -91,11 +95,14 @@ const list = ref<HTMLElement | null>(null)
 const filtersOpen = ref(false)
 const defaultView = computed(() => props.views[0].key)
 
+// Réglages d'affichage séparés par site et par utilisateur.
+const storageKey = tableStorageKey(props.listId, window.location.host, window.user)
+
 // Vue active : elle décide des colonnes, de leur ordre et de leurs largeurs.
 const session = useListViews({
 	state: props.state,
 	doctype: props.doctype,
-	columnsKey: props.columnsKey,
+	columnsKey: storageKey,
 	defaultColumns: props.defaultColumns,
 	locked: props.lockedColumn,
 	defaultView: props.views[0].key,
@@ -131,6 +138,33 @@ watch(
 	{ immediate: true },
 )
 
+// `displayed` place les colonnes épinglées devant, `shown` garde l'ordre enregistré, celui de l'export.
+const selectable = computed(() => Boolean(props.bulkDoctype))
+const table = useTableDisplay<Row>({ storageKey, locked: props.lockedColumn, columns: shown, selectable, scroller: list })
+const displayed = table.ordered
+const columnsButton = ref<HTMLElement | null>(null)
+function toggleColumns() {
+	menu.value = menu.value === 'columns' ? null : 'columns'
+}
+function closeColumnsPanel() {
+	menu.value = null
+	columnsButton.value?.focus()
+}
+function showColumn(key: string) {
+	session.setColumnKeys([...session.columns.value.map((column) => column.key), key])
+}
+function hideColumn(key: string) {
+	table.unpin(key)
+	session.setColumnKeys(session.columns.value.map((column) => column.key).filter((item) => item !== key))
+}
+function resetDisplay() {
+	session.resetColumns()
+	table.resetPrefs()
+	menu.value = null
+	columnsButton.value?.focus()
+	viewMessage.value = 'Affichage réinitialisé.'
+}
+
 const columnsOpen = ref(false)
 const saveOpen = ref(false)
 const viewMessage = ref('')
@@ -139,23 +173,50 @@ const saveSummary = computed(() => layoutSummary(session.current.value, sortColu
 // Glisser un en-tête le déplace, glisser son bord change la largeur.
 const draggedHead = ref<string | null>(null)
 const overHead = ref<string | null>(null)
+const overAfter = ref(false)
 const resizing = ref<string | null>(null)
 function onHeadDrop(key: string) {
-	if (draggedHead.value) session.moveColumn(draggedHead.value, key)
+	if (draggedHead.value && overHead.value === key) {
+		if (overAfter.value) session.moveColumnAfter(draggedHead.value, key)
+		else session.moveColumn(draggedHead.value, key)
+	}
 	draggedHead.value = overHead.value = null
 }
 function onHeadOver(key: string, event: DragEvent) {
 	if (!draggedHead.value || key === props.lockedColumn) return
+	// Une colonne ne passe pas d'un groupe à l'autre en glissant : épingler reste un choix explicite.
+	if (table.isPinned(draggedHead.value) !== table.isPinned(key)) {
+		overHead.value = null
+		return
+	}
 	event.preventDefault()
 	overHead.value = key
+	const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
+	overAfter.value = event.clientX > box.left + box.width / 2
 }
-function startResize(key: string, event: PointerEvent) {
+const clampWidth = (column: Column<Row>, width: number) => Math.max(width, minColumnWidth(column))
+const headWidth = (event: Event) => ((event.currentTarget as HTMLElement).parentElement as HTMLElement).getBoundingClientRect().width
+/** Au clavier : les flèches changent la largeur, Origine rend celle d'origine. */
+function onGripKey(column: Column<Row>, event: KeyboardEvent) {
+	const step = event.shiftKey ? WIDTH_STEP_LARGE : WIDTH_STEP
+	if (event.key === 'ArrowRight') session.resize(column.key, clampWidth(column, headWidth(event) + step))
+	else if (event.key === 'ArrowLeft') session.resize(column.key, clampWidth(column, headWidth(event) - step))
+	else if (event.key === 'Home') session.resize(column.key)
+	else return
+	event.preventDefault()
+	event.stopPropagation()
+}
+function gripAttrs(column: Column<Row>) {
+	return { role: 'separator', tabindex: 0, 'aria-orientation': 'vertical' as const, 'aria-label': `Largeur de la colonne ${column.label}, flèches gauche et droite`, 'aria-valuenow': column.width, 'aria-valuemin': minColumnWidth(column), 'aria-valuemax': MAX_COLUMN_WIDTH }
+}
+function startResize(column: Column<Row>, event: PointerEvent) {
+	const { key } = column
 	const cell = (event.currentTarget as HTMLElement).parentElement!
 	const startX = event.clientX
 	const startWidth = cell.getBoundingClientRect().width
 	resizing.value = key
 	function move(next: PointerEvent) {
-		session.resize(key, startWidth + next.clientX - startX)
+		session.resize(key, clampWidth(column, startWidth + next.clientX - startX))
 	}
 	function stop() {
 		resizing.value = null
@@ -168,16 +229,21 @@ function startResize(key: string, event: PointerEvent) {
 	window.addEventListener('pointercancel', stop)
 }
 
-const innerStyle = computed(() => ({ minWidth: `${minListWidth(shown.value)}px` }))
-const colsStyle = computed(() => ({ gridTemplateColumns: gridTemplate(shown.value) }))
+const innerStyle = computed(() => ({ minWidth: `${minListWidth(displayed.value)}px` }))
+const colsStyle = computed(() => ({ gridTemplateColumns: gridTemplate(displayed.value) }))
 const sortColumns = computed(() => props.columns.filter((column) => column.sortable))
 
 // Menus de la barre d'outils et de la ligne.
-const menu = ref<'sort' | 'views' | null>(null)
+const menu = ref<'sort' | 'views' | 'columns' | null>(null)
 const rowMenu = ref<{ row: Row; style: CSSProperties } | null>(null)
 function closeMenus() {
 	menu.value = null
 	rowMenu.value = null
+}
+/** Le panneau Colonnes reste ouvert au défilement : on y regarde l'effet de ses réglages. */
+function onListScroll() {
+	if (menu.value === 'columns') rowMenu.value = null
+	else closeMenus()
 }
 function onPointerDown(event: PointerEvent) {
 	if (!(event.target as HTMLElement).closest?.('.list-menu')) closeMenus()
@@ -267,7 +333,6 @@ function sortLabel(key: string, label: string) {
 }
 
 // Sélection : seules les lignes visibles comptent, une action ne touche jamais une ligne cachée.
-const selectable = computed(() => Boolean(props.bulkDoctype))
 const picked = computed(() => props.rows.filter((row) => checked.value.has(row.name)))
 const pickedCount = computed(() => picked.value.length)
 const allPicked = computed(() => props.rows.length > 0 && pickedCount.value === props.rows.length)
@@ -352,7 +417,7 @@ const exportFiltered = computed(() => viewFiltered.value || activeConditions.val
 onMounted(() => {
 	document.addEventListener('pointerdown', onPointerDown)
 	document.addEventListener('keydown', onKeydown)
-	list.value?.addEventListener('scroll', closeMenus, { passive: true })
+	list.value?.addEventListener('scroll', onListScroll, { passive: true })
 })
 onBeforeUnmount(() => {
 	document.removeEventListener('pointerdown', onPointerDown)
@@ -361,7 +426,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<section :aria-label="`Liste des ${noun}s`" class="bureau-list">
+	<section :aria-label="`Liste des ${noun}s`" class="bureau-list table-custom" :style="table.rootStyle.value" v-bind="table.rootAttrs.value">
 		<div class="page-head">
 			<h1 class="page-title">{{ title }}</h1>
 			<ViewSwitcher :session="session" :open="menu === 'views'" @toggle="menu = menu === 'views' ? null : 'views'" @close="menu = null" @save-as="saveOpen = true" @saved="viewMessage = $event" />
@@ -400,10 +465,25 @@ onBeforeUnmount(() => {
 					<button type="button" class="app-menu-item" role="menuitem" :disabled="!state.sort.value" @click="state.sort.value = null; menu = null">{{ defaultSortLabel }}</button>
 				</div>
 			</div>
-			<button type="button" class="btn-secondary" aria-haspopup="dialog" @click="columnsOpen = true">
-				<LucideColumns3 class="h-3.5 w-3.5" aria-hidden="true" />
-				Colonnes
-			</button>
+			<div class="list-menu relative flex-none">
+				<button ref="columnsButton" type="button" class="btn-secondary" aria-haspopup="dialog" :aria-expanded="menu === 'columns'" @click="toggleColumns">
+					<LucideColumns3 class="h-3.5 w-3.5" aria-hidden="true" />
+					Colonnes
+				</button>
+				<TableColumnsPanel
+					v-if="menu === 'columns'"
+					:display="table"
+					:shown="displayed"
+					:columns="columns"
+					:locked="lockedColumn"
+					@close="closeColumnsPanel"
+					@show="showColumn"
+					@hide="hideColumn"
+					@move="session.moveColumn"
+					@more="menu = null; columnsOpen = true"
+					@reset="resetDisplay"
+				/>
+			</div>
 			<button type="button" class="btn-secondary" @click="openExport(false)">
 				<LucideDownload class="h-3.5 w-3.5" aria-hidden="true" />
 				Exporter
@@ -441,6 +521,7 @@ onBeforeUnmount(() => {
 		</div>
 
 		<p v-if="session.notice.value" role="status" class="flex-none rounded-control tone-amber px-3.5 py-2.5 text-sm">{{ session.notice.value }}</p>
+		<p v-if="table.suspended.value" role="status" class="flex-none rounded-control tone-amber px-3.5 py-2.5 text-sm">Trop de colonnes épinglées pour cette largeur : seules les {{ table.sticky.value }} premières restent fixes.</p>
 		<p v-if="state.error.value || loadError || bellError || fieldsError || session.actionError.value" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5 text-sm">
 			{{ state.error.value || loadError || bellError || fieldsError || session.actionError.value }}
 			<button v-if="state.error.value" type="button" class="ml-1 font-semibold underline" @click="state.load()">Réessayer</button>
@@ -451,17 +532,18 @@ onBeforeUnmount(() => {
 				<div ref="list" class="bureau-list-scroll">
 					<div :style="innerStyle">
 						<div class="list-head" :class="!selectable && 'list-no-check'">
+							<span class="list-pin-plate" aria-hidden="true"></span>
 							<label v-if="selectable" class="list-check">
 								<input type="checkbox" :aria-label="`Sélectionner tous les ${noun}s de la page`" :checked="allPicked" :indeterminate="pickedCount > 0 && !allPicked" :disabled="!rows.length" @change="toggleAll" />
 							</label>
 							<div class="list-cols" :style="colsStyle">
 								<!-- La première colonne, toujours affichée, porte le nombre de lignes de la vue. -->
 								<div
-									v-for="(column, position) in shown"
+									v-for="(column, position) in displayed"
 									:key="column.key"
 									class="list-th"
-									:class="{ 'list-th-end': column.end, 'list-th-move': column.key !== lockedColumn, 'list-th-dragging': draggedHead === column.key, 'list-th-drop': overHead === column.key && draggedHead !== column.key }"
-									:draggable="column.key !== lockedColumn && !resizing"
+									:class="{ 'list-th-end': column.end, 'list-th-move': column.key !== lockedColumn, 'list-th-dragging': draggedHead === column.key, 'list-th-drop': overHead === column.key && draggedHead !== column.key, 'list-th-drop-after': overHead === column.key && overAfter }"
+									:draggable="column.key !== lockedColumn && !resizing && !table.coarse.value"
 									@dragstart="draggedHead = column.key"
 									@dragover="onHeadOver(column.key, $event)"
 									@drop.prevent="onHeadDrop(column.key)"
@@ -471,12 +553,14 @@ onBeforeUnmount(() => {
 										<span class="truncate">{{ column.label }}</span>
 										<span v-if="position === 0 && state.response.value" class="page-count font-normal">{{ state.total.value }}</span>
 										<span aria-hidden="true">{{ arrow(column.key) }}</span>
+										<LucidePin v-if="table.pinned.value.includes(column.key)" class="list-th-pin h-3 w-3" aria-hidden="true" />
 									</button>
 									<span v-else class="list-head-plain gap-1" :title="column.label">
 										<span class="truncate">{{ column.label }}</span>
 										<span v-if="position === 0 && state.response.value" class="page-count font-normal">{{ state.total.value }}</span>
+										<LucidePin v-if="table.pinned.value.includes(column.key)" class="list-th-pin h-3 w-3" aria-hidden="true" />
 									</span>
-									<span class="list-th-grip" :class="resizing === column.key && 'list-th-grip-on'" title="Glisser pour changer la largeur, double-clic pour revenir à la largeur d'origine" aria-hidden="true" @pointerdown.prevent.stop="startResize(column.key, $event)" @dblclick.stop="session.resize(column.key)"></span>
+									<span class="list-th-grip" :class="resizing === column.key && 'list-th-grip-on'" title="Glisser pour changer la largeur, double-clic pour revenir à la largeur d'origine" v-bind="gripAttrs(column)" @pointerdown.prevent.stop="startResize(column, $event)" @dblclick.stop="session.resize(column.key)" @keydown="onGripKey(column, $event)"></span>
 								</div>
 							</div>
 							<span class="list-bell">
@@ -490,9 +574,10 @@ onBeforeUnmount(() => {
 						<div class="list-tray">
 							<template v-if="!state.response.value && !state.error.value">
 								<div v-for="index in 8" :key="index" class="list-row" :class="!selectable && 'list-no-check'" aria-hidden="true">
+									<span class="list-pin-plate"></span>
 									<span v-if="selectable" class="list-check"></span>
 									<div class="list-cols" :style="colsStyle">
-										<span v-for="(column, position) in shown" :key="column.key" class="skeleton" :style="{ width: position === 0 ? '70%' : `${40 + ((index * 13 + position * 17) % 45)}%` }"></span>
+										<span v-for="(column, position) in displayed" :key="column.key" class="skeleton" :style="{ width: position === 0 ? '70%' : `${40 + ((index * 13 + position * 17) % 45)}%` }"></span>
 									</div>
 									<span class="list-bell"></span>
 									<span v-if="hasRowMenu" class="list-more"></span>
@@ -506,11 +591,12 @@ onBeforeUnmount(() => {
 							<ListState v-else-if="!rows.length" dieline title="Rien dans cette vue" :text="`Les ${noun}s apparaîtront ici dès qu'ils correspondront à cette vue.`" />
 
 							<div v-for="row in rows" :key="row.name" class="list-row" :class="{ 'list-no-check': !selectable, 'list-row-on list-row-created': row.name === created, 'list-row-on': row.name === selected, 'list-row-checked': checked.has(row.name) }">
+								<span class="list-pin-plate" aria-hidden="true"></span>
 								<label v-if="selectable" class="list-check">
 									<input type="checkbox" :aria-label="`Sélectionner le ${noun} ${row.name}`" :checked="checked.has(row.name)" @click="shiftHeld = $event.shiftKey" @change="toggle(row.name)" />
 								</label>
 								<button type="button" class="list-cols list-row-main" :style="colsStyle" :aria-current="row.name === selected ? 'true' : undefined" @click="onRowClick(row.name, $event)" @dblclick="emit('open', row.name)">
-									<slot name="cells" :row="row" :columns="shown"></slot>
+									<slot name="cells" :row="row" :columns="displayed"></slot>
 								</button>
 								<span class="list-bell">
 									<button type="button" class="list-bell-btn" :aria-pressed="Boolean(row.cloche)" :aria-label="`${row.cloche ? 'Retirer la cloche' : 'Mettre une cloche'} : ${row.name}`" :title="row.cloche ? 'Retirer la cloche' : 'Mettre une cloche'" @click="toggleRowBell(row)">

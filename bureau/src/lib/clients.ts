@@ -159,22 +159,22 @@ export function formatAmount(value?: number | null) {
 }
 
 export const CLIENT_COLUMNS: Column<ClientRow>[] = [
-	{ key: 'client', label: 'Client', width: 210, grow: 2, sortable: true, text: (row) => row.client },
-	{ key: 'status', label: 'Statut', width: 104, sortable: true, text: (row) => row.status || '' },
-	{ key: 'wilaya', label: 'Wilaya', width: 110, grow: 0.6, sortable: true, text: (row) => row.wilaya || '' },
-	{ key: 'commercial', label: 'Commercial', width: 130, grow: 0.8, sortable: true, text: (row) => row.commercial || '' },
-	{ key: 'visite', label: 'Dernière visite', width: 112, sortable: true, text: (row) => formatDay(row.visite) },
-	{ key: 'creance', label: 'Créance (DA)', width: 108, sortable: true, end: true, text: (row) => Math.round(row.creance) },
-	{ key: 'tickets', label: 'Tickets', width: 64, sortable: true, end: true, text: (row) => row.tickets },
-	{ key: 'tags', label: 'Tags', width: 190, grow: 1, sortable: false, text: (row) => tagsText(row) },
-	{ key: 'categorie', label: 'Catégorie', width: 110, sortable: true, optional: true, text: (row) => row.categorie || '' },
-	{ key: 'contact', label: 'Contact principal', width: 150, sortable: true, optional: true, text: (row) => row.contact || '' },
-	{ key: 'telephone', label: 'Téléphone', width: 112, sortable: true, optional: true, text: (row) => row.telephone || '' },
+	{ key: 'client', label: 'Client', width: 210, minWidth: 140, grow: 2, sortable: true, text: (row) => row.client },
+	{ key: 'status', label: 'Statut', width: 104, minWidth: 96, sortable: true, text: (row) => row.status || '' },
+	{ key: 'wilaya', label: 'Wilaya', width: 110, minWidth: 72, grow: 0.6, sortable: true, text: (row) => row.wilaya || '' },
+	{ key: 'commercial', label: 'Commercial', width: 130, minWidth: 88, grow: 0.8, sortable: true, text: (row) => row.commercial || '' },
+	{ key: 'visite', label: 'Dernière visite', width: 112, minWidth: 80, sortable: true, text: (row) => formatDay(row.visite) },
+	{ key: 'creance', label: 'Créance (DA)', width: 108, minWidth: 80, sortable: true, end: true, text: (row) => Math.round(row.creance) },
+	{ key: 'tickets', label: 'Tickets', width: 64, minWidth: 56, sortable: true, end: true, text: (row) => row.tickets },
+	{ key: 'tags', label: 'Tags', width: 190, minWidth: 88, grow: 1, sortable: false, text: (row) => tagsText(row) },
+	{ key: 'categorie', label: 'Catégorie', width: 110, minWidth: 72, sortable: true, optional: true, text: (row) => row.categorie || '' },
+	{ key: 'contact', label: 'Contact principal', width: 150, minWidth: 88, sortable: true, optional: true, text: (row) => row.contact || '' },
+	{ key: 'telephone', label: 'Téléphone', width: 112, minWidth: 88, sortable: true, optional: true, text: (row) => row.telephone || '' },
 	// Masquée par défaut : les codes actuels sont mélangés et n'aident pas à repérer un client.
-	{ key: 'name', label: 'Code', width: 110, sortable: true, optional: true, text: (row) => row.name },
-	{ key: 'date', label: 'Client depuis', width: 100, sortable: true, optional: true, text: (row) => formatDay(row.date) },
-	{ key: 'creation', label: 'Créé le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
-	{ key: 'modified', label: 'Modifié le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
+	{ key: 'name', label: 'Code', width: 110, minWidth: 72, sortable: true, optional: true, text: (row) => row.name },
+	{ key: 'date', label: 'Client depuis', width: 100, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.date) },
+	{ key: 'creation', label: 'Créé le', width: 92, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
+	{ key: 'modified', label: 'Modifié le', width: 92, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
 ]
 export const DEFAULT_CLIENT_COLUMNS = CLIENT_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 

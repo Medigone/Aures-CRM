@@ -227,22 +227,22 @@ export interface ArticleValues {
 }
 
 export const ARTICLE_COLUMNS: Column<ArticleRow>[] = [
-	{ key: 'designation', label: 'Article', width: 216, grow: 2, sortable: true, text: (row) => row.designation },
-	{ key: 'name', label: 'Code', width: 118, sortable: true, text: (row) => row.name },
-	{ key: 'client_label', label: 'Client', width: 152, grow: 1, sortable: true, text: (row) => row.client_label || '' },
-	{ key: 'procede', label: 'Procédé', width: 100, sortable: true, text: (row) => row.procede || '' },
-	{ key: 'support', label: 'Support', width: 110, sortable: true, text: (row) => row.support || '' },
-	{ key: 'format', label: 'Format (mm)', width: 96, sortable: true, text: (row) => row.format || '' },
-	{ key: 'bat', label: 'Dernier BAT', width: 112, sortable: true, text: (row) => row.bat || '' },
-	{ key: 'commande', label: 'Commande', width: 92, sortable: true, text: (row) => formatDay(row.commande) },
-	{ key: 'tags', label: 'Tags', width: 100, sortable: false, text: (row) => tagsText(row) },
-	{ key: 'reference', label: 'Réf. client', width: 100, sortable: true, optional: true, text: (row) => row.reference || '' },
-	{ key: 'commercial', label: 'Commercial', width: 130, sortable: true, optional: true, text: (row) => row.commercial || '' },
-	{ key: 'groupe', label: 'Groupe', width: 110, sortable: true, optional: true, text: (row) => row.groupe || '' },
-	{ key: 'couleurs', label: 'Couleurs', width: 90, sortable: true, optional: true, text: (row) => row.couleurs || '' },
-	{ key: 'consommation', label: 'Conso. annuelle', width: 110, sortable: true, optional: true, end: true, text: (row) => row.consommation },
-	{ key: 'creation', label: 'Créé le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
-	{ key: 'modified', label: 'Modifié le', width: 92, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
+	{ key: 'designation', label: 'Article', width: 216, minWidth: 140, grow: 2, sortable: true, text: (row) => row.designation },
+	{ key: 'name', label: 'Code', width: 118, minWidth: 88, sortable: true, text: (row) => row.name },
+	{ key: 'client_label', label: 'Client', width: 152, minWidth: 96, grow: 1, sortable: true, text: (row) => row.client_label || '' },
+	{ key: 'procede', label: 'Procédé', width: 100, minWidth: 88, sortable: true, text: (row) => row.procede || '' },
+	{ key: 'support', label: 'Support', width: 110, minWidth: 72, sortable: true, text: (row) => row.support || '' },
+	{ key: 'format', label: 'Format (mm)', width: 96, minWidth: 72, sortable: true, text: (row) => row.format || '' },
+	{ key: 'bat', label: 'Dernier BAT', width: 112, minWidth: 96, sortable: true, text: (row) => row.bat || '' },
+	{ key: 'commande', label: 'Commande', width: 92, minWidth: 80, sortable: true, text: (row) => formatDay(row.commande) },
+	{ key: 'tags', label: 'Tags', width: 100, minWidth: 72, sortable: false, text: (row) => tagsText(row) },
+	{ key: 'reference', label: 'Réf. client', width: 100, minWidth: 72, sortable: true, optional: true, text: (row) => row.reference || '' },
+	{ key: 'commercial', label: 'Commercial', width: 130, minWidth: 88, sortable: true, optional: true, text: (row) => row.commercial || '' },
+	{ key: 'groupe', label: 'Groupe', width: 110, minWidth: 72, sortable: true, optional: true, text: (row) => row.groupe || '' },
+	{ key: 'couleurs', label: 'Couleurs', width: 90, minWidth: 64, sortable: true, optional: true, text: (row) => row.couleurs || '' },
+	{ key: 'consommation', label: 'Conso. annuelle', width: 110, minWidth: 72, sortable: true, optional: true, end: true, text: (row) => row.consommation },
+	{ key: 'creation', label: 'Créé le', width: 92, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
+	{ key: 'modified', label: 'Modifié le', width: 92, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.modified) },
 ]
 export const DEFAULT_ARTICLE_COLUMNS = ARTICLE_COLUMNS.filter((column) => !column.optional).map((column) => column.key)
 

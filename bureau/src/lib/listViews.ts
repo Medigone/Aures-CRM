@@ -72,6 +72,16 @@ export function moveColumnBefore(columns: ColumnSetting[], key: string, target: 
 	return [...others.slice(0, at), moved, ...others.slice(at)]
 }
 
+/** Place une colonne juste après une autre : c'est le seul moyen d'atteindre la dernière position. */
+export function moveColumnAfter(columns: ColumnSetting[], key: string, target: string, locked: string) {
+	if (key === locked || key === target || !columns.some((column) => column.key === key)) return columns
+	const moved = columns.find((column) => column.key === key)!
+	const others = columns.filter((column) => column.key !== key)
+	const at = others.findIndex((column) => column.key === target)
+	if (at < 0) return columns
+	return [...others.slice(0, at + 1), moved, ...others.slice(at + 1)]
+}
+
 /** Largeur choisie, bornée ; sans largeur, la colonne reprend celle qui est déclarée. */
 export function resizeColumn(columns: ColumnSetting[], key: string, width?: number) {
 	return columns.map((column) => {
@@ -116,15 +126,24 @@ export function layoutSummary(layout: ListLayout, sortLabel: string) {
 }
 
 const widthsKey = (key: string) => `${key}:largeurs`
+const validWidth = (width: unknown): width is number => typeof width === 'number' && Number.isFinite(width) && width >= MIN_COLUMN_WIDTH && width <= MAX_COLUMN_WIDTH
+/** Une copie relue du stockage a pu être abîmée : mieux vaut l'écarter que faire tomber la liste. */
+function isSavedLayout(config: unknown) {
+	const layout = config as Partial<ListLayout> | null | undefined
+	if (config === undefined) return true
+	if (!layout || typeof layout !== 'object' || !Array.isArray(layout.columns)) return false
+	const columnsOk = layout.columns.every((column) => column && typeof column.key === 'string' && (column.width === undefined || validWidth(column.width)))
+	return columnsOk && (layout.conditions === undefined || (Array.isArray(layout.conditions) && layout.conditions.every((condition) => condition && typeof condition === 'object')))
+}
 const activeKey = (key: string) => `${key}:vue`
 
 /** Les retouches de la Vue standard, sur cet appareil. Les colonnes restent un simple tableau de clés, comme avant les vues. */
 export function readStandardColumns(key: string, defaults: string[]): ColumnSetting[] {
 	try {
 		const saved = JSON.parse(localStorage.getItem(key) || 'null')
-		const keys = Array.isArray(saved) ? (saved as string[]) : defaults
-		const widths = JSON.parse(localStorage.getItem(widthsKey(key)) || '{}') as Record<string, number>
-		return keys.map((item) => (widths[item] ? { key: item, width: widths[item] } : { key: item }))
+		const keys = Array.isArray(saved) ? (saved as unknown[]).filter((item): item is string => typeof item === 'string') : defaults
+		const widths = JSON.parse(localStorage.getItem(widthsKey(key)) || '{}') as Record<string, unknown>
+		return keys.map((item) => (validWidth(widths[item]) ? { key: item, width: widths[item] } : { key: item }))
 	} catch {
 		return defaults.map((item) => ({ key: item }))
 	}
@@ -150,7 +169,7 @@ export interface ActiveView {
 export function readActiveView(key: string): ActiveView | null {
 	try {
 		const saved = JSON.parse(localStorage.getItem(activeKey(key)) || 'null')
-		return saved && typeof saved === 'object' ? (saved as ActiveView) : null
+		return saved && typeof saved === 'object' && isSavedLayout(saved.config) ? (saved as ActiveView) : null
 	} catch {
 		return null
 	}

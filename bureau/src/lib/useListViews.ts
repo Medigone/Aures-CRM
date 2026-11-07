@@ -3,7 +3,7 @@ import { computed, ref, type Ref } from 'vue'
 import { deleteListView, getListViews, saveListView, setDefaultListView, type SavedListView } from './api'
 import type { Condition } from './filters'
 import type { Sort } from './list'
-import { cleanLayout, layoutSignature, moveColumnBefore, readActiveView, readStandardColumns, resizeColumn, withColumnKeys, writeActiveView, writeStandardColumns, type ColumnSetting, type ListLayout } from './listViews'
+import { cleanLayout, layoutSignature, moveColumnAfter, moveColumnBefore, readActiveView, readStandardColumns, resizeColumn, withColumnKeys, writeActiveView, writeStandardColumns, type ColumnSetting, type ListLayout } from './listViews'
 
 export interface ListViewsState {
 	view: Ref<string>
@@ -240,6 +240,9 @@ function createSession(options: ListViewsOptions) {
 		setColumnKeys: (keys: string[]) => setColumns(withColumnKeys(columns.value, keys, locked)),
 		setColumns,
 		moveColumn: (key: string, target: string) => setColumns(moveColumnBefore(columns.value, key, target, locked)),
+		moveColumnAfter: (key: string, target: string) => setColumns(moveColumnAfter(columns.value, key, target, locked)),
+		/** Revient aux colonnes de la vue ; le tri et les filtres ne bougent pas. */
+		resetColumns: () => setColumns(baseline.value.columns),
 		resize: (key: string, width?: number) => setColumns(resizeColumn(columns.value, key, width)),
 	}
 }
