@@ -590,7 +590,7 @@ onBeforeUnmount(() => {
 							<ListState v-else-if="!rows.length && searching" title="Aucun résultat" :text="`Aucun ${noun} ne correspond à la recherche et aux filtres.`">
 								<button type="button" class="btn-secondary" @click="clearSearch">Effacer la recherche et les filtres</button>
 							</ListState>
-							<ListState v-else-if="!rows.length" dieline title="Rien dans cette vue" :text="`Les ${noun}s apparaîtront ici dès qu'ils correspondront à cette vue.`" />
+							<ListState v-else-if="!rows.length" dieline title="Rien dans cette vue" :text="`Cette vue se remplira dès que des ${noun}s y correspondront.`" />
 
 							<div v-for="row in rows" :key="row.name" class="list-row" :class="{ 'list-no-check': !selectable, 'list-row-on list-row-created': row.name === created, 'list-row-on': row.name === selected, 'list-row-checked': checked.has(row.name) }">
 								<span class="list-pin-plate" aria-hidden="true"></span>
