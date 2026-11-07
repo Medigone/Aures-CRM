@@ -17,9 +17,12 @@ const label = computed(() => `Feuille ${size.value} millimètres, ${poses.value.
 <template>
 	<figure class="etude-sheet">
 		<svg :viewBox="`0 0 ${dessin.laize} ${dessin.developpement}`" role="img" :aria-label="label">
-			<g v-for="pose in poses" :key="pose" :transform="pose">
-				<path class="etude-sheet-cut" :d="dessin.coupe" />
-				<path v-if="dessin.rainage" class="etude-sheet-crease" :d="dessin.rainage" />
+			<!-- Le moteur compte depuis la pince, en bas de la feuille : comme sur l'atelier, l'axe vertical est retourné. -->
+			<g :transform="`translate(0 ${dessin.developpement}) scale(1 -1)`">
+				<g v-for="pose in poses" :key="pose" :transform="pose">
+					<path class="etude-sheet-cut" :d="dessin.coupe" />
+					<path v-if="dessin.rainage" class="etude-sheet-crease" :d="dessin.rainage" />
+				</g>
 			</g>
 		</svg>
 		<figcaption class="tabular-nums">Feuille {{ size }} mm · {{ dessin.n_col }} × {{ dessin.n_rang }} · pas {{ dimensionsLabel(`${dessin.pas_laize}x${dessin.pas_depl}`) }} mm</figcaption>
