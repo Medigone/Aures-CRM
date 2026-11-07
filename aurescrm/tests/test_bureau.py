@@ -2294,6 +2294,7 @@ class TestAccueil(FrappeTestCase):
 	def test_anciennete(self):
 		buckets = bureau_accueil.age_buckets(["2026-11-06", "2026-10-31", "2026-10-30", "2026-01-01"], "2026-11-07")
 		self.assertEqual([row["count"] for row in buckets], [2, 1, 0, 0, 1])
+		self.assertEqual(buckets[0]["label"], "0–7 j")
 
 	def test_mois_du_graphique(self):
 		months = bureau_accueil.month_keys("2026-11-07")

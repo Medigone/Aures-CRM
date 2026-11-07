@@ -192,7 +192,7 @@ def _row_action(ticket, group):
 	doc = frappe.get_doc(TICKET, ticket.name)
 	if group == "decide":
 		label = _("Décider la créance") if ticket.status == STATUS_BLOCKED else _("Décider l'urgence")
-		return {"kind": "open", "label": label}
+		return {"kind": "decide", "label": label}
 	if group == "transform":
 		state = ticket_demande_state(doc)
 		if state["state"] == "ready":
@@ -483,7 +483,7 @@ def closing_months(versions, closed):
 def age_buckets(creations, current_day):
 	"""La répartition des tickets ouverts selon leur ancienneté."""
 	buckets = [
-		{"label": "7 j", "max": 7, "count": 0},
+		{"label": "0–7 j", "max": 7, "count": 0},
 		{"label": "8–30 j", "max": 30, "count": 0},
 		{"label": "31–90 j", "max": 90, "count": 0},
 		{"label": "91–180 j", "max": 180, "count": 0},

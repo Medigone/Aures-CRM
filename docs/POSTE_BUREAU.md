@@ -6,10 +6,10 @@ Cahier des charges de la V1 et maquette : voir les liens transmis au projet.
 ## Accueil (`/bureau`)
 Tableau de bord du back office, dont la mission est de transformer les requêtes en actions et de garder les données à jour. La liste des tickets est passée à `/bureau/tickets`, et les anciens liens (`/bureau?vue=…`) y sont renvoyés.
 
-- **Flux** : un donut par étape (Tickets, Demandes, Études, Devis, Commandes), le total au centre, les couleurs de statut de chaque document. Au survol ou à l'appui, une part donne son nombre et son statut.
-- **Tendances** : tickets reçus et clos par mois (mois de clôture lu dans l'historique du ticket), ancienneté des tickets ouverts, complétude des fiches. Le masquage est retenu par navigateur.
-- **À transformer en action** : À décider, À prendre en charge, À transformer en document. Le serveur dit quelle action chaque ligne permet ; sinon, elle ouvre la fiche.
-- **Données à mettre à jour** : chaque manque ouvre la liste déjà filtrée (`?filtres=` en JSON, ou `?vue=`), ou le Desk (`↗`).
+- **Flux** : une barre de statuts par étape (Tickets, Demandes, Études, Devis, Commandes), le total à droite, les couleurs de statut de chaque document, et les retards en rouge. Au survol ou à l'appui, une part donne son nombre et son statut.
+- **À transformer en action** : À décider, À prendre en charge, À transformer en document. Le filtre Toute l'équipe / À moi est dans l'en-tête de la file, le seul bloc qu'il touche. Le serveur dit quelle action chaque ligne permet ; sinon, elle ouvre la fiche, avec un bouton discret qui donne sa raison au survol et au clavier.
+- **Données à mettre à jour** : à côté de la file, chaque manque ouvre la liste déjà filtrée (`?filtres=` en JSON, ou `?vue=`), ou le Desk (`↗`).
+- **Tendances** : sous la file : tickets reçus et clos par mois (mois de clôture lu dans l'historique du ticket), ancienneté des tickets ouverts, complétude des fiches. Le masquage est retenu par navigateur.
 
 Règles dans `aurescrm/api/bureau_accueil.py` (seuil « sans mouvement » : `STALE_DAYS`), mise en forme dans `bureau/src/lib/accueil.ts`. Un bloc disparaît pour un rôle qui ne lit pas le document.
 

@@ -2784,13 +2784,14 @@
 	.accueil-scope {
 		display: inline-flex;
 		flex: none;
+		margin-left: auto;
 		gap: 2px;
 		border: 1px solid var(--btn-line);
 		border-radius: var(--radius-action);
 		background-color: var(--btn-bg);
 	}
 	.accueil-scope button {
-		height: var(--ctl);
+		height: calc(var(--ctl) - 0.375rem);
 		padding-inline: 0.75rem;
 		border-radius: var(--radius-action);
 		font-weight: 500;
@@ -2831,77 +2832,94 @@
 	.accueil-flux {
 		display: grid;
 		flex: none;
-		grid-template-columns: repeat(5, minmax(170px, 1fr));
+		grid-template-columns: repeat(5, minmax(206px, 1fr));
 		overflow-x: auto;
 	}
 	.accueil-stage {
+		position: relative;
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		gap: 0.25rem;
+		gap: 0.4375rem;
 		min-width: 0;
-		padding: 0.5rem 0.75rem;
+		padding: 0.6875rem 1.125rem 0.6875rem 1rem;
 		border-right: 1px solid var(--line-soft);
-		text-align: center;
 	}
 	.accueil-stage:last-child {
 		border-right: 0;
 	}
 	.accueil-stage-head {
 		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
+		align-items: baseline;
 		gap: 0.375rem;
-		min-height: 1.375rem;
+		min-height: 1.5625rem;
+		white-space: nowrap;
 	}
-	.accueil-stage-head .text-link {
+	.accueil-stage-head .badge {
+		align-self: center;
+	}
+	.accueil-stage-total {
+		margin-left: auto;
+		font-size: var(--text-page);
 		font-weight: 600;
-	}
-	.accueil-ring {
-		position: relative;
-		width: 56px;
-		height: 56px;
-	}
-	.accueil-ring svg {
-		display: block;
-		width: 56px;
-		height: 56px;
-		transform: rotate(-90deg);
-	}
-	.accueil-ring-part,
-	.accueil-ring-empty {
-		fill: none;
-		stroke-width: 12;
-	}
-	.accueil-ring-part {
-		outline: none;
-		cursor: default;
-	}
-	.accueil-ring-empty {
-		stroke: var(--line-soft);
-	}
-	.accueil-ring-total {
-		position: absolute;
-		inset: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 15px;
-		font-weight: 600;
-		letter-spacing: -0.01em;
-		pointer-events: none;
+		line-height: 1.35;
 		@apply text-ink-gray-9;
+	}
+	/* Chaque part dépasse de la barre fine : une cible plus facile à atteindre. */
+	.accueil-strip {
+		display: flex;
+		gap: 2px;
+		height: 6px;
+	}
+	.accueil-strip-part {
+		display: flex;
+		flex: 1 1 0;
+		align-items: center;
+		min-width: 3px;
+		height: 16px;
+		margin-block: -5px;
+	}
+	.accueil-strip-part::before {
+		content: '';
+		display: block;
+		width: 100%;
+		height: 6px;
+		border-radius: 3px;
+		background-color: var(--part);
+	}
+	.accueil-strip-empty {
+		flex: 1;
+		border-radius: 3px;
+		background-color: var(--line-soft);
+	}
+	@media (pointer: coarse) {
+		.accueil-strip-part {
+			height: 28px;
+			margin-block: -11px;
+		}
 	}
 	.accueil-stage-foot {
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		width: 100%;
-		min-height: 1.75rem;
+		min-height: 1.25rem;
+		@apply text-sm text-ink-gray-6;
+	}
+	.accueil-stage-foot.is-late {
 		font-weight: 500;
-		line-height: 0.875rem;
-		@apply text-xs text-ink-gray-9;
+		color: var(--tone-red-ink);
+	}
+	.accueil-stage-next {
+		position: absolute;
+		z-index: 1;
+		top: 50%;
+		right: -9px;
+		display: grid;
+		place-items: center;
+		width: 17px;
+		height: 17px;
+		margin-top: -8px;
+		border-radius: 50%;
+		background-color: var(--surface-cards);
+		@apply text-ink-gray-5;
 	}
 
 	/* Tendances. */
@@ -3088,7 +3106,7 @@
 		background-color: var(--tone-blue-ink);
 	}
 	.accueil-track-thin {
-		flex: 0 0 72px;
+		flex: 0 0 36px;
 		height: 4px;
 	}
 	.accueil-track-thin i {
@@ -3118,29 +3136,42 @@
 
 	/* La file et les données, côte à côte. */
 	.accueil-columns-main {
-		display: flex;
+		display: grid;
 		flex: none;
-		flex-wrap: wrap;
-		align-items: flex-start;
+		grid-template-columns: minmax(0, 1fr) 360px;
+		align-items: start;
 		gap: 0.625rem;
 	}
+	/* Écran de portable : la file garde assez de place pour ne rien couper, les libellés de droite passent à la ligne. */
+	@media (max-width: 1319px) {
+		.accueil-columns-main {
+			grid-template-columns: minmax(0, 1fr) 320px;
+		}
+		.accueil-gap-doc .accueil-gap-label {
+			padding-block: 0.25rem;
+			white-space: normal;
+		}
+	}
+	@media (max-width: 1180px) {
+		.accueil-columns-main {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
 	.accueil-queue {
-		flex: 62 1 520px;
 		min-width: 0;
+		container-type: inline-size;
 	}
 	.accueil-data {
-		flex: 38 1 340px;
 		min-width: 0;
 		overflow: hidden;
 	}
 	.accueil-card-head {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.75rem 1rem;
-	}
-	.accueil-card-head .accueil-title {
-		flex: 1 1 auto;
+		min-height: 2.75rem;
+		padding: 0.375rem 1rem;
 	}
 	.accueil-count {
 		@apply text-ink-gray-6;
@@ -3149,19 +3180,27 @@
 		display: flex;
 		align-items: center;
 		gap: 0.375rem;
-		padding: 0.375rem 1rem;
+		padding: 0.25rem 1rem;
+		overflow: hidden;
 		border-top: 1px solid var(--line-soft);
 		border-bottom: 1px solid var(--line-soft);
 		background-color: var(--tray);
 	}
 	.accueil-group h3 {
+		@apply text-sm text-ink-gray-9;
 		flex: none;
 		font-weight: 600;
 		white-space: nowrap;
-		@apply text-sm text-ink-gray-8;
+	}
+	.accueil-group-count {
+		@apply text-sm text-ink-gray-9;
+		flex: none;
+		font-weight: 600;
 	}
 	.accueil-group span {
+		overflow: hidden;
 		margin-left: 0.25rem;
+		text-overflow: ellipsis;
 		white-space: nowrap;
 		@apply text-sm text-ink-gray-6;
 	}
@@ -3174,31 +3213,49 @@
 		height: 14px;
 		@apply text-ink-gray-6;
 	}
+	/* Une ligne de la file : colonnes alignées d'une ligne à l'autre, sans rien couper de l'attribution. */
 	.accueil-row {
-		display: flex;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: 2.75rem minmax(0, 1fr) 124px 150px 164px;
 		align-items: center;
 		gap: 0.25rem 0.75rem;
-		min-height: 3.25rem;
-		padding: 0.375rem 1rem;
+		min-height: 2.875rem;
+		padding: 0.1875rem 1rem;
 		border-bottom: 1px solid var(--line-soft);
+	}
+	.accueil-row:hover {
+		background-color: var(--tray);
 	}
 	.accueil-row:last-child {
 		border-bottom: 0;
 	}
+	.accueil-queue > div:last-child .accueil-row:last-child {
+		border-radius: 0 0 var(--radius-card) var(--radius-card);
+	}
 	.accueil-urgence {
-		flex: 0 0 2.75rem;
+		justify-self: start;
 		justify-content: center;
 	}
+	/* U0 ne demande rien : pas de pastille, pour laisser ressortir U1 et U2. */
+	.accueil-urgence-quiet {
+		@apply text-xs text-ink-gray-6;
+		justify-self: center;
+		font-weight: 500;
+	}
 	.accueil-row-main {
-		flex: 1 1 240px;
 		min-width: 0;
 	}
 	.accueil-row-line {
 		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.375rem;
+		align-items: baseline;
+		gap: 0.5rem;
+		min-width: 0;
+		white-space: nowrap;
+	}
+	.accueil-row-line span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		@apply text-ink-gray-8;
 	}
 	.accueil-row-sub {
 		overflow: hidden;
@@ -3206,18 +3263,145 @@
 		white-space: nowrap;
 		@apply text-sm text-ink-gray-6;
 	}
+	.accueil-row-sub.is-late {
+		font-weight: 500;
+		color: var(--tone-red-ink);
+	}
+	.accueil-row-who-inline {
+		display: none;
+	}
+	.accueil-row-who {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-width: 0;
+		@apply text-sm text-ink-gray-7;
+	}
+	.accueil-row-who.is-none {
+		@apply text-ink-gray-6;
+	}
+	.accueil-initials {
+		display: grid;
+		flex: none;
+		place-items: center;
+		width: 1.375rem;
+		height: 1.375rem;
+		border-radius: 50%;
+		@apply text-xs text-ink-gray-8;
+		background-color: var(--surface-gray-2);
+		font-weight: 600;
+		letter-spacing: -0.02em;
+	}
+	.accueil-row-who.is-none .accueil-initials {
+		border: 1px dashed var(--control-border);
+		background-color: transparent;
+	}
 	.accueil-row-state {
 		display: flex;
-		flex: 0 0 150px;
 		flex-direction: column;
 		align-items: flex-start;
 		gap: 0.125rem;
 		min-width: 0;
+		max-width: 100%;
 	}
+	.accueil-row-state .accueil-row-sub {
+		max-width: 100%;
+	}
+	/* Les actions forment une colonne : même largeur, icônes et libellés alignés, chevron à droite pour un menu. */
 	.accueil-row-action {
+		position: relative;
 		display: flex;
-		flex: 0 0 150px;
-		justify-content: flex-end;
+		min-width: 0;
+	}
+	.accueil-row-action > div {
+		flex: 1 1 auto;
+	}
+	.accueil-action,
+	.accueil-row-action .header-menu-btn {
+		justify-content: flex-start;
+		width: 100%;
+		max-width: none;
+		padding-inline: 0.75rem;
+	}
+	.accueil-row-action .header-menu-btn > svg:last-child {
+		margin-left: auto;
+	}
+	.accueil-action-quiet {
+		border: 1px solid transparent;
+		font-weight: 500;
+		@apply text-ink-gray-7;
+	}
+	.accueil-action-quiet:hover,
+	.accueil-action-quiet:active {
+		background-color: var(--btn-hover);
+		@apply text-ink-gray-9;
+	}
+	.accueil-tip {
+		position: absolute;
+		z-index: 3;
+		right: 0;
+		bottom: calc(100% + 6px);
+		display: none;
+		width: 272px;
+		padding: 0.5rem 0.625rem;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: var(--radius-control);
+		background-color: var(--surface-modal);
+		box-shadow: var(--shadow-overlay);
+		@apply text-sm text-ink-gray-8;
+	}
+	.accueil-row-action:hover .accueil-tip,
+	.accueil-row-action:focus-within .accueil-tip {
+		display: block;
+	}
+	/* File étroite : l'attribution se réduit aux initiales, puis l'état passe sous le ticket, puis tout s'empile. */
+	@container (max-width: 760px) {
+		.accueil-row {
+			grid-template-columns: 2.75rem minmax(0, 1fr) 1.375rem 150px 164px;
+			column-gap: 0.5rem;
+		}
+		.accueil-row-who .truncate {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+		}
+	}
+	@container (max-width: 600px) {
+		.accueil-row {
+			grid-template-columns: 2.75rem minmax(0, 1fr) 1.375rem 164px;
+		}
+		.accueil-row-state {
+			grid-column: 2;
+			grid-row: 2;
+		}
+		.accueil-row-who {
+			grid-column: 3;
+			grid-row: 1 / span 2;
+		}
+		.accueil-row-action {
+			grid-column: 4;
+			grid-row: 1 / span 2;
+		}
+	}
+	@container (max-width: 460px) {
+		.accueil-row {
+			grid-template-columns: 2.75rem minmax(0, 1fr);
+		}
+		.accueil-row-who {
+			display: none;
+		}
+		.accueil-row-who-inline {
+			display: inline;
+		}
+		.accueil-row-main .accueil-row-sub {
+			white-space: normal;
+		}
+		.accueil-row-action {
+			grid-column: 2;
+			grid-row: 3;
+		}
 	}
 	.accueil-more {
 		display: block;
@@ -3232,7 +3416,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.625rem;
-		min-height: 2rem;
+		min-height: 1.75rem;
 		padding-inline: 1rem;
 		border-bottom: 1px solid var(--line-soft);
 	}
@@ -3257,8 +3441,11 @@
 		white-space: nowrap;
 		@apply text-ink-gray-9;
 	}
+	.accueil-gap-doc .accueil-gap-count {
+		flex-basis: 24px;
+	}
 	.accueil-gap-ticket {
-		min-height: 3.25rem;
+		min-height: 2.75rem;
 	}
 	.accueil-gap-text {
 		display: flex;

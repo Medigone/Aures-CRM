@@ -3,7 +3,7 @@ import { statusDisplay, statusTone } from '@shared/status'
 import { conditionsQuery, type Condition } from './filters'
 
 export type AccueilScope = 'team' | 'mine'
-export type RowActionKind = 'open' | 'run' | 'assign' | 'demande'
+export type RowActionKind = 'open' | 'run' | 'assign' | 'demande' | 'decide'
 export type QueueGroupKey = 'decide' | 'take' | 'transform'
 
 export interface StagePart {
@@ -102,47 +102,18 @@ export function partPill(part: Pick<StagePart, 'status'>) {
 	return { label: statusDisplay(part.status), tone: statusTone(statusDisplay(part.status)).replace('tone-', '') as StatusToneName }
 }
 
-/** La couleur de l'anneau. L'orange a sa propre nuance de marque ; les autres reprennent l'encre de la pastille. */
+/** La couleur d'une part. L'orange a sa propre nuance de marque ; les autres reprennent l'encre de la pastille. */
 export function partColor(part: Pick<StagePart, 'status'>) {
 	const { tone } = partPill(part)
 	return tone === 'orange' ? 'var(--tone-orange-bar)' : `var(--tone-${tone}-ink)`
 }
 
-const RING_RADIUS = 34
-const RING_GAP = 2
-
-export interface RingSegment extends StagePart {
-	color: string
-	dash: string
-	offset: string
-}
-
-/** Les parts d'un anneau, séparées par un petit espace. Une part seule en fait le tour complet. */
-export function ringSegments(parts: StagePart[]): RingSegment[] {
-	const total = parts.reduce((sum, part) => sum + part.count, 0)
-	if (!total) return []
-	const circle = 2 * Math.PI * RING_RADIUS
-	const gap = parts.length > 1 ? RING_GAP : 0
-	let done = 0
-	return parts.map((part) => {
-		const length = (part.count / total) * circle
-		const segment = {
-			...part,
-			color: partColor(part),
-			dash: `${Math.max(length - gap, 1).toFixed(2)} ${circle.toFixed(2)}`,
-			offset: (-done).toFixed(2),
-		}
-		done += length
-		return segment
-	})
-}
-
 const plural = (count: number, one: string, many: string) => `${count} ${count > 1 ? many : one}`
 
-/** Le commentaire sous un donut : ce qui mérite un regard dans cette étape. */
+/** Le commentaire sous une étape : ce qui mérite un regard. */
 export function stageComment(stage: Pick<AccueilStage, 'key' | 'late' | 'stale'>, staleDays: number) {
 	if (stage.key === 'devis') return stage.late ? plural(stage.late, 'périmé', 'périmés') : 'Aucun devis périmé'
-	if (stage.key === 'commandes') return stage.late ? `${stage.late} date de livraison dépassée` : 'Aucune livraison en retard'
+	if (stage.key === 'commandes') return stage.late ? plural(stage.late, 'date de livraison dépassée', 'dates de livraison dépassées') : 'Aucune livraison en retard'
 	return stage.stale ? `${stage.stale} sans mouvement depuis ${staleDays} j` : 'Tout a bougé récemment'
 }
 

@@ -36,7 +36,7 @@ const accueil = (overrides = {}) => ({
 	],
 	trends: {
 		months: [{ month: '2026-10', received: 2, closed: 1 }, { month: '2026-11', received: 3, closed: 0 }],
-		ages: [{ label: '7 j', count: 1 }],
+		ages: [{ label: '0–7 j', count: 1 }],
 		completeness: { clients: { filled: 10, expected: 100, percent: 10 }, articles: null },
 	},
 	queue: [
@@ -100,11 +100,12 @@ describe('accueil du poste', () => {
 		wrapper.unmount()
 	})
 
-	it('affiche un donut par étape, le total au centre, sans légende', async () => {
+	it('affiche une barre par étape avec son total, sans légende', async () => {
 		const { wrapper } = await open()
 		const stages = wrapper.findAll('.accueil-stage')
 		expect(stages).toHaveLength(2)
-		expect(stages[0].find('.accueil-ring-total').text()).toBe('17')
+		expect(stages[0].find('.accueil-stage-total').text()).toBe('17')
+		expect(stages[0].findAll('.accueil-strip-part')).toHaveLength(2)
 		expect(stages[0].findAll('.badge')).toHaveLength(0)
 		expect(stages[0].text()).toContain('5 sans mouvement depuis 7 j')
 		expect(stages[1].text()).toContain('Chez un tiers')
@@ -114,13 +115,47 @@ describe('accueil du poste', () => {
 	it('donne le nombre et le statut au survol, puis revient au total', async () => {
 		const { wrapper } = await open()
 		const stage = wrapper.findAll('.accueil-stage')[0]
-		await stage.findAll('.accueil-ring-part')[1].trigger('mouseenter')
-		expect(stage.find('.accueil-ring-total').text()).toBe('13')
+		await stage.findAll('.accueil-strip-part')[1].trigger('mouseenter')
+		expect(stage.find('.accueil-stage-total').text()).toBe('13')
 		expect(stage.find('.badge').text()).toBe('En Cours')
 		expect(stage.find('.badge').classes()).toContain('tone-orange')
 		expect(stage.text()).not.toContain('sans mouvement')
-		await stage.findAll('.accueil-ring-part')[1].trigger('mouseleave')
-		expect(stage.find('.accueil-ring-total').text()).toBe('17')
+		await stage.findAll('.accueil-strip-part')[1].trigger('mouseleave')
+		expect(stage.find('.accueil-stage-total').text()).toBe('17')
+		wrapper.unmount()
+	})
+
+	it('met un retard en rouge, sauf pendant le survol', async () => {
+		current = accueil({ stages: [{ key: 'devis', label: 'Devis', to: null, href: '/app/quotation', third_party: false, late: 2, parts: [{ status: 'Draft', count: 4 }], total: 4, stale: 4 }] })
+		const { wrapper } = await open()
+		expect(wrapper.find('.accueil-stage-foot').classes()).toContain('is-late')
+		await wrapper.find('.accueil-strip-part').trigger('mouseenter')
+		expect(wrapper.find('.accueil-stage-foot').classes()).not.toContain('is-late')
+		wrapper.unmount()
+	})
+
+	it('garde les tendances sous la file', async () => {
+		const { wrapper } = await open()
+		const order = [...wrapper.find('.accueil').element.children].map((element) => element.className)
+		expect(order.findIndex((name) => name.includes('accueil-columns-main'))).toBeLessThan(order.findIndex((name) => name.includes('accueil-trends')))
+		wrapper.unmount()
+	})
+
+	it("ne met une pastille d'urgence qu'à partir de U1, et montre qui a le ticket", async () => {
+		current = accueil({ queue: [{ key: 'take', total: 2, rows: [row('TC-1', 'run', 'Démarrer', { assigne_a: 'a@b', assigne_a_nom: 'Amine Melizi' }), row('TC-2', 'run', 'Démarrer', { urgence: 'U2' })] }] })
+		const { wrapper } = await open()
+		const rows = wrapper.findAll('.accueil-row')
+		expect(rows[0].find('.urgence').exists()).toBe(false)
+		expect(rows[0].find('.accueil-urgence-quiet').text()).toBe('U0')
+		expect(rows[0].find('.accueil-row-who').text()).toContain('Amine Melizi')
+		expect(rows[1].find('.urgence-U2').exists()).toBe(true)
+		expect(rows[1].find('.accueil-row-who').text()).toContain('Non attribué')
+		wrapper.unmount()
+	})
+
+	it('compte les lignes de chaque groupe', async () => {
+		const { wrapper } = await open()
+		expect(wrapper.find('.accueil-group-count').text()).toBe('2')
 		wrapper.unmount()
 	})
 
@@ -146,10 +181,32 @@ describe('accueil du poste', () => {
 
 	it('ouvre la fiche quand le serveur ne permet aucune action directe', async () => {
 		const { wrapper, router } = await open()
+		// La fiche elle-même n'est pas chargée : seul le chemin compte ici.
+		const push = vi.spyOn(router, 'push').mockResolvedValue(undefined)
 		await wrapper.findAll('.accueil-row-action button')[1].trigger('click')
-		await flushPromises()
-		expect(router.currentRoute.value.name).toBe('Ticket')
-		expect(router.currentRoute.value.params.id).toBe('TC-2')
+		expect(push).toHaveBeenCalledWith({ name: 'Ticket', params: { id: 'TC-2' } })
+		wrapper.unmount()
+	})
+
+	it('ouvre la fiche pour décider, avec un vrai bouton et non le bouton discret', async () => {
+		current = accueil({ queue: [{ key: 'decide', total: 1, rows: [row('TC-3', 'decide', 'Décider la créance')] }] })
+		const { wrapper, router } = await open()
+		const button = wrapper.find('.accueil-row-action button')
+		expect(button.classes()).toContain('btn-secondary')
+		const push = vi.spyOn(router, 'push').mockResolvedValue(undefined)
+		await button.trigger('click')
+		expect(push).toHaveBeenCalledWith({ name: 'Ticket', params: { id: 'TC-3' } })
+		wrapper.unmount()
+	})
+
+	it('relie au bouton discret la raison qui empêche une action directe', async () => {
+		current = accueil({ queue: [{ key: 'transform', total: 1, rows: [row('TC-4', 'open', 'Ouvrir', { action: { kind: 'open', label: 'Ouvrir', reason: 'Renseignez le site.' } })] }] })
+		const { wrapper } = await open()
+		const button = wrapper.find('.accueil-action-quiet')
+		const tip = wrapper.find('.accueil-tip')
+		expect(tip.text()).toBe('Renseignez le site.')
+		expect(button.attributes('aria-describedby')).toBe(tip.attributes('id'))
+		expect(button.attributes('title')).toBeUndefined()
 		wrapper.unmount()
 	})
 

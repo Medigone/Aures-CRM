@@ -29,7 +29,7 @@ const documentRoute = (row: DocumentGap) => ({ ...row.to!, query: row.conditions
 			<RouterLink v-for="row in data.updates.rows" :key="row.name" class="accueil-gap accueil-gap-ticket" :to="{ name: 'Ticket', params: { id: row.name } }">
 				<span class="accueil-gap-text">
 					<b class="tabular-nums">{{ row.name }}</b>
-					<small>Mise à jour données · {{ row.client }}</small>
+					<small :title="`Mise à jour données · ${row.client}`">Mise à jour données · {{ row.client }}</small>
 				</span>
 				<TicketStatus :status="row.status" />
 			</RouterLink>
@@ -67,11 +67,11 @@ const documentRoute = (row: DocumentGap) => ({ ...row.to!, query: row.conditions
 				<h3>Documents à remettre à jour</h3>
 			</div>
 			<template v-for="row in data.documents" :key="row.key">
-				<RouterLink v-if="row.to" class="accueil-gap" :to="documentRoute(row)">
+				<RouterLink v-if="row.to" class="accueil-gap accueil-gap-doc" :to="documentRoute(row)">
 					<span class="accueil-gap-label">{{ row.label }}</span>
 					<b class="accueil-gap-count tabular-nums">{{ row.count }}</b>
 				</RouterLink>
-				<a v-else class="accueil-gap" :href="row.href" target="_blank" rel="noopener noreferrer">
+				<a v-else class="accueil-gap accueil-gap-doc" :href="row.href" target="_blank" rel="noopener noreferrer">
 					<span class="accueil-gap-label">{{ row.label }} ↗</span>
 					<b class="accueil-gap-count tabular-nums">{{ row.count }}</b>
 				</a>

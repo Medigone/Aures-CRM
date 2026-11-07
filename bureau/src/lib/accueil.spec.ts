@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chartMax, chartTicks, gapRoute, monthLong, monthShort, partColor, partPill, ringSegments, stageComment, waitLabel } from './accueil'
+import { chartMax, chartTicks, gapRoute, monthLong, monthShort, partColor, partPill, stageComment, waitLabel } from './accueil'
 import { conditionsFromQuery } from './filters'
 
 describe('couleurs des parts', () => {
@@ -21,28 +21,7 @@ describe('couleurs des parts', () => {
 	})
 })
 
-describe('anneau', () => {
-	it('fait le tour complet avec une seule part, sans espace', () => {
-		const [only] = ringSegments([{ status: 'En étude', count: 13 }])
-		expect(only.dash).toBe('213.63 213.63')
-		expect(only.offset).toBe('0.00')
-	})
-
-	it('répartit les parts à la suite, en laissant un espace', () => {
-		const [first, second] = ringSegments([
-			{ status: 'Draft', count: 1 },
-			{ status: 'Open', count: 1 },
-		])
-		expect(first.dash).toBe('104.81 213.63')
-		expect(second.offset).toBe('-106.81')
-	})
-
-	it('ne dessine rien sans document', () => {
-		expect(ringSegments([])).toEqual([])
-	})
-})
-
-describe('commentaire sous le donut', () => {
+describe("commentaire sous l'étape", () => {
 	it('dit ce qui ne bouge plus', () => {
 		expect(stageComment({ key: 'tickets', stale: 17, late: 0 }, 7)).toBe('17 sans mouvement depuis 7 j')
 		expect(stageComment({ key: 'tickets', stale: 0, late: 0 }, 7)).toBe('Tout a bougé récemment')
@@ -51,7 +30,8 @@ describe('commentaire sous le donut', () => {
 	it('parle de péremption pour un devis et de livraison pour une commande', () => {
 		expect(stageComment({ key: 'devis', stale: 4, late: 2 }, 7)).toBe('2 périmés')
 		expect(stageComment({ key: 'devis', stale: 4, late: 1 }, 7)).toBe('1 périmé')
-		expect(stageComment({ key: 'commandes', stale: 4, late: 37 }, 7)).toBe('37 date de livraison dépassée')
+		expect(stageComment({ key: 'commandes', stale: 4, late: 37 }, 7)).toBe('37 dates de livraison dépassées')
+		expect(stageComment({ key: 'commandes', stale: 4, late: 1 }, 7)).toBe('1 date de livraison dépassée')
 	})
 })
 

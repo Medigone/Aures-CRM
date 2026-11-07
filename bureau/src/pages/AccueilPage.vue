@@ -120,10 +120,6 @@ onBeforeUnmount(closeRealtime)
 					<h1>Accueil</h1>
 					<span>{{ todayLabel }}</span>
 				</div>
-				<div class="accueil-scope" role="group" aria-label="Périmètre de la file">
-					<button type="button" :class="scope === 'team' && 'is-on'" :aria-pressed="scope === 'team'" @click="scope = 'team'">Toute l'équipe</button>
-					<button type="button" :class="scope === 'mine' && 'is-on'" :aria-pressed="scope === 'mine'" @click="scope = 'mine'">À moi</button>
-				</div>
 				<button type="button" class="btn-primary" @click="shell?.startCreating('ticket')"><LucidePlus class="h-4 w-4" aria-hidden="true" />Nouveau ticket</button>
 			</div>
 
@@ -133,11 +129,11 @@ onBeforeUnmount(closeRealtime)
 				<p v-if="error" class="rounded-control tone-red px-3.5 py-2.5" role="alert">{{ error }}</p>
 				<p v-if="actionError" class="rounded-control tone-red px-3.5 py-2.5" role="alert">{{ actionError }}</p>
 				<AccueilFlux :stages="data.stages" :stale-days="data.stale_days" />
-				<AccueilTrends v-if="data.trends" :trends="data.trends" />
 				<div class="accueil-columns-main">
-					<AccueilQueue :groups="data.queue" :assignees="assignees" :busy="busy" :max-rows="data.max_rows" @run="onRun" @assign="onAssign" @demande="(row) => (creatingFrom = row.name)" @open="openTicket" />
+					<AccueilQueue v-model:scope="scope" :groups="data.queue" :assignees="assignees" :busy="busy" :max-rows="data.max_rows" @run="onRun" @assign="onAssign" @demande="(row) => (creatingFrom = row.name)" @open="openTicket" />
 					<AccueilData :data="data" />
 				</div>
+				<AccueilTrends v-if="data.trends" :trends="data.trends" />
 			</template>
 		</div>
 		<DemandeDialog v-if="creatingFrom" :ticket="creatingFrom" @close="creatingFrom = ''" @created="onDemandeCreated" />
