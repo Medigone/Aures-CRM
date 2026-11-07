@@ -6,7 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from aurescrm.api import bureau, bureau_clients, bureau_demandes, bureau_etudes, bureau_postes
+from aurescrm.api import bureau, bureau_clients, bureau_demandes, bureau_etudes, bureau_etudes_accueil, bureau_postes
 
 
 class TestPostes(FrappeTestCase):
@@ -23,19 +23,18 @@ class TestPostes(FrappeTestCase):
 			self.assertEqual(self._keys(role), ["back_office"])
 
 	def test_acces_complet_voit_les_postes_ouverts(self):
-		self.assertEqual(self._keys("System Manager"), ["back_office"])
-
-	def test_poste_ferme_n_ouvre_pas_le_bureau(self):
-		self.assertEqual(self._keys("Chargé Étude Faisabilité"), [])
-		with patch("frappe.get_roles", return_value=["Chargé Étude Faisabilité"]):
-			self.assertFalse(bureau.can_access_bureau("x@example.com"))
+		self.assertEqual(self._keys("System Manager"), ["back_office", "etude"])
 
 	def test_poste_ouvert_compte_ses_roles(self):
-		etude = {**bureau_postes.POSTES["etude"], "ouvert": True}
+		self.assertEqual(self._keys("Étude Flexo"), ["etude"])
+		self.assertEqual(self._keys("Administrateur Ventes", "Étude Flexo"), ["back_office", "etude"])
+		with patch("frappe.get_roles", return_value=["Chargé Étude Faisabilité"]):
+			self.assertTrue(bureau.can_access_bureau("x@example.com"))
+
+	def test_poste_ferme_ne_compte_pas(self):
+		etude = {**bureau_postes.POSTES["etude"], "ouvert": False}
 		with patch.dict(bureau_postes.POSTES, {"etude": etude}):
-			self.assertEqual(self._keys("Étude Flexo"), ["etude"])
-			self.assertEqual(self._keys("Administrateur Ventes", "Étude Flexo"), ["back_office", "etude"])
-			self.assertEqual(self._keys("System Manager"), ["back_office", "etude"])
+			self.assertEqual(self._keys("Étude Flexo"), [])
 
 	def test_droits_de_l_administrateur(self):
 		droits = bureau_postes.get_droits("Administrator")
@@ -115,3 +114,39 @@ class TestEtudes(FrappeTestCase):
 	def test_sans_droit_pas_de_liste(self):
 		with patch.object(bureau_etudes, "readable_doctypes", return_value=[]), self.assertRaises(frappe.PermissionError):
 			bureau_etudes.get_etudes()
+
+
+class TestAccueilEtude(FrappeTestCase):
+	def _transition(self, state, action, allowed, condition=None):
+		return frappe._dict(state=state, action=action, allowed=allowed, condition=condition)
+
+	def test_conclure_exige_la_condition_du_workflow(self):
+		transitions = [self._transition("En étude", "Réalisable", "R", "doc.trace and doc.imposition and doc.taux_chutes > 0")]
+		self.assertEqual(bureau_etudes_accueil.required_fields(bureau_etudes.OFFSET, transitions), ["trace", "imposition", "taux_chutes"])
+
+	def test_sans_condition_toutes_les_pieces_comptent(self):
+		self.assertEqual(bureau_etudes_accueil.required_fields(bureau_etudes.FLEXO, []), ["trace", "cliche"])
+
+	def test_groupes_de_la_file(self):
+		group = bureau_etudes_accueil.queue_group
+		self.assertEqual(group("Nouveau", "U3", ["trace"]), "urgent")
+		self.assertEqual(group("Nouveau", "U0", ["trace"]), "start")
+		self.assertEqual(group("En étude", "U1", ["trace"]), "missing")
+		self.assertEqual(group("En étude", "U1", []), "ready")
+
+	def test_action_selon_le_role(self):
+		action = bureau_etudes_accueil.row_action
+		responsable = {("En étude", "Réalisable")}
+		self.assertEqual(action("Nouveau", [], {("Nouveau", "Démarrer")}, True)["kind"], "run")
+		self.assertEqual(action("Nouveau", [], set(), True)["kind"], "open")
+		self.assertEqual(action("En étude", [], responsable, True)["label"], "Conclure")
+		self.assertEqual(action("En étude", [], set(), True)["label"], "Ouvrir")
+		self.assertEqual(action("En étude", ["trace"], responsable, True)["label"], "Compléter")
+		self.assertEqual(action("En étude", ["trace"], set(), False)["label"], "Ouvrir")
+
+	def test_accueil_limite_aux_documents_lisibles(self):
+		with patch.object(bureau_etudes, "readable_doctypes", return_value=[bureau_etudes.FLEXO]), patch.object(bureau_etudes_accueil, "readable_doctypes", return_value=[bureau_etudes.FLEXO]):
+			response = bureau_etudes_accueil.get_etude_accueil()
+		self.assertEqual([stage["key"] for stage in response["stages"]], ["etudes_flexo"])
+		self.assertEqual({row["doctype"] for group in response["queue"] for row in group["rows"]} - {bureau_etudes.FLEXO}, set())
+		self.assertFalse(response["both"])

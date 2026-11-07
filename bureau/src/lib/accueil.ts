@@ -112,6 +112,7 @@ const plural = (count: number, one: string, many: string) => `${count} ${count >
 
 /** Le commentaire sous une étape : ce qui mérite un regard. */
 export function stageComment(stage: Pick<AccueilStage, 'key' | 'late' | 'stale'>, staleDays: number) {
+	if (stage.key.startsWith('etudes_')) return stage.late ? plural(stage.late, 'échéance dépassée', 'échéances dépassées') : 'Aucune échéance dépassée'
 	if (stage.key === 'devis') return stage.late ? plural(stage.late, 'périmé', 'périmés') : 'Aucun devis périmé'
 	if (stage.key === 'commandes') return stage.late ? plural(stage.late, 'date de livraison dépassée', 'dates de livraison dépassées') : 'Aucune livraison en retard'
 	return stage.stale ? `${stage.stale} sans mouvement depuis ${staleDays} j` : 'Tout a bougé récemment'
@@ -124,7 +125,7 @@ function day(value: string) {
 
 /** Ce que la ligne attend : l'échéance si elle existe, sinon depuis quand rien n'a bougé. */
 export function waitLabel(row: Pick<AccueilRow, 'status' | 'echeance' | 'is_late' | 'idle_days'>) {
-	if (row.echeance) return `échéance ${day(row.echeance)}${row.is_late ? ' dépassée' : ''}`
+	if (row.echeance) return row.is_late ? `dépassée le ${day(row.echeance)}` : `échéance ${day(row.echeance)}`
 	if (row.status === 'Pending') return `en pause depuis ${row.idle_days} j`
 	if (row.status === 'Nouveau') return `attend depuis ${row.idle_days} j`
 	return `immobile depuis ${row.idle_days} j`

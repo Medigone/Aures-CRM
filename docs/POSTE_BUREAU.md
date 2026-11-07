@@ -7,7 +7,7 @@ Application de bureau pour les équipes internes, à côté du Desk. Le premier 
 Une seule application, plusieurs postes. Un poste choisit le menu, l'accueil et les vues par défaut, et n'accorde aucun droit : la sécurité reste celle de Frappe.
 
 - **Déclaration** : rôles et état dans `POSTES` (`aurescrm/api/bureau_postes.py`), menu dans `bureau/src/lib/postes.ts`. `BUREAU_ROLES` en découle : seuls les postes ouverts donnent accès au bureau.
-- **État** : Back office ouvert. Étude (Chargé et Responsable Étude Faisabilité, Étude Flexo) déclaré et fermé jusqu'à l'ouverture à l'équipe. Prépresse viendra ensuite, pour les études techniques.
+- **État** : Back office et Étude (Chargé et Responsable Étude Faisabilité, Étude Flexo) ouverts. Prépresse viendra ensuite, pour les études techniques.
 - **Offset et Flexo** : même poste, mais chaque équipe ne voit que ses études. La séparation vient des droits sur les deux documents, jamais d'une condition sur le procédé dans les pages. Le back office voit les deux.
 - **Droits à l'écran** : le chargement de la page fournit `postes` et `droits` (lecture et création par document). Le menu et la palette retirent ce que le rôle ne peut pas lire ou créer.
 - **Page refusée** : une route déclare son document (`meta.doctype`). Sans droit de lecture, la page l'indique dans la coquille et garde son adresse.
@@ -25,6 +25,14 @@ Tableau de bord du back office, dont la mission est de transformer les requêtes
 - **Tendances** : sous la file : tickets reçus et clos par mois (mois de clôture lu dans l'historique du ticket), ancienneté des tickets ouverts, complétude des fiches. Le masquage est retenu par navigateur.
 
 Règles dans `aurescrm/api/bureau_accueil.py` (seuil « sans mouvement » : `STALE_DAYS`), mise en forme dans `bureau/src/lib/accueil.ts`. Un bloc disparaît pour un rôle qui ne lit pas le document.
+
+## Accueil du poste Étude
+
+- **Même adresse** : `/bureau` montre l'accueil du poste actif (`pages/HomePage.vue`). Serveur : `api/bureau_etudes_accueil.py`.
+- **Barre** : une part par statut, pour chaque document lisible (Offset, Flexo ou les deux), avec les échéances dépassées.
+- **File** : études ouvertes par urgence puis échéance, en quatre groupes : Urgentes (U3), Prêtes à conclure, À démarrer, Pièces manquantes. « Prête » suit la condition du workflow pour Réalisable, ou à défaut toutes les pièces de l'étude. Un rôle qui ne conclut pas lit « Prêtes, en attente du responsable ».
+- **Boutons** : Démarrer agit sur place. Conclure et Compléter ouvrent la fiche, où la confirmation et les pièces se trouvent.
+- **À surveiller** : études ouvertes, échéances dépassées, attribuées, et le manque de chaque pièce. Chaque ligne ouvre la liste filtrée, sauf un champ absent du premier document lisible.
 
 ## Lot 1 (livré) : lecture
 - **Liste de travail** : recherche, filtres combinables, choix de la vue avec ses compteurs dans le panneau Filtres, tri par urgence puis échéance.

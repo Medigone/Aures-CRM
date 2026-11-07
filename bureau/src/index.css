@@ -3006,6 +3006,9 @@
 		grid-template-columns: repeat(5, minmax(206px, 1fr));
 		overflow-x: auto;
 	}
+	.accueil-flux-free {
+		grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+	}
 	.accueil-stage {
 		position: relative;
 		display: flex;
@@ -3077,6 +3080,35 @@
 	.accueil-stage-foot.is-late {
 		font-weight: 500;
 		color: var(--tone-red-ink);
+	}
+	.accueil-flux-free .accueil-stage-foot {
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 0.25rem 1rem;
+	}
+	.accueil-stage-legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.875rem;
+		margin: 0;
+		padding: 0;
+		font-weight: 400;
+		list-style: none;
+		@apply text-ink-gray-6;
+	}
+	.accueil-stage-legend li {
+		display: flex;
+		align-items: center;
+		gap: 0.3125rem;
+	}
+	.accueil-stage-legend i {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+	}
+	.accueil-stage-legend b {
+		font-weight: 600;
+		@apply text-ink-gray-8;
 	}
 	.accueil-stage-next {
 		position: absolute;
@@ -3611,6 +3643,9 @@
 		text-align: right;
 		white-space: nowrap;
 		@apply text-ink-gray-9;
+	}
+	.accueil-gap-count.is-late {
+		color: var(--tone-red-ink);
 	}
 	.accueil-gap-doc .accueil-gap-count {
 		flex-basis: 24px;

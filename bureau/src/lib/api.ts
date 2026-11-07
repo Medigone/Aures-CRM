@@ -1,5 +1,6 @@
 /** File, tickets et actions. Les règles restent côté serveur (aurescrm/api/bureau.py). */
 import type { AccueilData, AccueilScope } from './accueil'
+import type { EtudeAccueilData } from './accueilEtude'
 import type { DuplicateKeep } from './articleDuplicate'
 import type { ListLayout } from './listViews'
 import type { ActivityApi, ActivityFeedData, Mention } from '@shared/activity'
@@ -323,11 +324,13 @@ export const getEtudes = (view: EtudeView, conditions: Condition[], search: stri
 		direction: paging.direction,
 	})
 
+export const getEtudeAccueil = (scope: AccueilScope) => call<EtudeAccueilData>('aurescrm.api.bureau_etudes_accueil.get_etude_accueil', { scope })
+
 export const getEtude = (name: string) => call<EtudeDetail>(`${ETUDES}.get_etude`, { name })
 
 export const getEtudeOptions = () => call<EtudeOptions>(`${ETUDES}.get_etude_options`)
 
-export const runEtudeAction = (etude: EtudeDetail, action: string) => call<EtudeDetail>(`${ETUDES}.run_etude_action`, { name: etude.name, modified: etude.modified, action }, true)
+export const runEtudeAction = (etude: Pick<EtudeDetail, 'name' | 'modified'>, action: string) => call<EtudeDetail>(`${ETUDES}.run_etude_action`, { name: etude.name, modified: etude.modified, action }, true)
 
 export const setEtudeAssignee = (etude: EtudeDetail, user: string) => call<EtudeDetail>(`${ETUDES}.set_etude_assignee`, { name: etude.name, modified: etude.modified, user }, true)
 

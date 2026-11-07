@@ -19,7 +19,7 @@ POSTES = {
 	"etude": {
 		"label": "Étude",
 		"roles": {"Chargé Étude Faisabilité", "Responsable Étude Faisabilité", "Étude Flexo"},
-		"ouvert": False,
+		"ouvert": True,
 	},
 }
 ACCES_COMPLET = {"Administrator", "System Manager"}

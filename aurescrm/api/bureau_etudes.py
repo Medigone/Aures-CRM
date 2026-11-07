@@ -164,10 +164,10 @@ def _filters_for(filters, doctype):
 	return translated
 
 
-def _fetch(doctype, filters):
+def _fetch(doctype, filters, extra=()):
 	# Tant que la migration n'a pas créé l'attribution, la liste reste utilisable sans elle.
 	meta = frappe.get_meta(doctype)
-	wanted = dict.fromkeys([*COMMON_FIELDS, *(key for key, _label, _target in PIECES[doctype])])
+	wanted = dict.fromkeys([*COMMON_FIELDS, *(key for key, _label, _target in PIECES[doctype]), *extra])
 	fields = [field for field in wanted if not field.startswith("assigne_a") or meta.has_field(field)]
 	return frappe.get_list(doctype, filters=filters, distinct=has_child_filter(filters, doctype), fields=fields, limit_page_length=0)
 

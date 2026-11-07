@@ -40,7 +40,7 @@ describe('attente d\'une ligne', () => {
 
 	it("préfère l'échéance", () => {
 		expect(waitLabel({ ...row, echeance: '2026-11-08' })).toBe('échéance 08/11')
-		expect(waitLabel({ ...row, echeance: '2026-04-09', is_late: true })).toBe('échéance 09/04 dépassée')
+		expect(waitLabel({ ...row, echeance: '2026-04-09', is_late: true })).toBe('dépassée le 09/04')
 	})
 
 	it('adapte le mot au statut', () => {

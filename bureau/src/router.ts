@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
-import AccueilPage from './pages/AccueilPage.vue'
 import ArticlesPage from './pages/ArticlesPage.vue'
 import BureauPage from './pages/BureauPage.vue'
 import ClientsPage from './pages/ClientsPage.vue'
 import DemandesPage from './pages/DemandesPage.vue'
 import EtudesPage from './pages/EtudesPage.vue'
+import HomePage from './pages/HomePage.vue'
 import LoginPage from './pages/LoginPage.vue'
 
 export const routes = [
@@ -13,7 +13,7 @@ export const routes = [
 	{
 		path: '/',
 		name: 'Home',
-		component: AccueilPage,
+		component: HomePage,
 		// La liste des tickets était à la racine : un ancien lien garde sa vue et son aperçu.
 		beforeEnter: (to: RouteLocationNormalized) => (to.query.vue || to.query.apercu || to.query.page ? { name: 'Tickets', query: to.query } : true),
 	},
