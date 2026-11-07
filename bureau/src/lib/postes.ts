@@ -4,7 +4,7 @@ import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideClipboardCheck from '~icons/lucide/clipboard-check'
 import LucideClipboardList from '~icons/lucide/clipboard-list'
 import LucideFileText from '~icons/lucide/file-text'
-import LucideFactory from '~icons/lucide/factory'
+import LucidePrinter from '~icons/lucide/printer'
 import LucideGrid from '~icons/lucide/layout-grid'
 import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
 import LucidePackage from '~icons/lucide/package'
@@ -73,7 +73,7 @@ const NAV: Record<string, PosteNavGroup[]> = {
 				{ id: 'atelier', label: 'Atelier', icon: LucideScissors, to: { name: 'Atelier' }, doctype: 'Calcul Imposition' },
 				{ id: 'traces', label: 'Tracés', icon: LucidePenTool, href: '/app/trace', doctype: 'Trace' },
 				{ id: 'impositions', label: 'Impositions', icon: LucideGrid, href: '/app/imposition', doctype: 'Imposition' },
-				{ id: 'machines', label: 'Machines', icon: LucideFactory, href: '/app/machine', doctype: 'Machine' },
+				{ id: 'machines', label: 'Machines', icon: LucidePrinter, href: '/app/machine', doctype: 'Machine' },
 			],
 		},
 		{
