@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "creation": "2026-11-08 15:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "etude",
+  "article",
+  "client",
+  "trace",
+  "quantite",
+  "poses",
+  "column_break_bloc",
+  "n_col",
+  "n_rang",
+  "rotation",
+  "motif",
+  "origine_x",
+  "origine_y",
+  "feuilles_necessaires",
+  "surproduction",
+  "calcul_imposition"
+ ],
+ "fields": [
+  {
+   "fieldname": "etude",
+   "fieldtype": "Link",
+   "label": "\u00c9tude",
+   "options": "Etude Faisabilite",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "article",
+   "fieldtype": "Link",
+   "label": "Article",
+   "options": "Item",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "label": "Client",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trace",
+   "fieldtype": "Link",
+   "label": "Trac\u00e9",
+   "options": "Trace",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quantite",
+   "fieldtype": "Int",
+   "label": "Quantit\u00e9",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "poses",
+   "fieldtype": "Int",
+   "label": "Poses",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bloc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "n_col",
+   "fieldtype": "Int",
+   "label": "Colonnes",
+   "read_only": 1
+  },
+  {
+   "fieldname": "n_rang",
+   "fieldtype": "Int",
+   "label": "Rangs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rotation",
+   "fieldtype": "Int",
+   "label": "Rotation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "motif",
+   "fieldtype": "Data",
+   "label": "Disposition",
+   "read_only": 1
+  },
+  {
+   "fieldname": "origine_x",
+   "fieldtype": "Float",
+   "label": "Bloc depuis la lisi\u00e8re (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "origine_y",
+   "fieldtype": "Float",
+   "label": "Bloc depuis la pince (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "feuilles_necessaires",
+   "fieldtype": "Int",
+   "label": "Feuilles n\u00e9cessaires",
+   "read_only": 1
+  },
+  {
+   "fieldname": "surproduction",
+   "fieldtype": "Int",
+   "label": "Surproduction",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "calcul_imposition",
+   "fieldtype": "Link",
+   "label": "Calcul",
+   "options": "Calcul Imposition",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-08 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Aures CRM",
+ "name": "Article Impose",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

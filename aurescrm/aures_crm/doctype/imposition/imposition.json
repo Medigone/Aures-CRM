@@ -57,7 +57,10 @@
   "column_break_mkej",
   "fichier_imp",
   "section_break_snzx",
-  "defaut"
+  "defaut",
+  "section_groupage",
+  "groupage",
+  "articles_groupes"
  ],
  "fields": [
   {
@@ -367,12 +370,34 @@
   {
    "fieldname": "section_break_leej",
    "fieldtype": "Section Break"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "groupage",
+   "fieldname": "section_groupage",
+   "fieldtype": "Section Break",
+   "label": "Groupage"
+  },
+  {
+   "description": "Les impositions d'une m\u00eame feuille group\u00e9e portent la m\u00eame cl\u00e9.",
+   "fieldname": "groupage",
+   "fieldtype": "Data",
+   "label": "Groupage",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "articles_groupes",
+   "fieldtype": "Table",
+   "label": "Articles de la feuille",
+   "options": "Article Impose",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-08 12:00:00.000000",
+ "modified": "2026-11-08 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Imposition",

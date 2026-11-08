@@ -46,7 +46,9 @@ class Imposition(Document):
 				"client": self.client,
 				"article": self.article,
 				"trace": self.trace,
-				"taux_chutes": ["is", "set"]
+				"taux_chutes": ["is", "set"],
+				# Une feuille groupée dépend des autres articles : elle ne devient jamais l'idéale.
+				**({"groupage": ["is", "not set"]} if self.meta.has_field("groupage") else {}),
 			},
 			fields=["name", "taux_chutes", "creation"]
 		)

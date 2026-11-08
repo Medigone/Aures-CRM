@@ -11,6 +11,7 @@ import AtelierCoupes from './AtelierCoupes.vue'
 import AtelierDepot from './AtelierDepot.vue'
 import AtelierExport from './AtelierExport.vue'
 import AtelierFeuille from './AtelierFeuille.vue'
+import AtelierGroupage from './AtelierGroupage.vue'
 import AtelierPaliers from './AtelierPaliers.vue'
 import AtelierReferences from './AtelierReferences.vue'
 import AtelierReglages from './AtelierReglages.vue'
@@ -93,6 +94,10 @@ function openHistorique(name: string) {
 async function startFrom(row: AtelierReference) {
 	const done = await state.startFrom(row)
 	if (done === 'format') notice.value = `Format ${row.format} ajouté aux formats à comparer. Lancez le calcul.`
+}
+function onGroupCreated(message: string) {
+	setPendingNotice(message)
+	if (etude.value) router.push({ name: 'Etude', params: { id: etude.value.name } })
 }
 async function copyLink() {
 	await navigator.clipboard?.writeText(window.location.href)
@@ -268,6 +273,7 @@ async function copyLink() {
 						</div>
 					</section>
 
+					<AtelierGroupage v-if="etude && calcul && canSimulate && !gabarit" :etude="etude" :calcul="calcul.name" :formats="formats" :reglages="reglages" :default-poses="current?.nb_poses ?? 1" :can-work="canWork" :can-create="canCreate" @created="onGroupCreated" />
 					<section class="card atelier-foot">
 						<details>
 							<summary>{{ etude ? 'Historique de cette étude' : 'Vos derniers tests' }}</summary>

@@ -10,6 +10,7 @@ import type { BatAnalysis } from './batImport'
 import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView, PantoneMatch } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
+import type { GroupCandidate, GroupResult } from './groupage'
 import type { AtelierCalcul, AtelierData, AtelierFormat, GabaritApercu, Scenario } from './atelier'
 import type { ClicheOptions, EtudePieces, ImpositionRow, MachineRow, PiecesResult, SaveTraceResult, TraceReference } from './etudePieces'
 import type { ArticleChoice, DemandeDetail, DemandeOptions, DemandesResponse, DemandeValues, DemandeView, TicketDemandeContext } from './demandes'
@@ -364,6 +365,11 @@ export const getAtelierCalcul = (calcul: string) => call<AtelierCalcul>(`${ATELI
 export const getSupportFormats = (support: string) => call<{ grammage: number; pont_mini: number; prix_tonne?: number; formats: AtelierFormat[] }>(`${ATELIER}.get_support_formats`, { support })
 export const previewGabarit = (values: { modele: string; longueur: number; largeur: number; hauteur: number; support?: string | null }) => call<GabaritApercu>(`${ATELIER}.preview_gabarit`, values)
 export const createGabarit = (values: { modele: string; longueur: number; largeur: number; hauteur: number; support?: string | null }) => call<{ file_url: string }>(`${ATELIER}.create_gabarit`, values, true)
+export const groupCandidates = (etude: string) => call<{ support: string | null; etudes: GroupCandidate[] }>(`${ATELIER}_groupage.group_candidates`, { etude })
+export const simulateGroup = (values: { etude: string; calcul: string; membres: { etude: string; poses: number }[]; formats: object[]; lisiere: number; pince: number; marge_arriere: number }) =>
+	call<GroupResult>(`${ATELIER}_groupage.simulate_group`, { ...values, membres: JSON.stringify(values.membres), formats: JSON.stringify(values.formats) }, true)
+export const createGroupImposition = (values: { etude: string; calcul: string; membres: { etude: string; poses: number }[]; laize: number; depl: number; lisiere: number; pince: number; marge_arriere: number }) =>
+	call<{ groupage: string; impositions: { etude: string; imposition: string }[]; nb_feuilles: number }>(`${ATELIER}_groupage.create_group_imposition`, { ...values, membres: JSON.stringify(values.membres) }, true)
 export const prepareAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.prepare_atelier`, { values: JSON.stringify(values) }, true)
 export const runAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.run_atelier`, { values: JSON.stringify(values) }, true)
 export const createAtelierImposition = (etude: string, calcul: string, scenario_idx: number) => call<{ imposition: string; remplacee: string | null; avertissement: string | null; taux_chutes: number }>(`${ATELIER}.create_atelier_imposition`, { etude, calcul, scenario_idx }, true)
