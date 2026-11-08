@@ -18,6 +18,7 @@ from aurescrm.api.bureau_articles import _customers
 from aurescrm.api.bureau_atelier_references import references
 from aurescrm.aures_crm.page.atelier_imposition.atelier_imposition import get_contexte
 from aurescrm.imposition.api import _params_avec_saisie, creer_imposition, get_calcul, lancer_calcul, preparer_trace
+from aurescrm.imposition.droits import masquer_lignes, voit_couts
 from aurescrm.imposition.optimiseur import FIBRES_FEUILLE, FIBRES_TRACE
 from aurescrm.imposition.service import REGLAGE_MOTIFS_DEFAUT, est_pdf, formats_connus, simuler_coupes_bobine
 
@@ -168,13 +169,15 @@ def get_atelier(etude=None, calcul=None):
 		"quantite": cint(context.get("quantite")) or (cint(doc.quantite) if doc else 0),
 		"paliers": (result or {}).get("quantites_paliers") or [],
 		# Saisi sur le calcul, sinon celui du support ; 0 : les paliers se départagent au tonnage.
-		"prix_tonne": flt((result or {}).get("prix_tonne")) or _prix_support(context.get("support_technique")),
+		"prix_tonne": (flt((result or {}).get("prix_tonne")) or _prix_support(context.get("support_technique"))) if voit_couts() else 0,
 		**{key: flt(context.get(key)) or default for key, default in DEFAUTS.items()},
 	}
 	return {
 		"droits": {
 			"calculer": bool(frappe.has_permission(CALCUL, "create") and frappe.has_permission(CALCUL, "write")),
 			"creer_imposition": bool(frappe.has_permission("Imposition", "create")),
+			# Prix et coûts matière : l'équipe devis seule.
+			"couts": voit_couts(),
 		},
 		"etude": _etude_block(doc) if doc else None,
 		"calcul": result,
@@ -196,7 +199,7 @@ def get_support_formats(support):
 	"""En test rapide : les formats, le grammage et le pont du support choisi."""
 	_guard()
 	doc = frappe.get_doc("Support Technique", support)
-	return {"grammage": flt(doc.grammage), "pont_mini": flt(doc.pont_mini), "prix_tonne": flt(doc.prix_tonne), "formats": merge_formats(_formats_du_support(support), [])}
+	return {"grammage": flt(doc.grammage), "pont_mini": flt(doc.pont_mini), "prix_tonne": flt(doc.prix_tonne) if voit_couts() else 0, "formats": merge_formats(_formats_du_support(support), [])}
 
 
 @frappe.whitelist()
@@ -217,7 +220,7 @@ def get_roll_cuts(calcul, laize, depl_max=0, quantite=None, lisiere=None, pince=
 	if not variantes or not params:
 		return []
 	_params_avec_saisie(doc, params, lisiere=flt(lisiere), pince=flt(pince), marge_arriere=flt(marge_arriere), ignorer_contraintes_machine=1)
-	return simuler_coupes_bobine(variantes, params, flt(laize), flt(depl_max), flt(doc.surface_utile_mm2), fibre_trace=doc.get("fibre_trace") or "Libre", fibre=fibre or "")
+	return masquer_lignes(simuler_coupes_bobine(variantes, params, flt(laize), flt(depl_max), flt(doc.surface_utile_mm2), fibre_trace=doc.get("fibre_trace") or "Libre", fibre=fibre or ""))
 
 
 def calcul_arguments(values):
@@ -238,7 +241,8 @@ def calcul_arguments(values):
 		"trait_commun_autorise": cint(values.get("trait_commun")),
 		"quantite": cint(values.get("quantite")),
 		"quantites_paliers": values.get("paliers") if isinstance(values.get("paliers"), list) else [],
-		"prix_tonne": flt(values.get("prix_tonne")),
+		# Hors équipe devis, le prix ne vient jamais de l'écran : celui du calcul reste.
+		"prix_tonne": flt(values.get("prix_tonne")) if voit_couts() else None,
 		# Sans support ni étude, le grammage saisi à l'écran ; sinon celui du support ou de l'article.
 		"grammage": flt(values.get("grammage")) if not values.get("etude") and not values.get("support_technique") else 0,
 		"lisiere": flt(values.get("lisiere")),
@@ -271,7 +275,7 @@ def save_atelier_tiers(calcul, paliers=None, prix_tonne=None, grammage=None):
 	valeurs = {}
 	if doc.meta.has_field("quantites_paliers") and paliers is not None:
 		valeurs["quantites_paliers"] = json.dumps(nettoyer_paliers(_parse(paliers) or []))
-	if doc.meta.has_field("prix_tonne") and prix_tonne is not None:
+	if doc.meta.has_field("prix_tonne") and prix_tonne is not None and voit_couts():
 		valeurs["prix_tonne"] = max(flt(prix_tonne), 0)
 	# Le grammage saisi ne vaut que pour un test sans support : sinon c'est celui du support.
 	if doc.meta.has_field("grammage") and grammage is not None and not doc.support_technique and not doc.etude_faisabilite:

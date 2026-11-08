@@ -32,7 +32,9 @@ const notice = ref('')
 const etude = computed(() => data.value?.etude ?? null)
 const quantite = computed(() => reglages.value?.quantite ?? 0)
 const quantities = computed(() => allQuantities(quantite.value, reglages.value?.paliers ?? []))
-const prixTonne = computed(() => reglages.value?.prix_tonne ?? 0)
+// Hors équipe devis, le serveur n'envoie aucun prix : on ne montre ni prix ni coût.
+const canSeeCosts = computed(() => Boolean(data.value?.droits.couts))
+const prixTonne = computed(() => (canSeeCosts.value ? reglages.value?.prix_tonne ?? 0 : 0))
 // La quantité choisie dans la carte des paliers : le tableau se trie et se compte pour elle.
 const palier = ref<number | null>(null)
 const shownQty = computed(() => (palier.value && quantities.value.includes(palier.value) ? palier.value : quantite.value))
@@ -168,7 +170,7 @@ async function copyLink() {
 
 				<div class="atelier-center">
 					<AtelierReferences v-if="data.references" :references="data.references" :can-start="canWork" :can-simulate="canSimulate" @start="startFrom" />
-					<AtelierPaliers v-if="!running && rows.length && quantities.length > 1" :rows="sheets" :quantities="quantities" :principale="quantite" :tier-tag="etude ? 'étude' : 'test'" :grammage="grammage" :prix-tonne="prixTonne" :selected="palier" @pick="pickTier" @show="(row) => (shown = state.keyOf(row))" />
+					<AtelierPaliers v-if="!running && rows.length && quantities.length > 1" :rows="sheets" :quantities="quantities" :principale="quantite" :tier-tag="etude ? 'étude' : 'test'" :can-see-costs="canSeeCosts" :grammage="grammage" :prix-tonne="prixTonne" :selected="palier" @pick="pickTier" @show="(row) => (shown = state.keyOf(row))" />
 					<section class="card atelier-results" aria-label="Résultats du calcul">
 						<div v-if="running" class="atelier-state" role="status">
 							<span class="atelier-spin" aria-hidden="true"></span>
@@ -254,7 +256,7 @@ async function copyLink() {
 									</tbody>
 								</table>
 							</div>
-							<p v-if="shownQty !== quantite" class="atelier-hint">Trié du moins cher au plus cher en matière pour {{ formatQuantity(shownQty) }} ex. <button type="button" class="underline" @click="palier = null">Revenir à {{ formatQuantity(quantite) }} ex.</button></p>
+							<p v-if="shownQty !== quantite" class="atelier-hint">Trié {{ canSeeCosts ? 'du moins cher au plus cher en matière' : 'de la feuille qui consomme le moins de carton à celle qui en consomme le plus' }} pour {{ formatQuantity(shownQty) }} ex. <button type="button" class="underline" @click="palier = null">Revenir à {{ formatQuantity(quantite) }} ex.</button></p>
 							<p v-if="rows.length" class="atelier-hint">{{ canCreate ? "Cliquez sur une ligne pour la retenir. Aucune n'est recommandée : c'est vous qui retenez." : "Cliquez sur une ligne pour voir sa feuille. Aucune n'est recommandée." }}</p>
 						</template>
 

@@ -59,7 +59,8 @@
    "fieldname": "prix_tonne",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Prix \u00e0 la tonne"
+   "label": "Prix \u00e0 la tonne",
+   "permlevel": 1
   },
   {
    "fieldname": "section_break_imposition",
@@ -93,7 +94,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-14 14:38:00",
+ "modified": "2026-11-08 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Support Technique",
@@ -163,6 +164,24 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Responsable Devis",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Charg\u00e9 Devis",
+   "write": 0
   }
  ],
  "row_format": "Dynamic",

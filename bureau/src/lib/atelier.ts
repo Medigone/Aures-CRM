@@ -118,7 +118,8 @@ export interface AtelierHistorique {
 	quantite: number | null
 }
 export interface AtelierData {
-	droits: { calculer: boolean; creer_imposition: boolean }
+	/** `couts` : prix matière et coûts, pour l'équipe devis seule. Absent d'un ancien serveur. */
+	droits: { calculer: boolean; creer_imposition: boolean; couts?: boolean }
 	etude: AtelierEtude | null
 	calcul: AtelierCalcul | null
 	fichier_trace: string | null

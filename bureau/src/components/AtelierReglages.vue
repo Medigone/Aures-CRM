@@ -108,9 +108,9 @@ const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Even
 			<label v-if="!data.etude && !support" class="form-field atelier-rail-wide">
 				<span class="field-label">Grammage (g/m²)</span>
 				<input class="field-input tabular-nums" type="number" min="0" step="1" :value="grammage || ''" placeholder="Sans support, à saisir" :disabled="!canWork" @change="setGrammage" />
-				<small>Il donne le tonnage et le coût matière.</small>
+				<small>{{ data.droits.couts ? 'Il donne le tonnage et le coût matière.' : 'Il donne le tonnage.' }}</small>
 			</label>
-			<label class="form-field atelier-rail-wide">
+			<label v-if="data.droits.couts" class="form-field atelier-rail-wide">
 				<span class="field-label">Prix matière (DA la tonne)</span>
 				<input class="field-input tabular-nums" type="number" min="0" step="1000" :value="reglages.prix_tonne || ''" placeholder="Non renseigné" :disabled="!canWork" @change="setPrix" />
 				<small>{{ !grammage ? 'Indiquez un support ou un grammage : sans lui, ni tonnage ni coût.' : reglages.prix_tonne ? 'Départage les quantités au coût matière.' : 'Sans prix, les quantités se départagent au tonnage.' }}</small>

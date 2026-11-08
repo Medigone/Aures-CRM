@@ -243,13 +243,15 @@
    "fieldname": "cout_matiere",
    "fieldtype": "Currency",
    "label": "Co\u00fbt mati\u00e8re",
-   "read_only": 1
+   "read_only": 1,
+   "permlevel": 1
   },
   {
    "fieldname": "cout_par_1000",
    "fieldtype": "Currency",
    "label": "Co\u00fbt pour 1 000",
-   "read_only": 1
+   "read_only": 1,
+   "permlevel": 1
   },
   {
    "fieldname": "origine",
@@ -272,7 +274,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-11-08 12:00:00.000000",
+ "modified": "2026-11-08 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Scenario Imposition",

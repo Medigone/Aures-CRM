@@ -204,7 +204,8 @@
    "description": "Prix de la mati\u00e8re pour d\u00e9partager les paliers. Vide : celui du support.",
    "fieldname": "prix_tonne",
    "fieldtype": "Currency",
-   "label": "Prix \u00e0 la tonne"
+   "label": "Prix \u00e0 la tonne",
+   "permlevel": 1
   },
   {
    "description": "Grammage saisi en test rapide, faute de support : il donne le tonnage et le co\u00fbt.",
@@ -364,7 +365,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 0,
  "links": [],
- "modified": "2026-11-08 17:00:00.000000",
+ "modified": "2026-11-08 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Imposition",
@@ -398,6 +399,24 @@
   {
    "read": 1,
    "role": "Responsable Prepresse"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Responsable Devis",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Charg\u00e9 Devis",
+   "write": 0
   }
  ],
  "row_format": "Dynamic",

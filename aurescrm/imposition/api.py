@@ -17,6 +17,7 @@ from frappe.utils.background_jobs import is_job_enqueued
 
 from aurescrm.imposition.generateur_cf2 import generer_cff2, nom_fichier_cff2
 from aurescrm.imposition.generateur_pdf import generer_pdf, generer_pdf_pages
+from aurescrm.imposition.droits import masquer_ligne, masquer_lignes, voit_couts
 from aurescrm.imposition.lecture_trace import lire_trace, silhouette
 from aurescrm.imposition.optimiseur import FIBRES_FEUILLE, FIBRES_TRACE, MOTIFS_NON, TRACE_LIBRE, Parametres
 from aurescrm.imposition.service import (
@@ -391,7 +392,7 @@ def _assurer_calcul_doc(
 		if isinstance(quantites_paliers, str):
 			quantites_paliers = json.loads(quantites_paliers or "[]")
 		doc.quantites_paliers = json.dumps(nettoyer_paliers(quantites_paliers))
-	if prix_tonne is not None and doc.meta.has_field("prix_tonne"):
+	if prix_tonne is not None and doc.meta.has_field("prix_tonne") and voit_couts():
 		doc.prix_tonne = max(flt(prix_tonne), 0)
 	if grammage is not None and doc.meta.has_field("grammage"):
 		doc.grammage = max(flt(grammage), 0)
@@ -654,7 +655,8 @@ def get_calcul(calcul):
 		"sens_fibre": doc.sens_fibre,
 		"motifs_emboites": doc.get("motifs_emboites") or "Décalé autorisé",
 		"quantites_paliers": paliers_du_calcul(doc),
-		"prix_tonne": flt(doc.get("prix_tonne")),
+		# Prix et coûts : l'équipe devis seule.
+		"prix_tonne": flt(doc.get("prix_tonne")) if voit_couts() else 0,
 		"grammage": flt(doc.get("grammage")),
 		"fibre_trace": doc.get("fibre_trace") or TRACE_LIBRE,
 		"lisiere": flt(doc.lisiere),
@@ -681,12 +683,12 @@ def get_calcul(calcul):
 		"surface_utile_mm2": doc.surface_utile_mm2,
 		"remplissage_bbox": doc.remplissage_bbox,
 		"duree_calcul": doc.duree_calcul,
-		"scenarios": [{**s.as_dict(), "poses": poses_scenario(disposition_depuis_ligne(s))} for s in (doc.scenarios or [])],
+		"scenarios": masquer_lignes([{**s.as_dict(), "poses": poses_scenario(disposition_depuis_ligne(s))} for s in (doc.scenarios or [])]),
 		"scenario_retenu": doc.scenario_retenu,
 		"imposition_creee": doc.imposition_creee,
 		"log_calcul": doc.log_calcul,
 		"variantes": variantes,
-		"bornes": bornes,
+		"bornes": bornes if voit_couts() or not isinstance(bornes, dict) else {k: v for k, v in bornes.items() if k != "prix_tonne"},
 		"silhouette": silhouette,
 		"cache_disponible": cache_disponible,
 		"empreinte_trace": doc.empreinte_trace,
@@ -732,6 +734,7 @@ def simuler(
 	if not lignes:
 		return {"scenario": None, "scenarios": [], "message": "Aucune pose ne tient sur ce format."}
 	# `scenario` : la grille droite, que le Desk lit encore ; `scenarios` : elle, puis le motif s'il fait mieux.
+	lignes = masquer_lignes(lignes)
 	return {"scenario": lignes[0], "scenarios": lignes}
 
 
@@ -766,7 +769,7 @@ def simuler_grille(
 	)
 	if not ligne:
 		return {"scenario": None, "message": "Grille impossible pour cette rotation."}
-	return {"scenario": ligne}
+	return {"scenario": masquer_ligne(ligne)}
 
 
 @frappe.whitelist()
