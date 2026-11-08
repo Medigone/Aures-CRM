@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, parseQuantities, presseAlert, cotesOf, isGabarit, gabaritPaths, referenceFormat, tierResults, allQuantities, materialCost, referenceReason, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type AtelierReference, type Scenario } from './atelier'
+import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, parseQuantities, presseAlert, fibreRotation, fibreSummary, formatFibre, cotesOf, isGabarit, gabaritPaths, referenceFormat, tierResults, allQuantities, materialCost, referenceReason, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type AtelierReference, type Scenario } from './atelier'
 
 const scenario = (values: Partial<Scenario> = {}) => ({ libelle: 'A', origine: 'Stock', laize: 1020, depl: 700, nb_poses: 4, n_col: 2, n_rang: 2, rotation: 0, taux_chutes: 35, pas_laize: 381.96, pas_depl: 337.05, trait_commun_laize: 1, trait_commun_depl: 0, reste_laize: 240.04, reste_depl: 1.9, surface_par_pose: 1785, nb_feuilles: 25000, tonnage: 5.176, ...values }) as Scenario
 
@@ -170,5 +170,22 @@ describe('gabarit à partir des cotes', () => {
 		const paths = gabaritPaths({ coupe: [[[0, 0], [10, 0]]], rainage: [[[0, 5], [10, 5]]], developpe_l: 10, developpe_d: 5, epaisseur: 0.4 }, 0)
 		expect(paths.coupe).toBe('M0.00 5.00L10.00 5.00')
 		expect(paths.rainage).toBe('M0.00 0.00L10.00 0.00')
+	})
+})
+
+describe('fibre par format', () => {
+	it('donne la rotation de chaque feuille, comme le moteur', () => {
+		expect(fibreRotation('Verticale', 'En déplacement')).toBe('pose à 0°')
+		expect(fibreRotation('Verticale', 'En laize')).toBe('pose à 90°')
+		expect(fibreRotation('Horizontale', 'En déplacement')).toBe('pose à 90°')
+		expect(fibreRotation('Libre', 'En laize')).toBe('')
+		expect(fibreRotation('Verticale', '')).toBe('')
+	})
+	it('une bobine a sa fibre en déplacement', () => {
+		expect(formatFibre({ fibre: '', bobine: 1 })).toBe('En déplacement')
+		expect(formatFibre({ fibre: 'En laize', bobine: 1 })).toBe('En laize')
+		expect(formatFibre({ fibre: '', bobine: 0 })).toBe('')
+		expect(fibreSummary('Verticale')).toBe('fibre verticale sur le tracé')
+		expect(fibreSummary(undefined)).toBe('fibre libre')
 	})
 })

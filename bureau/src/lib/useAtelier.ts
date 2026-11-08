@@ -128,6 +128,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 			pont: settings.pont,
 			sens_fibre: settings.sens_fibre,
 			motifs: settings.motifs,
+			fibre_trace: settings.fibre_trace,
 			trait_commun: settings.trait_commun,
 			quantite: settings.quantite,
 			paliers: settings.paliers,
@@ -255,7 +256,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 			simError.value = (e as Error).message
 		}
 	}
-	const tryFormat = (laize: string, depl: string) => simulate(() => simulateFormat(calcul.value!.name, { laize, depl, ...marges() }))
+	const tryFormat = (laize: string, depl: string, fibre = '') => simulate(() => simulateFormat(calcul.value!.name, { laize, depl, fibre, ...marges() }))
 	/** Une coupe de la bobine : déjà calculée, on la montre ; sinon elle s'ajoute comme un essai, qu'on peut garder. */
 	function showCut(row: Scenario) {
 		simError.value = ''
@@ -282,7 +283,9 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 			return 'essai'
 		}
 		if (canSimulate.value) {
-			await tryFormat(String(format.laize), String(format.depl))
+			// La fibre de la même feuille au catalogue, si on la connaît.
+			const catalogue = formats.value.find((other) => !other.bobine && Math.abs(other.laize - format.laize) < 2 && Math.abs(other.depl - format.depl) < 2)
+			await tryFormat(String(format.laize), String(format.depl), catalogue?.fibre ?? '')
 			return simError.value ? '' : 'essai'
 		}
 		const known = formats.value.find((other) => !other.bobine && Math.abs(other.laize - format.laize) < 2 && Math.abs(other.depl - format.depl) < 2)

@@ -18,6 +18,7 @@ from aurescrm.api.bureau_articles import _customers
 from aurescrm.api.bureau_atelier_references import references
 from aurescrm.aures_crm.page.atelier_imposition.atelier_imposition import get_contexte
 from aurescrm.imposition.api import _params_avec_saisie, creer_imposition, get_calcul, lancer_calcul, preparer_trace
+from aurescrm.imposition.optimiseur import FIBRES_FEUILLE, FIBRES_TRACE
 from aurescrm.imposition.service import REGLAGE_MOTIFS_DEFAUT, est_pdf, formats_connus, simuler_coupes_bobine
 
 CALCUL = "Calcul Imposition"
@@ -53,8 +54,13 @@ def merge_formats(proposes, etudies):
 	"""Les formats à cocher : ceux du support, plus ceux que le calcul a étudiés. Sans calcul, tous cochés."""
 	rows = []
 	for format_ in proposes or []:
-		checked = any(_same_format(format_, other) for other in etudies) if etudies else True
-		rows.append({**_format_row(format_), "coche": checked})
+		etudie = next((other for other in etudies or [] if _same_format(format_, other)), None)
+		checked = bool(etudie) if etudies else True
+		row = {**_format_row(format_), "coche": checked}
+		# La fibre saisie dans l'atelier pour ce calcul passe avant celle du catalogue.
+		if etudie and _format_row(etudie)["fibre"]:
+			row["fibre"] = _format_row(etudie)["fibre"]
+		rows.append(row)
 	for format_ in etudies or []:
 		if not any(_same_format(format_, row) for row in rows):
 			rows.append({**_format_row(format_), "coche": True})
@@ -62,7 +68,9 @@ def merge_formats(proposes, etudies):
 
 
 def _format_row(format_):
+	fibre = format_.get("fibre") or ""
 	return {
+		"fibre": fibre if fibre in FIBRES_FEUILLE else "",
 		"laize": flt(format_.get("laize")),
 		"depl": flt(format_.get("depl")),
 		"origine": format_.get("origine") or "Manuel",
@@ -121,6 +129,13 @@ def _formats_du_support(support):
 	return formats_connus(support=frappe.get_doc("Support Technique", support), stock_seul=True) if support else []
 
 
+def _fibre_precedente(doc):
+	"""Sans calcul, la fibre exigée du dernier calcul du même tracé : elle dépend du tracé, pas de l'étude."""
+	if not doc or not doc.trace or not frappe.get_meta(CALCUL).has_field("fibre_trace"):
+		return None
+	return frappe.db.get_value(CALCUL, {"trace": doc.trace, "fibre_trace": ["in", ["Verticale", "Horizontale"]]}, "fibre_trace", order_by="creation desc")
+
+
 def _prix_support(support):
 	return flt(frappe.db.get_value("Support Technique", support, "prix_tonne")) if support else 0.0
 
@@ -148,6 +163,7 @@ def get_atelier(etude=None, calcul=None):
 		"pont": flt(context.get("pont")) or flt(context.get("pont_mini")),
 		"sens_fibre": context.get("sens_fibre") or "Libre",
 		"motifs": context.get("motifs_emboites") or REGLAGE_MOTIFS_DEFAUT,
+		"fibre_trace": (result or {}).get("fibre_trace") or _fibre_precedente(doc) or "Libre",
 		"trait_commun": cint(context.get("trait_commun_autorise")),
 		"quantite": cint(context.get("quantite")) or (cint(doc.quantite) if doc else 0),
 		"paliers": (result or {}).get("quantites_paliers") or [],
@@ -191,7 +207,7 @@ def get_atelier_calcul(calcul):
 
 
 @frappe.whitelist()
-def get_roll_cuts(calcul, laize, depl_max=0, quantite=None, lisiere=None, pince=None, marge_arriere=None):
+def get_roll_cuts(calcul, laize, depl_max=0, quantite=None, lisiere=None, pince=None, marge_arriere=None, fibre=None):
 	"""Toutes les coupes d'une bobine, pour les comparer. Lecture seule, comme les essais de format."""
 	_guard()
 	doc = frappe.get_doc(CALCUL, calcul)
@@ -201,7 +217,7 @@ def get_roll_cuts(calcul, laize, depl_max=0, quantite=None, lisiere=None, pince=
 	if not variantes or not params:
 		return []
 	_params_avec_saisie(doc, params, lisiere=flt(lisiere), pince=flt(pince), marge_arriere=flt(marge_arriere), ignorer_contraintes_machine=1)
-	return simuler_coupes_bobine(variantes, params, flt(laize), flt(depl_max), flt(doc.surface_utile_mm2))
+	return simuler_coupes_bobine(variantes, params, flt(laize), flt(depl_max), flt(doc.surface_utile_mm2), fibre_trace=doc.get("fibre_trace") or "Libre", fibre=fibre or "")
 
 
 def calcul_arguments(values):
@@ -218,6 +234,7 @@ def calcul_arguments(values):
 		"pont": values.get("pont"),
 		"sens_fibre": values.get("sens_fibre"),
 		"motifs_emboites": values.get("motifs") or None,
+		"fibre_trace": values.get("fibre_trace") if values.get("fibre_trace") in FIBRES_TRACE else None,
 		"trait_commun_autorise": cint(values.get("trait_commun")),
 		"quantite": cint(values.get("quantite")),
 		"quantites_paliers": values.get("paliers") if isinstance(values.get("paliers"), list) else [],

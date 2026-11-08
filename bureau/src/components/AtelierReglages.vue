@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { formatQuantity } from '@/lib/etudes'
-import { dimensionsLabel, fileLabel, mm, MOTIF_OPTIONS, motifsSummary, parseQuantities, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
+import { dimensionsLabel, FIBRE_FEUILLE_OPTIONS, FIBRE_TRACE_OPTIONS, fibreRotation, fibreSummary, fileLabel, formatFibre, mm, MOTIF_OPTIONS, motifsSummary, parseQuantities, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
 
 /** Colonne de gauche : le tracé, la quantité, les formats à comparer et les réglages du moteur. */
 const props = defineProps<{ data: AtelierData; calcul: AtelierCalcul | null; reglages: AtelierReglages; formats: AtelierFormat[]; support: string | null; fichier: string | null; readable: boolean; canWork: boolean; grammage: number }>()
@@ -126,10 +126,15 @@ const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Even
 			</label>
 			<h4>{{ support ? `Formats du support ${support}` : 'Formats à comparer' }}</h4>
 			<p v-if="!formats.length" class="m-0 text-sm text-ink-gray-6">Aucun format pour l'instant. Ajoutez-en un.</p>
-			<label v-for="row in formats" :key="`${row.laize}-${row.depl}-${row.bobine}`" class="atelier-check">
-				<input v-model="row.coche" type="checkbox" :disabled="!canWork" @change="emit('changed')" />
-				<span>{{ row.libelle }}</span>
-			</label>
+			<div v-for="row in formats" :key="`${row.laize}-${row.depl}-${row.bobine}`" class="atelier-format-row">
+				<label class="atelier-check">
+					<input v-model="row.coche" type="checkbox" :disabled="!canWork" @change="emit('changed')" />
+					<span>{{ row.libelle }}<small v-if="row.coche && fibreRotation(reglages.fibre_trace, formatFibre(row))">{{ fibreRotation(reglages.fibre_trace, formatFibre(row)) }}</small></span>
+				</label>
+				<select v-model="row.fibre" class="field-input atelier-fibre" :aria-label="`Fibre de la feuille ${row.libelle}`" :disabled="!canWork" @change="emit('changed')">
+					<option v-for="option in FIBRE_FEUILLE_OPTIONS" :key="option.value" :value="option.value">{{ option.value === '' && row.bobine ? 'Fibre en déplacement' : option.label }}</option>
+				</select>
+			</div>
 			<div v-if="canWork" class="atelier-add-format">
 				<input v-model="laize" class="field-input tabular-nums" type="text" inputmode="decimal" placeholder="Laize" aria-label="Laize du format à ajouter" />
 				<input v-model="depl" class="field-input tabular-nums" type="text" inputmode="decimal" :placeholder="bobine ? 'Max' : 'Dépl.'" :aria-label="bobine ? 'Longueur maximale de coupe' : 'Déplacement du format à ajouter'" />
@@ -139,10 +144,12 @@ const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Even
 			<p v-if="formatError" role="alert" class="field-error">{{ formatError }}</p>
 		</div>
 		<details class="atelier-rail-section">
-			<summary>Réglages : pont {{ mm(reglages.pont) }} mm, fibre {{ reglages.sens_fibre }}, {{ motifsSummary(reglages.motifs) }}</summary>
+			<summary>Réglages : pont {{ mm(reglages.pont) }} mm, {{ fibreSummary(reglages.fibre_trace) }}, {{ motifsSummary(reglages.motifs) }}</summary>
 			<div class="atelier-rail-grid">
 				<label class="form-field"><span class="field-label">Pont mini (mm)</span><input class="field-input tabular-nums" type="number" min="0" step="0.1" :value="reglages.pont" :disabled="!canWork" @change="number('pont', $event)" /></label>
-				<label class="form-field"><span class="field-label">Sens de fibre</span><select v-model="reglages.sens_fibre" class="field-input" :disabled="!canWork" @change="emit('changed')"><option>Libre</option><option>0°</option><option>90°</option></select></label>
+				<label class="form-field"><span class="field-label">Fibre sur le tracé</span><select v-model="reglages.fibre_trace" class="field-input" :disabled="!canWork" @change="emit('changed')"><option v-for="option in FIBRE_TRACE_OPTIONS" :key="option">{{ option }}</option></select></label>
+				<p class="atelier-rail-wide m-0 text-sm text-ink-gray-6">Le sens que la boîte exige, sur le tracé tel qu'il est dessiné. Avec la fibre de chaque format, il donne la rotation de pose format par format.</p>
+				<label v-if="reglages.sens_fibre && reglages.sens_fibre !== 'Libre'" class="form-field atelier-rail-wide"><span class="field-label">Rotation imposée partout (ancien réglage)</span><select v-model="reglages.sens_fibre" class="field-input" :disabled="!canWork" @change="emit('changed')"><option>Libre</option><option>0°</option><option>90°</option></select><small>Mettez-la sur Libre pour que la fibre de chaque format décide.</small></label>
 				<label class="form-field atelier-rail-wide">
 					<span class="field-label">Tête-bêche et quinconce</span>
 					<select v-model="reglages.motifs" class="field-input" :disabled="!canWork" @change="emit('changed')"><option v-for="option in MOTIF_OPTIONS" :key="option">{{ option }}</option></select>

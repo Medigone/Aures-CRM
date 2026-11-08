@@ -20,6 +20,7 @@
   "column_break_tech",
   "trait_commun_autorise",
   "sens_fibre",
+  "fibre_trace",
   "motifs_emboites",
   "lisiere",
   "pince",
@@ -144,6 +145,14 @@
    "fieldtype": "Select",
    "label": "Sens fibre",
    "options": "Libre\n0\u00b0\n90\u00b0"
+  },
+  {
+   "default": "Libre",
+   "description": "Sens de la fibre que la bo\u00eete exige, sur le trac\u00e9 tel qu'il est dessin\u00e9. Avec la fibre de chaque format, il fixe la rotation de pose format par format.",
+   "fieldname": "fibre_trace",
+   "fieldtype": "Select",
+   "label": "Fibre exig\u00e9e sur le trac\u00e9",
+   "options": "Libre\nVerticale\nHorizontale"
   },
   {
    "default": "D\u00e9cal\u00e9 autoris\u00e9",
@@ -355,7 +364,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 0,
  "links": [],
- "modified": "2026-11-08 16:00:00.000000",
+ "modified": "2026-11-08 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Imposition",

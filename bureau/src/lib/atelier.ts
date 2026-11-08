@@ -11,6 +11,8 @@ export interface AtelierFormat {
 	libelle: string
 	bobine: number
 	coche: boolean
+	/** Fibre de la feuille : « En laize », « En déplacement », ou vide si inconnue. Une bobine l'a en déplacement. */
+	fibre?: string
 }
 export interface Scenario {
 	idx?: number
@@ -94,6 +96,8 @@ export interface AtelierReglages {
 	motifs: string
 	trait_commun: number
 	quantite: number
+	/** Fibre exigée sur le tracé tel qu'il est dessiné : Libre, Verticale ou Horizontale. */
+	fibre_trace?: string
 	/** Autres quantités comparées, en plus de celle de l'étude ou du test. */
 	paliers: number[]
 	/** Prix de la matière, DA la tonne ; 0 : les paliers se départagent au tonnage. */
@@ -219,7 +223,7 @@ export function manualFormat(laize: string, depl: string, existing: AtelierForma
 	if (!(length > 0)) return bobine ? 'Indiquez le maximum de coupe en mm : sans lui, le moteur retient une coupe de 12 rangs.' : 'Indiquez un déplacement en mm.'
 	if (existing.some((row) => Boolean(row.bobine) === bobine && Math.abs(row.laize - width) < 2 && Math.abs(row.depl - length) < 2)) return 'Ce format est déjà dans la liste.'
 	const libelle = bobine ? `Bobine ${mm(width)} mm (max ${mm(length)})` : `${mm(width)} × ${mm(length)}`
-	return { laize: width, depl: length, origine: 'Manuel', libelle, bobine: bobine ? 1 : 0, coche: true }
+	return { laize: width, depl: length, origine: 'Manuel', libelle, bobine: bobine ? 1 : 0, coche: true, fibre: '' }
 }
 
 /** La bobine dont vient une feuille, pour comparer ses coupes : son maximum n'est écrit que sur le format. */
@@ -399,3 +403,19 @@ export function gabaritPaths(apercu: GabaritApercu, marge = 4) {
 	const path = (segments: GabaritApercu['coupe']) => segments.map(([[ax, ay], [bx, by]]) => `M${(ax - x0).toFixed(2)} ${(y1 - ay).toFixed(2)}L${(bx - x0).toFixed(2)} ${(y1 - by).toFixed(2)}`).join('')
 	return { width, height, coupe: path(apercu.coupe), rainage: path(apercu.rainage) }
 }
+
+export const FIBRE_TRACE_OPTIONS = ['Libre', 'Verticale', 'Horizontale'] as const
+export const FIBRE_FEUILLE_OPTIONS = [
+	{ value: '', label: 'Fibre ?' },
+	{ value: 'En laize', label: 'Fibre en laize' },
+	{ value: 'En déplacement', label: 'Fibre en déplacement' },
+] as const
+/** La fibre d'une feuille telle que le moteur la lit : une bobine sans fibre saisie l'a en déplacement. */
+export const formatFibre = (row: Pick<AtelierFormat, 'fibre' | 'bobine'>) => row.fibre || (row.bobine ? 'En déplacement' : '')
+/** La rotation de pose permise sur cette feuille, en clair ; vide quand rien n'est imposé. Même règle que le moteur. */
+export function fibreRotation(fibreTrace: string | undefined, fibre: string) {
+	if ((fibreTrace !== 'Verticale' && fibreTrace !== 'Horizontale') || !fibre) return ''
+	const droite = (fibreTrace === 'Verticale') === (fibre === 'En déplacement')
+	return droite ? 'pose à 0°' : 'pose à 90°'
+}
+export const fibreSummary = (fibreTrace?: string) => (fibreTrace === 'Verticale' || fibreTrace === 'Horizontale' ? `fibre ${fibreTrace.toLowerCase()} sur le tracé` : 'fibre libre')

@@ -40,8 +40,10 @@ from aurescrm.imposition.optimiseur import (
 	evaluer_bobine_et_motif,
 	evaluer_format,
 	evaluer_format_et_motif,
+	filtrer_fibre,
 	format_en_stock,
 	motif_depuis_dict,
+	rotations_format,
 	positions,
 	trois_scenarios,
 	variantes,
@@ -52,6 +54,9 @@ from aurescrm.imposition.optimiseur import (
 	MOTIFS_ALIGNES,
 	MOTIFS_DECALES,
 	MOTIFS_NON,
+	FIBRE_DEPL,
+	FIBRES_FEUILLE,
+	TRACE_LIBRE,
 )
 from aurescrm.imposition.motifs import DROITE, RANGS
 
@@ -95,6 +100,8 @@ class EntreeCalcul:
 	marge_arriere_saisie: float | None = None
 	ignorer_contraintes_machine: bool = False
 	motifs: str = MOTIFS_DECALES
+	# Fibre exigée sur le tracé ; la fibre de chaque feuille est dans `formats_etudies`.
+	fibre_trace: str = "Libre"
 
 
 @dataclass
@@ -373,16 +380,26 @@ def libelle_bobine(laize, d, depl_max=0):
 	return f"{libelle} (max {depl_max:.0f})" if depl_max > 0 else libelle
 
 
-def simuler_coupes_bobine(vars_, params: Parametres, laize, depl_max, surface_mm2):
+def fibre_de(fmt):
+	"""La fibre d'une feuille : celle saisie, sinon en déplacement pour une bobine, sinon inconnue."""
+	fibre = (fmt.get("fibre") if isinstance(fmt, dict) else getattr(fmt, "fibre", None)) or ""
+	if fibre in FIBRES_FEUILLE:
+		return fibre
+	return FIBRE_DEPL if _est_bobine(fmt) else ""
+
+
+def simuler_coupes_bobine(vars_, params: Parametres, laize, depl_max, surface_mm2, fibre_trace=TRACE_LIBRE, fibre=FIBRE_DEPL):
 	"""Une ligne par coupe possible de cette bobine, grille droite et motifs, de la moins gourmande à la plus."""
+	vars_ = filtrer_fibre([v if isinstance(v, Variante) else Variante.depuis_dict(v) for v in (vars_ or [])], rotations_format(fibre_trace, fibre or FIBRE_DEPL))
 	coupes = coupes_bobine(None, params, laize, depl_max, vars_=vars_, famille=FAMILLE_TOUTES)
 	coupes.sort(key=lambda d: (d.n_rang, d.surface_par_pose))
 	return [ligne_scenario(avec_motif(libelle_bobine(laize, d, depl_max), d), d, params, surface_mm2, origine="Bobine") for d in coupes]
 
 
-def simuler_formats(vars_, params: Parametres, laize, depl, surface_mm2, libelle=""):
+def simuler_formats(vars_, params: Parametres, laize, depl, surface_mm2, libelle="", fibre_trace=TRACE_LIBRE, fibre=""):
 	"""L'essai d'un format : la grille droite, et le motif s'il fait plus de poses."""
 	libelle = libelle or f"{laize:.0f} x {depl:.0f}"
+	vars_ = filtrer_fibre([v if isinstance(v, Variante) else Variante.depuis_dict(v) for v in (vars_ or [])], rotations_format(fibre_trace, fibre))
 	return [
 		ligne_scenario(avec_motif(libelle, d), d, params, surface_mm2, origine="Simulation")
 		for d in evaluer_format_et_motif(None, params, laize, depl, vars_=vars_)
@@ -717,6 +734,8 @@ def calculer(entree: EntreeCalcul, journal):
 			laize = float(fmt.get("laize") or 0)
 			depl = float(fmt.get("depl") or 0)
 			est_bobine = _est_bobine(fmt)
+			# La fibre de cette feuille et celle du tracé fixent les rotations ; une bobine a sa fibre en déplacement.
+			vars_format = filtrer_fibre(vars_, rotations_format(entree.fibre_trace, fibre_de(fmt)))
 			if not entree.ignorer_contraintes_machine:
 				hors = (
 					_laize_hors_bornes(laize, params)
@@ -731,7 +750,7 @@ def calculer(entree: EntreeCalcul, journal):
 					)
 					continue
 			if est_bobine:
-				trouvees = evaluer_bobine_et_motif(None, params, laize, depl, vars_=vars_)
+				trouvees = evaluer_bobine_et_motif(None, params, laize, depl, vars_=vars_format)
 				if not trouvees:
 					plafond = f" (max {depl:.0f})" if depl > 0 else ""
 					journal.append(
@@ -742,7 +761,7 @@ def calculer(entree: EntreeCalcul, journal):
 				for d in trouvees:
 					lignes.append(ligne_scenario(avec_motif(libelle_bobine(laize, d, depl), d), d, params, surface, origine="Bobine"))
 				continue
-			trouvees = evaluer_format_et_motif(None, params, laize, depl, vars_=vars_)
+			trouvees = evaluer_format_et_motif(None, params, laize, depl, vars_=vars_format)
 			if not trouvees:
 				journal.append(
 					f"Format {laize:.0f} × {depl:.0f} mm : aucune pose ne tient."
@@ -930,7 +949,7 @@ def formats_connus(article=None, trace=None, bornes=None, support=None, stock_se
 	"""
 	proposes = []
 
-	def ajouter(laize, depl, origine, libelle, coche=False, bobine=False):
+	def ajouter(laize, depl, origine, libelle, coche=False, bobine=False, fibre=""):
 		try:
 			laize, depl = float(laize or 0), float(depl or 0)
 		except (TypeError, ValueError):
@@ -955,6 +974,7 @@ def formats_connus(article=None, trace=None, bornes=None, support=None, stock_se
 				"libelle": libelle or f"{laize:.0f} × {depl:.0f}",
 				"coche_par_defaut": int(coche),
 				"bobine": int(bobine),
+				"fibre": fibre if fibre in FIBRES_FEUILLE else "",
 			}
 		)
 
@@ -974,7 +994,7 @@ def formats_connus(article=None, trace=None, bornes=None, support=None, stock_se
 					libelle = f"{nom_support} {grammage} g — Bobine {laize:.0f} mm".strip()
 			else:
 				libelle = f"{nom_support} {grammage} g — {laize:.0f} × {depl:.0f}".strip()
-			ajouter(laize, depl, "Stock", libelle, coche=True, bobine=bobine)
+			ajouter(laize, depl, "Stock", libelle, coche=True, bobine=bobine, fibre=getattr(f, "fibre", None) or "")
 
 	if stock_seul:
 		return proposes

@@ -18,7 +18,7 @@ from frappe.utils.background_jobs import is_job_enqueued
 from aurescrm.imposition.generateur_cf2 import generer_cff2, nom_fichier_cff2
 from aurescrm.imposition.generateur_pdf import generer_pdf, generer_pdf_pages
 from aurescrm.imposition.lecture_trace import lire_trace, silhouette
-from aurescrm.imposition.optimiseur import MOTIFS_NON, Parametres
+from aurescrm.imposition.optimiseur import FIBRES_FEUILLE, FIBRES_TRACE, MOTIFS_NON, TRACE_LIBRE, Parametres
 from aurescrm.imposition.service import (
 	PONT_DEFAUT,
 	EntreeCalcul,
@@ -197,6 +197,7 @@ def _entree_depuis_doc(doc, quantite=None):
 			"origine": f.origine or "Format étudié",
 			"libelle": f.libelle,
 			"bobine": cint(f.get("bobine")),
+			"fibre": f.get("fibre") or "",
 		}
 		for f in (doc.formats_etudies or [])
 	]
@@ -217,6 +218,7 @@ def _entree_depuis_doc(doc, quantite=None):
 		formats_stock=_formats_stock(support),
 		bornes=bornes,
 		formats_etudies=formats,
+		fibre_trace=doc.get("fibre_trace") or TRACE_LIBRE,
 		inclure_sur_mesure=bool(cint(doc.inclure_sur_mesure)),
 		format_reference=None,
 		dimensions_saisies=cotes,
@@ -342,6 +344,7 @@ def _assurer_calcul_doc(
 	quantites_paliers=None,
 	prix_tonne=None,
 	grammage=None,
+	fibre_trace=None,
 ):
 	if not fichier_trace and trace:
 		fichier_trace = frappe.db.get_value("Trace", trace, "fichier_trace")
@@ -392,6 +395,10 @@ def _assurer_calcul_doc(
 		doc.prix_tonne = max(flt(prix_tonne), 0)
 	if grammage is not None and doc.meta.has_field("grammage"):
 		doc.grammage = max(flt(grammage), 0)
+	if fibre_trace is not None and doc.meta.has_field("fibre_trace"):
+		if fibre_trace not in FIBRES_TRACE:
+			frappe.throw(f"Fibre du tracé inconnue : {fibre_trace}.")
+		doc.fibre_trace = fibre_trace
 	if formats is not None:
 		doc.set("formats_etudies", [])
 		for fmt in formats:
@@ -403,6 +410,7 @@ def _assurer_calcul_doc(
 					"origine": fmt.get("origine") or "Manuel",
 					"libelle": fmt.get("libelle"),
 					"bobine": cint(fmt.get("bobine")),
+					"fibre": fmt.get("fibre") if fmt.get("fibre") in FIBRES_FEUILLE else "",
 				},
 			)
 	if calcul:
@@ -436,6 +444,7 @@ def preparer_trace(
 	quantites_paliers=None,
 	prix_tonne=None,
 	grammage=None,
+	fibre_trace=None,
 ):
 	"""Parse le PDF et alimente le cache : la simulation n'attend plus « Calculer »."""
 	debut = time.monotonic()
@@ -462,6 +471,7 @@ def preparer_trace(
 		quantites_paliers=quantites_paliers,
 		prix_tonne=prix_tonne,
 		grammage=grammage,
+		fibre_trace=fibre_trace,
 	)
 	journal = []
 	try:
@@ -500,6 +510,7 @@ def lancer_calcul(
 	quantites_paliers=None,
 	prix_tonne=None,
 	grammage=None,
+	fibre_trace=None,
 ):
 	"""Crée (ou réutilise) un Calcul Imposition et enfile le job.
 
@@ -551,6 +562,7 @@ def lancer_calcul(
 		quantites_paliers=quantites_paliers,
 		prix_tonne=prix_tonne,
 		grammage=grammage,
+		fibre_trace=fibre_trace,
 	)
 	doc.statut_calcul = "En cours"
 	doc.log_calcul = "Calcul en file d'attente…"
@@ -644,6 +656,7 @@ def get_calcul(calcul):
 		"quantites_paliers": paliers_du_calcul(doc),
 		"prix_tonne": flt(doc.get("prix_tonne")),
 		"grammage": flt(doc.get("grammage")),
+		"fibre_trace": doc.get("fibre_trace") or TRACE_LIBRE,
 		"lisiere": flt(doc.lisiere),
 		"pince": flt(doc.pince),
 		"marge_arriere": flt(doc.marge_arriere),
@@ -657,6 +670,7 @@ def get_calcul(calcul):
 				"origine": f.origine,
 				"libelle": f.libelle,
 				"bobine": cint(f.get("bobine")),
+				"fibre": f.get("fibre") or "",
 			}
 			for f in (doc.formats_etudies or [])
 		],
@@ -689,6 +703,7 @@ def simuler(
 	pince=None,
 	marge_arriere=None,
 	ignorer_contraintes_machine=None,
+	fibre=None,
 ):
 	doc = frappe.get_doc("Calcul Imposition", calcul)
 	doc.check_permission("read")
@@ -711,6 +726,8 @@ def simuler(
 		flt(depl),
 		flt(doc.surface_utile_mm2),
 		libelle=f"{flt(laize):.0f} × {flt(depl):.0f}",
+		fibre_trace=doc.get("fibre_trace") or TRACE_LIBRE,
+		fibre=fibre if fibre in FIBRES_FEUILLE else "",
 	)
 	if not lignes:
 		return {"scenario": None, "scenarios": [], "message": "Aucune pose ne tient sur ce format."}

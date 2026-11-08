@@ -9,6 +9,7 @@
   "bobine",
   "laize",
   "depl",
+  "fibre",
   "commentaire"
  ],
  "fields": [
@@ -43,6 +44,14 @@
    "precision": "1"
   },
   {
+   "description": "Sens de la fibre de la feuille. Vide : inconnu, la pose peut tourner. Une bobine a sa fibre en d\u00e9placement.",
+   "fieldname": "fibre",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fibre",
+   "options": "\nEn laize\nEn d\u00e9placement"
+  },
+  {
    "columns": 5,
    "fieldname": "commentaire",
    "fieldtype": "Data",
@@ -53,7 +62,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-14 14:38:00",
+ "modified": "2026-11-08 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Format Feuille Support",

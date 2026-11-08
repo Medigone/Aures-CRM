@@ -16,7 +16,7 @@ import AtelierPaliers from './AtelierPaliers.vue'
 import AtelierReferences from './AtelierReferences.vue'
 import AtelierReglages from './AtelierReglages.vue'
 import RecordHeader from './RecordHeader.vue'
-import { allQuantities, commonCutLabel, isGabarit, costLabel, materialCost, rankForQuantity, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type AtelierReference, type Scenario, type ScenarioSort } from '@/lib/atelier'
+import { allQuantities, commonCutLabel, FIBRE_FEUILLE_OPTIONS, isGabarit, costLabel, materialCost, rankForQuantity, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type AtelierReference, type Scenario, type ScenarioSort } from '@/lib/atelier'
 import { formatQuantity } from '@/lib/etudes'
 import { useAtelier } from '@/lib/useAtelier'
 
@@ -68,7 +68,7 @@ const marge = computed(() => calcul.value?.bornes?.marge_arriere || reglages.val
 const isEssai = (row: Scenario) => Boolean(row.cle)
 const currentEssai = computed(() => (current.value && isEssai(current.value) ? current.value : null))
 
-const sim = ref({ laize: '', depl: '' })
+const sim = ref({ laize: '', depl: '', fibre: '' })
 function sortMark(key: ScenarioSort) {
 	return sort.value === key ? (direction.value === 1 ? ' ↑' : ' ↓') : ''
 }
@@ -262,7 +262,8 @@ async function copyLink() {
 							<div class="atelier-sim-row">
 								<label class="form-field"><span class="field-label">Laize</span><input v-model="sim.laize" class="field-input tabular-nums" type="number" min="0" :disabled="!canSimulate" /></label>
 								<label class="form-field"><span class="field-label">Déplacement</span><input v-model="sim.depl" class="field-input tabular-nums" type="number" min="0" :disabled="!canSimulate" /></label>
-								<button type="button" class="btn-secondary" :disabled="!canSimulate || !sim.laize || !sim.depl" @click="state.tryFormat(sim.laize, sim.depl)">Essayer ce format</button>
+								<label class="form-field"><span class="field-label">Fibre</span><select v-model="sim.fibre" class="field-input" :disabled="!canSimulate"><option v-for="option in FIBRE_FEUILLE_OPTIONS" :key="option.value" :value="option.value">{{ option.value ? option.label.replace('Fibre ', '') : 'Inconnue' }}</option></select></label>
+								<button type="button" class="btn-secondary" :disabled="!canSimulate || !sim.laize || !sim.depl" @click="state.tryFormat(sim.laize, sim.depl, sim.fibre)">Essayer ce format</button>
 							</div>
 							<p v-if="simError" role="alert" class="field-error m-0">{{ simError }}</p>
 							<p v-else-if="currentEssai" class="m-0 text-sm text-ink-gray-7">

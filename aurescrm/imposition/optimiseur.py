@@ -81,6 +81,17 @@ SENS_FIBRE_LIBRE = "Libre"
 SENS_FIBRE_0 = "0°"
 SENS_FIBRE_90 = "90°"
 
+# Fibre par format : celle de la feuille (catalogue du support ou atelier), et celle que le tracé exige.
+# Repère du tracé : « Verticale » = fibre le long de la hauteur du PDF de tracé. À 0°, la hauteur du tracé suit le
+# déplacement de la feuille ; à 90°, la laize.
+FIBRE_LAIZE = "En laize"
+FIBRE_DEPL = "En déplacement"
+FIBRES_FEUILLE = (FIBRE_LAIZE, FIBRE_DEPL)
+TRACE_LIBRE = "Libre"
+TRACE_VERTICALE = "Verticale"
+TRACE_HORIZONTALE = "Horizontale"
+FIBRES_TRACE = (TRACE_LIBRE, TRACE_VERTICALE, TRACE_HORIZONTALE)
+
 
 @dataclass
 class Parametres:
@@ -277,6 +288,20 @@ def _rotations(p: Parametres):
 	if p.sens_fibre == SENS_FIBRE_90:
 		return (90,)
 	return (0, 90)
+
+
+def rotations_format(fibre_trace, fibre_feuille):
+	"""Les rotations de pose permises sur une feuille : (0, 90) si le tracé ou la feuille n'imposent rien."""
+	if fibre_trace not in (TRACE_VERTICALE, TRACE_HORIZONTALE) or fibre_feuille not in FIBRES_FEUILLE:
+		return (0, 90)
+	# Verticale sur le tracé et fibre en déplacement : la pose reste droite ; chaque inversion la tourne d'un quart.
+	droite = (fibre_trace == TRACE_VERTICALE) == (fibre_feuille == FIBRE_DEPL)
+	return (0,) if droite else (90,)
+
+
+def filtrer_fibre(vars_, rotations):
+	"""Les variantes dont l'orientation respecte la fibre ; un motif tête-bêche (B à +180°) garde celle de A."""
+	return [v for v in vars_ or [] if int(v.rotation) % 180 in rotations]
 
 
 def _pose_tournee(poly, rot):

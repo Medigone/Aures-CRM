@@ -15,7 +15,7 @@ async function load() {
 	error.value = ''
 	try {
 		const { quantite, lisiere, pince, marge_arriere } = props.reglages
-		const rows = await getRollCuts(props.calcul, { laize: props.roll.laize, depl_max: props.roll.depl, quantite, lisiere, pince, marge_arriere })
+		const rows = await getRollCuts(props.calcul, { laize: props.roll.laize, depl_max: props.roll.depl, fibre: (props.roll as { fibre?: string }).fibre ?? '', quantite, lisiere, pince, marge_arriere })
 		if (request === lastRequest) cuts.value = rows
 	} catch (e) {
 		if (request === lastRequest) error.value = (e as Error).message

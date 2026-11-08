@@ -4140,6 +4140,25 @@
 		font-variant-numeric: tabular-nums;
 		@apply text-ink-gray-9;
 	}
+	.atelier-format-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.25rem 0.5rem;
+	}
+	.atelier-format-row .atelier-check {
+		flex: 1 1 9rem;
+		min-width: 0;
+	}
+	.atelier-fibre {
+		flex: none;
+		width: auto;
+		min-height: 1.75rem;
+		padding-top: 0.125rem;
+		padding-bottom: 0.125rem;
+		@apply text-sm;
+	}
 	.atelier-check {
 		display: flex;
 		align-items: flex-start;
