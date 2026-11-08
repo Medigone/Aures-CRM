@@ -94,8 +94,7 @@ const shownHere = (row: Proposition) => Boolean(props.current && sameSheet(props
 </script>
 
 <template>
-	<details class="atelier-cuts atelier-propose">
-		<summary>Proposer un format</summary>
+	<div class="atelier-propose">
 		<p class="m-0 mb-2 text-sm text-ink-gray-6">La meilleure feuille pour ce tracé parmi les formats du support : palettes entières ou recoupées, bobines entières ou refendues. Les chutes comptent tout ce qui est acheté. Rien n'est enregistré.</p>
 		<div class="atelier-sim-row">
 			<label class="form-field"><span class="field-label">Laize maxi</span><input v-model="laizeMax" class="field-input tabular-nums" type="number" min="0" placeholder="mm" :disabled="!enabled" /></label>
@@ -152,5 +151,5 @@ const shownHere = (row: Proposition) => Boolean(props.current && sameSheet(props
 			<p class="m-0 mt-1 text-sm text-ink-gray-6">Cliquez sur une ligne pour voir sa feuille, puis gardez-la pour pouvoir la retenir.</p>
 		</template>
 		<p v-for="note in notes" :key="note" class="m-0 text-sm text-ink-gray-6">{{ note }}</p>
-	</details>
+	</div>
 </template>

@@ -502,3 +502,50 @@ export function refenteSummary(reglages: Pick<AtelierReglages, 'refente_rive' | 
 	if (bandes < 2) return 'non réglée'
 	return `jusqu'à ${bandes} bandes, rive ${mm(reglages.refente_rive ?? 0)} mm${reglages.refente_laize_min ? `, bande de ${mm(reglages.refente_laize_min)} mm au moins` : ''}`
 }
+
+/** Les feuilles candidates en vignettes : triées par coût (au carton sans prix), chutes ou feuilles, pour une quantité. */
+export type VignetteSort = 'cout' | 'chutes' | 'feuilles'
+export const VIGNETTE_SORTS: VignetteSort[] = ['cout', 'chutes', 'feuilles']
+export const vignetteSortLabel = (key: VignetteSort, withCost: boolean) => (key === 'chutes' ? 'Chutes' : key === 'feuilles' ? 'Feuilles' : withCost ? 'Coût' : 'Matière')
+interface VignetteBasis {
+	quantite: number
+	grammage: number
+	prixTonne: number
+}
+export function vignetteValue(row: Scenario, key: VignetteSort, basis: VignetteBasis) {
+	if (key === 'chutes') return row.taux_chutes
+	if (key === 'feuilles') return sheetsFor(row, basis.quantite)
+	return materialCost(row, basis.quantite, basis.grammage, basis.prixTonne) ?? areaFor(row, basis.quantite)
+}
+/** À égalité, la feuille qui consomme le moins de carton, puis celle qui a le plus de poses. */
+export function sortVignettes<T extends { row: Scenario }>(items: T[], key: VignetteSort, basis: VignetteBasis) {
+	return items
+		.filter((item) => item.row.nb_poses > 0)
+		.sort((left, right) => vignetteValue(left.row, key, basis) - vignetteValue(right.row, key, basis) || areaFor(left.row, basis.quantite) - areaFor(right.row, basis.quantite) || right.row.nb_poses - left.row.nb_poses)
+}
+const decimal = (value: number) => String(Math.round(value * 10) / 10).replace('.', ',')
+/** L'écart avec la meilleure, dans l'unité du tri ; vide à égalité. */
+export function vignetteGap(row: Scenario, best: Scenario, key: VignetteSort, basis: VignetteBasis) {
+	const diff = vignetteValue(row, key, basis) - vignetteValue(best, key, basis)
+	if (diff < 0.05) return ''
+	if (key === 'chutes') return `+${decimal(diff)} pts de chutes`
+	if (key === 'feuilles') return `+${formatQuantity(diff)} feuilles`
+	if (materialCost(row, basis.quantite, basis.grammage, basis.prixTonne) != null) return `+${costLabel(diff)}`
+	const base = areaFor(best, basis.quantite)
+	return base > 0 ? `+${decimal((diff / base) * 100)} % de carton` : ''
+}
+/** D'où vient la feuille, en une pastille : coupe de bobine pas encore montrée, proposition, essai, ou origine du moteur. */
+export function vignetteOrigin(row: Scenario & { criteres?: unknown }, coupe = false): { label: string; tone: 'blue' | 'violet' | 'amber' | 'gray' } {
+	if (coupe) return { label: 'Coupe de bobine', tone: 'blue' }
+	if (Array.isArray(row.criteres)) return { label: 'Proposée', tone: 'violet' }
+	if (row.cle) return { label: 'Essai', tone: 'amber' }
+	if (row.origine === 'Bobine') return { label: 'Bobine', tone: 'blue' }
+	return { label: row.origine || 'Format', tone: 'gray' }
+}
+/** La phrase sous les chiffres : la meilleure, ou ce qu'elle coûte de plus que la meilleure. */
+export function vignetteVerdict(row: Scenario, best: Scenario, key: VignetteSort, basis: VignetteBasis, withCost: boolean) {
+	const qty = formatQuantity(basis.quantite)
+	if (row === best || !vignetteGap(row, best, key, basis)) return `La meilleure ${key === 'chutes' ? 'aux chutes' : key === 'feuilles' ? 'au nombre de feuilles' : withCost ? 'au coût matière' : 'en matière'} pour ${qty} ex.`
+	const parts = VIGNETTE_SORTS.map((other) => vignetteGap(row, best, other, basis)).filter(Boolean)
+	return `Face à ${sheetLabel(best)} : ${parts.join(', ')}.`
+}

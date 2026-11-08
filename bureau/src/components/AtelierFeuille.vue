@@ -57,10 +57,13 @@ const label = computed(() => `Feuille ${mm(props.scenario.laize)} par ${mm(props
 			</g>
 		</svg>
 		<div class="atelier-sheet-tools">
-			<button type="button" class="btn-secondary" aria-label="Agrandir" @click="zoom(0.7)">+</button>
-			<button type="button" class="btn-secondary" aria-label="Réduire" @click="zoom(1.4)">−</button>
-			<button type="button" class="btn-secondary" @click="fit">Ajuster</button>
-			<span>Noir : coupe. Rouge : rainage. Pointillé : zone utile. Pince en bas. Ctrl ou ⌘ + molette pour zoomer.</span>
+			<span class="atelier-legend"><span><i data-line="cut"></i>Coupe</span><span><i data-line="crease"></i>Rainage</span><span><i data-line="useful"></i>Zone utile</span><span>Pince en bas</span></span>
+			<span class="flex-1"></span>
+			<span class="atelier-zoom" title="Ctrl ou ⌘ + molette pour zoomer, glisser pour se déplacer, double clic pour revenir">
+				<button type="button" class="btn-secondary" aria-label="Agrandir" @click="zoom(0.7)">+</button>
+				<button type="button" class="btn-secondary" aria-label="Réduire" @click="zoom(1.4)">−</button>
+				<button type="button" class="btn-secondary" @click="fit">Ajuster</button>
+			</span>
 		</div>
 	</div>
 </template>

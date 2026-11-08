@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import LucideArrowLeft from '~icons/lucide/arrow-left'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
@@ -7,17 +7,17 @@ import FormDialog from '@shared/components/FormDialog.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
-import AtelierCoupes from './AtelierCoupes.vue'
 import AtelierDepot from './AtelierDepot.vue'
 import AtelierExport from './AtelierExport.vue'
 import AtelierFeuille from './AtelierFeuille.vue'
 import AtelierGroupage from './AtelierGroupage.vue'
-import AtelierPaliers from './AtelierPaliers.vue'
 import AtelierProposition from './AtelierProposition.vue'
 import AtelierReferences from './AtelierReferences.vue'
 import AtelierReglages from './AtelierReglages.vue'
+import AtelierVignettes, { type Vignette } from './AtelierVignettes.vue'
 import RecordHeader from './RecordHeader.vue'
-import { allQuantities, commonCutLabel, FIBRE_FEUILLE_OPTIONS, isGabarit, costLabel, materialCost, rankForQuantity, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type AtelierReference, type Scenario, type ScenarioSort } from '@/lib/atelier'
+import { getRollCuts } from '@/lib/api'
+import { allQuantities, commonCutLabel, FIBRE_FEUILLE_OPTIONS, isGabarit, costLabel, materialCost, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, sortVignettes, tonnageFor, tonnageLabel, vignetteOrigin, vignetteVerdict, type AtelierFormat, type AtelierReference, type Scenario, type VignetteSort } from '@/lib/atelier'
 import { formatQuantity } from '@/lib/etudes'
 import { useAtelier } from '@/lib/useAtelier'
 
@@ -26,9 +26,9 @@ const props = defineProps<{ etude?: string; calcul?: string }>()
 const router = useRouter()
 
 const state = useAtelier(() => ({ etude: props.etude, calcul: props.calcul }), (name) => router.replace({ name: 'AtelierTest', params: { calcul: name } }))
-const { data, calcul, reglages, formats, support, grammage, fichier, stale, essais, shown, retained, error, loadError, busy, simError, rows, sheets, current, retainedRow, running, failed, canWork, canCreate, canSimulate, readable, roll, sort, direction } = state
+const { data, calcul, reglages, formats, support, grammage, fichier, stale, shown, error, loadError, busy, simError, rows, sheets, current, retainedRow, running, failed, canWork, canCreate, canSimulate, readable } = state
 
-const dialog = ref<'depot' | 'export' | 'creer' | null>(null)
+const dialog = ref<'depot' | 'export' | 'creer' | 'historique' | 'journal' | null>(null)
 const notice = ref('')
 const etude = computed(() => data.value?.etude ?? null)
 const quantite = computed(() => reglages.value?.quantite ?? 0)
@@ -36,11 +36,10 @@ const quantities = computed(() => allQuantities(quantite.value, reglages.value?.
 // Hors équipe devis, le serveur n'envoie aucun prix : on ne montre ni prix ni coût.
 const canSeeCosts = computed(() => Boolean(data.value?.droits.couts))
 const prixTonne = computed(() => (canSeeCosts.value ? reglages.value?.prix_tonne ?? 0 : 0))
-// La quantité choisie dans la carte des paliers : le tableau se trie et se compte pour elle.
+// La quantité choisie au-dessus des vignettes : elles se trient et se comptent pour elle.
 const palier = ref<number | null>(null)
 const shownQty = computed(() => (palier.value && quantities.value.includes(palier.value) ? palier.value : quantite.value))
-const tableRows = computed(() => (shownQty.value !== quantite.value ? rankForQuantity(rows.value, shownQty.value) : rows.value))
-function pickTier(value: number) {
+function pickQuantity(value: number) {
 	palier.value = value === quantite.value ? null : value
 }
 const hasTrace = computed(() => Boolean(fichier.value))
@@ -63,18 +62,61 @@ const readOnlyNote = computed(() => {
 	if (etude.value?.status === 'Nouveau') return "Démarrez l'étude pour calculer et créer son imposition."
 	return 'Cette étude est conclue : son atelier se lit seulement.'
 })
-const maxRate = computed(() => Math.max(1, ...rows.value.map((row) => row.taux_chutes)))
 const silhouette = computed(() => calcul.value?.silhouette ?? null)
 const lisiere = computed(() => calcul.value?.bornes?.lisiere || reglages.value?.lisiere || 0)
 const pince = computed(() => calcul.value?.bornes?.pince || reglages.value?.pince || 0)
 const marge = computed(() => calcul.value?.bornes?.marge_arriere || reglages.value?.marge_arriere || 0)
 const isEssai = (row: Scenario) => Boolean(row.cle)
-const currentEssai = computed(() => (current.value && isEssai(current.value) ? current.value : null))
 
 const sim = ref({ laize: '', depl: '', fibre: '' })
-function sortMark(key: ScenarioSort) {
-	return sort.value === key ? (direction.value === 1 ? ' ↑' : ' ↓') : ''
+
+// Les vignettes : feuilles du calcul, essais, et coupes des bobines que le moteur n'a pas retenues.
+const vsort = ref<VignetteSort>('cout')
+const withCost = computed(() => prixTonne.value > 0 && grammage.value > 0)
+const basis = computed(() => ({ quantite: shownQty.value, grammage: grammage.value, prixTonne: prixTonne.value }))
+const rolls = computed(() => {
+	const found = new Map<string, Pick<AtelierFormat, 'laize' | 'depl' | 'fibre'>>()
+	for (const row of rows.value) {
+		const roll = rollOf(row, formats.value)
+		if (roll) found.set(`${roll.laize}-${roll.depl}`, roll)
+	}
+	return [...found.values()]
+})
+const cuts = ref<Scenario[]>([])
+let cutsRequest = 0
+watch(
+	() => [calcul.value?.name, canSimulate.value, reglages.value?.quantite, JSON.stringify(rolls.value)],
+	async () => {
+		const request = ++cutsRequest
+		cuts.value = []
+		const name = calcul.value?.name
+		if (!name || !canSimulate.value || !reglages.value || !rolls.value.length) return
+		const { quantite: qty, lisiere: edge, pince: grip, marge_arriere } = reglages.value
+		try {
+			const found = await Promise.all(rolls.value.map((roll) => getRollCuts(name, { laize: roll.laize, depl_max: roll.depl, fibre: roll.fibre ?? '', quantite: qty, lisiere: edge, pince: grip, marge_arriere })))
+			if (request === cutsRequest) cuts.value = found.flat()
+		} catch {
+			// Les coupes sont un plus : sans elles, les autres vignettes restent.
+		}
+	},
+	{ immediate: true },
+)
+const vignettes = computed<Vignette[]>(() => {
+	const items = sheets.value.map((row) => ({ key: state.keyOf(row), row, coupe: false }))
+	const extra = cuts.value.filter((cut) => !sheets.value.some((row) => sameSheet(row, cut))).map((cut) => ({ key: `coupe-${cut.laize}-${cut.depl}-${cut.n_col}-${cut.n_rang}-${cut.rotation}-${cut.motif ?? ''}`, row: cut, coupe: true }))
+	return sortVignettes([...items, ...extra], vsort.value, basis.value)
+})
+const currentKey = computed(() => (current.value ? state.keyOf(current.value) : null))
+const retainedKey = computed(() => (retainedRow.value ? state.keyOf(retainedRow.value) : null))
+const origin = computed(() => (current.value ? vignetteOrigin(current.value) : null))
+const verdict = computed(() => (current.value && vignettes.value[0] ? vignetteVerdict(current.value, vignettes.value[0].row, vsort.value, basis.value, withCost.value) : ''))
+function showVignette(item: Vignette) {
+	if (item.coupe) state.showCut(item.row)
+	else shown.value = item.key
 }
+// Ajouter une feuille : le format idéal proposé par le moteur, ou un format précis.
+const adding = ref(false)
+const addMode = ref<'ideal' | 'precis'>('ideal')
 async function onUploaded(url: string) {
 	dialog.value = null
 	if (await state.useFile(url)) notice.value = isGabarit(url) ? 'Gabarit lu. Cochez des formats et calculez.' : isPdf(url) ? `Tracé lu : ${fileLabel(url)}.` : ''
@@ -130,8 +172,10 @@ async function copyLink() {
 				</template>
 				<template #actions>
 					<button v-if="canWork && !blank" type="button" :class="fresh ? 'btn-secondary' : 'btn-primary'" :disabled="!canRun" @click="state.run()">Calculer</button>
-					<button v-if="canCreate" type="button" :class="fresh ? 'btn-primary' : 'btn-secondary'" :disabled="!retainedRow || stale || busy || gabarit" :title="gabarit ? 'Déposez le vrai tracé : un gabarit standard ne crée pas d\'imposition' : retainedRow ? undefined : 'Retenez une ligne du tableau'" @click="dialog = 'creer'">Créer l'imposition</button>
+					<button v-if="canCreate" type="button" :class="fresh ? 'btn-primary' : 'btn-secondary'" :disabled="!retainedRow || stale || busy || gabarit" :title="gabarit ? 'Déposez le vrai tracé : un gabarit standard ne crée pas d\'imposition' : retainedRow ? undefined : 'Retenez une feuille'" @click="dialog = 'creer'">Créer l'imposition</button>
 					<MoreMenu>
+						<button v-if="data.historique.length" type="button" class="app-menu-item" role="menuitem" @click="dialog = 'historique'">{{ etude ? 'Historique de cette étude' : 'Vos derniers tests' }}</button>
+						<button v-if="calcul" type="button" class="app-menu-item" role="menuitem" @click="dialog = 'journal'">Journal du calcul</button>
 						<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 						<a class="app-menu-item" role="menuitem" href="/app/atelier-imposition" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
 					</MoreMenu>
@@ -168,100 +212,88 @@ async function copyLink() {
 
 			<div v-else class="atelier-grid">
 				<AtelierReglages :data="data" :calcul="calcul" :reglages="reglages" :formats="formats" :support="support" :fichier="fichier" :readable="readable" :can-work="canWork" :grammage="grammage" @grammage="(value) => (grammage = value)" @changed="state.changed()" @depot="dialog = 'depot'" @support="state.chooseSupport" @add-format="onAddFormat" />
+				<AtelierReferences v-if="data.references" :references="data.references" :can-start="canWork" :can-simulate="canSimulate" @start="startFrom" />
 
-				<div class="atelier-center">
-					<AtelierReferences v-if="data.references" :references="data.references" :can-start="canWork" :can-simulate="canSimulate" @start="startFrom" />
-					<AtelierPaliers v-if="!running && rows.length && quantities.length > 1" :rows="sheets" :quantities="quantities" :principale="quantite" :tier-tag="etude ? 'étude' : 'test'" :can-see-costs="canSeeCosts" :grammage="grammage" :prix-tonne="prixTonne" :selected="palier" @pick="pickTier" @show="(row) => (shown = state.keyOf(row))" />
-					<section class="card atelier-results" aria-label="Résultats du calcul">
-						<div v-if="running" class="atelier-state" role="status">
-							<span class="atelier-spin" aria-hidden="true"></span>
-							<b>Calcul en cours</b>
-							<p>Il tourne en arrière-plan, quelques secondes en général. Vous pouvez quitter cette page : le résultat vous attendra ici.</p>
-						</div>
-						<div v-else-if="failed" class="atelier-state" role="alert">
-							<b>Le calcul a échoué</b>
-							<p class="whitespace-pre-line">{{ (calcul?.log_calcul ?? '').split('\n').filter((line) => line.startsWith('ÉCHEC')).join('\n').replace(/^ÉCHEC : /, '') || 'Le journal en dit plus.' }}</p>
+				<section class="card atelier-results" aria-label="Résultats du calcul">
+					<div v-if="running" class="atelier-state" role="status">
+						<span class="atelier-spin" aria-hidden="true"></span>
+						<b>Calcul en cours</b>
+						<p>Il tourne en arrière-plan, quelques secondes en général. Vous pouvez quitter cette page : le résultat vous attendra ici.</p>
+					</div>
+					<div v-else-if="failed" class="atelier-state" role="alert">
+						<b>Le calcul a échoué</b>
+						<p class="whitespace-pre-line">{{ (calcul?.log_calcul ?? '').split('\n').filter((line) => line.startsWith('ÉCHEC')).join('\n').replace(/^ÉCHEC : /, '') || 'Le journal en dit plus.' }}</p>
+						<div class="flex flex-wrap justify-center gap-2">
 							<button v-if="canRun" type="button" class="btn-secondary" @click="state.run()">Relancer le calcul</button>
+							<button type="button" class="btn-secondary" @click="dialog = 'journal'">Voir le journal</button>
 						</div>
-						<div v-else-if="!readable" class="atelier-state">
-							<b>{{ hasTrace ? 'Ce tracé ne peut pas être calculé' : 'Aucun fichier de tracé' }}</b>
-							<p>L'atelier lit un PDF de tracé Esko : noir pour la coupe, rouge pour le rainage. Déposez-le ici pour ce calcul, ou joignez-le au tracé depuis la fiche de l'étude.</p>
-							<button v-if="canWork" type="button" class="btn-primary" @click="dialog = 'depot'">Déposer un PDF</button>
-						</div>
-						<div v-else-if="!sheets.length" class="atelier-state">
-							<b>{{ calcul ? 'Tracé lu, rien de calculé' : 'Rien de calculé pour cette étude' }}</b>
-							<p>{{ formats.filter((row) => row.coche).length }} format{{ formats.filter((row) => row.coche).length > 1 ? 's' : '' }} à comparer. Le calcul donne pour chacun les poses, les chutes, les feuilles et le tonnage.</p>
-							<button v-if="canRun" type="button" class="btn-primary" @click="state.run()">Calculer</button>
-						</div>
+					</div>
+					<div v-else-if="!readable" class="atelier-state">
+						<b>{{ hasTrace ? 'Ce tracé ne peut pas être calculé' : 'Aucun fichier de tracé' }}</b>
+						<p>L'atelier lit un PDF de tracé Esko : noir pour la coupe, rouge pour le rainage. Déposez-le ici pour ce calcul, ou joignez-le au tracé depuis la fiche de l'étude.</p>
+						<button v-if="canWork" type="button" class="btn-primary" @click="dialog = 'depot'">Déposer un PDF</button>
+					</div>
+					<div v-else-if="!sheets.length" class="atelier-state">
+						<b>{{ calcul ? 'Tracé lu, rien de calculé' : 'Rien de calculé pour cette étude' }}</b>
+						<p>{{ formats.filter((row) => row.coche).length }} format{{ formats.filter((row) => row.coche).length > 1 ? 's' : '' }} à comparer. Le calcul donne pour chacun les poses, les chutes, les feuilles et le tonnage.</p>
+						<button v-if="canRun" type="button" class="btn-primary" @click="state.run()">Calculer</button>
+					</div>
 
-						<template v-if="!running && !failed && sheets.length">
-							<p v-if="stale" class="atelier-alert atelier-alert-top" data-tone="amber">Réglages modifiés : ces résultats ne les prennent pas en compte. Relancez le calcul.</p>
-							<div class="atelier-tabs">
-								<div class="atelier-tabs-list" role="group" aria-label="Feuilles à comparer">
-									<button v-for="row in sheets" :key="state.keyOf(row)" type="button" class="atelier-tab tabular-nums" :data-essai="isEssai(row)" :aria-pressed="current === row" @click="shown = state.keyOf(row)">{{ tabLabel(row) }}<template v-if="isEssai(row)"> · essai</template></button>
+					<template v-if="!running && !failed && sheets.length">
+						<p v-if="stale" class="atelier-alert atelier-alert-top" data-tone="amber">Réglages modifiés : ces résultats ne les prennent pas en compte. Relancez le calcul.</p>
+						<div v-if="current" class="atelier-stage" :data-stale="stale">
+							<div class="atelier-stage-canvas">
+								<div class="atelier-stage-head">
+									<h3 class="tabular-nums">{{ sheetLabel(current) }}<small> · {{ gridLabel(current) }}</small></h3>
+									<span v-if="origin" class="atelier-origin" :class="`tone-${origin.tone}`">{{ origin.label }}</span>
+									<span v-if="current === retainedRow" class="atelier-origin tone-green">Retenue</span>
+									<span class="atelier-stage-sub">{{ current.libelle }}</span>
 								</div>
-								<button type="button" class="btn-secondary" @click="dialog = 'export'">Télécharger</button>
-							</div>
-							<div v-if="current" class="atelier-view">
 								<AtelierFeuille v-if="silhouette" :scenario="current" :silhouette="silhouette" :lisiere="lisiere" :pince="pince" :marge="marge" />
-								<div class="atelier-stats">
-									<h4>{{ current.libelle }}</h4>
-									<div class="atelier-rate tabular-nums">{{ percentLabel(current.taux_chutes) }}<small>de chutes</small></div>
+							</div>
+							<div class="atelier-stage-side">
+								<div class="atelier-rate tabular-nums">{{ percentLabel(current.taux_chutes) }}<small>de chutes</small></div>
+								<dl class="atelier-facts">
+									<div><dt>Poses</dt><dd>{{ current.nb_poses }} ({{ current.n_col }} × {{ current.n_rang }})</dd></div>
+									<div><dt>Feuilles · {{ formatQuantity(shownQty) }} ex.</dt><dd>{{ sheetsLabel(sheetsFor(current, shownQty)) }}</dd></div>
+									<div><dt>Tonnage</dt><dd>{{ tonnageLabel(tonnageFor(current, shownQty, grammage)) }}</dd></div>
+									<div v-if="prixTonne"><dt>Coût matière</dt><dd>{{ costLabel(materialCost(current, shownQty, grammage, prixTonne)) }}</dd></div>
+								</dl>
+								<p v-if="verdict" class="atelier-verdict">{{ verdict }}</p>
+								<p v-for="alert in scenarioAlerts(current, etude?.presse)" :key="alert.text" class="atelier-alert" :data-tone="alert.tone">{{ alert.text }}</p>
+								<details class="atelier-tech">
+									<summary>Détails techniques</summary>
 									<dl class="atelier-facts">
-										<div><dt>Feuille</dt><dd>{{ sheetLabel(current) }}</dd></div>
-										<div><dt>Poses</dt><dd>{{ current.nb_poses }} ({{ current.n_col }} × {{ current.n_rang }})</dd></div>
 										<div><dt>Disposition</dt><dd>{{ motifLabel(current) }}</dd></div>
 										<div><dt>Pas</dt><dd>{{ pitchLabel(current) }}</dd></div>
 										<div><dt>Trait commun</dt><dd>{{ commonCutLabel(current) }}</dd></div>
 										<div><dt>Reste</dt><dd>{{ mm(current.reste_laize) }} × {{ mm(current.reste_depl) }}</dd></div>
 										<div><dt>Surface / pose</dt><dd>{{ mm(current.surface_par_pose) }} cm²</dd></div>
-										<div><dt>Feuilles<template v-if="shownQty !== quantite"> ({{ formatQuantity(shownQty) }} ex.)</template></dt><dd>{{ sheetsLabel(sheetsFor(current, shownQty)) }}</dd></div>
-										<div><dt>Tonnage</dt><dd>{{ tonnageLabel(tonnageFor(current, shownQty, grammage)) }}</dd></div>
-										<div v-if="prixTonne"><dt>Coût matière</dt><dd>{{ costLabel(materialCost(current, shownQty, grammage, prixTonne)) }}</dd></div>
 									</dl>
-									<p v-for="alert in scenarioAlerts(current, etude?.presse)" :key="alert.text" class="atelier-alert" :data-tone="alert.tone">{{ alert.text }}</p>
+								</details>
+								<div class="atelier-stage-actions">
+									<button v-if="isEssai(current) && canWork" type="button" class="btn-primary" :disabled="busy" @click="state.keep(current)">Garder cette feuille</button>
+									<button v-else-if="canCreate" type="button" :class="current === retainedRow ? 'btn-secondary' : 'btn-primary'" :disabled="current === retainedRow || stale" @click="state.retain(current)">{{ current === retainedRow ? 'Retenue' : 'Retenir cette feuille' }}</button>
+									<button type="button" class="btn-secondary" @click="dialog = 'export'">Télécharger</button>
 								</div>
+								<p v-if="isEssai(current)" class="m-0 text-sm text-ink-gray-6">Essai : rien n'est enregistré tant que vous ne le gardez pas.</p>
 							</div>
-							<AtelierCoupes v-if="roll && canSimulate && calcul && reglages" :calcul="calcul.name" :roll="roll" :current="current" :reglages="reglages" :grammage="grammage" :presse="etude?.presse" @pick="state.showCut" />
-							<div v-if="rows.length" class="atelier-table-wrap" :data-stale="stale">
-								<table class="atelier-table">
-									<thead>
-										<tr>
-											<th v-if="canCreate"><span class="sr-only">Retenue</span></th>
-											<th>Format ou scénario</th>
-											<th>Origine</th>
-											<th class="end"><button type="button" @click="state.setSort('nb_poses')">Poses{{ sortMark('nb_poses') }}</button></th>
-											<th class="end">Grille</th>
-											<th class="end"><button type="button" @click="state.setSort('taux_chutes')">Chutes{{ sortMark('taux_chutes') }}</button></th>
-											<th class="end">Feuilles<template v-if="shownQty !== quantite"> · {{ formatQuantity(shownQty) }} ex.</template></th>
-											<th class="end">Tonnage</th>
-											<th v-if="prixTonne" class="end">Coût matière</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr v-for="row in tableRows" :key="state.keyOf(row)" :data-retained="row.idx === retained" @click="state.retain(row)">
-											<td v-if="canCreate"><input type="radio" name="atelier-retenu" :aria-label="`Retenir ${row.libelle}`" :checked="row.idx === retained" /></td>
-											<td>
-												<div class="font-medium text-ink-gray-9">{{ row.libelle }}</div>
-												<div class="text-sm tabular-nums text-ink-gray-6">{{ sheetLabel(row) }}</div>
-												<div v-if="scenarioAlerts(row, etude?.presse).some((alert) => alert.tone === 'red')" class="atelier-row-alert">{{ scenarioAlerts(row, etude?.presse).find((alert) => alert.tone === 'red')?.text }}</div>
-											</td>
-											<td>{{ row.origine }}</td>
-											<td class="end">{{ row.nb_poses }}</td>
-											<td class="end">{{ gridLabel(row) }}</td>
-											<td class="end"><span class="atelier-rate-bar"><i><b :style="{ width: `${(row.taux_chutes / maxRate) * 100}%` }"></b></i>{{ percentLabel(row.taux_chutes) }}</span></td>
-											<td class="end">{{ sheetsLabel(sheetsFor(row, shownQty)) }}</td>
-											<td class="end">{{ tonnageLabel(tonnageFor(row, shownQty, grammage)) }}</td>
-											<td v-if="prixTonne" class="end">{{ costLabel(materialCost(row, shownQty, grammage, prixTonne)) }}</td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-							<p v-if="shownQty !== quantite" class="atelier-hint">Trié {{ canSeeCosts ? 'du moins cher au plus cher en matière' : 'de la feuille qui consomme le moins de carton à celle qui en consomme le plus' }} pour {{ formatQuantity(shownQty) }} ex. <button type="button" class="underline" @click="palier = null">Revenir à {{ formatQuantity(quantite) }} ex.</button></p>
-							<p v-if="rows.length" class="atelier-hint">{{ canCreate ? "Cliquez sur une ligne pour la retenir. Aucune n'est recommandée : c'est vous qui retenez." : "Cliquez sur une ligne pour voir sa feuille. Aucune n'est recommandée." }}</p>
-						</template>
+						</div>
+						<AtelierVignettes :items="vignettes" :sort="vsort" :quantity="shownQty" :quantities="quantities" :principale="quantite" :tier-tag="etude ? 'étude' : 'test'" :current-key="currentKey" :retained-key="retainedKey" :with-cost="withCost" :grammage="grammage" :prix-tonne="prixTonne" :silhouette="silhouette" :lisiere="lisiere" :pince="pince" :stale="stale" :can-add="Boolean(calcul && reglages && readable)" :adding="adding" @show="showVignette" @quantity="pickQuantity" @sort="(key) => (vsort = key)" @add="adding = !adding" />
+					</template>
 
-						<div class="atelier-sim">
+					<div v-if="adding && calcul && reglages && readable" class="atelier-add">
+						<div class="atelier-add-head">
+							<h4>Ajouter une feuille</h4>
+							<div class="atelier-segment" role="group" aria-label="Outil">
+								<button type="button" :aria-pressed="addMode === 'ideal'" @click="addMode = 'ideal'">Format idéal</button>
+								<button type="button" :aria-pressed="addMode === 'precis'" @click="addMode = 'precis'">Format précis</button>
+							</div>
+							<span class="flex-1"></span>
+							<button type="button" class="btn-ghost" @click="adding = false">Fermer</button>
+						</div>
+						<AtelierProposition v-if="addMode === 'ideal'" :calcul="calcul.name" :formats="formats" :reglages="reglages" :grammage="grammage" :presse="etude?.presse" :current="current" :enabled="canSimulate" :can-see-costs="canSeeCosts" @pick="state.showCut" />
+						<div v-else class="atelier-sim">
 							<div class="atelier-sim-row">
 								<label class="form-field"><span class="field-label">Laize</span><input v-model="sim.laize" class="field-input tabular-nums" type="number" min="0" :disabled="!canSimulate" /></label>
 								<label class="form-field"><span class="field-label">Déplacement</span><input v-model="sim.depl" class="field-input tabular-nums" type="number" min="0" :disabled="!canSimulate" /></label>
@@ -269,46 +301,37 @@ async function copyLink() {
 								<button type="button" class="btn-secondary" :disabled="!canSimulate || !sim.laize || !sim.depl" @click="state.tryFormat(sim.laize, sim.depl, sim.fibre)">Essayer ce format</button>
 							</div>
 							<p v-if="simError" role="alert" class="field-error m-0">{{ simError }}</p>
-							<p v-else-if="currentEssai" class="m-0 text-sm text-ink-gray-7">
-								{{ currentEssai.libelle }} : {{ currentEssai.nb_poses }} poses, {{ percentLabel(currentEssai.taux_chutes) }} de chutes. Rien n'est enregistré.
-								<button v-if="canWork" type="button" class="btn-secondary ml-1" :disabled="busy" @click="state.keep(currentEssai)">Garder ce scénario</button>
-							</p>
-							<p v-else class="m-0 text-sm text-ink-gray-6">{{ canSimulate ? 'Essayez un format sans rien enregistrer.' : stale ? 'Relancez le calcul pour essayer un format.' : 'Les essais s\'ouvrent une fois le tracé lu.' }}</p>
+							<p v-else class="m-0 text-sm text-ink-gray-6">{{ canSimulate ? 'La feuille rejoint les vignettes comme essai, sans rien enregistrer.' : stale ? 'Relancez le calcul pour essayer un format.' : 'Les essais s\'ouvrent une fois le tracé lu.' }}</p>
 						</div>
-						<AtelierProposition v-if="calcul && reglages && readable" :calcul="calcul.name" :formats="formats" :reglages="reglages" :grammage="grammage" :presse="etude?.presse" :current="current" :enabled="canSimulate" :can-see-costs="canSeeCosts" @pick="state.showCut" />
-					</section>
+					</div>
+				</section>
 
-					<AtelierGroupage v-if="etude && calcul && canSimulate && !gabarit" :etude="etude" :calcul="calcul.name" :formats="formats" :reglages="reglages" :default-poses="current?.nb_poses ?? 1" :can-work="canWork" :can-create="canCreate" @created="onGroupCreated" />
-					<section class="card atelier-foot">
-						<details>
-							<summary>{{ etude ? 'Historique de cette étude' : 'Vos derniers tests' }}</summary>
-							<div class="atelier-table-wrap">
-								<table class="atelier-table atelier-history">
-									<thead><tr><th>Calcul</th><th>Date</th><th>Statut</th><th>Développé</th><th>Imposition créée</th></tr></thead>
-									<tbody>
-										<tr v-for="row in data.historique" :key="row.name" :data-retained="row.name === calcul?.name" @click="openHistorique(row.name)">
-											<td class="tabular-nums">{{ row.name }}</td>
-											<td class="tabular-nums">{{ formatDay(row.creation) }}</td>
-											<td>{{ row.statut_calcul || 'Non lancé' }}</td>
-											<td class="tabular-nums">{{ row.developpe_l ? `${mm(row.developpe_l)} × ${mm(row.developpe_d)}` : '—' }}</td>
-											<td class="tabular-nums">{{ row.imposition_creee || 'Aucune' }}</td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-						</details>
-						<details :open="failed">
-							<summary>Journal du calcul</summary>
-							<pre class="atelier-journal">{{ calcul?.log_calcul || 'Aucun calcul pour l\'instant.' }}</pre>
-						</details>
-					</section>
-				</div>
+				<AtelierGroupage v-if="etude && calcul && canSimulate && !gabarit" :etude="etude" :calcul="calcul.name" :formats="formats" :reglages="reglages" :default-poses="current?.nb_poses ?? 1" :can-work="canWork" :can-create="canCreate" @created="onGroupCreated" />
 			</div>
 
 			<FormDialog v-if="dialog === 'depot'" title="Tracé de ce calcul" :dirty="false" hint="" @close="dialog = null">
 				<AtelierDepot :cotations="etude?.cotations" :support="support" :note="etude ? `Ce PDF sert à ce calcul seulement. Le fichier du tracé ${etude.trace ?? ''} ne change pas.` : 'Il remplace le PDF de ce test.'" @uploaded="onUploaded" />
 			</FormDialog>
 			<AtelierExport v-if="dialog === 'export' && calcul" :calcul="calcul.name" :sheets="sheets" :current="current" @close="dialog = null" />
+			<FormDialog v-if="dialog === 'historique'" :title="etude ? 'Historique de cette étude' : 'Vos derniers tests'" :dirty="false" hint="" @close="dialog = null">
+				<div class="atelier-table-wrap">
+					<table class="atelier-table atelier-history">
+						<thead><tr><th>Calcul</th><th>Date</th><th>Statut</th><th>Développé</th><th>Imposition créée</th></tr></thead>
+						<tbody>
+							<tr v-for="row in data.historique" :key="row.name" :data-retained="row.name === calcul?.name" @click="dialog = null; openHistorique(row.name)">
+								<td class="tabular-nums">{{ row.name }}</td>
+								<td class="tabular-nums">{{ formatDay(row.creation) }}</td>
+								<td>{{ row.statut_calcul || 'Non lancé' }}</td>
+								<td class="tabular-nums">{{ row.developpe_l ? `${mm(row.developpe_l)} × ${mm(row.developpe_d)}` : '—' }}</td>
+								<td class="tabular-nums">{{ row.imposition_creee || 'Aucune' }}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</FormDialog>
+			<FormDialog v-if="dialog === 'journal'" title="Journal du calcul" :dirty="false" hint="" @close="dialog = null">
+				<pre class="atelier-journal">{{ calcul?.log_calcul || 'Aucun calcul pour l\'instant.' }}</pre>
+			</FormDialog>
 			<FormDialog v-if="dialog === 'creer' && retainedRow && etude" title="Créer cette imposition ?" :dirty="false" hint="" :busy="busy" @close="dialog = null" @submit="create">
 				<p class="m-0"><b class="font-semibold text-ink-gray-9">{{ retainedRow.libelle }}</b> : {{ retainedRow.nb_poses }} poses sur {{ sheetLabel(retainedRow) }} mm, {{ percentLabel(retainedRow.taux_chutes) }} de chutes, {{ sheetsLabel(sheetsFor(retainedRow, quantite)) }} feuilles.</p>
 				<p class="rounded-control tone-amber px-3 py-2 text-sm">{{ replacementText(etude) }}</p>
