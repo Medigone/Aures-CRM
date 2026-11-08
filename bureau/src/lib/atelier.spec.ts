@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, parseQuantities, presseAlert, fibreRotation, fibreSummary, formatFibre, cotesOf, isGabarit, gabaritPaths, referenceFormat, tierResults, allQuantities, materialCost, referenceReason, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type AtelierReference, type Scenario } from './atelier'
+import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, parseQuantities, presseAlert, fibreRotation, fibreSummary, formatFibre, cotesOf, isGabarit, gabaritPaths, referenceFormat, tierResults, allQuantities, materialCost, unitCostLabel, referenceReason, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type AtelierReference, type Scenario } from './atelier'
 
 const scenario = (values: Partial<Scenario> = {}) => ({ libelle: 'A', origine: 'Stock', laize: 1020, depl: 700, nb_poses: 4, n_col: 2, n_rang: 2, rotation: 0, taux_chutes: 35, pas_laize: 381.96, pas_depl: 337.05, trait_commun_laize: 1, trait_commun_depl: 0, reste_laize: 240.04, reste_depl: 1.9, surface_par_pose: 1785, nb_feuilles: 25000, tonnage: 5.176, ...values }) as Scenario
 
@@ -152,7 +152,10 @@ describe('paliers de quantité', () => {
 		expect(beaucoup.feuilles).toBe(1000)
 		// 1000 feuilles de 1020 × 700 en 300 g : 0,2142 t à 200 000 DA.
 		expect(beaucoup.cout).toBeCloseTo(42840, 0)
-		expect(beaucoup.coutPour1000).toBeCloseTo(3060, 0)
+		expect(beaucoup.coutUnitaire).toBeCloseTo(3.06, 2)
+		expect(unitCostLabel(beaucoup.coutUnitaire)).toBe('3,06 DA')
+		expect(unitCostLabel(0.4567)).toBe('0,457 DA')
+		expect(unitCostLabel(null)).toBe('—')
 		expect(beaucoup.ecartSuivant).toBeGreaterThan(0)
 		expect(materialCost(grand, 14000, 300, 0)).toBeNull()
 	})

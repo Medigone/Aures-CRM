@@ -330,6 +330,12 @@ export const allQuantities = (quantite: number, paliers: number[]) => [...new Se
 export const areaFor = (row: Pick<Scenario, 'nb_poses' | 'laize' | 'depl'>, quantite: number) => (sheetsFor(row, quantite) * row.laize * row.depl) / 1e6
 export const materialCost = (row: Pick<Scenario, 'nb_poses' | 'laize' | 'depl'>, quantite: number, grammage: number, prixTonne: number) => (prixTonne > 0 && grammage > 0 ? tonnageFor(row, quantite, grammage) * prixTonne : null)
 export const costLabel = (value: number | null) => (value == null ? '—' : `${formatQuantity(Math.round(value))} DA`)
+/** Le coût d'un exemplaire : deux décimales, trois sous le dinar, pour qu'un prix de quelques centimes reste lisible. */
+export function unitCostLabel(value: number | null) {
+	if (value == null) return '—'
+	const digits = value < 1 ? 3 : 2
+	return `${value.toLocaleString('fr-FR', { minimumFractionDigits: digits, maximumFractionDigits: digits }).replace(/\u202f/g, ' ')} DA`
+}
 
 /** Les feuilles d'une quantité, de la moins chère en matière à la plus chère. À grammage égal, c'est la surface de carton qui compte. */
 export function rankForQuantity<T extends Scenario>(rows: T[], quantite: number) {
@@ -341,7 +347,8 @@ export interface TierResult<T extends Scenario = Scenario> {
 	feuilles: number
 	tonnage: number
 	cout: number | null
-	coutPour1000: number | null
+	/** Coût matière d'un exemplaire, en DA. */
+	coutUnitaire: number | null
 	/** Surcoût du suivant, en %, null s'il n'y en a pas. */
 	ecartSuivant: number | null
 	suivant: T | null
@@ -362,7 +369,7 @@ export function tierResults<T extends Scenario>(rows: T[], quantities: number[],
 			feuilles: sheetsFor(winner, quantite),
 			tonnage: tonnageFor(winner, quantite, grammage),
 			cout,
-			coutPour1000: cout == null ? null : (cout / quantite) * 1000,
+			coutUnitaire: cout == null ? null : cout / quantite,
 			ecartSuivant: suivant && base > 0 ? Math.round(((areaFor(suivant, quantite) - base) / base) * 1000) / 10 : null,
 			suivant: suivant ?? null,
 			formatChange: Boolean(previous && sheetLabel(previous.winner) !== sheetLabel(winner)),

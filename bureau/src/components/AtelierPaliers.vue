@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { costLabel, gridLabel, sheetLabel, sheetsLabel, tierResults, tonnageLabel, type Scenario } from '@/lib/atelier'
+import { costLabel, unitCostLabel, gridLabel, sheetLabel, sheetsLabel, tierResults, tonnageLabel, type Scenario } from '@/lib/atelier'
 import { formatQuantity } from '@/lib/etudes'
 
 /** Le gagnant de chaque quantité : la feuille qui consomme le moins de matière, et l'écart avec la suivante. */
@@ -32,7 +32,7 @@ const active = (quantite: number) => (props.selected ?? props.principale) === qu
 						<th class="end">Feuilles</th>
 						<th class="end">Tonnage</th>
 						<th v-if="canSeeCosts" class="end">Coût matière</th>
-						<th v-if="canSeeCosts" class="end">Pour 1 000</th>
+						<th v-if="canSeeCosts" class="end">Coût unitaire</th>
 						<th class="end">Suivant</th>
 					</tr>
 				</thead>
@@ -50,7 +50,7 @@ const active = (quantite: number) => (props.selected ?? props.principale) === qu
 						<td class="end">{{ sheetsLabel(tier.feuilles) }}</td>
 						<td class="end">{{ tonnageLabel(tier.tonnage) }}</td>
 						<td v-if="canSeeCosts" class="end">{{ costLabel(tier.cout) }}</td>
-						<td v-if="canSeeCosts" class="end">{{ costLabel(tier.coutPour1000) }}</td>
+						<td v-if="canSeeCosts" class="end">{{ unitCostLabel(tier.coutUnitaire) }}</td>
 						<td class="end text-ink-gray-6">
 							<template v-if="tier.suivant">{{ sheetLabel(tier.suivant) }} <span class="tabular-nums">+{{ String(tier.ecartSuivant).replace('.', ',') }} %</span></template>
 							<template v-else>—</template>
