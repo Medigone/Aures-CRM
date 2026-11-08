@@ -18,6 +18,7 @@ import type { UploadedFile } from '@shared/api'
 import AppToast from './AppToast.vue'
 import RecordHeader from './RecordHeader.vue'
 import TagEditor from './TagEditor.vue'
+import TracePreview from './TracePreview.vue'
 import TraceVersionDialog from './TraceVersionDialog.vue'
 import { setTraceFile, traceActivity } from '@/lib/api'
 import { setPendingNotice, takePendingNotice } from '@/lib/atelier'
@@ -193,7 +194,10 @@ function onTags(tags: string[]) {
 							<img v-if="imageUrl" class="trace-preview" :src="imageUrl" :alt="`Tracé ${trace.name}`" loading="lazy" />
 							<p v-if="!trace.fichier" class="m-0 text-ink-gray-6">Aucun fichier.<template v-if="trace.can_replace_file"> Déposez-le depuis le menu ⋯.</template></p>
 							<p v-else-if="trace.fichier.kind === 'image'" class="m-0 text-sm text-ink-gray-6">Une image : l'atelier ne peut pas la lire. Pour calculer une imposition, il faut le tracé en PDF.</p>
-							<p v-else class="m-0 text-sm text-ink-gray-6">PDF lisible par l'atelier d'imposition.</p>
+							<template v-else>
+								<TracePreview :name="trace.name" :url="trace.fichier.url" :label="trace.fichier.name" />
+								<p class="m-0 text-sm text-ink-gray-6">PDF lisible par l'atelier d'imposition. Un clic sur l'aperçu l'ouvre en entier.</p>
+							</template>
 						</section>
 
 						<section v-if="trace.impositions" class="card ref-card">

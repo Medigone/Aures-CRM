@@ -7,6 +7,8 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+import fitz
+
 from aurescrm.api import bureau_impositions, bureau_traces
 from aurescrm.aures_crm.doctype.imposition.imposition import automatic_ideale, choose_ideale
 from aurescrm.aures_crm.doctype.trace.trace import EN_SERVICE, OBSOLETE, create_version, current_trace
@@ -55,6 +57,12 @@ class TestTraceVersions(FrappeTestCase):
 		self.assertEqual(result["impositions"], 2)
 		for name in (best.name, other.name):
 			self.assertEqual(frappe.db.get_value("Imposition", name, ["obsolete", "defaut"]), (1, 0))
+
+	def test_sans_copie_quand_un_nouveau_fichier_suit(self):
+		self.v1.db_set("fichier_trace", "/files/ancien.png")
+		with patch("aurescrm.aures_crm.doctype.trace.trace._copy_and_rename_trace_file") as copy:
+			create_version(frappe.get_doc("Trace", self.v1.name), "Nouveau dessin", copy_file=0)
+		copy.assert_not_called()
 
 	def test_seule_la_version_en_service_recoit_une_version(self):
 		create_version(frappe.get_doc("Trace", self.v1.name), "Première reprise")
@@ -113,3 +121,21 @@ class TestTraceVersions(FrappeTestCase):
 		self.assertIn(row.name, bureau_impositions.get_impositions("obsoletes", search=self.item)["names"])
 		self.assertNotIn(row.name, bureau_impositions.get_impositions("valables", search=self.item)["names"])
 		self.assertFalse(bureau_impositions.get_imposition(row.name)["can_choose"])
+
+
+class TestTracePreview(FrappeTestCase):
+	def test_l_apercu_recadre_sur_le_dessin(self):
+		# Un petit dessin dans le coin d'une grande page, comme la plupart des tracés.
+		with fitz.open() as document:
+			page = document.new_page(width=1190, height=842)
+			page.draw_rect(fitz.Rect(500, 300, 700, 500), color=(0, 0, 0))
+			content = document.tobytes()
+		rendered = bureau_traces.render_pdf_preview(content, width=400)
+		self.assertEqual(rendered["pages"], 1)
+		self.assertAlmostEqual(rendered["width"], 400, delta=2)
+		# Recadré sur le carré : l'image est carrée, pas au format de la page.
+		self.assertAlmostEqual(rendered["height"], rendered["width"], delta=4)
+		self.assertTrue(rendered["png"].startswith(b"\x89PNG"))
+
+	def test_un_fichier_illisible_ne_casse_rien(self):
+		self.assertIsNone(bureau_traces.render_pdf_preview(b"pas un pdf"))

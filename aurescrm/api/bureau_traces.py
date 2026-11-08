@@ -7,6 +7,7 @@ Un tracé se crée depuis une étude ; ici, on consulte et on met en service une
 maquette. Les règles des versions sont dans `trace.py` (`create_version`).
 """
 
+import base64
 import os
 
 import frappe
@@ -260,6 +261,76 @@ def get_trace(name):
 	}
 
 
+# Aperçu d'un PDF : la première page en image, assez large pour lire les cotes, gardée un jour.
+PREVIEW_WIDTH = 1400
+PREVIEW_TTL = 24 * 3600
+
+
+def content_box(page):
+	"""Le cadre du dessin et de ses cotes : un tracé occupe souvent un coin d'une grande page blanche."""
+	import fitz
+
+	box = fitz.Rect()
+	for drawing in page.get_drawings():
+		box |= drawing["rect"]
+	for block in page.get_text("blocks"):
+		box |= fitz.Rect(block[:4])
+	if box.is_empty or box.width < 1 or box.height < 1:
+		return page.rect
+	margin = max(box.width, box.height) * 0.03
+	return (box + (-margin, -margin, margin, margin)) & page.rect
+
+
+def render_pdf_preview(content, width=PREVIEW_WIDTH):
+	"""La première page d'un PDF en PNG, et son nombre de pages. None si le fichier ne se lit pas."""
+	import fitz
+
+	try:
+		with fitz.open(stream=content, filetype="pdf") as document:
+			if not document.page_count:
+				return None
+			page = document[0]
+			clip = content_box(page)
+			zoom = min(width / clip.width, 8) if clip.width else 1
+			pixmap = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), clip=clip, alpha=False)
+			return {"png": pixmap.tobytes("png"), "pages": document.page_count, "width": pixmap.width, "height": pixmap.height}
+	except Exception:
+		return None
+
+
+@frappe.whitelist()
+def get_trace_preview(name):
+	"""L'aperçu du PDF du tracé, en image : il s'affiche partout pareil, sans visionneuse du navigateur."""
+	require_bureau()
+	doc = frappe.get_doc(TRACE, name)
+	doc.check_permission("read")
+	url = doc.fichier_trace
+	if file_kind(url) != "pdf":
+		return None
+	key = f"bureau-trace-apercu:{url}"
+	cached = frappe.cache().get_value(key)
+	if cached:
+		return cached
+	file_name = frappe.db.get_value("File", {"file_url": url}, "name")
+	if not file_name:
+		return None
+	try:
+		content = frappe.get_doc("File", file_name).get_content()
+	except Exception:
+		return None
+	rendered = render_pdf_preview(content)
+	if not rendered:
+		return None
+	result = {
+		"image": "data:image/png;base64," + base64.b64encode(rendered["png"]).decode(),
+		"pages": rendered["pages"],
+		"width": rendered["width"],
+		"height": rendered["height"],
+	}
+	frappe.cache().set_value(key, result, expires_in_sec=PREVIEW_TTL)
+	return result
+
+
 def _trace_for_work(name, modified):
 	require_bureau()
 	doc = frappe.get_doc(TRACE, name)
@@ -285,7 +356,7 @@ def version_dimensions(doc, dimensions, confirm_bat):
 
 
 @frappe.whitelist(methods=["POST"])
-def create_trace_version(name, modified, desc_changements, dimensions=None, points_colle=None, confirm_bat=0):
+def create_trace_version(name, modified, desc_changements, dimensions=None, points_colle=None, confirm_bat=0, copy_file=1):
 	"""Met en service une nouvelle version depuis la fiche du tracé. Le fichier suit, par l'envoi différé."""
 	doc = _trace_for_work(name, modified)
 	if not can_create_version(doc):
@@ -293,7 +364,7 @@ def create_trace_version(name, modified, desc_changements, dimensions=None, poin
 	dims, confirmation = version_dimensions(doc, dimensions, confirm_bat)
 	if confirmation:
 		return {"confirmation": confirmation}
-	result = create_version(doc, desc_changements, dims, points_colle)
+	result = create_version(doc, desc_changements, dims, points_colle, copy_file)
 	return {**result, "trace": get_trace(result["name"])}
 
 

@@ -345,7 +345,7 @@ def save_trace(name, modified, dimensions, points_colle=0, confirm_bat=0):
 
 
 @frappe.whitelist(methods=["POST"])
-def new_trace_version(name, modified, desc_changements, dimensions, points_colle=0, confirm_bat=0):
+def new_trace_version(name, modified, desc_changements, dimensions, points_colle=0, confirm_bat=0, copy_file=1):
 	"""Met en service une nouvelle version du tracé de l'étude : ses impositions sont à refaire, l'étude passe dessus."""
 	doc = _etude_for_work(name, modified)
 	if not doc.trace:
@@ -357,7 +357,7 @@ def new_trace_version(name, modified, desc_changements, dimensions, points_colle
 		return {"confirmation": confirmation}
 	source = frappe.get_doc("Trace", doc.trace)
 	source.check_permission("write")
-	result = create_version(source, desc_changements, dimensions, points_colle)
+	result = create_version(source, desc_changements, dimensions, points_colle, copy_file)
 	# create_version a déjà fait passer l'étude ouverte sur la nouvelle version.
 	doc = frappe.get_doc(doc.doctype, doc.name)
 	if doc.trace != result["name"]:

@@ -11,7 +11,7 @@ import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, Ar
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
 import type { ImpositionDetail, ImpositionOptions, ImpositionsResponse, ImpositionView } from './impositions'
-import type { TraceDetail, TraceOptions, TracesResponse, TraceVersionResult, TraceView } from './traces'
+import type { TraceDetail, TraceOptions, TracePreview, TracesResponse, TraceVersionResult, TraceView } from './traces'
 import type { GroupCandidate, GroupResult } from './groupage'
 import type { AtelierCalcul, AtelierData, AtelierFormat, GabaritApercu, PropositionResult, Scenario } from './atelier'
 import type { BatConfirmation, ClicheOptions, EtudePieces, ImpositionRow, MachineRow, PiecesResult, SaveTraceResult, TraceReference } from './etudePieces'
@@ -350,7 +350,7 @@ export const getTraceReferences = (name: string) => call<TraceReference[]>(`${PI
 export const getClicheOptions = (name: string) => call<ClicheOptions>(`${PIECES}.get_cliche_options`, { name })
 export const saveTrace = (etude: EtudeVersion, values: { dimensions: string; points_colle: number; confirm_bat: number }) => call<SaveTraceResult>(`${PIECES}.save_trace`, { ...versionOf(etude), ...values }, true)
 export const duplicateTrace = (etude: EtudeVersion, values: { source: string; dimensions: string; points_colle: number; with_impositions: number; confirm_bat: number }) => call<SaveTraceResult>(`${PIECES}.duplicate_trace`, { ...versionOf(etude), ...values }, true)
-export const newTraceVersion = (etude: EtudeVersion, values: { desc_changements: string; dimensions: string; points_colle: number; confirm_bat: number }) => call<SaveTraceResult>(`${PIECES}.new_trace_version`, { ...versionOf(etude), ...values }, true)
+export const newTraceVersion = (etude: EtudeVersion, values: { desc_changements: string; dimensions: string; points_colle: number; confirm_bat: number; copy_file: number }) => call<SaveTraceResult>(`${PIECES}.new_trace_version`, { ...versionOf(etude), ...values }, true)
 export const chooseImposition = (etude: EtudeVersion, imposition: string) => call<PiecesResult>(`${PIECES}.choose_imposition`, { ...versionOf(etude), imposition }, true)
 export const saveImposition = (etude: EtudeVersion, values: { laize_pal: string; format_laize_palette: string; format_imp: string; nbr_poses: string; taux_chutes: string; imposition?: string }) => call<PiecesResult>(`${PIECES}.save_imposition`, { ...versionOf(etude), ...values }, true)
 export const setEtudeMachine = (etude: EtudeVersion, machine: string) => call<PiecesResult>(`${PIECES}.set_etude_machine`, { ...versionOf(etude), machine }, true)
@@ -452,7 +452,8 @@ type TraceVersionRef = Pick<TraceDetail, 'name' | 'modified'>
 export const getTraces = (view: TraceView, conditions: Condition[], search: string, paging: ListPaging = {}) => call<TracesResponse>(`${TRACES}.get_traces`, listParams(view, conditions, search, paging))
 export const getTraceOptions = () => call<TraceOptions>(`${TRACES}.get_trace_options`)
 export const getTrace = (name: string) => call<TraceDetail>(`${TRACES}.get_trace`, { name })
-export const createTraceVersion = (trace: TraceVersionRef, values: { desc_changements: string; dimensions: string; points_colle: number; confirm_bat: number }) =>
+export const getTracePreview = (name: string) => call<TracePreview | null>(`${TRACES}.get_trace_preview`, { name })
+export const createTraceVersion = (trace: TraceVersionRef, values: { desc_changements: string; dimensions: string; points_colle: number; confirm_bat: number; copy_file: number }) =>
 	call<TraceVersionResult | { confirmation: BatConfirmation }>(`${TRACES}.create_trace_version`, { name: trace.name, modified: trace.modified, ...values }, true)
 export const setTraceFile = (trace: TraceVersionRef, file_url: string) => call<TraceDetail>(`${TRACES}.set_trace_file`, { name: trace.name, modified: trace.modified, file_url }, true)
 export const traceActivity = (name: string) => recordActivity(TRACES, 'trace', name)

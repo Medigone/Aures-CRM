@@ -67,7 +67,7 @@ async function submit(confirmBat = 0) {
 	}
 	busy.value = true
 	try {
-		const result = await createTraceVersion(props.trace, { desc_changements: description.value, dimensions: dimensions.value, points_colle: Number(points.value) || 0, confirm_bat: confirmBat })
+		const result = await createTraceVersion(props.trace, { desc_changements: description.value, dimensions: dimensions.value, points_colle: Number(points.value) || 0, confirm_bat: confirmBat, copy_file: Number(!hasFile()) })
 		if ('confirmation' in result) {
 			confirmation.value = result.confirmation
 			return

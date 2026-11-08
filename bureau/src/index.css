@@ -328,6 +328,24 @@
 		border: 1px solid var(--outline-gray-1);
 		@apply rounded-control bg-surface-gray-1;
 	}
+	.trace-preview-box {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+	.trace-preview-box .trace-preview {
+		width: 100%;
+		height: auto;
+		background: #fff;
+		cursor: zoom-in;
+	}
+	.trace-preview-state {
+		margin: 0;
+		padding: 2rem 1rem;
+		text-align: center;
+		border: 1px dashed var(--outline-gray-2, var(--outline-gray-1));
+		@apply rounded-control text-sm text-ink-gray-6;
+	}
 	.trace-versions {
 		display: flex;
 		flex-direction: column;

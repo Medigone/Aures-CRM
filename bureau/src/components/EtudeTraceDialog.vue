@@ -86,7 +86,7 @@ async function submit(confirmBat = 0) {
 		const result = copying.value
 			? await duplicateTrace(props.etude, { ...common, source: source.value, with_impositions: Number(withImpositions.value && canCopyImpositions.value) })
 			: versioning.value
-				? await newTraceVersion(props.etude, { ...common, desc_changements: description.value })
+				? await newTraceVersion(props.etude, { ...common, desc_changements: description.value, copy_file: Number(!upload.hasFile()) })
 				: await saveTrace(props.etude, common)
 		if (isConfirmation(result)) {
 			confirmation.value = result.confirmation

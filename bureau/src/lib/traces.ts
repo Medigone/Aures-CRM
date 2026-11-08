@@ -111,6 +111,13 @@ export interface TraceDetail {
 	comments: CommentSummary
 }
 
+export interface TracePreview {
+	image: string
+	pages: number
+	width: number
+	height: number
+}
+
 export interface TraceVersionResult {
 	name: string
 	ver: number

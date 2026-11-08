@@ -366,12 +366,12 @@ def live_impositions_filters(trace):
 	return filters
 
 
-def create_version(source, desc_changements, dimensions=None, points_colle=None):
+def create_version(source, desc_changements, dimensions=None, points_colle=None, copy_file=True):
 	"""Met en service une nouvelle version du tracé, tout de suite, comme une maquette activée.
 
 	L'ancienne devient obsolète, ses impositions aussi (à refaire, jamais idéales), sa forme de
 	découpe est signalée à refaire, et les études encore ouvertes passent sur la nouvelle version.
-	Le fichier est recopié : il reste à le remplacer si le dessin a changé.
+	Le fichier est recopié, sauf quand un nouveau fichier suit (`copy_file` faux).
 	"""
 	if not has_versions():
 		frappe.throw(_("Les versions de tracé attendent la migration du site."))
@@ -400,7 +400,7 @@ def create_version(source, desc_changements, dimensions=None, points_colle=None)
 		"desc_changements": desc,
 	})
 	new.insert()
-	if source.fichier_trace:
+	if source.fichier_trace and cint(copy_file):
 		url = _copy_and_rename_trace_file(source.name, source.fichier_trace, new.name, source.article)
 		if url:
 			new.db_set("fichier_trace", url)

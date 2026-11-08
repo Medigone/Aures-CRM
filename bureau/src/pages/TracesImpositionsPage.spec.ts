@@ -72,7 +72,9 @@ const fetchMock = vi.fn((input: RequestInfo | URL, _init?: RequestInit) => {
 		? traces
 		: url.includes('get_trace_options') || url.includes('get_imposition_options')
 			? { doctype: 'Trace', filter_fields: [] }
-			: url.includes('create_trace_version')
+			: url.includes('get_trace_preview')
+				? { image: 'data:image/png;base64,AAAA', pages: 2, width: 1400, height: 900 }
+				: url.includes('create_trace_version')
 				? versionResult()
 				: url.includes('get_trace_activity') || url.includes('get_imposition_activity')
 					? { items: [], comment_count: 0 }
@@ -171,6 +173,18 @@ describe('pages Tracés et Impositions', () => {
 		await flushPromises()
 		expect(sent('create_trace_version').desc_changements).toBe('Rabat agrandi')
 		expect(router.currentRoute.value.params.id).toBe('TRA-2')
+		wrapper.unmount()
+	})
+
+	it("montre l'aperçu d'un tracé en PDF, qui ouvre le PDF complet", async () => {
+		currentTrace = { ...traceDetail, fichier: { url: '/files/trace.pdf', name: 'trace.pdf', kind: 'pdf' } }
+		const { wrapper } = await open('/traces/TRA-1')
+		await flushPromises()
+		const image = wrapper.find('.trace-preview-box img')
+		expect(image.attributes('src')).toBe('data:image/png;base64,AAAA')
+		expect(wrapper.find('.trace-preview-box a').attributes('href')).toBe('/files/trace.pdf')
+		expect(wrapper.text()).toContain('Première page sur 2')
+		expect(sent('get_trace_preview').name).toBe('TRA-1')
 		wrapper.unmount()
 	})
 

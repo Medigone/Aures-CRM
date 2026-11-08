@@ -10,6 +10,7 @@ import CommentText from '@shared/components/CommentText.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import TagEditor from './TagEditor.vue'
+import TracePreview from './TracePreview.vue'
 import { isImageFile } from '@/lib/articles'
 import { formatDay } from '@/lib/display'
 import { dimensionsText, fileKindLabel, isObsolete, versionLabel } from '@/lib/traces'
@@ -83,7 +84,7 @@ function onTags(tags: string[]) {
 				</dl>
 
 				<img v-if="imageUrl" class="trace-preview" :src="imageUrl" :alt="`Tracé ${trace.name}`" loading="lazy" />
-				<p v-else-if="trace.fichier?.kind === 'pdf'" class="text-sm text-ink-gray-6">PDF lisible par l'atelier d'imposition.</p>
+				<TracePreview v-else-if="trace.fichier?.kind === 'pdf'" :name="trace.name" :url="trace.fichier.url" :label="trace.fichier.name" />
 
 				<section v-if="trace.versions.length > 1" class="card flex flex-col gap-1">
 					<h3 class="text-base font-semibold">Versions</h3>
