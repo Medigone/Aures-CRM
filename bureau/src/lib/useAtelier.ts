@@ -302,7 +302,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 	}
 	function keep(row: Scenario) {
 		return guarded(async () => {
-			const { cle: _cle, poses: _poses, ...scenario } = row
+			const { cle: _cle, poses: _poses, criteres: _criteres, fibre_feuille: _fibre, cout_complet: _cout, ...scenario } = row as Scenario & { criteres?: unknown; fibre_feuille?: unknown; cout_complet?: unknown }
 			await keepAtelierScenario(calcul.value!.name, scenario)
 			const name = calcul.value!.name
 			essais.value = essais.value.filter((other) => other !== row)

@@ -13,6 +13,7 @@ import AtelierExport from './AtelierExport.vue'
 import AtelierFeuille from './AtelierFeuille.vue'
 import AtelierGroupage from './AtelierGroupage.vue'
 import AtelierPaliers from './AtelierPaliers.vue'
+import AtelierProposition from './AtelierProposition.vue'
 import AtelierReferences from './AtelierReferences.vue'
 import AtelierReglages from './AtelierReglages.vue'
 import RecordHeader from './RecordHeader.vue'
@@ -274,6 +275,7 @@ async function copyLink() {
 							</p>
 							<p v-else class="m-0 text-sm text-ink-gray-6">{{ canSimulate ? 'Essayez un format sans rien enregistrer.' : stale ? 'Relancez le calcul pour essayer un format.' : 'Les essais s\'ouvrent une fois le tracé lu.' }}</p>
 						</div>
+						<AtelierProposition v-if="calcul && reglages && readable" :calcul="calcul.name" :formats="formats" :reglages="reglages" :grammage="grammage" :presse="etude?.presse" :current="current" :enabled="canSimulate" :can-see-costs="canSeeCosts" @pick="state.showCut" />
 					</section>
 
 					<AtelierGroupage v-if="etude && calcul && canSimulate && !gabarit" :etude="etude" :calcul="calcul.name" :formats="formats" :reglages="reglages" :default-poses="current?.nb_poses ?? 1" :can-work="canWork" :can-create="canCreate" @created="onGroupCreated" />

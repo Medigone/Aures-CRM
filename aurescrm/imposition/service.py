@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 from dataclasses import asdict, dataclass, field
@@ -42,6 +43,7 @@ from aurescrm.imposition.optimiseur import (
 	evaluer_format_et_motif,
 	filtrer_fibre,
 	format_en_stock,
+	formats_sur_mesure,
 	motif_depuis_dict,
 	rotations_format,
 	positions,
@@ -56,7 +58,9 @@ from aurescrm.imposition.optimiseur import (
 	MOTIFS_NON,
 	FIBRE_DEPL,
 	FIBRES_FEUILLE,
+	TRACE_HORIZONTALE,
 	TRACE_LIBRE,
+	TRACE_VERTICALE,
 )
 from aurescrm.imposition.motifs import DROITE, RANGS
 
@@ -404,6 +408,102 @@ def simuler_formats(vars_, params: Parametres, laize, depl, surface_mm2, libelle
 		ligne_scenario(avec_motif(libelle, d), d, params, surface_mm2, origine="Simulation")
 		for d in evaluer_format_et_motif(None, params, laize, depl, vars_=vars_)
 	]
+
+
+# Critères du format idéal : c'est l'utilisateur qui choisit, le moteur donne le meilleur pour chacun.
+CRITERE_MATIERE = "matiere"
+CRITERE_FEUILLES = "feuilles"
+CRITERE_STOCK = "stock"
+CRITERE_COUT = "cout"
+CRITERES_FORMAT = (CRITERE_MATIERE, CRITERE_FEUILLES, CRITERE_STOCK, CRITERE_COUT)
+
+
+def _feuilles(d, quantite):
+	return math.ceil(quantite / d.poses) if quantite and d.poses else 0
+
+
+def _surface_pour(d, quantite):
+	"""Carton consommé, mm² : pour la quantité si on la connaît, sinon par pose."""
+	return _feuilles(d, quantite) * d.laize * d.depl if quantite else d.surface_par_pose
+
+
+def cout_complet(d, params: Parametres, presse):
+	"""Matière plus passages presse (forfait, puis coût par 1000 feuilles), DA. None s'il manque une donnée."""
+	if not presse or not params.quantite or not params.prix_tonne or not params.grammage:
+		return None
+	feuilles = _feuilles(d, params.quantite)
+	tonnage = feuilles * d.laize * d.depl * params.grammage / 1e12
+	return round(tonnage * params.prix_tonne + float(presse.get("fixe") or 0) + feuilles / 1000 * float(presse.get("par_1000") or 0), 2)
+
+
+def proposer_formats(vars_, params: Parametres, surface_mm2, laize_max, depl_max, pas=10.0, fibre_trace=TRACE_LIBRE, stock=(), presse=None):
+	"""Le format idéal selon chaque critère, parmi les feuilles sur mesure et celles du stock.
+
+	Sur mesure : quand le tracé impose sa fibre, la feuille se commande dans l'une ou l'autre fibre ; on essaie les
+	deux et la ligne dit laquelle commander. Rend une ligne par feuille gagnante, avec les critères qu'elle gagne.
+	"""
+	vars_ = [v if isinstance(v, Variante) else Variante.depuis_dict(v) for v in (vars_ or [])]
+	fibre_imposee = fibre_trace in (TRACE_VERTICALE, TRACE_HORIZONTALE)
+	candidats = []
+	for fibre in FIBRES_FEUILLE if fibre_imposee else ("",):
+		retenues = filtrer_fibre(vars_, rotations_format(fibre_trace, fibre))
+		for d in formats_sur_mesure(None, params, laize_max, depl_max, pas=pas, vars_=retenues):
+			candidats.append((d, fibre, False, ""))
+	for fmt in stock or ():
+		laize, depl = float(fmt.get("laize") or 0), float(fmt.get("depl") or 0)
+		bobine = _est_bobine(fmt)
+		if laize <= 0 or (depl <= 0 and not bobine):
+			continue
+		fibre = fibre_de(fmt)
+		retenues = filtrer_fibre(vars_, rotations_format(fibre_trace, fibre))
+		# Le format maxi vaut pour le stock aussi : c'est celui de la presse.
+		if laize > laize_max + 1e-6 or (not bobine and depl > depl_max + 1e-6):
+			continue
+		if bobine:
+			# Une bobine en stock est un format en stock : sa meilleure coupe, sous son maximum et sous le maxi.
+			plafond = min(depl, depl_max) if depl > 0 else depl_max
+			for d in evaluer_bobine_et_motif(None, params, laize, plafond, vars_=retenues):
+				candidats.append((d, fibre, True, libelle_bobine(laize, d, plafond)))
+			continue
+		for d in evaluer_format_et_motif(None, params, laize, depl, vars_=retenues):
+			candidats.append((d, fibre, True, fmt.get("libelle") or f"{laize:.0f} × {depl:.0f}"))
+	if not candidats:
+		return []
+
+	q = params.quantite
+	# À égalité, le format en stock passe devant : il évite une commande spéciale.
+	cles = {
+		CRITERE_MATIERE: lambda c: (_surface_pour(c[0], q), -c[0].poses, not c[2]),
+		CRITERE_FEUILLES: lambda c: ((_feuilles(c[0], q), _surface_pour(c[0], q)) if q else (-c[0].poses, c[0].surface_par_pose), not c[2]),
+		CRITERE_STOCK: lambda c: (_surface_pour(c[0], q), -c[0].poses),
+	}
+	if cout_complet(candidats[0][0], params, presse) is not None:
+		cles[CRITERE_COUT] = lambda c: (cout_complet(c[0], params, presse), -c[0].poses, not c[2])
+	gagnants = []
+	for critere, cle in cles.items():
+		parmi = [c for c in candidats if c[2]] if critere == CRITERE_STOCK else candidats
+		if parmi:
+			gagnants.append((critere, min(parmi, key=cle)))
+
+	lignes = []
+	for critere, (d, fibre, en_stock, libelle_stock) in gagnants:
+		deja = next((ligne for ligne in lignes if ligne["_candidat"] is d), None)
+		if deja:
+			deja["criteres"].append(critere)
+			continue
+		libelle = libelle_stock if en_stock else f"Sur mesure {d.laize:g} × {d.depl:g}"
+		if fibre and not en_stock:
+			libelle += f" · fibre {fibre.lower()}"
+		origine = ("Bobine" if libelle_stock.startswith("Bobine") else "Format en stock") if en_stock else "Sur mesure"
+		ligne = ligne_scenario(avec_motif(libelle, d), d, params, surface_mm2, origine=origine)
+		ligne.update(fibre_feuille=fibre, criteres=[critere], _candidat=d)
+		cout = cout_complet(d, params, presse)
+		if cout is not None:
+			ligne["cout_complet"] = cout
+		lignes.append(ligne)
+	for ligne in lignes:
+		del ligne["_candidat"]
+	return lignes
 
 
 def simuler_format(vars_, params: Parametres, laize, depl, surface_mm2, libelle=""):

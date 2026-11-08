@@ -4428,6 +4428,40 @@
 	.atelier-cuts .atelier-table {
 		min-width: 30rem;
 	}
+	.atelier-criteres {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+		margin: 0.625rem 0 0.5rem;
+	}
+	.atelier-critere {
+		padding: 0.1875rem 0.625rem;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: 999px;
+		@apply text-sm text-ink-gray-7;
+	}
+	.atelier-critere:hover {
+		background: var(--surface-gray-2);
+	}
+	.atelier-critere[aria-checked='true'] {
+		border-color: var(--ink-gray-9);
+		background: var(--ink-gray-9);
+		color: var(--surface-white);
+	}
+	.atelier-propose-best {
+		margin: 0 0 0.5rem;
+		@apply text-sm text-ink-gray-8;
+	}
+	.atelier-propose-best b {
+		font-weight: 600;
+		@apply text-ink-gray-9;
+	}
+	.atelier-sim-row .form-field.atelier-propose-pas {
+		width: 5.75rem;
+	}
+	.atelier-propose tbody tr {
+		cursor: pointer;
+	}
 	.atelier-hint {
 		margin: 0;
 		padding: 0.4375rem 0.75rem;

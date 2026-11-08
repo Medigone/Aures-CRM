@@ -10,7 +10,7 @@ masque par le niveau de permission 1 des mêmes champs.
 import frappe
 
 ROLES_COUTS = frozenset({"Chargé Devis", "Responsable Devis", "System Manager"})
-CHAMPS_COUTS = ("cout_matiere", "cout_par_1000")
+CHAMPS_COUTS = ("cout_matiere", "cout_par_1000", "cout_complet")
 
 
 def voit_couts(user=None):

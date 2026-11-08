@@ -11,7 +11,7 @@ import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, Ar
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
 import type { GroupCandidate, GroupResult } from './groupage'
-import type { AtelierCalcul, AtelierData, AtelierFormat, GabaritApercu, Scenario } from './atelier'
+import type { AtelierCalcul, AtelierData, AtelierFormat, GabaritApercu, PropositionResult, Scenario } from './atelier'
 import type { ClicheOptions, EtudePieces, ImpositionRow, MachineRow, PiecesResult, SaveTraceResult, TraceReference } from './etudePieces'
 import type { ArticleChoice, DemandeDetail, DemandeOptions, DemandesResponse, DemandeValues, DemandeView, TicketDemandeContext } from './demandes'
 import type { Condition } from './filters'
@@ -374,6 +374,7 @@ export const saveAtelierTiers = (calcul: string, values: { paliers: number[]; pr
 export const prepareAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.prepare_atelier`, { values: JSON.stringify(values) }, true)
 export const runAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.run_atelier`, { values: JSON.stringify(values) }, true)
 export const createAtelierImposition = (etude: string, calcul: string, scenario_idx: number) => call<{ imposition: string; remplacee: string | null; avertissement: string | null; taux_chutes: number }>(`${ATELIER}.create_atelier_imposition`, { etude, calcul, scenario_idx }, true)
+export const proposeFormats = (calcul: string, values: object) => call<PropositionResult>(`${ATELIER}.propose_formats`, { calcul, ...values })
 export const getRollCuts = (calcul: string, values: object) => call<Scenario[]>(`${ATELIER}.get_roll_cuts`, { calcul, ...values })
 export const simulateFormat = (calcul: string, values: object) => call<{ scenario: Scenario | null; scenarios?: Scenario[]; message?: string }>(`${MOTEUR}.simuler`, { calcul, ...values })
 export const keepAtelierScenario = (calcul: string, scenario: object) => call<{ idx: number }>(`${MOTEUR}.enregistrer_scenario`, { calcul, scenario: JSON.stringify(scenario) }, true)

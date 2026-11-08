@@ -450,6 +450,49 @@ def dispositions(poly, p: Parametres, vars_=None):
 	return res
 
 
+def arrondi_au_pas(valeur, pas):
+	"""Arrondi vers le haut au pas du fournisseur : une feuille plus courte couperait les poses. Pas nul : au dixième."""
+	if not pas or pas <= 0:
+		return math.ceil(valeur * 10 - 1e-6) / 10
+	return math.ceil(valeur / pas - 1e-6) * pas
+
+
+def formats_sur_mesure(poly, p: Parametres, laize_max, depl_max, pas=0.0, vars_=None):
+	"""Les feuilles à commander : pour chaque grille, droite ou motif, la plus petite feuille qui la contient.
+
+	Contrairement à `dispositions()`, les motifs sont compris, le format est arrondi au pas du fournisseur, et seul
+	le format maxi donné borne la recherche (celui de la presse, ou celui que l'utilisateur saisit).
+	"""
+	res = []
+	for v in _vars(poly, p, vars_, FAMILLE_TOUTES):
+		for nc in range(1, N_MAX_COL + 1):
+			largeur, _hauteur = encombrement(v, nc, 1 if not est_motif(v) or v.axe != RANGS else 2)
+			if arrondi_au_pas(largeur + 2 * p.lisiere, pas) > laize_max + 1e-6:
+				break
+			for nr in range(1, N_MAX_RANG + 1):
+				if not _motif_complet(v, nc, nr):
+					continue
+				largeur, hauteur = encombrement(v, nc, nr)
+				laize = arrondi_au_pas(largeur + 2 * p.lisiere, pas)
+				depl = arrondi_au_pas(hauteur + p.pince + p.marge_arriere, pas)
+				if depl > depl_max + 1e-6:
+					break
+				if laize > laize_max + 1e-6:
+					continue
+				res.append(
+					_disposition(
+						v,
+						laize,
+						depl,
+						nc,
+						nr,
+						reste_laize=round(laize - 2 * p.lisiere - largeur, 2),
+						reste_depl=round(depl - p.pince - p.marge_arriere - hauteur, 2),
+					)
+				)
+	return res
+
+
 def evaluer_format(poly, p: Parametres, laize, depl, vars_=None, famille=FAMILLE_DROITE):
 	"""Meilleur remplissage d'une feuille IMPOSÉE (format en stock, ou référence), dans une famille de variantes."""
 	best = None

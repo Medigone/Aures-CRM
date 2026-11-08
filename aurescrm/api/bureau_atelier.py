@@ -223,6 +223,39 @@ def get_roll_cuts(calcul, laize, depl_max=0, quantite=None, lisiere=None, pince=
 	return masquer_lignes(simuler_coupes_bobine(variantes, params, flt(laize), flt(depl_max), flt(doc.surface_utile_mm2), fibre_trace=doc.get("fibre_trace") or "Libre", fibre=fibre or ""))
 
 
+def _cout_presse(etude):
+	"""Ce que coûte un passage sur la presse prévue de l'étude, pour le coût complet. None s'il n'est pas saisi."""
+	machine = frappe.db.get_value(ETUDE, etude, "machine_prevue") if etude else None
+	if not machine:
+		return None
+	row = frappe.db.get_value("Machine", machine, ["frais_fixes_lancement", "cout_par_1000_unites", "unite_production"], as_dict=True)
+	if not row or row.unite_production not in (None, "", "Feuille") or not flt(row.cout_par_1000_unites):
+		return None
+	return {"nom": machine, "fixe": flt(row.frais_fixes_lancement), "par_1000": flt(row.cout_par_1000_unites)}
+
+
+@frappe.whitelist()
+def propose_formats(calcul, laize_max, depl_max, pas=10, formats=None, quantite=None, lisiere=None, pince=None, marge_arriere=None):
+	"""Le format idéal pour chaque critère, sous le format maxi donné. Lecture seule : l'utilisateur garde ce qu'il veut."""
+	_guard()
+	from aurescrm.imposition.service import proposer_formats
+
+	doc = frappe.get_doc(CALCUL, calcul)
+	doc.check_permission("read")
+	if flt(laize_max) <= 0 or flt(depl_max) <= 0:
+		frappe.throw(_("Indiquez le format maxi, laize et déplacement."))
+	variantes = doc.charge_variantes()
+	params = doc.charge_parametres(quantite=cint(quantite))
+	if not variantes or not params:
+		return {"lignes": [], "cout": None}
+	_params_avec_saisie(doc, params, lisiere=flt(lisiere), pince=flt(pince), marge_arriere=flt(marge_arriere), ignorer_contraintes_machine=1)
+	stock = [_format_row(row) for row in _parse(formats) or []]
+	# Le coût complet demande les prix : hors équipe devis, il n'est ni calculé ni proposé.
+	presse = _cout_presse(doc.etude_faisabilite) if voit_couts() else None
+	lignes = proposer_formats(variantes, params, flt(doc.surface_utile_mm2), flt(laize_max), flt(depl_max), pas=flt(pas), fibre_trace=doc.get("fibre_trace") or "Libre", stock=stock, presse=presse)
+	return {"lignes": masquer_lignes(lignes), "cout": {"presse": presse["nom"]} if presse and any("cout_complet" in ligne for ligne in lignes) else None}
+
+
 def calcul_arguments(values):
 	"""Les arguments du moteur. Avec une étude, article, client, tracé et quantité viennent d'elle, jamais de l'écran."""
 	values = _parse(values) or {}
