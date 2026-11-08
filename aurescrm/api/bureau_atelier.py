@@ -13,6 +13,7 @@ from frappe.utils import cint, flt
 
 from aurescrm.api.bureau import _parse, require_bureau
 from aurescrm.api.bureau_articles import _customers
+from aurescrm.api.bureau_atelier_references import references
 from aurescrm.aures_crm.page.atelier_imposition.atelier_imposition import get_contexte
 from aurescrm.imposition.api import _params_avec_saisie, creer_imposition, get_calcul, lancer_calcul, preparer_trace
 from aurescrm.imposition.service import REGLAGE_MOTIFS_DEFAUT, est_pdf, formats_connus, simuler_coupes_bobine
@@ -158,6 +159,8 @@ def get_atelier(etude=None, calcul=None):
 		"formats": merge_formats(proposes, (result or {}).get("formats_etudies") or []),
 		"reglages": reglages,
 		"historique": _historique(doc.name if doc else None),
+		# Ce qui a déjà été fabriqué pour cet article et pour des articles proches : on part de l'existant.
+		"references": references(doc) if doc else None,
 	}
 
 

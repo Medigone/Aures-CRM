@@ -2,7 +2,7 @@
 import { closeRealtime, connectRealtime, type RealtimeEvent } from '@shared/realtime'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { createAtelierImposition, getAtelier, getAtelierCalcul, getSupportFormats, keepAtelierScenario, prepareAtelier, runAtelier, simulateFormat } from './api'
-import { isPdf, isRunning, manualFormat, rollOf, sameSheet, sortScenarios, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages, type Scenario, type ScenarioSort } from './atelier'
+import { isPdf, isRunning, manualFormat, referenceFormat, rollOf, sameSheet, sortScenarios, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReference, type AtelierReglages, type Scenario, type ScenarioSort } from './atelier'
 
 // Le temps réel prévient de la fin ; la relecture reste pour une coupure.
 const POLL_MS = 5000
@@ -247,6 +247,35 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 		essais.value = [...essais.value, { ...row, cle }]
 		shown.value = cle
 	}
+	/**
+	 * Partir d'une imposition déjà faite : son format s'essaie aussitôt quand le tracé est lu, sans rien enregistrer ;
+	 * sinon il rejoint les formats à comparer, coché, pour le prochain calcul.
+	 */
+	async function startFrom(row: AtelierReference): Promise<'essai' | 'format' | ''> {
+		const format = referenceFormat(row)
+		if (!format) return ''
+		// Feuille déjà dans le tableau : on la montre plutôt que d'en faire un essai en double.
+		const sheet = sheets.value.find((other) => Math.abs(other.laize - format.laize) < 2 && Math.abs(other.depl - format.depl) < 2)
+		if (sheet && !stale.value) {
+			shown.value = keyOf(sheet)
+			return 'essai'
+		}
+		if (canSimulate.value) {
+			await tryFormat(String(format.laize), String(format.depl))
+			return simError.value ? '' : 'essai'
+		}
+		const known = formats.value.find((other) => !other.bobine && Math.abs(other.laize - format.laize) < 2 && Math.abs(other.depl - format.depl) < 2)
+		if (known) {
+			if (!known.coche) {
+				known.coche = true
+				changed()
+			}
+			return 'format'
+		}
+		const error = addFormat(String(format.laize), String(format.depl))
+		if (error) simError.value = error
+		return error ? '' : 'format'
+	}
 	function keep(row: Scenario) {
 		return guarded(async () => {
 			const { cle: _cle, poses: _poses, ...scenario } = row
@@ -268,5 +297,5 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 		})
 		return created as Awaited<ReturnType<typeof createAtelierImposition>> | null
 	}
-	return { data, calcul, reglages, formats, support, grammage, fichier, stale, essais, shown, retained, sort, direction, error, loadError, busy, simError, rows, sheets, current, retainedRow, running, failed, canWork, canCreate, canSimulate, readable, roll, keyOf, load, run, useFile, changed, addFormat, chooseSupport, setSort, retain, tryFormat, showCut, keep, createImposition }
+	return { data, calcul, reglages, formats, support, grammage, fichier, stale, essais, shown, retained, sort, direction, error, loadError, busy, simError, rows, sheets, current, retainedRow, running, failed, canWork, canCreate, canSimulate, readable, roll, keyOf, load, run, useFile, changed, addFormat, chooseSupport, setSort, retain, tryFormat, startFrom, showCut, keep, createImposition }
 }

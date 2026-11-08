@@ -11,9 +11,10 @@ import AtelierCoupes from './AtelierCoupes.vue'
 import AtelierDepot from './AtelierDepot.vue'
 import AtelierExport from './AtelierExport.vue'
 import AtelierFeuille from './AtelierFeuille.vue'
+import AtelierReferences from './AtelierReferences.vue'
 import AtelierReglages from './AtelierReglages.vue'
 import RecordHeader from './RecordHeader.vue'
-import { commonCutLabel, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type Scenario, type ScenarioSort } from '@/lib/atelier'
+import { commonCutLabel, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type AtelierReference, type Scenario, type ScenarioSort } from '@/lib/atelier'
 import { formatQuantity } from '@/lib/etudes'
 import { useAtelier } from '@/lib/useAtelier'
 
@@ -76,6 +77,10 @@ async function create() {
 function openHistorique(name: string) {
 	if (etude.value) state.load(name)
 	else router.push({ name: 'AtelierTest', params: { calcul: name } })
+}
+async function startFrom(row: AtelierReference) {
+	const done = await state.startFrom(row)
+	if (done === 'format') notice.value = `Format ${row.format} ajouté aux formats à comparer. Lancez le calcul.`
 }
 async function copyLink() {
 	await navigator.clipboard?.writeText(window.location.href)
@@ -144,6 +149,7 @@ async function copyLink() {
 				<AtelierReglages :data="data" :calcul="calcul" :reglages="reglages" :formats="formats" :support="support" :fichier="fichier" :readable="readable" :can-work="canWork" @changed="state.changed()" @depot="dialog = 'depot'" @support="state.chooseSupport" @add-format="onAddFormat" />
 
 				<div class="atelier-center">
+					<AtelierReferences v-if="data.references" :references="data.references" :can-start="canWork" :can-simulate="canSimulate" @start="startFrom" />
 					<section class="card atelier-results" aria-label="Résultats du calcul">
 						<div v-if="running" class="atelier-state" role="status">
 							<span class="atelier-spin" aria-hidden="true"></span>

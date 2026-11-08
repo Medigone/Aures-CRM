@@ -1,6 +1,6 @@
 /** Atelier d'imposition : ce que renvoie le serveur et les calculs d'affichage, sans composant. */
 import { formatDay } from './display'
-import { dimensionsLabel, percentLabel } from './etudePieces'
+import { dimensionsLabel, percentLabel, type ImpositionRow } from './etudePieces'
 import { formatQuantity } from './etudes'
 import type { Option } from '@/types'
 
@@ -118,7 +118,39 @@ export interface AtelierData {
 	formats: AtelierFormat[]
 	reglages: AtelierReglages
 	historique: AtelierHistorique[]
+	/** Ce qui a déjà été fabriqué : absent en test rapide et d'un ancien serveur. */
+	references?: AtelierReferences | null
 }
+/** Une imposition déjà faite, pour cet article ou pour un article proche. */
+export interface AtelierReference extends ImpositionRow {
+	laize: number
+	depl: number
+	article: string
+	designation: string
+	client_label: string | null
+	cotations: string | null
+	n_col: number
+	n_rang: number
+	/** L'imposition liée à l'étude, et non la meilleure de l'article. */
+	liee?: boolean
+	/** Plus grand écart sur une cote, en %. Absent quand l'article est proche par son client et son support. */
+	ecart?: number | null
+	meme_client?: boolean
+}
+export interface AtelierReferences {
+	cotations: string | null
+	actuelle: AtelierReference | null
+	proches: AtelierReference[]
+}
+/** Pourquoi cet article est proche, en une ligne. */
+export function referenceReason(row: AtelierReference) {
+	const parts = [row.meme_client ? 'Même client' : row.client_label || 'Autre client']
+	if (row.ecart != null) parts.push(row.ecart === 0 ? 'mêmes cotes' : `cotes à ${String(row.ecart).replace('.', ',')} %`)
+	else parts.push('même support')
+	return parts.join(', ')
+}
+/** Le format de l'imposition, si on sait le lire : sans lui, on ne peut pas en partir. */
+export const referenceFormat = (row: AtelierReference) => (row.laize > 0 && row.depl > 0 ? { laize: row.laize, depl: row.depl } : null)
 export interface AtelierAlert {
 	tone: 'amber' | 'red'
 	text: string

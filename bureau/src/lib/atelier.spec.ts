@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, presseAlert, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type Scenario } from './atelier'
+import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, presseAlert, referenceFormat, referenceReason, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type AtelierReference, type Scenario } from './atelier'
 
 const scenario = (values: Partial<Scenario> = {}) => ({ libelle: 'A', origine: 'Stock', laize: 1020, depl: 700, nb_poses: 4, n_col: 2, n_rang: 2, rotation: 0, taux_chutes: 35, pas_laize: 381.96, pas_depl: 337.05, trait_commun_laize: 1, trait_commun_depl: 0, reste_laize: 240.04, reste_depl: 1.9, surface_par_pose: 1785, nb_feuilles: 25000, tonnage: 5.176, ...values }) as Scenario
 
@@ -117,5 +117,18 @@ describe('tête-bêche et quinconce', () => {
 		expect(poseTransform([5, 6, 0], 10, 12, 140, 200)).toBe('translate(15 18)')
 		expect(poseTransform([5, 6, 90], 10, 12, 140, 200)).toBe('translate(15 18)')
 		expect(poseTransform([5, 6, 270], 10, 12, 140, 200)).toBe('translate(15 18) rotate(180 70 100)')
+	})
+})
+
+describe('impositions déjà fabriquées', () => {
+	const reference = (values: Partial<AtelierReference> = {}) => ({ name: 'IMP-1', format: '720 × 450', laize: 720, depl: 450, nbr_poses: 6, client_label: 'Biopharm', meme_client: false, ecart: 4.5, ...values }) as AtelierReference
+	it('dit pourquoi un article est proche', () => {
+		expect(referenceReason(reference())).toBe('Biopharm, cotes à 4,5 %')
+		expect(referenceReason(reference({ meme_client: true, ecart: 0 }))).toBe('Même client, mêmes cotes')
+		expect(referenceReason(reference({ meme_client: true, ecart: null }))).toBe('Même client, même support')
+	})
+	it('ne part pas d\'une imposition sans format lisible', () => {
+		expect(referenceFormat(reference())).toEqual({ laize: 720, depl: 450 })
+		expect(referenceFormat(reference({ laize: 0, depl: 0 }))).toBeNull()
 	})
 })
