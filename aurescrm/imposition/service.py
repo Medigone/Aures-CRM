@@ -37,12 +37,23 @@ from aurescrm.imposition.optimiseur import (
 	contrainte_bloquante,
 	dispositions,
 	coupes_bobine,
-	evaluer_bobine,
+	evaluer_bobine_et_motif,
 	evaluer_format,
+	evaluer_format_et_motif,
 	format_en_stock,
+	motif_depuis_dict,
+	positions,
 	trois_scenarios,
 	variantes,
+	CHAMP_AXE,
+	CHAMP_MOTIF,
+	FAMILLE_TOUTES,
+	LIBELLES_MOTIF,
+	MOTIFS_ALIGNES,
+	MOTIFS_DECALES,
+	MOTIFS_NON,
 )
+from aurescrm.imposition.motifs import DROITE, RANGS
 
 PINCE_DEFAUT = 10.0
 MARGE_ARRIERE_DEFAUT = 15.0
@@ -53,6 +64,14 @@ TOLERANCE_FORMAT = 2.0
 LIBELLE_REFERENCE = "RÉFÉRENCE"
 MAX_POINTS_SVG = 400
 MAX_SVG_OCTETS = 64 * 1024
+
+# Réglage « Tête-bêche et quinconce » du Calcul Imposition, vers le paramètre du moteur.
+REGLAGE_MOTIFS = {"Décalé autorisé": MOTIFS_DECALES, "Aligné seulement": MOTIFS_ALIGNES, "Non": MOTIFS_NON}
+REGLAGE_MOTIFS_DEFAUT = "Décalé autorisé"
+
+
+def motifs_depuis_reglage(reglage):
+	return REGLAGE_MOTIFS.get(reglage or REGLAGE_MOTIFS_DEFAUT, MOTIFS_DECALES)
 
 
 @dataclass
@@ -75,6 +94,7 @@ class EntreeCalcul:
 	pince_saisie: float | None = None
 	marge_arriere_saisie: float | None = None
 	ignorer_contraintes_machine: bool = False
+	motifs: str = MOTIFS_DECALES
 
 
 @dataclass
@@ -221,7 +241,7 @@ def silhouette_svg(poly, coupe, rainage):
 	return out
 
 
-def params_depuis_bornes(bornes, pont, trait_commun, sens_fibre, quantite, grammage, prix_tonne, formats_stock):
+def params_depuis_bornes(bornes, pont, trait_commun, sens_fibre, quantite, grammage, prix_tonne, formats_stock, motifs=MOTIFS_DECALES):
 	bornes = bornes or {}
 
 	def f(cle, defaut):
@@ -244,6 +264,7 @@ def params_depuis_bornes(bornes, pont, trait_commun, sens_fibre, quantite, gramm
 		grammage=float(grammage or 0),
 		prix_tonne=float(prix_tonne or 0),
 		formats_stock=tuple(formats_stock or ()),
+		motifs=motifs or MOTIFS_DECALES,
 	)
 
 
@@ -287,7 +308,64 @@ def ligne_scenario(libelle, d: Disposition, params: Parametres, surface_utile_mm
 		"format_en_stock": int(format_en_stock(d, params)),
 		"alerte": " ; ".join(alertes(d, params)),
 		"retenu": 0,
+		**champs_motif(d),
+		"poses": poses_scenario(d),
 	}
+
+
+def champs_motif(d):
+	"""Les champs du motif tels que les tables Scenario Imposition et Imposition les rangent."""
+	return {
+		"motif": CHAMP_MOTIF.get(d.motif, CHAMP_MOTIF[DROITE]),
+		"axe_motif": CHAMP_AXE.get(d.axe, ""),
+		"decalage_laize": d.decalage_laize,
+		"decalage_depl": d.decalage_depl,
+		"pas_paire": d.pas_paire,
+	}
+
+
+def poses_scenario(d):
+	"""Les poses d'un scénario pour les écrans : [x, y, rotation] depuis la lisière et la pince, au dixième."""
+	return [[round(x, 1), round(y, 1), r] for x, y, r in positions(d)]
+
+
+def libelle_motif_detail(d):
+	"""« Tête-bêche en colonnes, décalage 12,5 mm », pour le journal et les écrans. Vide pour une grille droite."""
+	if d.motif not in LIBELLES_MOTIF:
+		return ""
+	nom = LIBELLES_MOTIF[d.motif].capitalize()
+	axe = "en colonnes" if d.axe != RANGS else "en rangs"
+	decalage = d.decalage_depl if d.axe != RANGS else d.decalage_laize
+	if abs(decalage) < 0.05:
+		return f"{nom} {axe}, alignés"
+	return f"{nom} {axe}, décalage {abs(decalage):.1f} mm".replace(".", ",")
+
+
+def avec_motif(libelle, d):
+	"""Le libellé d'un format, suivi du motif quand c'en est un."""
+	return f"{libelle} · {LIBELLES_MOTIF[d.motif]}" if d.motif in LIBELLES_MOTIF else libelle
+
+
+def disposition_depuis_ligne(ligne):
+	"""Une ligne de scénario (dict, ou ligne de table) redevient une Disposition."""
+	get = ligne.get if hasattr(ligne, "get") else lambda cle, defaut=None: getattr(ligne, cle, defaut)
+
+	def nombre(cle):
+		return float(get(cle) or 0)
+
+	return Disposition(
+		libelle=get("libelle") or "",
+		laize=nombre("laize"),
+		depl=nombre("depl"),
+		n_col=int(nombre("n_col")),
+		n_rang=int(nombre("n_rang")),
+		pas_laize=nombre("pas_laize"),
+		pas_depl=nombre("pas_depl"),
+		rotation=int(nombre("rotation")),
+		trait_commun_laize=bool(int(nombre("trait_commun_laize"))),
+		trait_commun_depl=bool(int(nombre("trait_commun_depl"))),
+		**motif_depuis_dict(ligne),
+	)
 
 
 def libelle_bobine(laize, d, depl_max=0):
@@ -296,9 +374,19 @@ def libelle_bobine(laize, d, depl_max=0):
 
 
 def simuler_coupes_bobine(vars_, params: Parametres, laize, depl_max, surface_mm2):
-	"""Une ligne par coupe possible de cette bobine, dans l'ordre des rangs."""
-	coupes = coupes_bobine(None, params, laize, depl_max, vars_=vars_)
-	return [ligne_scenario(libelle_bobine(laize, d, depl_max), d, params, surface_mm2, origine="Bobine") for d in coupes]
+	"""Une ligne par coupe possible de cette bobine, grille droite et motifs, de la moins gourmande à la plus."""
+	coupes = coupes_bobine(None, params, laize, depl_max, vars_=vars_, famille=FAMILLE_TOUTES)
+	coupes.sort(key=lambda d: (d.n_rang, d.surface_par_pose))
+	return [ligne_scenario(avec_motif(libelle_bobine(laize, d, depl_max), d), d, params, surface_mm2, origine="Bobine") for d in coupes]
+
+
+def simuler_formats(vars_, params: Parametres, laize, depl, surface_mm2, libelle=""):
+	"""L'essai d'un format : la grille droite, et le motif s'il fait plus de poses."""
+	libelle = libelle or f"{laize:.0f} x {depl:.0f}"
+	return [
+		ligne_scenario(avec_motif(libelle, d), d, params, surface_mm2, origine="Simulation")
+		for d in evaluer_format_et_motif(None, params, laize, depl, vars_=vars_)
+	]
 
 
 def simuler_format(vars_, params: Parametres, laize, depl, surface_mm2, libelle=""):
@@ -316,7 +404,7 @@ def simuler_format(vars_, params: Parametres, laize, depl, surface_mm2, libelle=
 
 def simuler_grille(vars_, params: Parametres, rotation, n_col, n_rang, surface_mm2):
 	vars_ = [v if isinstance(v, Variante) else Variante.depuis_dict(v) for v in (vars_ or [])]
-	v = next((x for x in vars_ if int(x.rotation) == int(rotation)), None)
+	v = next((x for x in vars_ if int(x.rotation) == int(rotation) and x.motif not in LIBELLES_MOTIF), None)
 	if not v or n_col < 1 or n_rang < 1:
 		return None
 	laize = v.bbox_l + (n_col - 1) * v.pas_laize + 2 * params.lisiere
@@ -334,6 +422,22 @@ def simuler_grille(vars_, params: Parametres, rotation, n_col, n_rang, surface_m
 		trait_commun_depl=v.trait_commun_depl,
 	)
 	return ligne_scenario(d.libelle, d, params, surface_mm2, origine="Simulation")
+
+
+def journal_motifs(vars_, params: Parametres):
+	"""Ce que le tête-bêche et le quinconce ont donné, dans le journal du calcul."""
+	if params.motifs == MOTIFS_NON:
+		return "Tête-bêche et quinconce : non cherchés (réglage du calcul)."
+	motifs = [v for v in vars_ if v.motif in LIBELLES_MOTIF]
+	if not motifs:
+		return "Tête-bêche et quinconce : aucun motif ne fait mieux que la grille droite."
+	droites = {v.rotation: v.pas_laize * v.pas_depl for v in vars_ if v.motif not in LIBELLES_MOTIF}
+	lignes = ["Tête-bêche et quinconce, surface par pose comparée à la grille droite :"]
+	for v in motifs:
+		surface = v.pas_laize * v.pas_depl
+		gain = 100 * (1 - surface / droites[v.rotation]) if droites.get(v.rotation) else 0.0
+		lignes.append(f"  {v.rotation}° — {libelle_motif_detail(v)} : {surface / 100:.1f} cm², {gain:.1f} % de moins.")
+	return "\n".join(lignes)
 
 
 def journal_trait_commun(poly, params: Parametres):
@@ -542,8 +646,9 @@ def preparer(entree: EntreeCalcul, journal):
 		entree.grammage,
 		entree.prix_tonne,
 		entree.formats_stock,
+		entree.motifs,
 	)
-	vars_ = variantes(poly, params)
+	vars_ = variantes(poly, params, empreinte=empreinte)
 	svg = silhouette_svg(poly, coupe, rainage)
 	if svg is None:
 		journal.append("Aperçu graphique désactivé : silhouette trop lourde (> 64 Ko).")
@@ -626,26 +731,28 @@ def calculer(entree: EntreeCalcul, journal):
 					)
 					continue
 			if est_bobine:
-				d = evaluer_bobine(None, params, laize, depl, vars_=vars_)
-				if not d:
+				trouvees = evaluer_bobine_et_motif(None, params, laize, depl, vars_=vars_)
+				if not trouvees:
 					plafond = f" (max {depl:.0f})" if depl > 0 else ""
 					journal.append(
 						f"Bobine {laize:.0f} mm{plafond} : aucune pose ne tient "
 						"(coupe trop longue ou laize insuffisante)."
 					)
 					continue
-				lignes.append(ligne_scenario(libelle_bobine(laize, d, depl), d, params, surface, origine="Bobine"))
+				for d in trouvees:
+					lignes.append(ligne_scenario(avec_motif(libelle_bobine(laize, d, depl), d), d, params, surface, origine="Bobine"))
 				continue
-			d = evaluer_format(None, params, laize, depl, vars_=vars_)
-			if not d:
+			trouvees = evaluer_format_et_motif(None, params, laize, depl, vars_=vars_)
+			if not trouvees:
 				journal.append(
 					f"Format {laize:.0f} × {depl:.0f} mm : aucune pose ne tient."
 				)
 				continue
 			libelle = fmt.get("libelle") or f"{laize:.0f} × {depl:.0f}"
-			lignes.append(
-				ligne_scenario(libelle, d, params, surface, origine="Format étudié")
-			)
+			for d in trouvees:
+				lignes.append(
+					ligne_scenario(avec_motif(libelle, d), d, params, surface, origine="Format étudié")
+				)
 		if entree.inclure_sur_mesure:
 			dispos = dispositions(poly, params, vars_=vars_)
 			journal.append(f"{len(dispos)} disposition(s) sur mesure admissible(s).")
@@ -663,6 +770,7 @@ def calculer(entree: EntreeCalcul, journal):
 			)
 
 	journal.append(journal_trait_commun(poly, params))
+	journal.append(journal_motifs(vars_, params))
 
 	return ResultatCalcul(
 		mesures=mesures,

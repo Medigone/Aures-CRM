@@ -49,7 +49,7 @@ class CalculImposition(Document):
 		avant = self.get_doc_before_save()
 		if not avant:
 			return False
-		for champ in ("pont", "sens_fibre", "trait_commun_autorise"):
+		for champ in ("pont", "sens_fibre", "trait_commun_autorise", "motifs_emboites"):
 			if self.get(champ) != avant.get(champ):
 				return True
 		return False

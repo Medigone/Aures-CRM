@@ -21,6 +21,7 @@ from aurescrm.api.bureau import require_bureau
 from aurescrm.api.bureau_etudes import FLEXO, OFFSET, _etude_for_action, _resolve, condition_fields, get_etude
 from aurescrm.aures_crm.doctype.etude_faisabilite.etude_faisabilite import compute_nbr_feuilles, get_machines_for_etude_selection
 from aurescrm.aures_crm.doctype.trace.trace import duplicate_trace_from_reference
+from aurescrm.imposition.service import disposition_depuis_ligne, libelle_motif_detail, poses_scenario
 from aurescrm.passages import get_passages_pour_machine
 
 IN_STUDY = "En étude"
@@ -109,6 +110,12 @@ def _trace_piece(doc, work):
 
 
 IMPOSITION_FIELDS = ["name", "format_imp", "nbr_poses", "taux_chutes", "defaut", "origine_calcul", "format_laize", "format_developpement", "fichier_imp", "laize_pal", "format_laize_palette", "n_col", "n_rang", "rotation", "pas_laize", "pas_depl", "calcul_imposition"]
+# Tête-bêche et quinconce : lus seulement une fois les champs migrés.
+MOTIF_FIELDS = ["motif", "axe_motif", "decalage_laize", "decalage_depl", "pas_paire"]
+
+
+def _imposition_fields():
+	return IMPOSITION_FIELDS + (MOTIF_FIELDS if frappe.get_meta("Imposition").has_field("motif") else [])
 
 
 def _imposition_row(row, quantite, machine=None):
@@ -156,13 +163,18 @@ def sheet_drawing(row):
 		"pince": flt(calcul.pince),
 		"coupe": paths.get("path_coupe"),
 		"rainage": paths.get("path_rainage"),
+		# Les poses placées par le moteur : une pose retournée se dessine avec la même silhouette, tournée de 180°.
+		"poses": poses_scenario(disposition_depuis_ligne(row)),
+		"pose_l": flt(paths.get("l")),
+		"pose_d": flt(paths.get("d")),
+		"motif": libelle_motif_detail(disposition_depuis_ligne(row)),
 	}
 
 
 def _impositions_of(doc):
 	if not doc.trace or not frappe.has_permission("Imposition", "read"):
 		return []
-	rows = frappe.get_list("Imposition", filters={"client": doc.client, "article": doc.article, "trace": doc.trace}, fields=IMPOSITION_FIELDS, limit_page_length=0)
+	rows = frappe.get_list("Imposition", filters={"client": doc.client, "article": doc.article, "trace": doc.trace}, fields=_imposition_fields(), limit_page_length=0)
 	return sorted(rows, key=lambda row: (row.taux_chutes is None, flt(row.taux_chutes)))
 
 
@@ -177,7 +189,7 @@ def _imposition_piece(doc, work):
 	rows = _impositions_of(doc)
 	current = None
 	if doc.imposition:
-		row = frappe.db.get_value("Imposition", doc.imposition, IMPOSITION_FIELDS, as_dict=True) if frappe.has_permission("Imposition", "read") else None
+		row = frappe.db.get_value("Imposition", doc.imposition, _imposition_fields(), as_dict=True) if frappe.has_permission("Imposition", "read") else None
 		current = {**_imposition_row(row, doc.quantite), "dessin": sheet_drawing(row)} if row else {"name": doc.imposition}
 	return {**rights, "courante": current, "nombre": len(rows), "atelier": rights["can_create"] and bool(frappe.has_permission("Calcul Imposition", "read"))}
 

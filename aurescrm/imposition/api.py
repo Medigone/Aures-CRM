@@ -18,7 +18,7 @@ from frappe.utils.background_jobs import is_job_enqueued
 from aurescrm.imposition.generateur_cf2 import generer_cff2, nom_fichier_cff2
 from aurescrm.imposition.generateur_pdf import generer_pdf, generer_pdf_pages
 from aurescrm.imposition.lecture_trace import lire_trace, silhouette
-from aurescrm.imposition.optimiseur import Disposition, Parametres
+from aurescrm.imposition.optimiseur import MOTIFS_NON, Parametres
 from aurescrm.imposition.service import (
 	PONT_DEFAUT,
 	EntreeCalcul,
@@ -31,10 +31,15 @@ from aurescrm.imposition.service import (
 	fichier_est_celui_du_trace,
 	formats_connus,
 	intersection_bornes,
+	champs_motif,
+	disposition_depuis_ligne,
+	motifs_depuis_reglage,
+	poses_scenario,
 	preparer,
-	simuler_format,
+	simuler_formats,
 	simuler_grille as evaluer_grille_simulee,
 	support_technique_article,
+	REGLAGE_MOTIFS,
 )
 
 
@@ -145,6 +150,14 @@ def _params_avec_saisie(
 	return params
 
 
+def _motifs_du_calcul(doc):
+	"""Le réglage tête-bêche du calcul. Tant que les champs du motif ne sont pas migrés, aucun motif : la table des
+	scénarios ne saurait pas le garder, et une ligne relue deviendrait une grille droite fausse."""
+	if not frappe.get_meta("Scenario Imposition").has_field("motif"):
+		return MOTIFS_NON
+	return motifs_depuis_reglage(doc.get("motifs_emboites"))
+
+
 def _entree_depuis_doc(doc, quantite=None):
 	support = None
 	if doc.support_technique:
@@ -185,6 +198,7 @@ def _entree_depuis_doc(doc, quantite=None):
 		format_reference=None,
 		dimensions_saisies=cotes,
 		mode="atelier",
+		motifs=_motifs_du_calcul(doc),
 		**_saisie_ingenieur(doc),
 	)
 
@@ -301,6 +315,7 @@ def _assurer_calcul_doc(
 	pince=None,
 	marge_arriere=None,
 	ignorer_contraintes_machine=None,
+	motifs_emboites=None,
 ):
 	if not fichier_trace and trace:
 		fichier_trace = frappe.db.get_value("Trace", trace, "fichier_trace")
@@ -338,6 +353,10 @@ def _assurer_calcul_doc(
 		doc.marge_arriere = flt(marge_arriere)
 	if ignorer_contraintes_machine is not None:
 		doc.ignorer_contraintes_machine = cint(ignorer_contraintes_machine)
+	if motifs_emboites:
+		if motifs_emboites not in REGLAGE_MOTIFS:
+			frappe.throw(f"Réglage tête-bêche inconnu : {motifs_emboites}.")
+		doc.motifs_emboites = motifs_emboites
 	if formats is not None:
 		doc.set("formats_etudies", [])
 		for fmt in formats:
@@ -378,6 +397,7 @@ def preparer_trace(
 	pince=None,
 	marge_arriere=None,
 	ignorer_contraintes_machine=None,
+	motifs_emboites=None,
 ):
 	"""Parse le PDF et alimente le cache : la simulation n'attend plus « Calculer »."""
 	debut = time.monotonic()
@@ -400,6 +420,7 @@ def preparer_trace(
 		pince=pince,
 		marge_arriere=marge_arriere,
 		ignorer_contraintes_machine=ignorer_contraintes_machine,
+		motifs_emboites=motifs_emboites,
 	)
 	journal = []
 	try:
@@ -434,6 +455,7 @@ def lancer_calcul(
 	pince=None,
 	marge_arriere=None,
 	ignorer_contraintes_machine=None,
+	motifs_emboites=None,
 ):
 	"""Crée (ou réutilise) un Calcul Imposition et enfile le job.
 
@@ -481,6 +503,7 @@ def lancer_calcul(
 		pince=pince,
 		marge_arriere=marge_arriere,
 		ignorer_contraintes_machine=ignorer_contraintes_machine,
+		motifs_emboites=motifs_emboites,
 	)
 	doc.statut_calcul = "En cours"
 	doc.log_calcul = "Calcul en file d'attente…"
@@ -570,6 +593,7 @@ def get_calcul(calcul):
 		"pont": doc.pont,
 		"trait_commun_autorise": cint(doc.trait_commun_autorise),
 		"sens_fibre": doc.sens_fibre,
+		"motifs_emboites": doc.get("motifs_emboites") or "Décalé autorisé",
 		"lisiere": flt(doc.lisiere),
 		"pince": flt(doc.pince),
 		"marge_arriere": flt(doc.marge_arriere),
@@ -593,7 +617,7 @@ def get_calcul(calcul):
 		"surface_utile_mm2": doc.surface_utile_mm2,
 		"remplissage_bbox": doc.remplissage_bbox,
 		"duree_calcul": doc.duree_calcul,
-		"scenarios": [s.as_dict() for s in (doc.scenarios or [])],
+		"scenarios": [{**s.as_dict(), "poses": poses_scenario(disposition_depuis_ligne(s))} for s in (doc.scenarios or [])],
 		"scenario_retenu": doc.scenario_retenu,
 		"imposition_creee": doc.imposition_creee,
 		"log_calcul": doc.log_calcul,
@@ -630,7 +654,7 @@ def simuler(
 		marge_arriere=marge_arriere,
 		ignorer_contraintes_machine=ignorer_contraintes_machine,
 	)
-	ligne = simuler_format(
+	lignes = simuler_formats(
 		vars_,
 		params,
 		flt(laize),
@@ -638,9 +662,10 @@ def simuler(
 		flt(doc.surface_utile_mm2),
 		libelle=f"{flt(laize):.0f} × {flt(depl):.0f}",
 	)
-	if not ligne:
-		return {"scenario": None, "message": "Aucune pose ne tient sur ce format."}
-	return {"scenario": ligne}
+	if not lignes:
+		return {"scenario": None, "scenarios": [], "message": "Aucune pose ne tient sur ce format."}
+	# `scenario` : la grille droite, que le Desk lit encore ; `scenarios` : elle, puis le motif s'il fait mieux.
+	return {"scenario": lignes[0], "scenarios": lignes}
 
 
 @frappe.whitelist()
@@ -683,25 +708,30 @@ def enregistrer_scenario(calcul, scenario):
 	doc.check_permission("write")
 	if isinstance(scenario, str):
 		scenario = json.loads(scenario)
-	cle = (
-		round(flt(scenario.get("laize")), 1),
-		round(flt(scenario.get("depl")), 1),
-		cint(scenario.get("rotation")),
-		cint(scenario.get("n_col")),
-		cint(scenario.get("n_rang")),
-	)
+	cle = _cle_scenario(scenario)
 	for s in doc.scenarios or []:
-		if (
-			round(flt(s.laize), 1),
-			round(flt(s.depl), 1),
-			cint(s.rotation),
-			cint(s.n_col),
-			cint(s.n_rang),
-		) == cle:
+		if _cle_scenario(s) == cle:
 			return {"idx": s.idx}
+	scenario = {k: v for k, v in scenario.items() if k != "poses"}
 	doc.append("scenarios", scenario)
 	doc.save()
 	return {"idx": doc.scenarios[-1].idx}
+
+
+def _cle_scenario(s):
+	"""Deux lignes sont le même scénario si elles ont la même feuille, la même grille et le même motif."""
+	d = disposition_depuis_ligne(s)
+	return (
+		round(d.laize, 1),
+		round(d.depl, 1),
+		d.rotation,
+		d.n_col,
+		d.n_rang,
+		d.motif,
+		d.axe,
+		round(d.decalage_laize, 1),
+		round(d.decalage_depl, 1),
+	)
 
 
 def _avertissement_ideale(article, client, trace, taux):
@@ -761,18 +791,7 @@ def creer_imposition(calcul=None, scenario_idx=None, etude=None):
 		marge_arriere=saisie["marge_arriere_saisie"],
 		ignorer=saisie["ignorer_contraintes_machine"],
 	)
-	disposition = Disposition(
-		libelle=scenario.libelle,
-		laize=flt(scenario.laize),
-		depl=flt(scenario.depl),
-		n_col=cint(scenario.n_col),
-		n_rang=cint(scenario.n_rang),
-		pas_laize=flt(scenario.pas_laize),
-		pas_depl=flt(scenario.pas_depl),
-		rotation=cint(scenario.rotation),
-		trait_commun_laize=bool(cint(scenario.trait_commun_laize)),
-		trait_commun_depl=bool(cint(scenario.trait_commun_depl)),
-	)
+	disposition = disposition_depuis_ligne(scenario)
 
 	procede = None
 	if doc.etude_faisabilite:
@@ -819,6 +838,7 @@ def creer_imposition(calcul=None, scenario_idx=None, etude=None):
 			"origine_calcul": "Moteur v1",
 			"scenario_retenu": scenario.libelle,
 			"calcul_imposition": doc.name,
+			**champs_motif(disposition),
 		}
 	)
 	imposition.insert()
@@ -851,18 +871,7 @@ def creer_imposition(calcul=None, scenario_idx=None, etude=None):
 
 
 def _disposition_depuis_scenario(scenario):
-	return Disposition(
-		libelle=scenario.get("libelle") or "",
-		laize=flt(scenario.get("laize")),
-		depl=flt(scenario.get("depl")),
-		n_col=cint(scenario.get("n_col")),
-		n_rang=cint(scenario.get("n_rang")),
-		pas_laize=flt(scenario.get("pas_laize")),
-		pas_depl=flt(scenario.get("pas_depl")),
-		rotation=cint(scenario.get("rotation")),
-		trait_commun_laize=bool(cint(scenario.get("trait_commun_laize"))),
-		trait_commun_depl=bool(cint(scenario.get("trait_commun_depl"))),
-	)
+	return disposition_depuis_ligne(scenario)
 
 
 def _attacher_export(doc, nom, contenu):

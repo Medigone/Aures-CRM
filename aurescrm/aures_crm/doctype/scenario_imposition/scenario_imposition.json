@@ -16,6 +16,11 @@
   "n_col",
   "n_rang",
   "rotation",
+  "motif",
+  "axe_motif",
+  "decalage_laize",
+  "decalage_depl",
+  "pas_paire",
   "format_en_stock",
   "section_break_pas",
   "pas_laize",
@@ -104,6 +109,46 @@
    "fieldname": "rotation",
    "fieldtype": "Int",
    "label": "Rotation de la pose (\u00b0)",
+   "read_only": 1
+  },
+  {
+   "default": "Grille droite",
+   "fieldname": "motif",
+   "fieldtype": "Select",
+   "label": "Disposition",
+   "options": "Grille droite\nTête-bêche\nQuinconce",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.motif && doc.motif !== 'Grille droite'",
+   "fieldname": "axe_motif",
+   "fieldtype": "Select",
+   "label": "Alternance",
+   "options": "\nColonnes\nRangs",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.motif && doc.motif !== 'Grille droite'",
+   "fieldname": "decalage_laize",
+   "fieldtype": "Float",
+   "label": "Décalage de la seconde pose en laize (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.motif && doc.motif !== 'Grille droite'",
+   "fieldname": "decalage_depl",
+   "fieldtype": "Float",
+   "label": "Décalage de la seconde pose en déplacement (mm)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.motif && doc.motif !== 'Grille droite'",
+   "fieldname": "pas_paire",
+   "fieldtype": "Float",
+   "label": "Pas de la paire (mm)",
+   "precision": "2",
    "read_only": 1
   },
   {
@@ -227,7 +272,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-14 14:38:00",
+ "modified": "2026-11-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Scenario Imposition",

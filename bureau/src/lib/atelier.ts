@@ -34,9 +34,18 @@ export interface Scenario {
 	nb_feuilles: number
 	tonnage: number
 	alerte?: string | null
+	/** Grille droite, ou motif de deux poses : la seconde retournée (tête-bêche) ou décalée (quinconce). */
+	motif?: string | null
+	axe_motif?: string | null
+	decalage_laize?: number
+	decalage_depl?: number
+	pas_paire?: number
+	/** Les poses placées par le moteur : x et y depuis la lisière et la pince, puis la rotation. */
+	poses?: Pose[]
 	/** Essai pas encore gardé : il reste sur cet écran. */
 	cle?: string
 }
+export type Pose = [number, number, number]
 export interface SilhouetteVue {
 	path_coupe: string
 	path_rainage: string | null
@@ -80,6 +89,7 @@ export interface AtelierEtude {
 export interface AtelierReglages {
 	pont: number
 	sens_fibre: string
+	motifs: string
 	trait_commun: number
 	quantite: number
 	lisiere: number
@@ -127,7 +137,7 @@ export const fileLabel = (url?: string | null) => {
 }
 export const mm = (value?: number | null) => (value == null ? '—' : String(Math.round(value * 100) / 100).replace('.', ','))
 export const sheetLabel = (row: Pick<Scenario, 'laize' | 'depl'>) => `${mm(row.laize)} × ${mm(row.depl)}`
-export const tabLabel = (row: Scenario) => `${mm(row.laize)}×${mm(row.depl)} · ${row.n_col}×${row.n_rang}`
+export const tabLabel = (row: Scenario) => `${mm(row.laize)}×${mm(row.depl)} · ${row.n_col}×${row.n_rang}${isMotif(row) ? ` · ${motifShort(row)}` : ''}`
 export { dimensionsLabel, formatDay, percentLabel }
 
 /** Une feuille de la quantité saisie, sans relancer le moteur : feuilles et tonnage n'en dépendent que par une division. */
@@ -182,8 +192,53 @@ export function rollOf(row: Pick<Scenario, 'origine' | 'laize' | 'libelle'> | nu
 	return named ?? rolls.find((format) => !format.depl) ?? rolls[0] ?? { laize: row.laize, depl: 0 }
 }
 
-/** La même feuille, déjà dans la liste : on la montre au lieu d'en créer un essai. */
-export const sameSheet = (left: Scenario, right: Scenario) => Math.abs(left.laize - right.laize) < 0.1 && Math.abs(left.depl - right.depl) < 0.1 && left.n_col === right.n_col && left.n_rang === right.n_rang && left.rotation === right.rotation
+/** La même feuille, déjà dans la liste : on la montre au lieu d'en créer un essai. Même grille et même motif. */
+export const sameSheet = (left: Scenario, right: Scenario) =>
+	Math.abs(left.laize - right.laize) < 0.1 &&
+	Math.abs(left.depl - right.depl) < 0.1 &&
+	left.n_col === right.n_col &&
+	left.n_rang === right.n_rang &&
+	left.rotation === right.rotation &&
+	motifKey(left) === motifKey(right)
+
+/** Réglage « Tête-bêche et quinconce » du calcul. */
+export const MOTIF_OPTIONS = ['Décalé autorisé', 'Aligné seulement', 'Non']
+export const motifsSummary = (value?: string | null) => (value === 'Non' ? 'sans tête-bêche' : value === 'Aligné seulement' ? 'tête-bêche aligné' : 'tête-bêche décalé')
+
+const DROITE = 'Grille droite'
+type MotifFields = Pick<Scenario, 'motif' | 'axe_motif' | 'decalage_laize' | 'decalage_depl'>
+export const isMotif = (row: MotifFields) => Boolean(row.motif && row.motif !== DROITE)
+/** « tête-bêche » ou « quinconce », à la suite d'une grille. */
+export const motifShort = (row: MotifFields) => (isMotif(row) ? String(row.motif).toLowerCase() : '')
+const motifKey = (row: MotifFields) => (isMotif(row) ? `${row.motif}-${row.axe_motif}-${Math.round((row.decalage_laize ?? 0) * 10)}-${Math.round((row.decalage_depl ?? 0) * 10)}` : DROITE)
+/** « Tête-bêche en colonnes, décalage 12,5 mm », ou « Grille droite ». */
+export function motifLabel(row: MotifFields) {
+	if (!isMotif(row)) return DROITE
+	const rangs = row.axe_motif === 'Rangs'
+	const decalage = Math.abs((rangs ? row.decalage_laize : row.decalage_depl) ?? 0)
+	return `${row.motif} en ${rangs ? 'rangs' : 'colonnes'}, ${decalage < 0.05 ? 'alignés' : `décalage ${mm(Math.round(decalage * 10) / 10)} mm`}`
+}
+/** Le pas affiché : pour un motif, celui de la paire sur son axe. */
+export function pitchLabel(row: Pick<Scenario, 'pas_laize' | 'pas_depl' | 'pas_paire'> & MotifFields) {
+	if (!isMotif(row)) return `${mm(row.pas_laize)} × ${mm(row.pas_depl)}`
+	return row.axe_motif === 'Rangs' ? `${mm(row.pas_laize)} × ${mm(row.pas_paire)} la paire` : `${mm(row.pas_paire)} la paire × ${mm(row.pas_depl)}`
+}
+export const gridLabel = (row: Pick<Scenario, 'n_col' | 'n_rang'> & MotifFields) => `${row.n_col} × ${row.n_rang}${isMotif(row) ? ` · ${motifShort(row)}` : ''}`
+
+/** Les poses d'un scénario telles que le moteur les place ; à défaut (ancien calcul), la grille droite. */
+export function posesOf(row: Pick<Scenario, 'n_col' | 'n_rang' | 'pas_laize' | 'pas_depl' | 'rotation' | 'poses'>): Pose[] {
+	if (row.poses?.length) return row.poses
+	const list: Pose[] = []
+	for (let col = 0; col < row.n_col; col++) for (let rang = 0; rang < row.n_rang; rang++) list.push([col * row.pas_laize, rang * row.pas_depl, row.rotation || 0])
+	return list
+}
+/** La silhouette d'une pose est celle de sa rotation à 0° ou 90° ; une pose à 180° ou 270° est la même, retournée. */
+export const silhouetteKey = (rotation: number) => String((((rotation || 0) % 180) + 180) % 180)
+/** Transformation SVG d'une pose, l × d étant l'encombrement de sa silhouette. */
+export function poseTransform(pose: Pose, lisiere: number, pince: number, l: number, d: number) {
+	const place = `translate(${lisiere + pose[0]} ${pince + pose[1]})`
+	return (((pose[2] || 0) % 360) + 360) % 360 >= 180 ? `${place} rotate(180 ${l / 2} ${d / 2})` : place
+}
 
 /** Texte de la création : ce que devient l'étude, et l'imposition qu'on remplace. */
 export function replacementText(etude: Pick<AtelierEtude, 'name' | 'imposition'>) {

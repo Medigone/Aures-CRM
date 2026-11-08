@@ -49,3 +49,26 @@ def ecrire(empreinte, coupe, rainage, poly):
 		{"poly": poly.wkb_hex, "coupe": coupe, "rainage": rainage},
 		expires_in_sec=TTL,
 	)
+
+
+PREFIXE_MOTIF = "imposition:motif:"
+
+
+def lire_motif(cle):
+	"""Un motif déjà cherché pour ce tracé : dict (vide si aucun motif ne tient), ou None s'il reste à chercher."""
+	if not cle:
+		return None
+	cache = _backend()
+	if cache is None:
+		return None
+	brut = cache.get_value(PREFIXE_MOTIF + cle)
+	return brut if isinstance(brut, dict) else None
+
+
+def ecrire_motif(cle, motif):
+	if not cle:
+		return
+	cache = _backend()
+	if cache is None:
+		return
+	cache.set_value(PREFIXE_MOTIF + cle, motif or {}, expires_in_sec=TTL)

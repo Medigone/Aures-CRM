@@ -127,6 +127,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 			support_technique: support.value,
 			pont: settings.pont,
 			sens_fibre: settings.sens_fibre,
+			motifs: settings.motifs,
 			trait_commun: settings.trait_commun,
 			quantite: settings.quantite,
 			lisiere: settings.lisiere,
@@ -216,17 +217,19 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 		const settings = reglages.value!
 		return { quantite: settings.quantite, lisiere: settings.lisiere, pince: settings.pince, marge_arriere: settings.marge_arriere, ignorer_contraintes_machine: 1 }
 	}
-	async function simulate(call: () => Promise<{ scenario: Scenario | null; message?: string }>) {
+	/** Un essai donne la grille droite, puis le motif quand il fait plus de poses : on montre le dernier, le meilleur. */
+	async function simulate(call: () => Promise<{ scenario: Scenario | null; scenarios?: Scenario[]; message?: string }>) {
 		simError.value = ''
 		try {
 			const response = await call()
-			if (!response.scenario) {
+			const found = response.scenarios?.length ? response.scenarios : response.scenario ? [response.scenario] : []
+			if (!found.length) {
 				simError.value = response.message || 'Aucune pose ne tient sur ce format.'
 				return
 			}
-			const cle = `essai-${++essaiId}`
-			essais.value = [...essais.value, { ...response.scenario, origine: response.scenario.origine || 'Simulation', cle }]
-			shown.value = cle
+			const added = found.map((row) => ({ ...row, origine: row.origine || 'Simulation', cle: `essai-${++essaiId}` }))
+			essais.value = [...essais.value, ...added]
+			shown.value = added[added.length - 1].cle
 		} catch (e) {
 			simError.value = (e as Error).message
 		}
@@ -246,7 +249,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 	}
 	function keep(row: Scenario) {
 		return guarded(async () => {
-			const { cle: _cle, ...scenario } = row
+			const { cle: _cle, poses: _poses, ...scenario } = row
 			await keepAtelierScenario(calcul.value!.name, scenario)
 			const name = calcul.value!.name
 			essais.value = essais.value.filter((other) => other !== row)

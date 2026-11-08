@@ -13,7 +13,7 @@ import AtelierExport from './AtelierExport.vue'
 import AtelierFeuille from './AtelierFeuille.vue'
 import AtelierReglages from './AtelierReglages.vue'
 import RecordHeader from './RecordHeader.vue'
-import { commonCutLabel, fileLabel, formatDay, isPdf, mm, percentLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type Scenario, type ScenarioSort } from '@/lib/atelier'
+import { commonCutLabel, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type Scenario, type ScenarioSort } from '@/lib/atelier'
 import { formatQuantity } from '@/lib/etudes'
 import { useAtelier } from '@/lib/useAtelier'
 
@@ -182,7 +182,8 @@ async function copyLink() {
 									<dl class="atelier-facts">
 										<div><dt>Feuille</dt><dd>{{ sheetLabel(current) }}</dd></div>
 										<div><dt>Poses</dt><dd>{{ current.nb_poses }} ({{ current.n_col }} × {{ current.n_rang }})</dd></div>
-										<div><dt>Pas</dt><dd>{{ mm(current.pas_laize) }} × {{ mm(current.pas_depl) }}</dd></div>
+										<div><dt>Disposition</dt><dd>{{ motifLabel(current) }}</dd></div>
+										<div><dt>Pas</dt><dd>{{ pitchLabel(current) }}</dd></div>
 										<div><dt>Trait commun</dt><dd>{{ commonCutLabel(current) }}</dd></div>
 										<div><dt>Reste</dt><dd>{{ mm(current.reste_laize) }} × {{ mm(current.reste_depl) }}</dd></div>
 										<div><dt>Surface / pose</dt><dd>{{ mm(current.surface_par_pose) }} cm²</dd></div>
@@ -217,7 +218,7 @@ async function copyLink() {
 											</td>
 											<td>{{ row.origine }}</td>
 											<td class="end">{{ row.nb_poses }}</td>
-											<td class="end">{{ row.n_col }} × {{ row.n_rang }}</td>
+											<td class="end">{{ gridLabel(row) }}</td>
 											<td class="end"><span class="atelier-rate-bar"><i><b :style="{ width: `${(row.taux_chutes / maxRate) * 100}%` }"></b></i>{{ percentLabel(row.taux_chutes) }}</span></td>
 											<td class="end">{{ sheetsLabel(sheetsFor(row, quantite)) }}</td>
 											<td class="end">{{ tonnageLabel(tonnageFor(row, quantite, grammage)) }}</td>

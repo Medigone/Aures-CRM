@@ -1281,18 +1281,27 @@ class ApercuPose {
 		const poses = n_col * n_rang;
 		const bw = paths.l || 50;
 		const bh = paths.d || 50;
-		let uses = "";
-		for (let i = 0; i < n_col; i++) {
-			for (let j = 0; j < n_rang; j++) {
-				const x = lisiere + i * (s.pas_laize || 0);
-				const y = pince + j * (s.pas_depl || 0);
-				if (poses > 60 && !(i === 0 && j === 0)) {
-					uses += `<rect class="bbox-pose" x="${x}" y="${y}" width="${bw}" height="${bh}" fill="none" stroke="#888" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
-				} else {
-					uses += `<use href="#${id}" x="${x}" y="${y}"/>`;
-				}
+		// Les poses placées par le moteur (tête-bêche et quinconce compris) ; à défaut, la grille droite.
+		const places = [];
+		if (Array.isArray(s.poses) && s.poses.length) {
+			s.poses.forEach((p) => places.push(p));
+		} else {
+			for (let i = 0; i < n_col; i++) {
+				for (let j = 0; j < n_rang; j++) places.push([i * (s.pas_laize || 0), j * (s.pas_depl || 0), cint(s.rotation)]);
 			}
 		}
+		let uses = "";
+		places.forEach(([px, py, r], k) => {
+			const x = lisiere + px;
+			const y = pince + py;
+			// Une pose à 180° ou 270° est la même silhouette, retournée autour de son centre.
+			const retournee = ((cint(r) % 360) + 360) % 360 >= 180 ? ` transform="rotate(180 ${x + bw / 2} ${y + bh / 2})"` : "";
+			if (poses > 60 && k > 0) {
+				uses += `<rect class="bbox-pose" x="${x}" y="${y}" width="${bw}" height="${bh}" fill="none" stroke="#888" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
+			} else {
+				uses += `<use href="#${id}" x="${x}" y="${y}"${retournee}/>`;
+			}
+		});
 		return `<div class="atelier-apercu-panneau">
 			<svg viewBox="0 0 ${laize} ${depl}" data-orig-viewbox="0 0 ${laize} ${depl}" preserveAspectRatio="xMidYMid meet" style="aspect-ratio:${laize} / ${depl};">
 				<defs>
@@ -1307,7 +1316,7 @@ class ApercuPose {
 					${uses}
 				</g>
 			</svg>
-			<div class="atelier-apercu-bandeau">${frappe.utils.escape_html(s.libelle || "")} — ${s.n_col}×${s.n_rang} — ${fmt_mm(s.laize)} × ${fmt_mm(s.depl)} mm</div>
+			<div class="atelier-apercu-bandeau">${frappe.utils.escape_html(s.libelle || "")} — ${s.n_col}×${s.n_rang}${s.motif && s.motif !== "Grille droite" ? ` ${frappe.utils.escape_html(s.motif.toLowerCase())}` : ""} — ${fmt_mm(s.laize)} × ${fmt_mm(s.depl)} mm</div>
 		</div>`;
 	}
 

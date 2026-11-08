@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { dimensionsLabel, fileLabel, mm, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
+import { dimensionsLabel, fileLabel, mm, MOTIF_OPTIONS, motifsSummary, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
 
 /** Colonne de gauche : le tracé, la quantité, les formats à comparer et les réglages du moteur. */
 const props = defineProps<{ data: AtelierData; calcul: AtelierCalcul | null; reglages: AtelierReglages; formats: AtelierFormat[]; support: string | null; fichier: string | null; readable: boolean; canWork: boolean }>()
@@ -75,10 +75,15 @@ const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Even
 			<p v-if="formatError" role="alert" class="field-error">{{ formatError }}</p>
 		</div>
 		<details class="atelier-rail-section">
-			<summary>Réglages : pont {{ mm(reglages.pont) }} mm, fibre {{ reglages.sens_fibre }}</summary>
+			<summary>Réglages : pont {{ mm(reglages.pont) }} mm, fibre {{ reglages.sens_fibre }}, {{ motifsSummary(reglages.motifs) }}</summary>
 			<div class="atelier-rail-grid">
 				<label class="form-field"><span class="field-label">Pont mini (mm)</span><input class="field-input tabular-nums" type="number" min="0" step="0.1" :value="reglages.pont" :disabled="!canWork" @change="number('pont', $event)" /></label>
 				<label class="form-field"><span class="field-label">Sens de fibre</span><select v-model="reglages.sens_fibre" class="field-input" :disabled="!canWork" @change="emit('changed')"><option>Libre</option><option>0°</option><option>90°</option></select></label>
+				<label class="form-field atelier-rail-wide">
+					<span class="field-label">Tête-bêche et quinconce</span>
+					<select v-model="reglages.motifs" class="field-input" :disabled="!canWork" @change="emit('changed')"><option v-for="option in MOTIF_OPTIONS" :key="option">{{ option }}</option></select>
+					<small>Une pose sur deux retournée ou décalée pour emboîter les rabats. « Aligné seulement » garde des filets continus d'un bord à l'autre.</small>
+				</label>
 				<label class="form-field"><span class="field-label">Lisière (mm)</span><input class="field-input tabular-nums" type="number" min="0" step="0.1" :value="reglages.lisiere" :disabled="!canWork" @change="number('lisiere', $event)" /></label>
 				<label class="form-field"><span class="field-label">Pince (mm)</span><input class="field-input tabular-nums" type="number" min="0" step="0.1" :value="reglages.pince" :disabled="!canWork" @change="number('pince', $event)" /></label>
 				<label class="form-field"><span class="field-label">Marge arrière (mm)</span><input class="field-input tabular-nums" type="number" min="0" step="0.1" :value="reglages.marge_arriere" :disabled="!canWork" @change="number('marge_arriere', $event)" /></label>

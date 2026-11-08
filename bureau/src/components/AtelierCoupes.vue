@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { getRollCuts } from '@/lib/api'
-import { mm, percentLabel, presseAlert, sameSheet, sheetsFor, sheetsLabel, tonnageFor, tonnageLabel, type AtelierPresse, type AtelierReglages, type Scenario } from '@/lib/atelier'
+import { gridLabel, mm, percentLabel, presseAlert, sameSheet, sheetsFor, sheetsLabel, tonnageFor, tonnageLabel, type AtelierPresse, type AtelierReglages, type Scenario } from '@/lib/atelier'
 
 /** Toutes les coupes de la bobine montrée : le moteur n'en retient qu'une, celle qui consomme le moins par pose. */
 const props = defineProps<{ calcul: string; roll: { laize: number; depl: number }; current: Scenario | null; reglages: AtelierReglages; grammage: number; presse?: AtelierPresse | null }>()
@@ -36,9 +36,9 @@ const maxRate = computed(() => Math.max(1, ...(cuts.value ?? []).map((row) => ro
 			<table class="atelier-table">
 				<thead><tr><th class="end">Coupe (mm)</th><th class="end">Grille</th><th class="end">Poses</th><th class="end">Chutes</th><th class="end">Feuilles</th><th class="end">Tonnage</th></tr></thead>
 				<tbody>
-					<tr v-for="row in cuts" :key="`${row.rotation}-${row.n_rang}`" :data-retained="Boolean(current && sameSheet(current, row))" :aria-label="`Voir la coupe de ${mm(row.depl)} mm`" @click="emit('pick', row)">
+					<tr v-for="row in cuts" :key="row.libelle" :data-retained="Boolean(current && sameSheet(current, row))" :aria-label="`Voir la coupe de ${mm(row.depl)} mm`" @click="emit('pick', row)">
 						<td class="end">{{ mm(row.depl) }}<div v-if="presseAlert(row, presse)" class="atelier-row-alert">Dépasse {{ presse?.nom }}</div></td>
-						<td class="end">{{ row.n_col }} × {{ row.n_rang }}<template v-if="row.rotation"> · {{ row.rotation }}°</template></td>
+						<td class="end">{{ gridLabel(row) }}<template v-if="row.rotation"> · {{ row.rotation }}°</template></td>
 						<td class="end">{{ row.nb_poses }}</td>
 						<td class="end"><span class="atelier-rate-bar"><i><b :style="{ width: `${(row.taux_chutes / maxRate) * 100}%` }"></b></i>{{ percentLabel(row.taux_chutes) }}</span></td>
 						<td class="end">{{ sheetsLabel(sheetsFor(row, reglages.quantite)) }}</td>

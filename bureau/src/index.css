@@ -4037,6 +4037,12 @@
 	.atelier-rail-section.atelier-rail-grid {
 		display: grid;
 	}
+	.atelier-rail-wide {
+		grid-column: 1 / -1;
+	}
+	.atelier-rail-wide small {
+		@apply text-sm text-ink-gray-6;
+	}
 	.atelier-value {
 		display: flex;
 		min-height: 1.75rem;

@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { mm, type Scenario, type SilhouetteVue } from '@/lib/atelier'
+import { isMotif, mm, motifShort, poseTransform, posesOf, silhouetteKey, type Scenario, type SilhouetteVue } from '@/lib/atelier'
 
 /** La feuille à l'échelle. Ctrl ou Cmd avec la molette (ou le pincement) pour zoomer, la molette seule fait défiler la page, glisser pour se déplacer, double clic pour revenir. Le moteur compte depuis la pince, en bas. */
 const props = defineProps<{ scenario: Scenario; silhouette: Record<string, SilhouetteVue>; lisiere: number; pince: number; marge: number }>()
 
-const paths = computed(() => props.silhouette[String(props.scenario.rotation || 0)] ?? props.silhouette['0'])
-const poses = computed(() => {
-	const { n_col, n_rang, pas_laize, pas_depl } = props.scenario
-	const list: string[] = []
-	for (let col = 0; col < n_col; col++) for (let rang = 0; rang < n_rang; rang++) list.push(`translate(${props.lisiere + col * pas_laize} ${props.pince + rang * pas_depl})`)
-	return list
-})
+const paths = computed(() => props.silhouette[silhouetteKey(props.scenario.rotation)] ?? props.silhouette['0'])
+// Placées par le moteur ; une pose retournée (tête-bêche) reprend la même silhouette, tournée de 180°.
+const poses = computed(() => posesOf(props.scenario).map((pose, index) => ({ key: index, transform: poseTransform(pose, props.lisiere, props.pince, paths.value.l, paths.value.d) })))
 const view = ref({ x: 0, y: 0, width: 0, height: 0 })
 function fit() {
 	view.value = { x: 0, y: 0, width: props.scenario.laize, height: props.scenario.depl }
@@ -45,7 +41,7 @@ function onMove(event: PointerEvent) {
 function onUp() {
 	last = null
 }
-const label = computed(() => `Feuille ${mm(props.scenario.laize)} par ${mm(props.scenario.depl)} millimètres, ${props.scenario.nb_poses} poses, ${props.scenario.n_col} colonnes et ${props.scenario.n_rang} rangs`)
+const label = computed(() => `Feuille ${mm(props.scenario.laize)} par ${mm(props.scenario.depl)} millimètres, ${props.scenario.nb_poses} poses, ${props.scenario.n_col} colonnes et ${props.scenario.n_rang} rangs${isMotif(props.scenario) ? `, ${motifShort(props.scenario)}` : ''}`)
 </script>
 
 <template>
@@ -54,7 +50,7 @@ const label = computed(() => `Feuille ${mm(props.scenario.laize)} par ${mm(props
 			<g :transform="`translate(0 ${scenario.depl}) scale(1 -1)`">
 				<rect class="atelier-sheet-paper" :width="scenario.laize" :height="scenario.depl" />
 				<rect class="atelier-sheet-useful" :x="lisiere" :y="pince" :width="scenario.laize - 2 * lisiere" :height="scenario.depl - pince - marge" />
-				<g v-for="pose in poses" :key="pose" :transform="pose">
+				<g v-for="pose in poses" :key="pose.key" :transform="pose.transform">
 					<path class="atelier-sheet-cut" :d="paths.path_coupe" />
 					<path v-if="paths.path_rainage" class="atelier-sheet-crease" :d="paths.path_rainage" />
 				</g>

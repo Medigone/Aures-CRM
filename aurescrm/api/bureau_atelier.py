@@ -15,7 +15,7 @@ from aurescrm.api.bureau import _parse, require_bureau
 from aurescrm.api.bureau_articles import _customers
 from aurescrm.aures_crm.page.atelier_imposition.atelier_imposition import get_contexte
 from aurescrm.imposition.api import _params_avec_saisie, creer_imposition, get_calcul, lancer_calcul, preparer_trace
-from aurescrm.imposition.service import est_pdf, formats_connus, simuler_coupes_bobine
+from aurescrm.imposition.service import REGLAGE_MOTIFS_DEFAUT, est_pdf, formats_connus, simuler_coupes_bobine
 
 CALCUL = "Calcul Imposition"
 ETUDE = "Etude Faisabilite"
@@ -138,6 +138,7 @@ def get_atelier(etude=None, calcul=None):
 	reglages = {
 		"pont": flt(context.get("pont")) or flt(context.get("pont_mini")),
 		"sens_fibre": context.get("sens_fibre") or "Libre",
+		"motifs": context.get("motifs_emboites") or REGLAGE_MOTIFS_DEFAUT,
 		"trait_commun": cint(context.get("trait_commun_autorise")),
 		"quantite": cint(context.get("quantite")) or (cint(doc.quantite) if doc else 0),
 		**{key: flt(context.get(key)) or default for key, default in DEFAUTS.items()},
@@ -202,6 +203,7 @@ def calcul_arguments(values):
 		"support_technique": values.get("support_technique") or None,
 		"pont": values.get("pont"),
 		"sens_fibre": values.get("sens_fibre"),
+		"motifs_emboites": values.get("motifs") or None,
 		"trait_commun_autorise": cint(values.get("trait_commun")),
 		"quantite": cint(values.get("quantite")),
 		"lisiere": flt(values.get("lisiere")),

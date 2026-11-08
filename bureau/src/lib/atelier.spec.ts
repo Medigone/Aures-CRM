@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { commonCutLabel, downloadFile, fileLabel, isPdf, manualFormat, mm, presseAlert, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type Scenario } from './atelier'
+import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, presseAlert, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type Scenario } from './atelier'
 
 const scenario = (values: Partial<Scenario> = {}) => ({ libelle: 'A', origine: 'Stock', laize: 1020, depl: 700, nb_poses: 4, n_col: 2, n_rang: 2, rotation: 0, taux_chutes: 35, pas_laize: 381.96, pas_depl: 337.05, trait_commun_laize: 1, trait_commun_depl: 0, reste_laize: 240.04, reste_depl: 1.9, surface_par_pose: 1785, nb_feuilles: 25000, tonnage: 5.176, ...values }) as Scenario
 
@@ -89,5 +89,33 @@ describe('atelier', () => {
 		setPendingNotice('ok')
 		expect(takePendingNotice()).toBe('ok')
 		expect(takePendingNotice()).toBe('')
+	})
+})
+
+describe('tête-bêche et quinconce', () => {
+	const teteBeche = scenario({ motif: 'Tête-bêche', axe_motif: 'Colonnes', decalage_laize: 238.2, decalage_depl: 12.46, pas_paire: 389.2, pas_laize: 194.6, pas_depl: 654.05 })
+	it('nomme le motif et son décalage', () => {
+		expect(motifLabel(teteBeche)).toBe('Tête-bêche en colonnes, décalage 12,5 mm')
+		expect(motifLabel(scenario({ motif: 'Quinconce', axe_motif: 'Rangs', decalage_laize: 0 }))).toBe('Quinconce en rangs, alignés')
+		expect(motifLabel(scenario())).toBe('Grille droite')
+		expect(motifLabel(scenario({ motif: 'Grille droite' }))).toBe('Grille droite')
+		expect(gridLabel(teteBeche)).toBe('2 × 2 · tête-bêche')
+		expect(gridLabel(scenario())).toBe('2 × 2')
+		expect(pitchLabel(teteBeche)).toBe('389,2 la paire × 654,05')
+		expect(pitchLabel(scenario())).toBe('381,96 × 337,05')
+		expect(motifsSummary('Non')).toBe('sans tête-bêche')
+	})
+	it('distingue une grille droite et un motif sur la même feuille', () => {
+		expect(sameSheet(scenario(), teteBeche)).toBe(false)
+		expect(sameSheet(teteBeche, { ...teteBeche, cle: 'essai-1' })).toBe(true)
+	})
+	it('reprend les poses du moteur, ou la grille droite d\'un ancien calcul', () => {
+		expect(posesOf({ ...teteBeche, poses: [[0, 12.5, 0], [238.2, 0, 180]] })).toEqual([[0, 12.5, 0], [238.2, 0, 180]])
+		expect(posesOf(scenario({ n_col: 2, n_rang: 1, pas_laize: 100, rotation: 90 }))).toEqual([[0, 0, 90], [100, 0, 90]])
+	})
+	it('retourne de 180° une pose à 180° ou 270°', () => {
+		expect(poseTransform([5, 6, 0], 10, 12, 140, 200)).toBe('translate(15 18)')
+		expect(poseTransform([5, 6, 90], 10, 12, 140, 200)).toBe('translate(15 18)')
+		expect(poseTransform([5, 6, 270], 10, 12, 140, 200)).toBe('translate(15 18) rotate(180 70 100)')
 	})
 })

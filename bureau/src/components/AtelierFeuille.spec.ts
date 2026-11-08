@@ -27,4 +27,11 @@ describe('AtelierFeuille', () => {
 		await nextTick()
 		expect(svg.attributes('viewBox')).not.toBe('0 0 720 420')
 	})
+	it('place les poses du moteur et retourne la seconde pose d\'un tête-bêche', () => {
+		const teteBeche = { ...scenario, n_col: 2, n_rang: 1, nb_poses: 2, motif: 'Tête-bêche', axe_motif: 'Colonnes', poses: [[0, 0, 0], [150.5, 20, 180]] } as Scenario
+		const wrapper = mount(AtelierFeuille, { props: { scenario: teteBeche, silhouette: { '0': { path_coupe: 'M0 0', l: 140, d: 200 } as never }, lisiere: 10, pince: 12, marge: 10 } })
+		const poses = wrapper.findAll('g').map((g) => g.attributes('transform') ?? '').filter((value) => !value.includes('scale'))
+		expect(poses).toEqual(['translate(10 12)', 'translate(160.5 32) rotate(180 70 100)'])
+		expect(wrapper.find('svg').attributes('aria-label')).toContain('tête-bêche')
+	})
 })

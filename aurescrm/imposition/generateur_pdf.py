@@ -12,6 +12,8 @@ from shapely.affinity import rotate
 from shapely.geometry import LineString
 
 from aurescrm.imposition.lecture_trace import C_COUPE, C_RAINAGE, PT
+from aurescrm.imposition.motifs import RANGS
+from aurescrm.imposition.optimiseur import LIBELLES_MOTIF, positions
 
 C_FEUILLE = (1.0, 0.498, 1.0)
 TOLERANCE_DEBORD = 0.05  # mm
@@ -37,12 +39,13 @@ def _poses_normalisees(segments, poly, rotation):
 	return out, tourne
 
 
-def _controler_debord(disposition, parametres, tourne):
+def _controler_debord(disposition, parametres, places, normalisees):
 	d, p = disposition, parametres
-	bx0, by0, bx1, by1 = tourne.bounds
-	bw, bh = bx1 - bx0, by1 - by0
-	max_x = p.lisiere + (d.n_col - 1) * d.pas_laize + bw
-	max_y = p.pince + (d.n_rang - 1) * d.pas_depl + bh
+	max_x = max_y = 0.0
+	for x, y, rotation in places:
+		bx0, by0, bx1, by1 = normalisees[rotation][2].bounds
+		max_x = max(max_x, p.lisiere + x + bx1 - bx0)
+		max_y = max(max_y, p.pince + y + by1 - by0)
 	if max_x > d.laize + TOLERANCE_DEBORD or max_y > d.depl + TOLERANCE_DEBORD:
 		raise ValueError(
 			f"Contrôle géométrique : les poses débordent de la feuille "
@@ -51,21 +54,35 @@ def _controler_debord(disposition, parametres, tourne):
 
 
 def segments_imposes(segments_coupe, segments_rainage, poly, disposition, parametres):
-	"""Segments coupe/rainage placés sur la feuille, en mm, origine coin bas-gauche."""
+	"""Segments coupe/rainage placés sur la feuille, en mm, origine coin bas-gauche.
+
+	Les poses viennent de `positions()` : grille droite, ou motif de deux poses dont la seconde peut être retournée.
+	"""
 	d, p = disposition, parametres
-	coupe, tourne = _poses_normalisees(segments_coupe, poly, d.rotation)
-	rain, _ = _poses_normalisees(segments_rainage, poly, d.rotation)
-	_controler_debord(d, p, tourne)
+	places = positions(d)
+	normalisees = {}
+	for _x, _y, rotation in places:
+		if rotation not in normalisees:
+			coupe, tourne = _poses_normalisees(segments_coupe, poly, rotation)
+			rain, _ = _poses_normalisees(segments_rainage, poly, rotation)
+			normalisees[rotation] = (coupe, rain, tourne)
+	_controler_debord(d, p, places, normalisees)
 	places_coupe, places_rain = [], []
-	for i in range(d.n_col):
-		for j in range(d.n_rang):
-			dx = p.lisiere + i * d.pas_laize
-			dy = p.pince + j * d.pas_depl
-			for (ax, ay), (bx, by) in coupe:
-				places_coupe.append(((ax + dx, ay + dy), (bx + dx, by + dy)))
-			for (ax, ay), (bx, by) in rain:
-				places_rain.append(((ax + dx, ay + dy), (bx + dx, by + dy)))
+	for x, y, rotation in places:
+		coupe, rain, _tourne = normalisees[rotation]
+		dx = p.lisiere + x
+		dy = p.pince + y
+		for (ax, ay), (bx, by) in coupe:
+			places_coupe.append(((ax + dx, ay + dy), (bx + dx, by + dy)))
+		for (ax, ay), (bx, by) in rain:
+			places_rain.append(((ax + dx, ay + dy), (bx + dx, by + dy)))
 	return places_coupe, places_rain
+
+
+def _mention_motif(d):
+	if d.motif not in LIBELLES_MOTIF:
+		return ""
+	return f" | {LIBELLES_MOTIF[d.motif]} en {'rangs' if d.axe == RANGS else 'colonnes'}, décalage {d.decalage_laize} x {d.decalage_depl}"
 
 
 def _ajouter_page(doc, coupe, rain, disposition, parametres, titre=""):
@@ -80,7 +97,7 @@ def _ajouter_page(doc, coupe, rain, disposition, parametres, titre=""):
 	page.insert_text(
 		pymupdf.Point(8 * PT, 10 * PT),
 		f"{titre} | {d.laize} x {d.depl} mm | {d.poses} poses ({d.n_col}x{d.n_rang}) | "
-		f"pas {d.pas_laize} x {d.pas_depl} | pince {p.pince} | pont {p.pont}",
+		f"pas {d.pas_laize} x {d.pas_depl} | pince {p.pince} | pont {p.pont}{_mention_motif(d)}",
 		fontsize=7,
 		color=(0.4, 0.4, 0.4),
 	)

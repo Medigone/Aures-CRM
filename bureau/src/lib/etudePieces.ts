@@ -33,6 +33,12 @@ export interface SheetDrawing {
 	pince: number
 	coupe: string
 	rainage: string | null
+	/** Les poses placées par le moteur, [x, y, rotation] depuis la lisière et la pince. Absentes d'un ancien serveur. */
+	poses?: [number, number, number][]
+	pose_l?: number
+	pose_d?: number
+	/** « Tête-bêche en colonnes, décalage 12,5 mm », vide pour une grille droite. */
+	motif?: string
 }
 export interface ImpositionRow {
 	name: string

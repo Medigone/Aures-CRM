@@ -20,6 +20,7 @@
   "column_break_tech",
   "trait_commun_autorise",
   "sens_fibre",
+  "motifs_emboites",
   "lisiere",
   "pince",
   "marge_arriere",
@@ -140,6 +141,14 @@
    "fieldtype": "Select",
    "label": "Sens fibre",
    "options": "Libre\n0\u00b0\n90\u00b0"
+  },
+  {
+   "default": "Décalé autorisé",
+   "description": "Une pose sur deux retournée à 180° (tête-bêche) ou décalée (quinconce). « Aligné seulement » garde des filets continus d'un bord à l'autre.",
+   "fieldname": "motifs_emboites",
+   "fieldtype": "Select",
+   "label": "Tête-bêche et quinconce",
+   "options": "Décalé autorisé\nAligné seulement\nNon"
   },
   {
    "default": "15.6",
@@ -324,7 +333,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 0,
  "links": [],
- "modified": "2026-09-14 00:55:00",
+ "modified": "2026-11-08 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Imposition",
