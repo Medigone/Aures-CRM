@@ -130,6 +130,8 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 			motifs: settings.motifs,
 			trait_commun: settings.trait_commun,
 			quantite: settings.quantite,
+			paliers: settings.paliers,
+			prix_tonne: settings.prix_tonne,
 			lisiere: settings.lisiere,
 			pince: settings.pince,
 			marge_arriere: settings.marge_arriere,
@@ -195,6 +197,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 			if ((support.value ?? '') !== name) return
 			grammage.value = response.grammage
 			if (response.pont_mini && reglages.value) reglages.value.pont = response.pont_mini
+			if (response.prix_tonne && reglages.value) reglages.value.prix_tonne = response.prix_tonne
 			// Lus après la réponse : un format ajouté pendant l'attente reste.
 			formats.value = [...response.formats, ...formats.value.filter((row) => row.origine === 'Manuel')]
 			changed()

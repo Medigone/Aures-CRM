@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { dimensionsLabel, fileLabel, mm, MOTIF_OPTIONS, motifsSummary, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
+import { ref, watch } from 'vue'
+import { dimensionsLabel, fileLabel, mm, MOTIF_OPTIONS, motifsSummary, parseQuantities, quantitiesText, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
 
 /** Colonne de gauche : le tracé, la quantité, les formats à comparer et les réglages du moteur. */
 const props = defineProps<{ data: AtelierData; calcul: AtelierCalcul | null; reglages: AtelierReglages; formats: AtelierFormat[]; support: string | null; fichier: string | null; readable: boolean; canWork: boolean }>()
@@ -18,6 +18,27 @@ function add() {
 			depl.value = ''
 		}
 	})
+}
+// Paliers et prix ne touchent pas au moteur : la carte des paliers se recalcule aussitôt, sans relancer le calcul.
+const paliersText = ref(quantitiesText(props.reglages.paliers ?? []))
+const paliersError = ref('')
+watch(() => props.reglages, (fresh) => {
+	paliersText.value = quantitiesText(fresh.paliers ?? [])
+	paliersError.value = ''
+})
+function setPaliers() {
+	const parsed = parseQuantities(paliersText.value)
+	if (typeof parsed === 'string') {
+		paliersError.value = parsed
+		return
+	}
+	paliersError.value = ''
+	props.reglages.paliers = parsed.filter((value) => value !== props.reglages.quantite)
+	paliersText.value = quantitiesText(props.reglages.paliers)
+}
+function setPrix(event: Event) {
+	const value = Number((event.target as HTMLInputElement).value)
+	props.reglages.prix_tonne = Number.isFinite(value) && value > 0 ? value : 0
 }
 const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Event) => {
 	const value = Number((event.target as HTMLInputElement).value)
@@ -51,6 +72,17 @@ const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Even
 				<span class="field-label">Presse de l'étude</span>
 				<span class="atelier-value">{{ data.etude.presse?.nom ?? 'Aucune' }}</span>
 			</div>
+			<label class="form-field atelier-rail-wide">
+				<span class="field-label">Autres quantités</span>
+				<input v-model="paliersText" class="field-input tabular-nums" type="text" inputmode="numeric" placeholder="5 000, 10 000, 20 000" :disabled="!canWork" @change="setPaliers" />
+				<small v-if="paliersError" role="alert" class="field-error">{{ paliersError }}</small>
+				<small v-else>Le gagnant de chaque quantité, sans relancer le calcul.</small>
+			</label>
+			<label class="form-field atelier-rail-wide">
+				<span class="field-label">Prix matière (DA la tonne)</span>
+				<input class="field-input tabular-nums" type="number" min="0" step="1000" :value="reglages.prix_tonne || ''" placeholder="Non renseigné" :disabled="!canWork" @change="setPrix" />
+				<small>{{ reglages.prix_tonne ? 'Départage les quantités au coût matière.' : 'Sans prix, les quantités se départagent au tonnage.' }}</small>
+			</label>
 		</div>
 		<div class="atelier-rail-section">
 			<label v-if="!data.etude" class="form-field">

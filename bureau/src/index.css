@@ -4367,6 +4367,38 @@
 	.atelier-sim-row .form-field {
 		width: 4.75rem;
 	}
+	.atelier-tiers {
+		padding: 0;
+	}
+	.atelier-tiers-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.25rem 0.5rem;
+		padding: 0.5625rem 0.75rem 0.375rem;
+	}
+	.atelier-tiers-head h4 {
+		margin: 0;
+		font-weight: 600;
+		@apply text-base text-ink-gray-9;
+	}
+	.atelier-tiers-head small {
+		@apply text-sm text-ink-gray-6;
+	}
+	.atelier-tiers tbody tr {
+		cursor: pointer;
+	}
+	.atelier-tier-tag {
+		display: block;
+		@apply text-xs text-ink-gray-6;
+	}
+	.atelier-tier-change {
+		margin-left: 0.375rem;
+		padding: 0.0625rem 0.375rem;
+		border-radius: 999px;
+		white-space: nowrap;
+		@apply text-xs;
+	}
 	.atelier-refs {
 		padding: 0;
 	}

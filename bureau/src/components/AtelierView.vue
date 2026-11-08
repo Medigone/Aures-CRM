@@ -11,10 +11,11 @@ import AtelierCoupes from './AtelierCoupes.vue'
 import AtelierDepot from './AtelierDepot.vue'
 import AtelierExport from './AtelierExport.vue'
 import AtelierFeuille from './AtelierFeuille.vue'
+import AtelierPaliers from './AtelierPaliers.vue'
 import AtelierReferences from './AtelierReferences.vue'
 import AtelierReglages from './AtelierReglages.vue'
 import RecordHeader from './RecordHeader.vue'
-import { commonCutLabel, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type AtelierReference, type Scenario, type ScenarioSort } from '@/lib/atelier'
+import { allQuantities, commonCutLabel, costLabel, materialCost, rankForQuantity, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type AtelierReference, type Scenario, type ScenarioSort } from '@/lib/atelier'
 import { formatQuantity } from '@/lib/etudes'
 import { useAtelier } from '@/lib/useAtelier'
 
@@ -29,6 +30,15 @@ const dialog = ref<'depot' | 'export' | 'creer' | null>(null)
 const notice = ref('')
 const etude = computed(() => data.value?.etude ?? null)
 const quantite = computed(() => reglages.value?.quantite ?? 0)
+const quantities = computed(() => allQuantities(quantite.value, reglages.value?.paliers ?? []))
+const prixTonne = computed(() => reglages.value?.prix_tonne ?? 0)
+// La quantité choisie dans la carte des paliers : le tableau se trie et se compte pour elle.
+const palier = ref<number | null>(null)
+const shownQty = computed(() => (palier.value && quantities.value.includes(palier.value) ? palier.value : quantite.value))
+const tableRows = computed(() => (shownQty.value !== quantite.value ? rankForQuantity(rows.value, shownQty.value) : rows.value))
+function pickTier(value: number) {
+	palier.value = value === quantite.value ? null : value
+}
 const hasTrace = computed(() => Boolean(fichier.value))
 // Sans tracé lisible ni dépôt, l'écran n'a rien à montrer d'autre que le dépôt.
 const blank = computed(() => !etude.value && !calcul.value)
@@ -150,6 +160,7 @@ async function copyLink() {
 
 				<div class="atelier-center">
 					<AtelierReferences v-if="data.references" :references="data.references" :can-start="canWork" :can-simulate="canSimulate" @start="startFrom" />
+					<AtelierPaliers v-if="!running && !stale && rows.length && quantities.length > 1" :rows="sheets" :quantities="quantities" :principale="quantite" :tier-tag="etude ? 'étude' : 'test'" :grammage="grammage" :prix-tonne="prixTonne" :selected="palier" @pick="pickTier" @show="(row) => (shown = state.keyOf(row))" />
 					<section class="card atelier-results" aria-label="Résultats du calcul">
 						<div v-if="running" class="atelier-state" role="status">
 							<span class="atelier-spin" aria-hidden="true"></span>
@@ -193,8 +204,9 @@ async function copyLink() {
 										<div><dt>Trait commun</dt><dd>{{ commonCutLabel(current) }}</dd></div>
 										<div><dt>Reste</dt><dd>{{ mm(current.reste_laize) }} × {{ mm(current.reste_depl) }}</dd></div>
 										<div><dt>Surface / pose</dt><dd>{{ mm(current.surface_par_pose) }} cm²</dd></div>
-										<div><dt>Feuilles</dt><dd>{{ sheetsLabel(sheetsFor(current, quantite)) }}</dd></div>
-										<div><dt>Tonnage</dt><dd>{{ tonnageLabel(tonnageFor(current, quantite, grammage)) }}</dd></div>
+										<div><dt>Feuilles<template v-if="shownQty !== quantite"> ({{ formatQuantity(shownQty) }} ex.)</template></dt><dd>{{ sheetsLabel(sheetsFor(current, shownQty)) }}</dd></div>
+										<div><dt>Tonnage</dt><dd>{{ tonnageLabel(tonnageFor(current, shownQty, grammage)) }}</dd></div>
+										<div v-if="prixTonne"><dt>Coût matière</dt><dd>{{ costLabel(materialCost(current, shownQty, grammage, prixTonne)) }}</dd></div>
 									</dl>
 									<p v-for="alert in scenarioAlerts(current, etude?.presse)" :key="alert.text" class="atelier-alert" :data-tone="alert.tone">{{ alert.text }}</p>
 								</div>
@@ -210,12 +222,13 @@ async function copyLink() {
 											<th class="end"><button type="button" @click="state.setSort('nb_poses')">Poses{{ sortMark('nb_poses') }}</button></th>
 											<th class="end">Grille</th>
 											<th class="end"><button type="button" @click="state.setSort('taux_chutes')">Chutes{{ sortMark('taux_chutes') }}</button></th>
-											<th class="end">Feuilles</th>
+											<th class="end">Feuilles<template v-if="shownQty !== quantite"> · {{ formatQuantity(shownQty) }} ex.</template></th>
 											<th class="end">Tonnage</th>
+											<th v-if="prixTonne" class="end">Coût matière</th>
 										</tr>
 									</thead>
 									<tbody>
-										<tr v-for="row in rows" :key="state.keyOf(row)" :data-retained="row.idx === retained" @click="state.retain(row)">
+										<tr v-for="row in tableRows" :key="state.keyOf(row)" :data-retained="row.idx === retained" @click="state.retain(row)">
 											<td v-if="canCreate"><input type="radio" name="atelier-retenu" :aria-label="`Retenir ${row.libelle}`" :checked="row.idx === retained" /></td>
 											<td>
 												<div class="font-medium text-ink-gray-9">{{ row.libelle }}</div>
@@ -226,12 +239,14 @@ async function copyLink() {
 											<td class="end">{{ row.nb_poses }}</td>
 											<td class="end">{{ gridLabel(row) }}</td>
 											<td class="end"><span class="atelier-rate-bar"><i><b :style="{ width: `${(row.taux_chutes / maxRate) * 100}%` }"></b></i>{{ percentLabel(row.taux_chutes) }}</span></td>
-											<td class="end">{{ sheetsLabel(sheetsFor(row, quantite)) }}</td>
-											<td class="end">{{ tonnageLabel(tonnageFor(row, quantite, grammage)) }}</td>
+											<td class="end">{{ sheetsLabel(sheetsFor(row, shownQty)) }}</td>
+											<td class="end">{{ tonnageLabel(tonnageFor(row, shownQty, grammage)) }}</td>
+											<td v-if="prixTonne" class="end">{{ costLabel(materialCost(row, shownQty, grammage, prixTonne)) }}</td>
 										</tr>
 									</tbody>
 								</table>
 							</div>
+							<p v-if="shownQty !== quantite" class="atelier-hint">Trié du moins cher au plus cher en matière pour {{ formatQuantity(shownQty) }} ex. <button type="button" class="underline" @click="palier = null">Revenir à {{ formatQuantity(quantite) }} ex.</button></p>
 							<p v-if="rows.length" class="atelier-hint">{{ canCreate ? "Cliquez sur une ligne pour la retenir. Aucune n'est recommandée : c'est vous qui retenez." : "Cliquez sur une ligne pour voir sa feuille. Aucune n'est recommandée." }}</p>
 						</template>
 

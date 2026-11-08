@@ -26,6 +26,8 @@
   "marge_arriere",
   "ignorer_contraintes_machine",
   "quantite",
+  "quantites_paliers",
+  "prix_tonne",
   "inclure_sur_mesure",
   "section_formats",
   "formats_etudies",
@@ -143,12 +145,12 @@
    "options": "Libre\n0\u00b0\n90\u00b0"
   },
   {
-   "default": "Décalé autorisé",
-   "description": "Une pose sur deux retournée à 180° (tête-bêche) ou décalée (quinconce). « Aligné seulement » garde des filets continus d'un bord à l'autre.",
+   "default": "D\u00e9cal\u00e9 autoris\u00e9",
+   "description": "Une pose sur deux retourn\u00e9e \u00e0 180\u00b0 (t\u00eate-b\u00eache) ou d\u00e9cal\u00e9e (quinconce). \u00ab Align\u00e9 seulement \u00bb garde des filets continus d'un bord \u00e0 l'autre.",
    "fieldname": "motifs_emboites",
    "fieldtype": "Select",
-   "label": "Tête-bêche et quinconce",
-   "options": "Décalé autorisé\nAligné seulement\nNon"
+   "label": "T\u00eate-b\u00eache et quinconce",
+   "options": "D\u00e9cal\u00e9 autoris\u00e9\nAlign\u00e9 seulement\nNon"
   },
   {
    "default": "15.6",
@@ -181,6 +183,18 @@
    "fieldname": "quantite",
    "fieldtype": "Int",
    "label": "Quantit\u00e9"
+  },
+  {
+   "description": "Autres quantit\u00e9s compar\u00e9es dans l'atelier, en JSON : [5000, 10000, 20000].",
+   "fieldname": "quantites_paliers",
+   "fieldtype": "Small Text",
+   "label": "Paliers de quantit\u00e9"
+  },
+  {
+   "description": "Prix de la mati\u00e8re pour d\u00e9partager les paliers. Vide : celui du support.",
+   "fieldname": "prix_tonne",
+   "fieldtype": "Currency",
+   "label": "Prix \u00e0 la tonne"
   },
   {
    "default": "1",
@@ -333,7 +347,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 0,
  "links": [],
- "modified": "2026-11-08 12:00:00.000000",
+ "modified": "2026-11-08 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Imposition",

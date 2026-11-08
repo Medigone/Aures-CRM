@@ -92,6 +92,10 @@ export interface AtelierReglages {
 	motifs: string
 	trait_commun: number
 	quantite: number
+	/** Autres quantités comparées, en plus de celle de l'étude ou du test. */
+	paliers: number[]
+	/** Prix de la matière, DA la tonne ; 0 : les paliers se départagent au tonnage. */
+	prix_tonne: number
 	lisiere: number
 	pince: number
 	marge_arriere: number
@@ -296,4 +300,66 @@ export function takePendingNotice() {
 	const message = pending
 	pending = ''
 	return message
+}
+
+/** « 5 000, 10000 ; 20 000 » : les quantités saisies, ou ce qui ne va pas. Huit au plus, triées, sans doublon. */
+export function parseQuantities(text: string): number[] | string {
+	// Une espace ou un point suivi de trois chiffres sépare les milliers : « 5 000 » et « 5.000 » font 5000.
+	const joined = text.replace(/(\d)[\s\u202f\u00a0.](?=\d{3}(?!\d))/g, '$1')
+	const wrong = joined.match(/[^\d\s,;]+/)
+	if (wrong) return `« ${wrong[0]} » n'est pas une quantité.`
+	const values: number[] = []
+	for (const part of joined.split(/[\s,;]+/).filter(Boolean)) {
+		const value = Number(part)
+		if (value > 0 && !values.includes(value)) values.push(value)
+	}
+	if (values.length > 8) return 'Huit quantités au plus.'
+	return values.sort((a, b) => a - b)
+}
+export const quantitiesText = (values: number[]) => values.map((value) => formatQuantity(value)).join(', ')
+/** La quantité principale et les paliers, une seule fois chacun, dans l'ordre. */
+export const allQuantities = (quantite: number, paliers: number[]) => [...new Set([quantite, ...paliers].filter((value) => value > 0))].sort((a, b) => a - b)
+
+export const areaFor = (row: Pick<Scenario, 'nb_poses' | 'laize' | 'depl'>, quantite: number) => (sheetsFor(row, quantite) * row.laize * row.depl) / 1e6
+export const materialCost = (row: Pick<Scenario, 'nb_poses' | 'laize' | 'depl'>, quantite: number, grammage: number, prixTonne: number) => (prixTonne > 0 && grammage > 0 ? tonnageFor(row, quantite, grammage) * prixTonne : null)
+export const costLabel = (value: number | null) => (value == null ? '—' : `${formatQuantity(Math.round(value))} DA`)
+
+/** Les feuilles d'une quantité, de la moins chère en matière à la plus chère. À grammage égal, c'est la surface de carton qui compte. */
+export function rankForQuantity<T extends Scenario>(rows: T[], quantite: number) {
+	return rows.filter((row) => row.nb_poses > 0).sort((left, right) => areaFor(left, quantite) - areaFor(right, quantite) || right.nb_poses - left.nb_poses)
+}
+export interface TierResult<T extends Scenario = Scenario> {
+	quantite: number
+	winner: T
+	feuilles: number
+	tonnage: number
+	cout: number | null
+	coutPour1000: number | null
+	/** Surcoût du suivant, en %, null s'il n'y en a pas. */
+	ecartSuivant: number | null
+	suivant: T | null
+	/** Le format gagnant n'est plus celui du palier précédent. */
+	formatChange: boolean
+}
+export function tierResults<T extends Scenario>(rows: T[], quantities: number[], grammage: number, prixTonne: number): TierResult<T>[] {
+	const results: TierResult<T>[] = []
+	for (const quantite of quantities) {
+		const [winner, suivant] = rankForQuantity(rows, quantite)
+		if (!winner) continue
+		const cout = materialCost(winner, quantite, grammage, prixTonne)
+		const base = areaFor(winner, quantite)
+		const previous = results[results.length - 1]
+		results.push({
+			quantite,
+			winner,
+			feuilles: sheetsFor(winner, quantite),
+			tonnage: tonnageFor(winner, quantite, grammage),
+			cout,
+			coutPour1000: cout == null ? null : (cout / quantite) * 1000,
+			ecartSuivant: suivant && base > 0 ? Math.round(((areaFor(suivant, quantite) - base) / base) * 1000) / 10 : null,
+			suivant: suivant ?? null,
+			formatChange: Boolean(previous && sheetLabel(previous.winner) !== sheetLabel(winner)),
+		})
+	}
+	return results
 }

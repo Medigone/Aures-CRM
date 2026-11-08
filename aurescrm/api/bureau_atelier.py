@@ -117,6 +117,10 @@ def _formats_du_support(support):
 	return formats_connus(support=frappe.get_doc("Support Technique", support), stock_seul=True) if support else []
 
 
+def _prix_support(support):
+	return flt(frappe.db.get_value("Support Technique", support, "prix_tonne")) if support else 0.0
+
+
 @frappe.whitelist()
 def get_atelier(etude=None, calcul=None):
 	"""Ce que l'atelier affiche. Avec une étude, son dernier calcul ; sans, un test rapide vierge ou repris."""
@@ -142,6 +146,9 @@ def get_atelier(etude=None, calcul=None):
 		"motifs": context.get("motifs_emboites") or REGLAGE_MOTIFS_DEFAUT,
 		"trait_commun": cint(context.get("trait_commun_autorise")),
 		"quantite": cint(context.get("quantite")) or (cint(doc.quantite) if doc else 0),
+		"paliers": (result or {}).get("quantites_paliers") or [],
+		# Saisi sur le calcul, sinon celui du support ; 0 : les paliers se départagent au tonnage.
+		"prix_tonne": flt((result or {}).get("prix_tonne")) or _prix_support(context.get("support_technique")),
 		**{key: flt(context.get(key)) or default for key, default in DEFAUTS.items()},
 	}
 	return {
@@ -169,7 +176,7 @@ def get_support_formats(support):
 	"""En test rapide : les formats, le grammage et le pont du support choisi."""
 	_guard()
 	doc = frappe.get_doc("Support Technique", support)
-	return {"grammage": flt(doc.grammage), "pont_mini": flt(doc.pont_mini), "formats": merge_formats(_formats_du_support(support), [])}
+	return {"grammage": flt(doc.grammage), "pont_mini": flt(doc.pont_mini), "prix_tonne": flt(doc.prix_tonne), "formats": merge_formats(_formats_du_support(support), [])}
 
 
 @frappe.whitelist()
@@ -209,6 +216,8 @@ def calcul_arguments(values):
 		"motifs_emboites": values.get("motifs") or None,
 		"trait_commun_autorise": cint(values.get("trait_commun")),
 		"quantite": cint(values.get("quantite")),
+		"quantites_paliers": values.get("paliers") if isinstance(values.get("paliers"), list) else [],
+		"prix_tonne": flt(values.get("prix_tonne")),
 		"lisiere": flt(values.get("lisiere")),
 		"pince": flt(values.get("pince")),
 		"marge_arriere": flt(values.get("marge_arriere")),

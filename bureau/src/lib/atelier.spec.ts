@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, presseAlert, referenceFormat, referenceReason, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type AtelierReference, type Scenario } from './atelier'
+import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, parseQuantities, presseAlert, referenceFormat, tierResults, allQuantities, materialCost, referenceReason, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type AtelierReference, type Scenario } from './atelier'
 
 const scenario = (values: Partial<Scenario> = {}) => ({ libelle: 'A', origine: 'Stock', laize: 1020, depl: 700, nb_poses: 4, n_col: 2, n_rang: 2, rotation: 0, taux_chutes: 35, pas_laize: 381.96, pas_depl: 337.05, trait_commun_laize: 1, trait_commun_depl: 0, reste_laize: 240.04, reste_depl: 1.9, surface_par_pose: 1785, nb_feuilles: 25000, tonnage: 5.176, ...values }) as Scenario
 
@@ -130,5 +130,30 @@ describe('impositions déjà fabriquées', () => {
 	it('ne part pas d\'une imposition sans format lisible', () => {
 		expect(referenceFormat(reference())).toEqual({ laize: 720, depl: 450 })
 		expect(referenceFormat(reference({ laize: 0, depl: 0 }))).toBeNull()
+	})
+})
+
+describe('paliers de quantité', () => {
+	it('lit les quantités saisies, milliers séparés ou non', () => {
+		expect(parseQuantities('5 000, 10000; 20.000')).toEqual([5000, 10000, 20000])
+		expect(parseQuantities('20000 5000 5000')).toEqual([5000, 20000])
+		expect(parseQuantities('')).toEqual([])
+		expect(parseQuantities('5000, dix')).toBe("« dix » n'est pas une quantité.")
+		expect(allQuantities(10000, [5000, 10000, 20000])).toEqual([5000, 10000, 20000])
+	})
+	it('le format gagnant change avec la quantité', () => {
+		const petit = scenario({ libelle: 'Petit', laize: 720, depl: 450, nb_poses: 6 })
+		const grand = scenario({ libelle: 'Grand', laize: 1020, depl: 700, nb_poses: 14 })
+		const [peu, beaucoup] = tierResults([grand, petit], [6, 14000], 300, 200000)
+		expect(peu.winner.libelle).toBe('Petit')
+		expect(peu.formatChange).toBe(false)
+		expect(beaucoup.winner.libelle).toBe('Grand')
+		expect(beaucoup.formatChange).toBe(true)
+		expect(beaucoup.feuilles).toBe(1000)
+		// 1000 feuilles de 1020 × 700 en 300 g : 0,2142 t à 200 000 DA.
+		expect(beaucoup.cout).toBeCloseTo(42840, 0)
+		expect(beaucoup.coutPour1000).toBeCloseTo(3060, 0)
+		expect(beaucoup.ecartSuivant).toBeGreaterThan(0)
+		expect(materialCost(grand, 14000, 300, 0)).toBeNull()
 	})
 })

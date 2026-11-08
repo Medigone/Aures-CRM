@@ -158,6 +158,29 @@ def _motifs_du_calcul(doc):
 	return motifs_depuis_reglage(doc.get("motifs_emboites"))
 
 
+def _prix_tonne(doc, support):
+	"""Le prix de la matière : celui saisi sur le calcul, sinon celui du support."""
+	return flt(doc.get("prix_tonne")) or (flt(support.get("prix_tonne")) if support else 0.0)
+
+
+def paliers_du_calcul(doc):
+	"""Les autres quantités comparées, entières et positives, sans doublon."""
+	try:
+		brut = json.loads(doc.get("quantites_paliers") or "[]")
+	except (TypeError, ValueError):
+		return []
+	return nettoyer_paliers(brut)
+
+
+def nettoyer_paliers(valeurs):
+	vues = []
+	for valeur in valeurs if isinstance(valeurs, list) else []:
+		q = cint(valeur)
+		if q > 0 and q not in vues:
+			vues.append(q)
+	return sorted(vues)[:8]
+
+
 def _entree_depuis_doc(doc, quantite=None):
 	support = None
 	if doc.support_technique:
@@ -190,7 +213,7 @@ def _entree_depuis_doc(doc, quantite=None):
 		sens_fibre=doc.sens_fibre or "Libre",
 		quantite=cint(quantite if quantite is not None else doc.quantite),
 		grammage=flt(support.grammage) if support else 0.0,
-		prix_tonne=0.0,
+		prix_tonne=_prix_tonne(doc, support),
 		formats_stock=_formats_stock(support),
 		bornes=bornes,
 		formats_etudies=formats,
@@ -316,6 +339,8 @@ def _assurer_calcul_doc(
 	marge_arriere=None,
 	ignorer_contraintes_machine=None,
 	motifs_emboites=None,
+	quantites_paliers=None,
+	prix_tonne=None,
 ):
 	if not fichier_trace and trace:
 		fichier_trace = frappe.db.get_value("Trace", trace, "fichier_trace")
@@ -357,6 +382,13 @@ def _assurer_calcul_doc(
 		if motifs_emboites not in REGLAGE_MOTIFS:
 			frappe.throw(f"Réglage tête-bêche inconnu : {motifs_emboites}.")
 		doc.motifs_emboites = motifs_emboites
+	# Paliers et prix : migrés avec le lot des quantités ; avant, on les ignore.
+	if quantites_paliers is not None and doc.meta.has_field("quantites_paliers"):
+		if isinstance(quantites_paliers, str):
+			quantites_paliers = json.loads(quantites_paliers or "[]")
+		doc.quantites_paliers = json.dumps(nettoyer_paliers(quantites_paliers))
+	if prix_tonne is not None and doc.meta.has_field("prix_tonne"):
+		doc.prix_tonne = max(flt(prix_tonne), 0)
 	if formats is not None:
 		doc.set("formats_etudies", [])
 		for fmt in formats:
@@ -398,6 +430,8 @@ def preparer_trace(
 	marge_arriere=None,
 	ignorer_contraintes_machine=None,
 	motifs_emboites=None,
+	quantites_paliers=None,
+	prix_tonne=None,
 ):
 	"""Parse le PDF et alimente le cache : la simulation n'attend plus « Calculer »."""
 	debut = time.monotonic()
@@ -421,6 +455,8 @@ def preparer_trace(
 		marge_arriere=marge_arriere,
 		ignorer_contraintes_machine=ignorer_contraintes_machine,
 		motifs_emboites=motifs_emboites,
+		quantites_paliers=quantites_paliers,
+		prix_tonne=prix_tonne,
 	)
 	journal = []
 	try:
@@ -456,6 +492,8 @@ def lancer_calcul(
 	marge_arriere=None,
 	ignorer_contraintes_machine=None,
 	motifs_emboites=None,
+	quantites_paliers=None,
+	prix_tonne=None,
 ):
 	"""Crée (ou réutilise) un Calcul Imposition et enfile le job.
 
@@ -504,6 +542,8 @@ def lancer_calcul(
 		marge_arriere=marge_arriere,
 		ignorer_contraintes_machine=ignorer_contraintes_machine,
 		motifs_emboites=motifs_emboites,
+		quantites_paliers=quantites_paliers,
+		prix_tonne=prix_tonne,
 	)
 	doc.statut_calcul = "En cours"
 	doc.log_calcul = "Calcul en file d'attente…"
@@ -594,6 +634,8 @@ def get_calcul(calcul):
 		"trait_commun_autorise": cint(doc.trait_commun_autorise),
 		"sens_fibre": doc.sens_fibre,
 		"motifs_emboites": doc.get("motifs_emboites") or "Décalé autorisé",
+		"quantites_paliers": paliers_du_calcul(doc),
+		"prix_tonne": flt(doc.get("prix_tonne")),
 		"lisiere": flt(doc.lisiere),
 		"pince": flt(doc.pince),
 		"marge_arriere": flt(doc.marge_arriere),

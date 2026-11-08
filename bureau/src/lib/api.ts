@@ -361,7 +361,7 @@ const ATELIER = 'aurescrm.api.bureau_atelier'
 const MOTEUR = 'aurescrm.imposition.api'
 export const getAtelier = (etude?: string, calcul?: string) => call<AtelierData>(`${ATELIER}.get_atelier`, { etude, calcul })
 export const getAtelierCalcul = (calcul: string) => call<AtelierCalcul>(`${ATELIER}.get_atelier_calcul`, { calcul })
-export const getSupportFormats = (support: string) => call<{ grammage: number; pont_mini: number; formats: AtelierFormat[] }>(`${ATELIER}.get_support_formats`, { support })
+export const getSupportFormats = (support: string) => call<{ grammage: number; pont_mini: number; prix_tonne?: number; formats: AtelierFormat[] }>(`${ATELIER}.get_support_formats`, { support })
 export const prepareAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.prepare_atelier`, { values: JSON.stringify(values) }, true)
 export const runAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.run_atelier`, { values: JSON.stringify(values) }, true)
 export const createAtelierImposition = (etude: string, calcul: string, scenario_idx: number) => call<{ imposition: string; remplacee: string | null; avertissement: string | null; taux_chutes: number }>(`${ATELIER}.create_atelier_imposition`, { etude, calcul, scenario_idx }, true)
