@@ -370,6 +370,7 @@ export const simulateGroup = (values: { etude: string; calcul: string; membres: 
 	call<GroupResult>(`${ATELIER}_groupage.simulate_group`, { ...values, membres: JSON.stringify(values.membres), formats: JSON.stringify(values.formats) }, true)
 export const createGroupImposition = (values: { etude: string; calcul: string; membres: { etude: string; poses: number }[]; laize: number; depl: number; lisiere: number; pince: number; marge_arriere: number }) =>
 	call<{ groupage: string; impositions: { etude: string; imposition: string }[]; nb_feuilles: number }>(`${ATELIER}_groupage.create_group_imposition`, { ...values, membres: JSON.stringify(values.membres) }, true)
+export const saveAtelierTiers = (calcul: string, values: { paliers: number[]; prix_tonne: number; grammage: number }) => call<{ saved: boolean }>(`${ATELIER}.save_atelier_tiers`, { calcul, paliers: JSON.stringify(values.paliers), prix_tonne: values.prix_tonne, grammage: values.grammage }, true)
 export const prepareAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.prepare_atelier`, { values: JSON.stringify(values) }, true)
 export const runAtelier = (values: object) => call<AtelierCalcul>(`${ATELIER}.run_atelier`, { values: JSON.stringify(values) }, true)
 export const createAtelierImposition = (etude: string, calcul: string, scenario_idx: number) => call<{ imposition: string; remplacee: string | null; avertissement: string | null; taux_chutes: number }>(`${ATELIER}.create_atelier_imposition`, { etude, calcul, scenario_idx }, true)

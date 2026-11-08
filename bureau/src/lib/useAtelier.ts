@@ -1,7 +1,7 @@
 /** État de l'atelier : chargement, calcul qui tourne, réglages et résultats tenus à jour. */
 import { closeRealtime, connectRealtime, type RealtimeEvent } from '@shared/realtime'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { createAtelierImposition, getAtelier, getAtelierCalcul, getSupportFormats, keepAtelierScenario, prepareAtelier, runAtelier, simulateFormat } from './api'
+import { createAtelierImposition, getAtelier, getAtelierCalcul, getSupportFormats, keepAtelierScenario, prepareAtelier, runAtelier, saveAtelierTiers, simulateFormat } from './api'
 import { isPdf, isRunning, manualFormat, referenceFormat, rollOf, sameSheet, sortScenarios, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReference, type AtelierReglages, type Scenario, type ScenarioSort } from './atelier'
 
 // Le temps réel prévient de la fin ; la relecture reste pour une coupure.
@@ -132,6 +132,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 			quantite: settings.quantite,
 			paliers: settings.paliers,
 			prix_tonne: settings.prix_tonne,
+			grammage: grammage.value,
 			lisiere: settings.lisiere,
 			pince: settings.pince,
 			marge_arriere: settings.marge_arriere,
@@ -180,6 +181,23 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 			adopt(fresh)
 		})
 	}
+	// Paliers, prix et grammage se gardent sur le calcul dès qu'ils changent, sans relancer le moteur.
+	let tiersTimer: ReturnType<typeof setTimeout> | null = null
+	watch(
+		() => (reglages.value ? JSON.stringify([reglages.value.paliers, reglages.value.prix_tonne, grammage.value]) : ''),
+		(now, before) => {
+			if (!now || !before || !calcul.value || !canWork.value) return
+			if (tiersTimer) clearTimeout(tiersTimer)
+			const name = calcul.value.name
+			tiersTimer = setTimeout(() => {
+				const settings = reglages.value
+				if (!settings || calcul.value?.name !== name || isRunning(calcul.value)) return
+				saveAtelierTiers(name, { paliers: settings.paliers ?? [], prix_tonne: settings.prix_tonne ?? 0, grammage: grammage.value }).catch(() => {
+					// Gardés au prochain calcul de toute façon.
+				})
+			}, 600)
+		},
+	)
 	function changed() {
 		if (calcul.value?.scenarios.length) stale.value = true
 	}

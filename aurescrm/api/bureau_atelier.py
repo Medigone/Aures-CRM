@@ -7,6 +7,8 @@ les règles propres au bureau. Un test rapide ne crée jamais d'imposition, faut
 calcule et ne reçoit d'imposition que tant qu'elle est En étude.
 """
 
+import json
+
 import frappe
 from frappe import _
 from frappe.utils import cint, flt
@@ -163,7 +165,7 @@ def get_atelier(etude=None, calcul=None):
 		"fichier_trace": (result or {}).get("fichier_trace") or context.get("fichier_trace"),
 		"support": context.get("support_technique"),
 		# Un test repris n'a pas d'article : son grammage vient de son support.
-		"grammage": flt(context.get("grammage")) or (flt(frappe.db.get_value("Support Technique", context["support_technique"], "grammage")) if context.get("support_technique") else 0),
+		"grammage": flt(context.get("grammage")) or (flt(frappe.db.get_value("Support Technique", context["support_technique"], "grammage")) if context.get("support_technique") else 0) or flt((result or {}).get("grammage")),
 		"supports": [] if doc else _supports(),
 		"formats": merge_formats(proposes, (result or {}).get("formats_etudies") or []),
 		"reglages": reglages,
@@ -220,6 +222,8 @@ def calcul_arguments(values):
 		"quantite": cint(values.get("quantite")),
 		"quantites_paliers": values.get("paliers") if isinstance(values.get("paliers"), list) else [],
 		"prix_tonne": flt(values.get("prix_tonne")),
+		# Sans support ni étude, le grammage saisi à l'écran ; sinon celui du support ou de l'article.
+		"grammage": flt(values.get("grammage")) if not values.get("etude") and not values.get("support_technique") else 0,
 		"lisiere": flt(values.get("lisiere")),
 		"pince": flt(values.get("pince")),
 		"marge_arriere": flt(values.get("marge_arriere")),
@@ -235,6 +239,29 @@ def calcul_arguments(values):
 	if not args["fichier_trace"]:
 		frappe.throw(_("Déposez d'abord un PDF de tracé."))
 	return args, values
+
+
+@frappe.whitelist(methods=["POST"])
+def save_atelier_tiers(calcul, paliers=None, prix_tonne=None, grammage=None):
+	"""Paliers, prix et grammage gardés aussitôt sur le calcul : ils ne changent pas le moteur, rien à recalculer."""
+	_guard()
+	from aurescrm.imposition.api import nettoyer_paliers
+
+	doc = frappe.get_doc(CALCUL, calcul)
+	doc.check_permission("write")
+	if doc.statut_calcul == "En cours":
+		return {"saved": False}
+	valeurs = {}
+	if doc.meta.has_field("quantites_paliers") and paliers is not None:
+		valeurs["quantites_paliers"] = json.dumps(nettoyer_paliers(_parse(paliers) or []))
+	if doc.meta.has_field("prix_tonne") and prix_tonne is not None:
+		valeurs["prix_tonne"] = max(flt(prix_tonne), 0)
+	# Le grammage saisi ne vaut que pour un test sans support : sinon c'est celui du support.
+	if doc.meta.has_field("grammage") and grammage is not None and not doc.support_technique and not doc.etude_faisabilite:
+		valeurs["grammage"] = max(flt(grammage), 0)
+	if valeurs:
+		doc.db_set(valeurs, update_modified=False)
+	return {"saved": bool(valeurs)}
 
 
 @frappe.whitelist(methods=["POST"])

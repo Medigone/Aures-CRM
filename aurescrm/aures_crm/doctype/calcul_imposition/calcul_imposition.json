@@ -28,6 +28,7 @@
   "quantite",
   "quantites_paliers",
   "prix_tonne",
+  "grammage",
   "inclure_sur_mesure",
   "section_formats",
   "formats_etudies",
@@ -197,6 +198,13 @@
    "label": "Prix \u00e0 la tonne"
   },
   {
+   "description": "Grammage saisi en test rapide, faute de support : il donne le tonnage et le co\u00fbt.",
+   "fieldname": "grammage",
+   "fieldtype": "Float",
+   "label": "Grammage (g/m\u00b2)",
+   "non_negative": 1
+  },
+  {
    "default": "1",
    "fieldname": "inclure_sur_mesure",
    "fieldtype": "Check",
@@ -347,7 +355,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 0,
  "links": [],
- "modified": "2026-11-08 14:00:00.000000",
+ "modified": "2026-11-08 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Imposition",

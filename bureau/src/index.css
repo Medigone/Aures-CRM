@@ -4431,6 +4431,34 @@
 	.atelier-sim-row .form-field {
 		width: 4.75rem;
 	}
+	.atelier-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+		margin: 0 0 0.25rem;
+		padding: 0;
+		list-style: none;
+	}
+	.atelier-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.0625rem 0.25rem 0.0625rem 0.5rem;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: 999px;
+		@apply text-sm text-ink-gray-8;
+	}
+	.atelier-chip button {
+		width: 1.125rem;
+		height: 1.125rem;
+		line-height: 1;
+		border-radius: 999px;
+		@apply text-ink-gray-6;
+	}
+	.atelier-chip button:hover {
+		background: var(--surface-gray-2);
+		@apply text-ink-gray-9;
+	}
 	.atelier-tiers {
 		padding: 0;
 	}

@@ -212,7 +212,7 @@ def _entree_depuis_doc(doc, quantite=None):
 		trait_commun=bool(cint(doc.trait_commun_autorise)),
 		sens_fibre=doc.sens_fibre or "Libre",
 		quantite=cint(quantite if quantite is not None else doc.quantite),
-		grammage=flt(support.grammage) if support else 0.0,
+		grammage=(flt(support.grammage) if support else 0.0) or flt(doc.get("grammage")),
 		prix_tonne=_prix_tonne(doc, support),
 		formats_stock=_formats_stock(support),
 		bornes=bornes,
@@ -341,6 +341,7 @@ def _assurer_calcul_doc(
 	motifs_emboites=None,
 	quantites_paliers=None,
 	prix_tonne=None,
+	grammage=None,
 ):
 	if not fichier_trace and trace:
 		fichier_trace = frappe.db.get_value("Trace", trace, "fichier_trace")
@@ -389,6 +390,8 @@ def _assurer_calcul_doc(
 		doc.quantites_paliers = json.dumps(nettoyer_paliers(quantites_paliers))
 	if prix_tonne is not None and doc.meta.has_field("prix_tonne"):
 		doc.prix_tonne = max(flt(prix_tonne), 0)
+	if grammage is not None and doc.meta.has_field("grammage"):
+		doc.grammage = max(flt(grammage), 0)
 	if formats is not None:
 		doc.set("formats_etudies", [])
 		for fmt in formats:
@@ -432,6 +435,7 @@ def preparer_trace(
 	motifs_emboites=None,
 	quantites_paliers=None,
 	prix_tonne=None,
+	grammage=None,
 ):
 	"""Parse le PDF et alimente le cache : la simulation n'attend plus « Calculer »."""
 	debut = time.monotonic()
@@ -457,6 +461,7 @@ def preparer_trace(
 		motifs_emboites=motifs_emboites,
 		quantites_paliers=quantites_paliers,
 		prix_tonne=prix_tonne,
+		grammage=grammage,
 	)
 	journal = []
 	try:
@@ -494,6 +499,7 @@ def lancer_calcul(
 	motifs_emboites=None,
 	quantites_paliers=None,
 	prix_tonne=None,
+	grammage=None,
 ):
 	"""Crée (ou réutilise) un Calcul Imposition et enfile le job.
 
@@ -544,6 +550,7 @@ def lancer_calcul(
 		motifs_emboites=motifs_emboites,
 		quantites_paliers=quantites_paliers,
 		prix_tonne=prix_tonne,
+		grammage=grammage,
 	)
 	doc.statut_calcul = "En cours"
 	doc.log_calcul = "Calcul en file d'attente…"
@@ -636,6 +643,7 @@ def get_calcul(calcul):
 		"motifs_emboites": doc.get("motifs_emboites") or "Décalé autorisé",
 		"quantites_paliers": paliers_du_calcul(doc),
 		"prix_tonne": flt(doc.get("prix_tonne")),
+		"grammage": flt(doc.get("grammage")),
 		"lisiere": flt(doc.lisiere),
 		"pince": flt(doc.pince),
 		"marge_arriere": flt(doc.marge_arriere),

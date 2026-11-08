@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { dimensionsLabel, fileLabel, mm, MOTIF_OPTIONS, motifsSummary, parseQuantities, quantitiesText, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
+import { formatQuantity } from '@/lib/etudes'
+import { dimensionsLabel, fileLabel, mm, MOTIF_OPTIONS, motifsSummary, parseQuantities, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
 
 /** Colonne de gauche : le tracé, la quantité, les formats à comparer et les réglages du moteur. */
-const props = defineProps<{ data: AtelierData; calcul: AtelierCalcul | null; reglages: AtelierReglages; formats: AtelierFormat[]; support: string | null; fichier: string | null; readable: boolean; canWork: boolean }>()
-const emit = defineEmits<{ changed: []; depot: []; support: [name: string]; 'add-format': [laize: string, depl: string, bobine: boolean, done: (error: string) => void] }>()
+const props = defineProps<{ data: AtelierData; calcul: AtelierCalcul | null; reglages: AtelierReglages; formats: AtelierFormat[]; support: string | null; fichier: string | null; readable: boolean; canWork: boolean; grammage: number }>()
+const emit = defineEmits<{ changed: []; depot: []; grammage: [value: number]; support: [name: string]; 'add-format': [laize: string, depl: string, bobine: boolean, done: (error: string) => void] }>()
 
 const laize = ref('')
 const depl = ref('')
@@ -20,21 +21,38 @@ function add() {
 	})
 }
 // Paliers et prix ne touchent pas au moteur : la carte des paliers se recalcule aussitôt, sans relancer le calcul.
-const paliersText = ref(quantitiesText(props.reglages.paliers ?? []))
+// Une quantité à la fois, ajoutée par Entrée ou « Ajouter » ; une liste collée passe aussi.
+const palier = ref('')
 const paliersError = ref('')
-watch(() => props.reglages, (fresh) => {
-	paliersText.value = quantitiesText(fresh.paliers ?? [])
+watch(() => props.reglages, () => {
+	palier.value = ''
 	paliersError.value = ''
 })
-function setPaliers() {
-	const parsed = parseQuantities(paliersText.value)
+function addPalier() {
+	const parsed = parseQuantities(palier.value)
 	if (typeof parsed === 'string') {
 		paliersError.value = parsed
 		return
 	}
+	if (!parsed.length) {
+		paliersError.value = 'Indiquez une quantité.'
+		return
+	}
+	const next = [...new Set([...(props.reglages.paliers ?? []), ...parsed])].filter((value) => value !== props.reglages.quantite).sort((a, b) => a - b)
+	if (next.length > 8) {
+		paliersError.value = 'Huit quantités au plus.'
+		return
+	}
 	paliersError.value = ''
-	props.reglages.paliers = parsed.filter((value) => value !== props.reglages.quantite)
-	paliersText.value = quantitiesText(props.reglages.paliers)
+	props.reglages.paliers = next
+	palier.value = ''
+}
+function removePalier(value: number) {
+	props.reglages.paliers = (props.reglages.paliers ?? []).filter((other) => other !== value)
+}
+function setGrammage(event: Event) {
+	const value = Number((event.target as HTMLInputElement).value)
+	emit('grammage', Number.isFinite(value) && value > 0 ? value : 0)
 }
 function setPrix(event: Event) {
 	const value = Number((event.target as HTMLInputElement).value)
@@ -72,16 +90,30 @@ const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Even
 				<span class="field-label">Presse de l'étude</span>
 				<span class="atelier-value">{{ data.etude.presse?.nom ?? 'Aucune' }}</span>
 			</div>
-			<label class="form-field atelier-rail-wide">
-				<span class="field-label">Autres quantités</span>
-				<input v-model="paliersText" class="field-input tabular-nums" type="text" inputmode="numeric" placeholder="5 000, 10 000, 20 000" :disabled="!canWork" @change="setPaliers" />
+			<div class="form-field atelier-rail-wide">
+				<span class="field-label" id="atelier-paliers">Autres quantités</span>
+				<ul v-if="reglages.paliers?.length" class="atelier-chips" aria-labelledby="atelier-paliers">
+					<li v-for="value in reglages.paliers" :key="value" class="atelier-chip tabular-nums">
+						{{ formatQuantity(value) }}
+						<button v-if="canWork" type="button" :aria-label="`Retirer ${formatQuantity(value)}`" @click="removePalier(value)">×</button>
+					</li>
+				</ul>
+				<div v-if="canWork" class="atelier-add-format">
+					<input v-model="palier" class="field-input tabular-nums" type="text" inputmode="numeric" placeholder="20 000" aria-label="Quantité à comparer" @keydown.enter.prevent="addPalier" />
+					<button type="button" class="btn-secondary" :disabled="!palier.trim()" @click="addPalier">Ajouter</button>
+				</div>
 				<small v-if="paliersError" role="alert" class="field-error">{{ paliersError }}</small>
 				<small v-else>Le gagnant de chaque quantité, sans relancer le calcul.</small>
+			</div>
+			<label v-if="!data.etude && !support" class="form-field atelier-rail-wide">
+				<span class="field-label">Grammage (g/m²)</span>
+				<input class="field-input tabular-nums" type="number" min="0" step="1" :value="grammage || ''" placeholder="Sans support, à saisir" :disabled="!canWork" @change="setGrammage" />
+				<small>Il donne le tonnage et le coût matière.</small>
 			</label>
 			<label class="form-field atelier-rail-wide">
 				<span class="field-label">Prix matière (DA la tonne)</span>
 				<input class="field-input tabular-nums" type="number" min="0" step="1000" :value="reglages.prix_tonne || ''" placeholder="Non renseigné" :disabled="!canWork" @change="setPrix" />
-				<small>{{ reglages.prix_tonne ? 'Départage les quantités au coût matière.' : 'Sans prix, les quantités se départagent au tonnage.' }}</small>
+				<small>{{ !grammage ? 'Indiquez un support ou un grammage : sans lui, ni tonnage ni coût.' : reglages.prix_tonne ? 'Départage les quantités au coût matière.' : 'Sans prix, les quantités se départagent au tonnage.' }}</small>
 			</label>
 		</div>
 		<div class="atelier-rail-section">

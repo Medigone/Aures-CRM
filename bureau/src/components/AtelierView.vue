@@ -164,11 +164,11 @@ async function copyLink() {
 			</div>
 
 			<div v-else class="atelier-grid">
-				<AtelierReglages :data="data" :calcul="calcul" :reglages="reglages" :formats="formats" :support="support" :fichier="fichier" :readable="readable" :can-work="canWork" @changed="state.changed()" @depot="dialog = 'depot'" @support="state.chooseSupport" @add-format="onAddFormat" />
+				<AtelierReglages :data="data" :calcul="calcul" :reglages="reglages" :formats="formats" :support="support" :fichier="fichier" :readable="readable" :can-work="canWork" :grammage="grammage" @grammage="(value) => (grammage = value)" @changed="state.changed()" @depot="dialog = 'depot'" @support="state.chooseSupport" @add-format="onAddFormat" />
 
 				<div class="atelier-center">
 					<AtelierReferences v-if="data.references" :references="data.references" :can-start="canWork" :can-simulate="canSimulate" @start="startFrom" />
-					<AtelierPaliers v-if="!running && !stale && rows.length && quantities.length > 1" :rows="sheets" :quantities="quantities" :principale="quantite" :tier-tag="etude ? 'étude' : 'test'" :grammage="grammage" :prix-tonne="prixTonne" :selected="palier" @pick="pickTier" @show="(row) => (shown = state.keyOf(row))" />
+					<AtelierPaliers v-if="!running && rows.length && quantities.length > 1" :rows="sheets" :quantities="quantities" :principale="quantite" :tier-tag="etude ? 'étude' : 'test'" :grammage="grammage" :prix-tonne="prixTonne" :selected="palier" @pick="pickTier" @show="(row) => (shown = state.keyOf(row))" />
 					<section class="card atelier-results" aria-label="Résultats du calcul">
 						<div v-if="running" class="atelier-state" role="status">
 							<span class="atelier-spin" aria-hidden="true"></span>
