@@ -46,8 +46,10 @@ export interface Scenario {
 	poses?: Pose[]
 	/** Essai pas encore gardé : il reste sur cet écran. */
 	cle?: string
-	/** Feuille tirée d'une bobine refendue : la laize achetée par feuille, rives comprises. Elle compte la matière. */
+	/** Feuille tirée d'une bobine refendue ou d'une palette recoupée : la part achetée par feuille, rognages compris.
+	 * C'est elle qui compte la matière. */
 	laize_achat?: number
+	depl_achat?: number
 }
 export type Pose = [number, number, number]
 export interface SilhouetteVue {
@@ -111,6 +113,9 @@ export interface AtelierReglages {
 	refente_rive?: number
 	refente_bandes_max?: number
 	refente_laize_min?: number
+	/** Massicot : morceaux égaux au plus pour une feuille de palette (moins de 2 : pas de recoupe), rognage par bord. */
+	recoupe_morceaux_max?: number
+	recoupe_rognage?: number
 }
 export interface AtelierHistorique {
 	name: string
@@ -193,11 +198,11 @@ export { dimensionsLabel, formatDay, percentLabel }
 export function sheetsFor(row: Pick<Scenario, 'nb_poses'>, quantite: number) {
 	return row.nb_poses > 0 && quantite > 0 ? Math.ceil(quantite / row.nb_poses) : 0
 }
-type SheetSize = Pick<Scenario, 'nb_poses' | 'laize' | 'depl'> & { laize_achat?: number }
-/** La laize qui compte la matière : celle achetée, quand la feuille sort d'une bobine refendue. */
-const boughtLaize = (row: SheetSize) => row.laize_achat || row.laize
+type SheetSize = Pick<Scenario, 'nb_poses' | 'laize' | 'depl'> & { laize_achat?: number; depl_achat?: number }
+/** La surface qui compte la matière : celle achetée, quand la feuille sort d'une bobine refendue ou d'une palette recoupée. */
+const boughtArea = (row: SheetSize) => (row.laize_achat || row.laize) * (row.depl_achat || row.depl)
 export function tonnageFor(row: SheetSize, quantite: number, grammage: number) {
-	return (sheetsFor(row, quantite) * boughtLaize(row) * row.depl * grammage) / 1e12
+	return (sheetsFor(row, quantite) * boughtArea(row) * grammage) / 1e12
 }
 export const sheetsLabel = (value: number) => (value ? formatQuantity(value) : '—')
 export const tonnageLabel = (value: number) => (value ? `${String(Math.round(value * 100) / 100).replace('.', ',')} t` : '—')
@@ -336,7 +341,7 @@ export const quantitiesText = (values: number[]) => values.map((value) => format
 /** La quantité principale et les paliers, une seule fois chacun, dans l'ordre. */
 export const allQuantities = (quantite: number, paliers: number[]) => [...new Set([quantite, ...paliers].filter((value) => value > 0))].sort((a, b) => a - b)
 
-export const areaFor = (row: SheetSize, quantite: number) => (sheetsFor(row, quantite) * boughtLaize(row) * row.depl) / 1e6
+export const areaFor = (row: SheetSize, quantite: number) => (sheetsFor(row, quantite) * boughtArea(row)) / 1e6
 export const materialCost = (row: SheetSize, quantite: number, grammage: number, prixTonne: number) => (prixTonne > 0 && grammage > 0 ? tonnageFor(row, quantite, grammage) * prixTonne : null)
 export const costLabel = (value: number | null) => (value == null ? '—' : `${formatQuantity(Math.round(value))} DA`)
 /** Le coût d'un exemplaire : deux décimales, trois sous le dinar, pour qu'un prix de quelques centimes reste lisible. */
@@ -438,11 +443,11 @@ export function fibreRotation(fibreTrace: string | undefined, fibre: string) {
 export const fibreSummary = (fibreTrace?: string) => (fibreTrace === 'Verticale' || fibreTrace === 'Horizontale' ? `fibre ${fibreTrace.toLowerCase()} sur le tracé` : 'fibre libre')
 
 /** Format idéal : c'est l'utilisateur qui choisit le critère, le moteur donne le meilleur pour chacun. */
-export type CritereFormat = 'matiere' | 'feuilles' | 'sans_refente' | 'cout'
+export type CritereFormat = 'matiere' | 'feuilles' | 'sans_transformation' | 'cout'
 export const CRITERES_FORMAT: { value: CritereFormat; label: string; hint: string }[] = [
 	{ value: 'matiere', label: 'Moins de matière', hint: 'le moins de carton acheté pour la quantité' },
 	{ value: 'feuilles', label: 'Moins de feuilles', hint: 'le moins de passages en presse et en découpe' },
-	{ value: 'sans_refente', label: 'Sans refente', hint: 'une palette ou une bobine entière, sans passage au débobinage' },
+	{ value: 'sans_transformation', label: 'Sans transformation', hint: 'une palette ou une bobine entière, ni refendue ni recoupée' },
 	{ value: 'cout', label: 'Coût complet', hint: 'matière et passages presse' },
 ]
 export interface Proposition extends Scenario {
@@ -459,6 +464,8 @@ export interface PropositionResult {
 	cout: { presse: string } | null
 	/** La refente a été cherchée : ses réglages sont saisis. */
 	refente: boolean
+	/** La recoupe au massicot a été cherchée. */
+	recoupe: boolean
 	/** Formats standards du support envoyés. */
 	formats: number
 }
@@ -470,7 +477,7 @@ export function byCritere(lignes: Proposition[], critere: CritereFormat) {
 	const order = [...available.filter((option) => option.value === critere), ...available.filter((option) => option.value !== critere)]
 	return order.map((option) => ({ ...option, row: lignes.find((row) => row.criteres.includes(option.value))! }))
 }
-/** Ce que gagne ou perd la feuille choisie face à la meilleure sans refente, en clair. Vide si c'est elle. */
+/** Ce que gagne ou perd la feuille choisie face à la meilleure sans transformation, en clair. Vide si c'est elle. */
 export function plainComparison(chosen: Proposition, plain: Proposition | undefined, quantite: number, grammage: number) {
 	if (!plain || plain === chosen) return ''
 	const parts: string[] = []
@@ -480,11 +487,16 @@ export function plainComparison(chosen: Proposition, plain: Proposition | undefi
 	if (grammage && quantite && Math.abs(tonnes) >= 0.001) parts.push(`${formatQuantity(Math.round(Math.abs(tonnes) * 1000))} kg de carton en ${tonnes > 0 ? 'moins' : 'plus'}`)
 	const feuilles = sheetsFor(plain, quantite) - sheetsFor(chosen, quantite)
 	if (quantite && feuilles) parts.push(`${formatQuantity(Math.abs(feuilles))} feuilles en ${feuilles > 0 ? 'moins' : 'plus'}`)
-	if (!parts.length) return `Autant que la meilleure feuille sans refente, ${sheetLabel(plain)}.`
-	return `Face à la meilleure feuille sans refente, ${sheetLabel(plain)} : ${parts.join(', ')}.`
+	if (!parts.length) return `Autant que la meilleure feuille sans transformation, ${sheetLabel(plain)}.`
+	return `Face à la meilleure feuille sans transformation, ${sheetLabel(plain)} : ${parts.join(', ')}.`
 }
 export const fibreFeuilleLabel = (fibre?: string) => (fibre ? `fibre ${fibre.toLowerCase()}` : '')
 /** « en 2 à 4 bandes, rive 5 mm », ou ce qui manque. */
+/** « jusqu'à 4 morceaux, rognage 3 mm », ou ce qui manque. */
+export function recoupeSummary(reglages: Pick<AtelierReglages, 'recoupe_morceaux_max' | 'recoupe_rognage'>) {
+	const morceaux = reglages.recoupe_morceaux_max ?? 0
+	return morceaux < 2 ? 'non réglé' : `jusqu'à ${morceaux} morceaux, rognage ${mm(reglages.recoupe_rognage ?? 0)} mm`
+}
 export function refenteSummary(reglages: Pick<AtelierReglages, 'refente_rive' | 'refente_bandes_max' | 'refente_laize_min'>) {
 	const bandes = reglages.refente_bandes_max ?? 0
 	if (bandes < 2) return 'non réglée'

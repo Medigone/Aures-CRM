@@ -26,7 +26,7 @@ const laizeMax = ref(start ? String(start.laize) : '')
 const deplMax = ref(start ? String(start.depl) : '')
 const critere = ref<CritereFormat>('matiere')
 const lignes = ref<Proposition[] | null>(null)
-const result = ref<{ cout: string | null; refente: boolean; formats: number } | null>(null)
+const result = ref<{ cout: string | null; refente: boolean; recoupe: boolean; formats: number } | null>(null)
 const error = ref('')
 const loading = ref(false)
 let lastRequest = 0
@@ -50,12 +50,12 @@ async function propose() {
 		}
 	}
 	try {
-		const { quantite, lisiere, pince, marge_arriere, refente_rive, refente_bandes_max, refente_laize_min } = props.reglages
+		const { quantite, lisiere, pince, marge_arriere, refente_rive, refente_bandes_max, refente_laize_min, recoupe_morceaux_max, recoupe_rognage } = props.reglages
 		const formats = props.formats.map(({ coche: _coche, ...row }) => row)
-		const response = await proposeFormats(props.calcul, { laize_max: laizeMax.value, depl_max: deplMax.value, formats: JSON.stringify(formats), quantite, lisiere, pince, marge_arriere, refente_rive, refente_bandes_max, refente_laize_min })
+		const response = await proposeFormats(props.calcul, { laize_max: laizeMax.value, depl_max: deplMax.value, formats: JSON.stringify(formats), quantite, lisiere, pince, marge_arriere, refente_rive, refente_bandes_max, refente_laize_min, recoupe_morceaux_max, recoupe_rognage })
 		if (request !== lastRequest) return
 		lignes.value = response.lignes
-		result.value = { cout: response.cout?.presse ?? null, refente: response.refente, formats: response.formats }
+		result.value = { cout: response.cout?.presse ?? null, refente: response.refente, recoupe: response.recoupe, formats: response.formats }
 		if (!response.lignes.some((row) => row.criteres.includes(critere.value))) critere.value = 'matiere'
 		const winner = rows.value[0]?.row
 		if (winner) emit('pick', winner)
@@ -67,19 +67,20 @@ async function propose() {
 	}
 }
 
-// Un critère qu'aucune feuille ne gagne ne se propose pas : pas de coût de passage, ou rien sans refente.
+// Un critère qu'aucune feuille ne gagne ne se propose pas : pas de coût de passage, ou rien sans transformation.
 const options = computed(() => CRITERES_FORMAT.filter((option) => lignes.value?.some((row) => row.criteres.includes(option.value))))
 const rows = computed(() => (lignes.value ? byCritere(lignes.value, critere.value) : []))
 const chosen = computed(() => rows.value[0] ?? null)
-const plain = computed(() => lignes.value?.find((row) => row.criteres.includes('sans_refente')))
-const comparison = computed(() => (chosen.value && critere.value !== 'sans_refente' ? plainComparison(chosen.value.row, plain.value, props.reglages.quantite, props.grammage) : ''))
+const plain = computed(() => lignes.value?.find((row) => row.criteres.includes('sans_transformation')))
+const comparison = computed(() => (chosen.value && critere.value !== 'sans_transformation' ? plainComparison(chosen.value.row, plain.value, props.reglages.quantite, props.grammage) : ''))
 const showCost = computed(() => props.canSeeCosts && Boolean(result.value?.cout))
 const notes = computed(() => {
 	if (!result.value) return []
 	const list: string[] = []
 	if (!result.value.refente) list.push('Refente non proposée : indiquez ses réglages dans la colonne de gauche, sous « Refente ».')
+	if (!result.value.recoupe) list.push('Recoupe au massicot non proposée : indiquez ses réglages dans la colonne de gauche, sous « Massicot ».')
 	if (props.canSeeCosts && !result.value.cout) list.push('Coût complet indisponible : il faut une étude dont la presse prévue a son coût par 1 000 feuilles, et un prix matière.')
-	if (props.canSeeCosts && result.value.cout) list.push(`Coût complet : matière et passages sur ${result.value.cout}, sans gâche, découpe ni débobinage.`)
+	if (props.canSeeCosts && result.value.cout) list.push(`Coût complet : matière et passages sur ${result.value.cout}, sans gâche, découpe, débobinage ni massicot.`)
 	return list
 })
 function choose(value: CritereFormat) {
@@ -87,13 +88,15 @@ function choose(value: CritereFormat) {
 	const winner = rows.value[0]?.row
 	if (winner) emit('pick', winner)
 }
+/** Ce qu'une feuille transformée consomme : de la bobine en laize, ou un morceau de palette. */
+const boughtLabel = (row: Proposition) => (row.origine === 'Bobine refendue' ? `${mm(row.laize_achat)} mm de bobine par feuille` : `${mm(row.laize_achat)} × ${mm(row.depl_achat)} de palette par feuille`)
 const shownHere = (row: Proposition) => Boolean(props.current && sameSheet(props.current, row))
 </script>
 
 <template>
 	<details class="atelier-cuts atelier-propose">
 		<summary>Proposer un format</summary>
-		<p class="m-0 mb-2 text-sm text-ink-gray-6">La meilleure feuille pour ce tracé parmi les formats du support : palettes, bobines entières ou refendues. Les chutes comptent toute la laize achetée. Rien n'est enregistré.</p>
+		<p class="m-0 mb-2 text-sm text-ink-gray-6">La meilleure feuille pour ce tracé parmi les formats du support : palettes entières ou recoupées, bobines entières ou refendues. Les chutes comptent tout ce qui est acheté. Rien n'est enregistré.</p>
 		<div class="atelier-sim-row">
 			<label class="form-field"><span class="field-label">Laize maxi</span><input v-model="laizeMax" class="field-input tabular-nums" type="number" min="0" placeholder="mm" :disabled="!enabled" /></label>
 			<label class="form-field"><span class="field-label">Dépl. maxi</span><input v-model="deplMax" class="field-input tabular-nums" type="number" min="0" placeholder="mm" :disabled="!enabled" /></label>
@@ -111,7 +114,7 @@ const shownHere = (row: Proposition) => Boolean(props.current && sameSheet(props
 				<b>{{ chosen.row.libelle }}</b>
 				<span class="tabular-nums"> · {{ chosen.row.nb_poses }} poses, {{ percentLabel(chosen.row.taux_chutes) }} de chutes<template v-if="reglages.quantite">, {{ sheetsLabel(sheetsFor(chosen.row, reglages.quantite)) }} feuilles</template></span>
 				<span v-if="comparison" class="block text-ink-gray-7">{{ comparison }}</span>
-				<span v-else-if="critere !== 'sans_refente' && chosen.row.origine !== 'Bobine refendue' && result?.refente" class="block text-ink-gray-7">Aucune refente ne fait mieux sous ce format maxi.</span>
+				<span v-else-if="critere !== 'sans_transformation' && !chosen.row.laize_achat && (result?.refente || result?.recoupe)" class="block text-ink-gray-7">Ni refente ni recoupe ne font mieux sous ce format maxi.</span>
 			</p>
 			<div class="atelier-table-wrap">
 				<table class="atelier-table">
@@ -134,7 +137,7 @@ const shownHere = (row: Proposition) => Boolean(props.current && sameSheet(props
 							</td>
 							<td>
 								<div class="tabular-nums text-ink-gray-9">{{ sheetLabel(item.row) }}</div>
-								<div class="text-sm text-ink-gray-6">{{ item.row.origine }}<template v-if="item.row.laize_achat">, {{ mm(item.row.laize_achat) }} mm de bobine par feuille</template><template v-if="item.row.fibre_feuille">, {{ fibreFeuilleLabel(item.row.fibre_feuille) }}</template></div>
+								<div class="text-sm text-ink-gray-6">{{ item.row.origine }}<template v-if="item.row.laize_achat">, {{ boughtLabel(item.row) }}</template><template v-if="item.row.fibre_feuille">, {{ fibreFeuilleLabel(item.row.fibre_feuille) }}</template></div>
 								<div v-if="presseAlert(item.row, presse)" class="atelier-row-alert">Dépasse {{ presse?.nom }}</div>
 							</td>
 							<td class="end">{{ gridLabel(item.row) }}<template v-if="item.row.rotation"> · {{ item.row.rotation }}°</template></td>

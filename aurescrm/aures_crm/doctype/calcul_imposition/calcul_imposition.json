@@ -33,6 +33,8 @@
   "refente_rive",
   "refente_bandes_max",
   "refente_laize_min",
+  "recoupe_morceaux_max",
+  "recoupe_rognage",
   "inclure_sur_mesure",
   "section_formats",
   "formats_etudies",
@@ -241,6 +243,21 @@
    "precision": "2"
   },
   {
+   "description": "Morceaux \u00e9gaux au plus pour une feuille de palette recoup\u00e9e au massicot. Vide ou moins de 2 : pas de recoupe propos\u00e9e.",
+   "fieldname": "recoupe_morceaux_max",
+   "fieldtype": "Int",
+   "label": "Morceaux au massicot au plus",
+   "non_negative": 1
+  },
+  {
+   "description": "Largeur rogn\u00e9e sur chaque bord de la feuille avant recoupe, en mm. Compt\u00e9e en chute.",
+   "fieldname": "recoupe_rognage",
+   "fieldtype": "Float",
+   "label": "Rognage au massicot (mm)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
    "default": "1",
    "fieldname": "inclure_sur_mesure",
    "fieldtype": "Check",
@@ -391,7 +408,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 0,
  "links": [],
- "modified": "2026-11-08 19:30:00.000000",
+ "modified": "2026-11-08 20:30:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Imposition",

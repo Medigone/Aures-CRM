@@ -137,26 +137,31 @@ def _fibre_precedente(doc):
 	return frappe.db.get_value(CALCUL, {"trace": doc.trace, "fibre_trace": ["in", ["Verticale", "Horizontale"]]}, "fibre_trace", order_by="creation desc")
 
 
-REFENTE = ("refente_rive", "refente_bandes_max", "refente_laize_min")
+REFENTE = ("refente_rive", "refente_bandes_max", "refente_laize_min", "recoupe_morceaux_max", "recoupe_rognage")
 
 
 def _refente_du_calcul(calcul):
-	"""Les réglages de refente du calcul ; à défaut, ceux du dernier calcul de l'utilisateur, qui les saisit une fois."""
+	"""Les réglages de refente et de massicot du calcul ; à défaut, ceux du dernier calcul de l'utilisateur, qui les
+	saisit une fois."""
 	if not frappe.get_meta(CALCUL).has_field("refente_bandes_max"):
 		return {key: 0.0 for key in REFENTE}
-	ligne = frappe.db.get_value(CALCUL, calcul, list(REFENTE), as_dict=True) if calcul else None
+	presents = [key for key in REFENTE if frappe.get_meta(CALCUL).has_field(key)]
+	ligne = frappe.db.get_value(CALCUL, calcul, presents, as_dict=True) if calcul else None
 	valeurs = {key: flt((ligne or {}).get(key)) for key in REFENTE}
 	if any(valeurs.values()):
 		return valeurs
-	dernier = frappe.db.get_value(CALCUL, {"owner": frappe.session.user, "refente_bandes_max": [">", 1]}, list(REFENTE), as_dict=True, order_by="modified desc")
-	return {key: flt((dernier or {}).get(key)) for key in REFENTE}
+	if not frappe.get_meta(CALCUL).has_field("recoupe_morceaux_max"):
+		return valeurs
+	dernier = frappe.get_all(CALCUL, filters={"owner": frappe.session.user}, or_filters={"refente_bandes_max": [">", 1], "recoupe_morceaux_max": [">", 1]}, fields=list(REFENTE), order_by="modified desc", limit=1)
+	return {key: flt(dernier[0].get(key)) for key in REFENTE} if dernier else valeurs
 
 
 def _garder_refente(calcul, values):
 	"""Les réglages de refente vont sur le calcul : ils ne changent pas le moteur, rien à recalculer."""
 	if not calcul or not frappe.get_meta(CALCUL).has_field("refente_bandes_max"):
 		return
-	valeurs = {key: max(flt(values.get(key)), 0) for key in REFENTE if values.get(key) is not None}
+	meta = frappe.get_meta(CALCUL)
+	valeurs = {key: max(flt(values.get(key)), 0) for key in REFENTE if values.get(key) is not None and meta.has_field(key)}
 	if valeurs:
 		frappe.db.set_value(CALCUL, calcul, valeurs, update_modified=False)
 
@@ -261,11 +266,11 @@ def _cout_presse(etude):
 
 
 @frappe.whitelist()
-def propose_formats(calcul, laize_max, depl_max, formats=None, quantite=None, lisiere=None, pince=None, marge_arriere=None, refente_rive=None, refente_bandes_max=None, refente_laize_min=None):
+def propose_formats(calcul, laize_max, depl_max, formats=None, quantite=None, lisiere=None, pince=None, marge_arriere=None, refente_rive=None, refente_bandes_max=None, refente_laize_min=None, recoupe_morceaux_max=None, recoupe_rognage=None):
 	"""Le format idéal pour chaque critère, parmi les formats standards du support et leur refente, sous le format maxi
 	de la presse. Lecture seule : l'utilisateur garde ce qu'il veut."""
 	_guard()
-	from aurescrm.imposition.service import Refente, proposer_formats
+	from aurescrm.imposition.service import Recoupe, Refente, proposer_formats
 
 	doc = frappe.get_doc(CALCUL, calcul)
 	doc.check_permission("read")
@@ -280,11 +285,13 @@ def propose_formats(calcul, laize_max, depl_max, formats=None, quantite=None, li
 	# Le coût complet demande les prix : hors équipe devis, il n'est ni calculé ni proposé.
 	presse = _cout_presse(doc.etude_faisabilite) if voit_couts() else None
 	refente = Refente(rive=flt(refente_rive), bandes_max=cint(refente_bandes_max), laize_min=flt(refente_laize_min))
-	lignes = proposer_formats(variantes, params, flt(doc.surface_utile_mm2), flt(laize_max), flt(depl_max), fibre_trace=doc.get("fibre_trace") or "Libre", stock=stock, refente=refente, presse=presse)
+	recoupe = Recoupe(rognage=flt(recoupe_rognage), morceaux_max=cint(recoupe_morceaux_max))
+	lignes = proposer_formats(variantes, params, flt(doc.surface_utile_mm2), flt(laize_max), flt(depl_max), fibre_trace=doc.get("fibre_trace") or "Libre", stock=stock, refente=refente, recoupe=recoupe, presse=presse)
 	return {
 		"lignes": masquer_lignes(lignes),
 		"cout": {"presse": presse["nom"]} if presse and any("cout_complet" in ligne for ligne in lignes) else None,
 		"refente": refente.bandes_max >= 2,
+		"recoupe": recoupe.morceaux_max >= 2,
 		"formats": len(stock),
 	}
 

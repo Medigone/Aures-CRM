@@ -3,7 +3,8 @@
 
 """Format idéal : la meilleure feuille qu'on peut obtenir des formats standards du support, selon le critère choisi.
 
-Aures achète des palettes et des bobines de formats standards, et refend lui-même ses bobines. Rien n'est inventé :
+Aures achète des palettes et des bobines de formats standards, refend lui-même ses bobines et recoupe parfois ses
+palettes au massicot. Rien n'est inventé :
 chaque feuille vient d'une palette, d'une bobine entière ou d'une bobine refendue, et les chutes comptent toute la
 laize achetée.
 """
@@ -13,7 +14,7 @@ import unittest
 
 from aurescrm.imposition.lecture_trace import lire_trace, silhouette
 from aurescrm.imposition.optimiseur import FIBRE_DEPL, FIBRE_LAIZE, TRACE_VERTICALE, Parametres, variantes
-from aurescrm.imposition.service import CRITERE_COUT, CRITERE_FEUILLES, CRITERE_MATIERE, CRITERE_SANS_REFENTE, SOURCE_BOBINE, SOURCE_PALETTE, SOURCE_REFENTE, Refente, proposer_formats
+from aurescrm.imposition.service import CRITERE_COUT, CRITERE_FEUILLES, CRITERE_MATIERE, CRITERE_SANS_TRANSFORMATION, SOURCE_BOBINE, SOURCE_PALETTE, SOURCE_RECOUPE, SOURCE_REFENTE, Recoupe, Refente, proposer_formats
 
 FIXTURES = os.path.join(os.path.dirname(__file__), "fixtures")
 MARGES = {"pince": 10.0, "marge_arriere": 15.0, "lisiere": 15.6, "laize_max": 0.0, "depl_max": 0.0}
@@ -34,6 +35,18 @@ class TestRefente(unittest.TestCase):
 	def test_sans_reglage_pas_de_refente(self):
 		self.assertEqual(Refente().bandes(1310), [])
 		self.assertEqual(Refente(bandes_max=1).bandes(1310), [])
+
+
+class TestRecoupe(unittest.TestCase):
+	def test_morceaux_egaux_apres_le_rognage(self):
+		self.assertEqual(Recoupe(rognage=5, morceaux_max=2).morceaux(1410, 1010), [(1, 2, 1400.0, 500.0), (2, 1, 700.0, 1000.0)])
+
+	def test_en_laize_et_en_deplacement(self):
+		self.assertIn((2, 2, 500.0, 350.0), Recoupe(morceaux_max=4).morceaux(1000, 700))
+		self.assertNotIn((2, 3), [(a, b) for a, b, _l, _d in Recoupe(morceaux_max=4).morceaux(1000, 700)])
+
+	def test_sans_reglage_pas_de_recoupe(self):
+		self.assertEqual(Recoupe().morceaux(1000, 700), [])
 
 
 class TestFormatIdeal(unittest.TestCase):
@@ -76,10 +89,24 @@ class TestFormatIdeal(unittest.TestCase):
 	def test_une_palette_entre_dans_les_deux_sens(self):
 		"""Une palette 700 × 1000 dépasse 720 en déplacement : elle entre en 1000 × 700, sa fibre tourne avec elle."""
 		lignes = self._proposer([{"laize": 700, "depl": 1000, "fibre": FIBRE_DEPL}], refente=Refente())
-		ligne = _gagnant(lignes, CRITERE_SANS_REFENTE)
+		ligne = _gagnant(lignes, CRITERE_SANS_TRANSFORMATION)
 		self.assertEqual((ligne["laize"], ligne["depl"]), (1000.0, 700.0))
 		self.assertEqual(ligne["fibre_feuille"], FIBRE_LAIZE)
 		self.assertIn("passée en 1000 × 700", ligne["libelle"])
+
+	def test_une_palette_trop_grande_se_recoupe(self):
+		"""Une palette 1400 × 1000 ne passe pas en presse 1020 × 720 ; coupée en deux, chaque morceau consomme 1000 × 700."""
+		stock = [{"laize": 1400, "depl": 1000, "fibre": FIBRE_DEPL}]
+		self.assertFalse(self._proposer(stock, refente=Refente()))
+		lignes = proposer_formats(self.vars_, self.params, self.poly.area, 1020, 720, stock=stock, recoupe=Recoupe(rognage=3, morceaux_max=4))
+		ligne = _gagnant(lignes, CRITERE_MATIERE)
+		self.assertEqual(ligne["origine"], SOURCE_RECOUPE)
+		self.assertLessEqual(ligne["laize"], 1020)
+		self.assertLessEqual(ligne["depl"], 720)
+		self.assertAlmostEqual(ligne["laize_achat"] * ligne["depl_achat"], 1400 * 1000 / 2, delta=1)
+		attendu = ligne["nb_feuilles"] * ligne["laize_achat"] * ligne["depl_achat"] * 300 / 1e12
+		self.assertAlmostEqual(ligne["tonnage"], round(attendu, 3), places=3)
+		self.assertFalse(any(CRITERE_SANS_TRANSFORMATION in ligne["criteres"] for ligne in lignes))
 
 	def test_le_maxi_de_la_presse(self):
 		lignes = self._proposer([{"laize": 1100, "depl": 800}, {"laize": 1100, "depl": 0, "bobine": 1}], refente=Refente())
@@ -87,7 +114,7 @@ class TestFormatIdeal(unittest.TestCase):
 
 	def test_sans_refente_seulement_palettes_et_bobines_entieres(self):
 		lignes = self._proposer([{"laize": 1310, "depl": 0, "bobine": 1}, {"laize": 520, "depl": 720}])
-		self.assertEqual(_gagnant(lignes, CRITERE_SANS_REFENTE)["origine"], SOURCE_PALETTE)
+		self.assertEqual(_gagnant(lignes, CRITERE_SANS_TRANSFORMATION)["origine"], SOURCE_PALETTE)
 
 	def test_a_egalite_sans_refente(self):
 		"""Une bande de 650 et une bobine de 650 font la même feuille : la bobine entière gagne, sans débobinage."""

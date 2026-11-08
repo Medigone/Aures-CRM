@@ -183,7 +183,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 			adopt(fresh)
 		})
 	}
-	const refenteOf = (settings: AtelierReglages) => ({ refente_rive: settings.refente_rive ?? 0, refente_bandes_max: settings.refente_bandes_max ?? 0, refente_laize_min: settings.refente_laize_min ?? 0 })
+	const refenteOf = (settings: AtelierReglages) => ({ refente_rive: settings.refente_rive ?? 0, refente_bandes_max: settings.refente_bandes_max ?? 0, refente_laize_min: settings.refente_laize_min ?? 0, recoupe_morceaux_max: settings.recoupe_morceaux_max ?? 0, recoupe_rognage: settings.recoupe_rognage ?? 0 })
 	// Paliers, prix, grammage et refente se gardent sur le calcul dès qu'ils changent, sans relancer le moteur.
 	let tiersTimer: ReturnType<typeof setTimeout> | null = null
 	watch(
@@ -304,7 +304,7 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 	}
 	function keep(row: Scenario) {
 		return guarded(async () => {
-			const { cle: _cle, poses: _poses, criteres: _criteres, fibre_feuille: _fibre, cout_complet: _cout, laize_achat: _achat, ...scenario } = row as Scenario & { criteres?: unknown; fibre_feuille?: unknown; cout_complet?: unknown }
+			const { cle: _cle, poses: _poses, criteres: _criteres, fibre_feuille: _fibre, cout_complet: _cout, laize_achat: _achat, depl_achat: _deplAchat, ...scenario } = row as Scenario & { criteres?: unknown; fibre_feuille?: unknown; cout_complet?: unknown }
 			await keepAtelierScenario(calcul.value!.name, scenario)
 			const name = calcul.value!.name
 			essais.value = essais.value.filter((other) => other !== row)

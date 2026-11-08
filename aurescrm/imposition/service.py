@@ -413,14 +413,17 @@ def simuler_formats(vars_, params: Parametres, laize, depl, surface_mm2, libelle
 # Critères du format idéal : c'est l'utilisateur qui choisit, le moteur donne le meilleur pour chacun.
 CRITERE_MATIERE = "matiere"
 CRITERE_FEUILLES = "feuilles"
-CRITERE_SANS_REFENTE = "sans_refente"
+CRITERE_SANS_TRANSFORMATION = "sans_transformation"
 CRITERE_COUT = "cout"
-CRITERES_FORMAT = (CRITERE_MATIERE, CRITERE_FEUILLES, CRITERE_SANS_REFENTE, CRITERE_COUT)
+CRITERES_FORMAT = (CRITERE_MATIERE, CRITERE_FEUILLES, CRITERE_SANS_TRANSFORMATION, CRITERE_COUT)
 
 # D'où vient la feuille : Aures achète des formats standards et refend lui-même ses bobines.
 SOURCE_PALETTE = "Palette"
 SOURCE_BOBINE = "Bobine"
 SOURCE_REFENTE = "Bobine refendue"
+SOURCE_RECOUPE = "Palette recoupée"
+# Telles qu'achetées : ni débobinage, ni massicot.
+SOURCES_SANS_TRANSFORMATION = (SOURCE_PALETTE, SOURCE_BOBINE)
 
 
 @dataclass
@@ -441,6 +444,29 @@ class Refente:
 			if bande <= 0 or bande < self.laize_min - 1e-6:
 				break
 			sortie.append((n, bande))
+		return sortie
+
+
+@dataclass
+class Recoupe:
+	"""Réglages du massicot, saisis dans l'atelier. `morceaux_max` < 2 : pas de recoupe."""
+
+	rognage: float = 0.0
+	morceaux_max: int = 0
+
+	def morceaux(self, laize, depl):
+		"""(en laize, en déplacement, laize d'un morceau, déplacement d'un morceau) : morceaux égaux, après le rognage
+		de chaque bord de la feuille."""
+		if self.morceaux_max < 2:
+			return []
+		sortie = []
+		for a in range(1, self.morceaux_max + 1):
+			for b in range(1, self.morceaux_max // a + 1):
+				if a * b < 2:
+					continue
+				morceau_l, morceau_d = (laize - 2 * self.rognage) / a, (depl - 2 * self.rognage) / b
+				if morceau_l > 0 and morceau_d > 0:
+					sortie.append((a, b, morceau_l, morceau_d))
 		return sortie
 
 
@@ -475,7 +501,22 @@ def cout_complet(d, params: Parametres, presse):
 _FIBRE_TOURNEE = {FIBRE_DEPL: FIBRE_LAIZE, FIBRE_LAIZE: FIBRE_DEPL}
 
 
-def _candidats(vars_, params: Parametres, laize_max, depl_max, fibre_trace, stock, refente: Refente):
+def _palette(sortie, vars_, params, laize_max, depl_max, fibre_trace, laize, depl, fibre, achat_l, achat_d, source, libelle):
+	"""Une feuille de palette, ou un morceau recoupé, dans un sens ou dans l'autre : sa fibre tourne avec elle.
+	`achat_l` × `achat_d` : la part de feuille achetée qu'elle consomme, rognage compris."""
+	sens = [(laize, depl, fibre, achat_l, achat_d, "")]
+	if abs(laize - depl) > 1e-6:
+		sens.append((depl, laize, _FIBRE_TOURNEE.get(fibre, ""), achat_d, achat_l, f", passé{'e' if source == SOURCE_PALETTE else ''} en {depl:.0f} × {laize:.0f}"))
+	for l_, d_, fibre_, achat_l_, achat_d_, mention in sens:
+		if l_ > laize_max + 1e-6 or d_ > depl_max + 1e-6:
+			continue
+		retenues = filtrer_fibre(vars_, rotations_format(fibre_trace, fibre_))
+		for d in evaluer_format_et_motif(None, params, l_, d_, vars_=retenues):
+			achat = d if source == SOURCE_PALETTE else replace(d, laize=achat_l_, depl=achat_d_)
+			sortie.append(_Candidat(d, achat, fibre_, source, libelle + mention))
+
+
+def _candidats(vars_, params: Parametres, laize_max, depl_max, fibre_trace, stock, refente: Refente, recoupe: Recoupe):
 	"""Toutes les feuilles qu'on peut obtenir des formats standards du support, sous le format maxi de la presse."""
 	sortie = []
 	for fmt in stock or ():
@@ -485,17 +526,11 @@ def _candidats(vars_, params: Parametres, laize_max, depl_max, fibre_trace, stoc
 		if not _est_bobine(fmt):
 			if laize <= 0 or depl <= 0:
 				continue
-			# Une feuille de palette entre en presse dans un sens ou dans l'autre ; sa fibre tourne avec elle.
-			sens = [(laize, depl, fibre, "")]
-			if abs(laize - depl) > 1e-6:
-				sens.append((depl, laize, _FIBRE_TOURNEE.get(fibre, ""), f", passée en {depl:g} × {laize:g}"))
-			for l_, d_, fibre_, mention in sens:
-				if l_ > laize_max + 1e-6 or d_ > depl_max + 1e-6:
-					continue
-				vars_sens = filtrer_fibre(vars_, rotations_format(fibre_trace, fibre_))
-				libelle = f"Palette {fmt.get('libelle') or f'{laize:g} × {depl:g}'}{mention}"
-				for d in evaluer_format_et_motif(None, params, l_, d_, vars_=vars_sens):
-					sortie.append(_Candidat(d, d, fibre_, SOURCE_PALETTE, libelle))
+			nom = f"Palette {fmt.get('libelle') or f'{laize:g} × {depl:g}'}"
+			_palette(sortie, vars_, params, laize_max, depl_max, fibre_trace, laize, depl, fibre, laize, depl, SOURCE_PALETTE, nom)
+			for a, b, morceau_l, morceau_d in recoupe.morceaux(laize, depl):
+				libelle = f"{nom} recoupée en {a * b} — morceau {morceau_l:.0f} × {morceau_d:.0f}"
+				_palette(sortie, vars_, params, laize_max, depl_max, fibre_trace, morceau_l, morceau_d, fibre, laize / a, depl / b, SOURCE_RECOUPE, libelle)
 			continue
 		if laize <= 0:
 			continue
@@ -514,30 +549,31 @@ def _candidats(vars_, params: Parametres, laize_max, depl_max, fibre_trace, stoc
 	return sortie
 
 
-def proposer_formats(vars_, params: Parametres, surface_mm2, laize_max, depl_max, fibre_trace=TRACE_LIBRE, stock=(), refente=None, presse=None):
-	"""Le format idéal selon chaque critère, parmi les palettes, les bobines entières et les bobines refendues.
+def proposer_formats(vars_, params: Parametres, surface_mm2, laize_max, depl_max, fibre_trace=TRACE_LIBRE, stock=(), refente=None, recoupe=None, presse=None):
+	"""Le format idéal selon chaque critère, parmi les palettes, entières ou recoupées au massicot, et les bobines,
+	entières ou refendues.
 
 	Rien n'est inventé : chaque feuille vient d'un format standard du support. Les chutes se comptent sur toute la
-	laize achetée, rives de refente comprises. Rend une ligne par feuille gagnante, avec les critères qu'elle gagne.
+	feuille ou toute la laize achetée, rognages et rives compris. Rend une ligne par feuille gagnante, avec les critères qu'elle gagne.
 	"""
 	vars_ = [v if isinstance(v, Variante) else Variante.depuis_dict(v) for v in (vars_ or [])]
-	candidats = _candidats(vars_, params, laize_max, depl_max, fibre_trace, stock, refente or Refente())
+	candidats = _candidats(vars_, params, laize_max, depl_max, fibre_trace, stock, refente or Refente(), recoupe or Recoupe())
 	if not candidats:
 		return []
 
 	q = params.quantite
-	# À égalité, la feuille sans refente passe devant : un passage en moins au débobinage.
-	sans_refente = lambda c: c.source != SOURCE_REFENTE  # noqa: E731
+	# À égalité, la feuille telle qu'achetée passe devant : un passage en moins au débobinage ou au massicot.
+	sans_transformation = lambda c: c.source in SOURCES_SANS_TRANSFORMATION  # noqa: E731
 	cles = {
-		CRITERE_MATIERE: lambda c: (_surface_pour(c.achat, q), -c.feuille.poses, not sans_refente(c)),
-		CRITERE_FEUILLES: lambda c: ((_feuilles(c.feuille, q), _surface_pour(c.achat, q)) if q else (-c.feuille.poses, c.achat.surface_par_pose), not sans_refente(c)),
-		CRITERE_SANS_REFENTE: lambda c: (_surface_pour(c.achat, q), -c.feuille.poses),
+		CRITERE_MATIERE: lambda c: (_surface_pour(c.achat, q), -c.feuille.poses, not sans_transformation(c)),
+		CRITERE_FEUILLES: lambda c: ((_feuilles(c.feuille, q), _surface_pour(c.achat, q)) if q else (-c.feuille.poses, c.achat.surface_par_pose), not sans_transformation(c)),
+		CRITERE_SANS_TRANSFORMATION: lambda c: (_surface_pour(c.achat, q), -c.feuille.poses),
 	}
 	if cout_complet(candidats[0].achat, params, presse) is not None:
-		cles[CRITERE_COUT] = lambda c: (cout_complet(c.achat, params, presse), -c.feuille.poses, not sans_refente(c))
+		cles[CRITERE_COUT] = lambda c: (cout_complet(c.achat, params, presse), -c.feuille.poses, not sans_transformation(c))
 	gagnants = []
 	for critere, cle in cles.items():
-		parmi = [c for c in candidats if sans_refente(c)] if critere == CRITERE_SANS_REFENTE else candidats
+		parmi = [c for c in candidats if sans_transformation(c)] if critere == CRITERE_SANS_TRANSFORMATION else candidats
 		if parmi:
 			gagnants.append((critere, min(parmi, key=cle)))
 
@@ -549,11 +585,12 @@ def proposer_formats(vars_, params: Parametres, surface_mm2, laize_max, depl_max
 			continue
 		ligne = ligne_scenario(avec_motif(c.libelle, c.feuille), c.feuille, params, surface_mm2, origine=c.source)
 		if c.achat is not c.feuille:
-			# Feuilles, tonnage, chutes et coûts sur la laize achetée : la rive de refente est une perte.
+			# Feuilles, tonnage, chutes et coûts sur ce qui est acheté : rive de refente et rognage sont des pertes.
 			achat = ligne_scenario("", c.achat, params, surface_mm2)
 			for cle in ("taux_chutes", "tonnage", "cout_matiere", "cout_par_1000"):
 				ligne[cle] = achat[cle]
 			ligne["laize_achat"] = round(c.achat.laize, 2)
+			ligne["depl_achat"] = round(c.achat.depl, 2)
 		ligne.update(fibre_feuille=c.fibre, criteres=[critere])
 		cout = cout_complet(c.achat, params, presse)
 		if cout is not None:
