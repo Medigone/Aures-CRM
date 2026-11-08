@@ -20,7 +20,7 @@ describe('postes du bureau', () => {
 	})
 
 	it('garde le menu actuel du back office', () => {
-		expect(ids('back_office')).toEqual(['accueil', 'tickets', 'demandes', 'etudes', 'devis', 'commandes', 'creances', 'clients', 'articles'])
+		expect(ids('back_office')).toEqual(['accueil', 'tickets', 'demandes', 'etudes', 'devis', 'atelier', 'commandes', 'creances', 'clients', 'articles', 'traces', 'impositions'])
 	})
 
 	it('retient le choix et ignore un poste qui n\'est plus à ce compte', () => {
@@ -43,7 +43,7 @@ describe('postes du bureau', () => {
 	})
 
 	it('retire un groupe resté vide', () => {
-		window.droits = noRead('Customer', 'Item')
+		window.droits = noRead('Customer', 'Item', 'Trace', 'Imposition')
 		expect(navFor('back_office').map((group) => group.title)).toEqual(['Mon travail'])
 	})
 })

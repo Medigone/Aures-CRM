@@ -2,9 +2,10 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import FileUploader from '@shared/components/FileUploader.vue'
 import FormDialog from '@shared/components/FormDialog.vue'
-import { duplicateTrace, getTraceReferences, saveTrace } from '@/lib/api'
+import { duplicateTrace, getTraceReferences, newTraceVersion, saveTrace } from '@/lib/api'
 import { batConfirmationText, dimensionsLabel, sameCotations, type BatConfirmation, type EtudePieces, type PiecesResult, type SaveTraceResult, type TraceReference } from '@/lib/etudePieces'
 import type { EtudeDetail } from '@/lib/etudes'
+import { versionConsequences, versionDoneText, versionLabel } from '@/lib/traces'
 import { usePieceUpload } from '@/lib/usePieceUpload'
 
 /** Créer, dupliquer ou mettre à jour le tracé. En Offset ses dimensions deviennent les cotations de l'article : si elles viennent d'un BAT, cela se confirme. */
@@ -17,6 +18,13 @@ const editing = computed(() => Boolean(trace.value.name))
 const articleCotations = computed(() => props.pieces.cotations?.valeur ?? '')
 
 const mode = ref<'new' | 'copy'>('new')
+// Sur un tracé existant : corriger la version en service, ou en mettre une nouvelle en service.
+const change = ref<'fix' | 'version'>('fix')
+const description = ref('')
+const versioning = computed(() => editing.value && change.value === 'version')
+// Des impositions s'appuient sur le dessin : le changer passe par une nouvelle version.
+const fileLocked = computed(() => editing.value && !versioning.value && (trace.value.impositions ?? 0) > 0)
+const consequences = computed(() => versionConsequences({ impositions: trace.value.impositions }))
 const dimensions = ref(trace.value.dimensions || articleCotations.value)
 const points = ref(String(trace.value.points_colle ?? 0))
 const references = ref<TraceReference[] | null>(null)
@@ -32,8 +40,9 @@ const copying = computed(() => mode.value === 'copy' && !editing.value)
 const reference = computed(() => references.value?.find((row) => row.name === source.value))
 const canCopyImpositions = computed(() => offset.value && (reference.value?.impositions ?? 0) > 0)
 const willChangeArticle = computed(() => offset.value && Boolean(dimensions.value.trim()) && !sameCotations(dimensions.value, articleCotations.value))
-const title = computed(() => (editing.value ? `Mettre à jour le tracé ${trace.value.name}` : 'Créer le tracé'))
-const button = computed(() => (editing.value ? 'Mettre à jour' : copying.value ? 'Dupliquer' : 'Créer le tracé'))
+const nextVersion = computed(() => (trace.value.ver ?? 1) + 1)
+const title = computed(() => (versioning.value ? `Nouvelle version du tracé : ${versionLabel(nextVersion.value)}` : editing.value ? `Mettre à jour le tracé ${trace.value.name}` : 'Créer le tracé'))
+const button = computed(() => (versioning.value ? 'Mettre en service' : editing.value ? 'Mettre à jour' : copying.value ? 'Dupliquer' : 'Créer le tracé'))
 
 onMounted(async () => {
 	if (editing.value) return
@@ -63,6 +72,10 @@ async function submit(confirmBat = 0) {
 		error.value = "Choisissez l'article de référence."
 		return
 	}
+	if (versioning.value && !description.value.trim()) {
+		error.value = 'Décrivez ce qui change dans cette version.'
+		return
+	}
 	if (!copying.value && !trace.value.fichier && !upload.hasFile()) {
 		error.value = 'Joignez le fichier du tracé.'
 		return
@@ -70,7 +83,11 @@ async function submit(confirmBat = 0) {
 	busy.value = true
 	try {
 		const common = { dimensions: dimensions.value, points_colle: Number(points.value) || 0, confirm_bat: confirmBat }
-		const result = copying.value ? await duplicateTrace(props.etude, { ...common, source: source.value, with_impositions: Number(withImpositions.value && canCopyImpositions.value) }) : await saveTrace(props.etude, common)
+		const result = copying.value
+			? await duplicateTrace(props.etude, { ...common, source: source.value, with_impositions: Number(withImpositions.value && canCopyImpositions.value) })
+			: versioning.value
+				? await newTraceVersion(props.etude, { ...common, desc_changements: description.value })
+				: await saveTrace(props.etude, common)
 		if (isConfirmation(result)) {
 			confirmation.value = result.confirmation
 			return
@@ -87,6 +104,7 @@ async function submit(confirmBat = 0) {
 	}
 }
 function savedMessage(result: PiecesResult) {
+	if (versioning.value) return versionDoneText({ ver: nextVersion.value, impositions: result.impositions ?? 0, formes: result.formes ?? 0 })
 	if (!copying.value) return editing.value ? 'Tracé mis à jour.' : 'Tracé créé et lié.'
 	if (result.fichier_copie === false) return "Tracé dupliqué et lié, mais son fichier n'a pas pu être copié : joignez-le."
 	return result.impositions ? `Tracé dupliqué et lié, avec ${result.impositions} imposition${result.impositions > 1 ? 's' : ''}.` : 'Tracé dupliqué et lié.'
@@ -115,6 +133,20 @@ function savedMessage(result: PiecesResult) {
 					</select>
 				</label>
 			</template>
+			<template v-if="editing && trace.can_version">
+				<div class="seg self-start" role="group" aria-label="Ce qui change">
+					<button type="button" :aria-pressed="change === 'fix'" @click="change = 'fix'">Corriger la {{ versionLabel(trace.ver ?? 1) }}</button>
+					<button type="button" :aria-pressed="change === 'version'" @click="change = 'version'">Nouvelle version</button>
+				</div>
+				<p class="m-0 text-ink-gray-6">{{ versioning ? `La ${versionLabel(nextVersion)} est en service dès sa création, et l'étude passe dessus. La ${versionLabel(trace.ver ?? 1)} reste consultable, marquée obsolète.` : 'Une correction garde le même tracé et ses impositions : pour une erreur de saisie, pas pour un dessin qui change.' }}</p>
+				<ul v-if="versioning && consequences.length" class="m-0 flex list-none flex-col gap-1 rounded-control tone-amber px-3 py-2 text-sm">
+					<li v-for="line in consequences" :key="line">{{ line }}</li>
+				</ul>
+				<label v-if="versioning" class="form-field">
+					<span class="field-label">Ce qui change</span>
+					<textarea v-model="description" class="field-input" rows="3" placeholder="Par exemple : patte de collage élargie à 15 mm, demande du client du 6 novembre"></textarea>
+				</label>
+			</template>
 			<p v-if="trace.ecart && editing && articleCotations" class="rounded-control tone-amber px-3 py-2 text-sm">Les cotations de l'article ({{ dimensionsLabel(articleCotations) }}) ont changé sur sa fiche et ne correspondent plus à ce tracé.</p>
 			<div class="form-grid">
 				<label class="form-field">
@@ -133,8 +165,10 @@ function savedMessage(result: PiecesResult) {
 			</label>
 			<div v-if="!copying" class="form-field">
 				<span class="field-label">Fichier du tracé</span>
-				<span v-if="trace.fichier" class="field-note">Actuel : <a class="ref-link" :href="trace.fichier.url" target="_blank" rel="noopener noreferrer">{{ trace.fichier.name }}</a>. Il reste si vous n'en déposez pas d'autre.</span>
-				<FileUploader ref="uploader" deferred :multiple="false" doctype="Trace" :docname="trace.name ?? undefined" @change="error = ''" @uploaded="upload.onUploaded" @settled="upload.onSettled" />
+				<span v-if="trace.fichier && versioning" class="field-note">Sans nouveau fichier, celui de la {{ versionLabel(trace.ver ?? 1) }} est recopié : {{ trace.fichier.name }}. L'atelier ne lit que le PDF.</span>
+				<span v-else-if="trace.fichier" class="field-note">Actuel : <a class="ref-link" :href="trace.fichier.url" target="_blank" rel="noopener noreferrer">{{ trace.fichier.name }}</a>. Il reste si vous n'en déposez pas d'autre.</span>
+				<span v-if="fileLocked" class="field-note">{{ trace.impositions }} imposition{{ (trace.impositions ?? 0) > 1 ? 's s\'appuient' : ' s\'appuie' }} sur ce fichier : pour changer le dessin, choisissez Nouvelle version.</span>
+				<FileUploader v-else ref="uploader" deferred :multiple="false" doctype="Trace" :docname="trace.name ?? undefined" @change="error = ''" @uploaded="upload.onUploaded" @settled="upload.onSettled" />
 			</div>
 			<p v-if="willChangeArticle" class="rounded-control tone-amber px-3 py-2 text-sm"><template v-if="articleCotations">Les cotations de l'article {{ etude.designation }} seront mises à jour : {{ dimensionsLabel(articleCotations) }} deviendra {{ dimensionsLabel(dimensions) }}.</template><template v-else>L'article {{ etude.designation }} n'a pas de cotations : il recevra {{ dimensionsLabel(dimensions) }}.</template></p>
 		</template>

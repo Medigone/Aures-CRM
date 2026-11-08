@@ -21,6 +21,11 @@ export interface TracePiece {
 	points_colle?: number
 	fichier?: PieceFile | null
 	ecart?: boolean
+	ver?: number
+	statut?: string
+	/** Impositions encore valables du tracé : une nouvelle version les rend obsolètes. */
+	impositions?: number
+	can_version?: boolean
 }
 export interface SheetDrawing {
 	laize: number
@@ -131,6 +136,7 @@ export interface PiecesResult {
 	piece?: string
 	fichier_copie?: boolean
 	impositions?: number
+	formes?: number
 }
 export type SaveTraceResult = PiecesResult | { confirmation: BatConfirmation }
 export interface TraceReference {

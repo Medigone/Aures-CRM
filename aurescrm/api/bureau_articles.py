@@ -19,6 +19,7 @@ from aurescrm.api.bureau import BELL_FIELD, TICKET, _parse, condition_filters, d
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, bind_file, ticket_rows
 from aurescrm.api.commercial_mobile import article_fiche, article_schema
 from aurescrm.aures_crm.doctype.etude_technique.etude_technique import create_new_bat_from_etude
+from aurescrm.aures_crm.doctype.trace.trace import current_trace
 from aurescrm.api.commercial_mutations import ARTICLE_ITEM_GROUP, ARTICLE_UOM, Refused, _article_default, _article_value
 from aurescrm.utils import create_sous_article
 
@@ -842,7 +843,7 @@ def _duplicate_sous_article(source_name, parent, source_parent):
 
 
 def _copy_trace(source, new):
-	row = frappe.db.get_value("Trace", {"article": source.name}, "name", order_by="creation desc")
+	row = current_trace(source.name)
 	if not row:
 		frappe.throw(_("L'article d'origine n'a pas de tracé à reprendre."))
 	trace = frappe.copy_doc(frappe.get_doc("Trace", row))

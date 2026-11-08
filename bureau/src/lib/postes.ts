@@ -64,7 +64,15 @@ const NAV: Record<string, PosteNavGroup[]> = {
 				{ id: 'creances', label: 'Créances', icon: LucideWallet, href: '/app/suivi-creance', doctype: 'Suivi Creance' },
 			],
 		},
-		REFERENTIEL,
+		// Le back office consulte tracés et impositions avec le référentiel ; l'équipe Étude les a dans son travail.
+		{
+			title: REFERENTIEL.title,
+			items: [
+				...REFERENTIEL.items,
+				{ id: 'traces', label: 'Tracés', icon: LucidePenTool, to: { name: 'Traces' }, doctype: 'Trace' },
+				{ id: 'impositions', label: 'Impositions', icon: LucideGrid, to: { name: 'Impositions' }, doctype: 'Imposition' },
+			],
+		},
 	],
 	etude: [
 		{
@@ -73,8 +81,8 @@ const NAV: Record<string, PosteNavGroup[]> = {
 				{ id: 'accueil', label: 'Accueil', icon: LucideLayoutDashboard, to: { name: 'Home' } },
 				{ id: 'etudes', label: 'Études', icon: LucideClipboardCheck, to: { name: 'Etudes' }, doctype: ETUDE_DOCTYPES },
 				{ id: 'atelier', label: 'Atelier', icon: LucideLayoutTemplate, to: { name: 'Atelier' }, doctype: 'Calcul Imposition' },
-				{ id: 'traces', label: 'Tracés', icon: LucidePenTool, href: '/app/trace', doctype: 'Trace' },
-				{ id: 'impositions', label: 'Impositions', icon: LucideGrid, href: '/app/imposition', doctype: 'Imposition' },
+				{ id: 'traces', label: 'Tracés', icon: LucidePenTool, to: { name: 'Traces' }, doctype: 'Trace' },
+				{ id: 'impositions', label: 'Impositions', icon: LucideGrid, to: { name: 'Impositions' }, doctype: 'Imposition' },
 				{ id: 'machines', label: 'Machines', icon: LucidePrinter, href: '/app/machine', doctype: 'Machine' },
 			],
 		},

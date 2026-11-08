@@ -22,10 +22,10 @@ import { formatQuantity } from '@/lib/etudes'
 import { useAtelier } from '@/lib/useAtelier'
 
 /** L'atelier d'imposition : depuis une étude pour créer son imposition, ou en test rapide, sans étude ni workflow. */
-const props = defineProps<{ etude?: string; calcul?: string }>()
+const props = defineProps<{ etude?: string; calcul?: string; trace?: string }>()
 const router = useRouter()
 
-const state = useAtelier(() => ({ etude: props.etude, calcul: props.calcul }), (name) => router.replace({ name: 'AtelierTest', params: { calcul: name } }))
+const state = useAtelier(() => ({ etude: props.etude, calcul: props.calcul, trace: props.trace }), (name) => router.replace({ name: 'AtelierTest', params: { calcul: name } }))
 const { data, calcul, reglages, formats, support, grammage, fichier, stale, shown, error, loadError, busy, simError, rows, sheets, current, retainedRow, running, failed, canWork, canCreate, canSimulate, readable } = state
 
 const dialog = ref<'depot' | 'export' | 'creer' | 'historique' | 'journal' | null>(null)

@@ -14,13 +14,80 @@
   "dimensions",
   "points_colle",
   "column_break_xrmo",
-  "fichier_trace"
+  "fichier_trace",
+  "section_version",
+  "statut",
+  "ver",
+  "date_activation",
+  "column_break_version",
+  "version_origine",
+  "remplacee_par",
+  "desc_changements"
  ],
  "fields": [
   {
    "fieldname": "fichier_trace",
    "fieldtype": "Attach",
    "label": "Fichier Trac\u00e9"
+  },
+  {
+   "fieldname": "section_version",
+   "fieldtype": "Section Break",
+   "label": "Version"
+  },
+  {
+   "fieldname": "statut",
+   "fieldtype": "Select",
+   "label": "Statut",
+   "options": "En service\nObsol\u00e8te",
+   "default": "En service",
+   "read_only": 1,
+   "no_copy": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "ver",
+   "fieldtype": "Int",
+   "label": "Version",
+   "default": "1",
+   "read_only": 1,
+   "no_copy": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "date_activation",
+   "fieldtype": "Date",
+   "label": "Mise en service le",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_version",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "version_origine",
+   "fieldtype": "Link",
+   "label": "Version d'origine",
+   "options": "Trace",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "remplacee_par",
+   "fieldtype": "Link",
+   "label": "Remplac\u00e9e par",
+   "options": "Trace",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "desc_changements",
+   "fieldtype": "Small Text",
+   "label": "Description des changements",
+   "read_only": 1,
+   "no_copy": 1
   },
   {
    "fieldname": "section_break_lwnz",
@@ -86,7 +153,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-24 11:42:45.576943",
+ "modified": "2026-11-08 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Trace",

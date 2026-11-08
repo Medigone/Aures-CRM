@@ -14,6 +14,7 @@
   "dimensions",
   "section_break_nwpe",
   "imposition",
+  "a_refaire",
   "column_break_vzyb",
   "nbr_poses",
   "infos_stock_tab",
@@ -47,6 +48,16 @@
    "fieldtype": "Link",
    "label": "Imposition",
    "options": "Imposition"
+  },
+  {
+   "fieldname": "a_refaire",
+   "fieldtype": "Check",
+   "label": "\u00c0 refaire",
+   "default": "0",
+   "read_only": 1,
+   "no_copy": 1,
+   "in_standard_filter": 1,
+   "description": "Le trac\u00e9 a chang\u00e9 de version depuis sa fabrication."
   },
   {
    "fieldname": "column_break_rxwr",
@@ -110,7 +121,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-24 11:42:54.512926",
+ "modified": "2026-11-08 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Forme Decoupe",

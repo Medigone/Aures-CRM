@@ -7,7 +7,7 @@ import { isPdf, isRunning, manualFormat, referenceFormat, rollOf, sameSheet, sor
 // Le temps réel prévient de la fin ; la relecture reste pour une coupure.
 const POLL_MS = 5000
 
-export function useAtelier(source: () => { etude?: string; calcul?: string }, onTestCreated: (calcul: string) => void) {
+export function useAtelier(source: () => { etude?: string; calcul?: string; trace?: string }, onTestCreated: (calcul: string) => void) {
 	const data = ref<AtelierData | null>(null)
 	const calcul = ref<AtelierCalcul | null>(null)
 	const reglages = ref<AtelierReglages | null>(null)
@@ -105,14 +105,14 @@ export function useAtelier(source: () => { etude?: string; calcul?: string }, on
 	async function load(calculName?: string) {
 		loadError.value = ''
 		stopPolling()
-		const { etude, calcul: name } = source()
+		const { etude, calcul: name, trace } = source()
 		try {
-			apply(await getAtelier(etude, calculName ?? name))
+			apply(await getAtelier(etude, calculName ?? name, calculName ?? name ? undefined : trace))
 		} catch (e) {
 			loadError.value = (e as Error).message
 		}
 	}
-	watch(() => [source().etude, source().calcul], ([etude, name], before) => {
+	watch(() => [source().etude, source().calcul, source().trace], ([etude, name], before) => {
 		// Le test vient de recevoir son adresse : il est déjà à l'écran.
 		if (before && !etude && name && calcul.value?.name === name) return
 		load()

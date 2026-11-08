@@ -5,15 +5,17 @@ import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideClipboardCheck from '~icons/lucide/clipboard-check'
 import LucideClipboardList from '~icons/lucide/clipboard-list'
 import LucideFileText from '~icons/lucide/file-text'
+import LucideGrid from '~icons/lucide/layout-grid'
 import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
 import LucidePackage from '~icons/lucide/package'
+import LucidePenTool from '~icons/lucide/pen-tool'
 import LucidePlus from '~icons/lucide/plus'
 import LucideSearch from '~icons/lucide/search'
 import LucideShoppingCart from '~icons/lucide/shopping-cart'
 import LucideTicket from '~icons/lucide/ticket'
 import LucideWallet from '~icons/lucide/wallet'
 import TicketStatus from './TicketStatus.vue'
-import { getArticles, getClients, getEtudes, getQueue, getDemandes } from '@/lib/api'
+import { getArticles, getClients, getEtudes, getImpositions, getQueue, getDemandes, getTraces } from '@/lib/api'
 import { ETUDE_DOCTYPES } from '@/lib/etudes'
 import { canRead } from '@/lib/droits'
 import { allowedCommands, type CreateKind, filterCommands, moveCursor, PALETTE_COMMANDS, type PaletteCommand, SECTION_TITLES } from '@/lib/palette'
@@ -45,6 +47,8 @@ const ICONS: Record<PaletteCommand['icon'], Component> = {
 	client: LucidePlus,
 	demandes: LucideClipboardList,
 	etudes: LucideClipboardCheck,
+	traces: LucidePenTool,
+	impositions: LucideGrid,
 	accueil: LucideLayoutDashboard,
 	tickets: LucideTicket,
 	clients: LucideBuilding2,
@@ -93,7 +97,7 @@ async function search() {
 	const request = ++lastRequest
 	const text = query.value
 	const paging = { pageLength: MAX_RESULTS }
-	const [tickets, demandes, etudes, clients, articles] = await Promise.allSettled([
+	const [tickets, demandes, etudes, traces, impositions, clients, articles] = await Promise.allSettled([
 		// Un document que le rôle ne lit pas n'est pas cherché : il n'affiche ni résultat ni erreur.
 		canRead('Ticket Commercial')
 			? Promise.all([getQueue('todo', [], text, paging), getQueue('closed', [], text, paging)]).then(([active, closed]) => {
@@ -103,6 +107,8 @@ async function search() {
 			: [],
 		canRead('Demande Faisabilite') ? getDemandes('all', [], text, paging).then((response) => response.demandes) : [],
 		canRead(ETUDE_DOCTYPES) ? getEtudes('all', [], text, paging).then((response) => response.etudes) : [],
+		canRead('Trace') ? getTraces('service', [], text, paging).then((response) => response.traces) : [],
+		canRead('Imposition') ? getImpositions('valables', [], text, paging).then((response) => response.impositions) : [],
 		canRead('Customer') ? getClients('all', [], text, paging).then((response) => response.clients) : [],
 		canRead('Item') ? getArticles('all', [], text, paging).then((response) => response.articles) : [],
 	])
@@ -111,6 +117,8 @@ async function search() {
 		settled('tickets', 'Tickets', tickets, (ticket) => ({ id: ticket.name, label: ticket.client, detail: ticket.name, status: ticket.status, icon: 'tickets', to: { name: 'Ticket', params: { id: ticket.name } } })),
 		settled('demandes', 'Demandes', demandes, (demande) => ({ id: demande.name, label: demande.client_label, detail: demande.name, status: demande.status, icon: 'demandes', to: { name: 'Demande', params: { id: demande.name } } })),
 		settled('etudes', 'Études', etudes, (etude) => ({ id: etude.name, label: etude.designation, detail: etude.name, status: etude.status, icon: 'etudes', to: { name: 'Etude', params: { id: etude.name } } })),
+		settled('traces', 'Tracés', traces, (trace) => ({ id: trace.name, label: trace.designation, detail: trace.name, icon: 'traces', to: { name: 'Trace', params: { id: trace.name } } })),
+		settled('impositions', 'Impositions', impositions, (imposition) => ({ id: imposition.name, label: imposition.designation, detail: imposition.name, icon: 'impositions', to: { name: 'Imposition', params: { id: imposition.name } } })),
 		settled('clients', 'Clients', clients, (client) => ({ id: client.name, label: client.client, detail: client.wilaya, icon: 'clients', to: { name: 'Client', params: { id: client.name } } })),
 		settled('articles', 'Articles', articles, (article) => ({ id: article.name, label: article.designation, detail: article.client_label, icon: 'articles', to: { name: 'Article', params: { id: article.name } } })),
 	]

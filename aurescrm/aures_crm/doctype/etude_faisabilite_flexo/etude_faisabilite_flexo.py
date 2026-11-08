@@ -1,6 +1,8 @@
 import frappe
 from frappe.model.document import Document
 
+from aurescrm.aures_crm.doctype.trace.trace import current_trace
+
 class EtudeFaisabiliteFlexo(Document):
     def before_insert(self):
         """Vérifie si des documents existent déjà pour l'article et les lie automatiquement lors de la création"""
@@ -28,7 +30,7 @@ class EtudeFaisabiliteFlexo(Document):
 
     def auto_link_existing_trace(self):
         """Recherche et lie automatiquement un tracé existant pour l'article"""
-        existing_trace = frappe.db.exists("Trace", {"article": self.article})
+        existing_trace = current_trace(self.article)
         if existing_trace:
             self.trace = existing_trace
 
@@ -96,7 +98,7 @@ def get_existing_trace_for_article(article):
     """
     if not article:
         return None
-    existing_trace = frappe.db.exists("Trace", {"article": article})
+    existing_trace = current_trace(article)
     return existing_trace
 
 @frappe.whitelist()

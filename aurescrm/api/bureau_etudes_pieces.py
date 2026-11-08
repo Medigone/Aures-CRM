@@ -20,7 +20,7 @@ from aurescrm import item_cotations
 from aurescrm.api.bureau import require_bureau
 from aurescrm.api.bureau_etudes import FLEXO, OFFSET, _etude_for_action, _resolve, condition_fields, get_etude
 from aurescrm.aures_crm.doctype.etude_faisabilite.etude_faisabilite import compute_nbr_feuilles, get_machines_for_etude_selection
-from aurescrm.aures_crm.doctype.trace.trace import duplicate_trace_from_reference
+from aurescrm.aures_crm.doctype.trace.trace import EN_SERVICE, create_version, current_filters, current_trace, duplicate_trace_from_reference, has_versions, live_impositions_filters
 from aurescrm.imposition.service import disposition_depuis_ligne, libelle_motif_detail, poses_scenario
 from aurescrm.passages import get_passages_pour_machine
 
@@ -98,15 +98,29 @@ def _trace_piece(doc, work):
 	name = doc.trace
 	linked = bool(name)
 	if not name:
-		name = frappe.db.get_value("Trace", {"article": doc.article}, "name")
-	row = _read("Trace", name, ["dimensions", "points_colle", "fichier_trace"])
+		name = current_trace(doc.article)
+	versions = has_versions()
+	row = _read("Trace", name, ["dimensions", "points_colle", "fichier_trace", *(["ver", "statut"] if versions else [])])
 	piece = {"can_edit": work and bool(frappe.has_permission("Trace", "write")), "can_create": work and bool(frappe.has_permission("Trace", "create")), "linked": linked}
 	if not row:
 		return {**piece, "name": None}
 	ecart = False
 	if linked and doc.doctype == OFFSET and row.get("dimensions") is not None:
 		ecart = item_cotations.trace_cotations_differ_from_item(name, doc.article)["show_warning"]
-	return {**piece, "name": name, "dimensions": row.get("dimensions"), "points_colle": cint(row.get("points_colle")), "fichier": _file(row.get("fichier_trace")), "ecart": ecart}
+	in_service = (row.get("statut") or EN_SERVICE) == EN_SERVICE
+	return {
+		**piece,
+		"name": name,
+		"dimensions": row.get("dimensions"),
+		"points_colle": cint(row.get("points_colle")),
+		"fichier": _file(row.get("fichier_trace")),
+		"ecart": ecart,
+		"ver": cint(row.get("ver")) or 1,
+		"statut": row.get("statut") or EN_SERVICE,
+		# Une nouvelle version rend les impositions obsolètes : on dit combien.
+		"impositions": frappe.db.count("Imposition", live_impositions_filters(name)) if frappe.has_permission("Imposition", "read") else 0,
+		"can_version": linked and versions and in_service and piece["can_create"],
+	}
 
 
 IMPOSITION_FIELDS = ["name", "format_imp", "nbr_poses", "taux_chutes", "defaut", "origine_calcul", "format_laize", "format_developpement", "fichier_imp", "laize_pal", "format_laize_palette", "n_col", "n_rang", "rotation", "pas_laize", "pas_depl", "calcul_imposition"]
@@ -322,12 +336,33 @@ def save_trace(name, modified, dimensions, points_colle=0, confirm_bat=0):
 	dimensions, confirmation = _trace_dimensions(doc, dimensions, confirm_bat)
 	if confirmation:
 		return {"confirmation": confirmation}
-	existing = doc.trace or frappe.db.get_value("Trace", {"article": doc.article}, "name")
+	existing = doc.trace or current_trace(doc.article)
 	trace = frappe.get_doc("Trace", existing) if existing else frappe.new_doc("Trace")
 	trace.update({"client": doc.client, "article": doc.article, "procede": doc.procede, "dimensions": dimensions, "points_colle": cint(points_colle)})
 	trace.save()
 	_link_trace(doc, trace)
 	return _result(doc, piece=trace.name)
+
+
+@frappe.whitelist(methods=["POST"])
+def new_trace_version(name, modified, desc_changements, dimensions, points_colle=0, confirm_bat=0):
+	"""Met en service une nouvelle version du tracé de l'étude : ses impositions sont à refaire, l'étude passe dessus."""
+	doc = _etude_for_work(name, modified)
+	if not doc.trace:
+		frappe.throw(_("Cette étude n'a pas encore de tracé : créez-le d'abord."))
+	if not frappe.has_permission("Trace", "create"):
+		frappe.throw(_("Votre rôle ne crée pas de tracé."), frappe.PermissionError)
+	dimensions, confirmation = _trace_dimensions(doc, dimensions, confirm_bat)
+	if confirmation:
+		return {"confirmation": confirmation}
+	source = frappe.get_doc("Trace", doc.trace)
+	source.check_permission("write")
+	result = create_version(source, desc_changements, dimensions, points_colle)
+	# create_version a déjà fait passer l'étude ouverte sur la nouvelle version.
+	doc = frappe.get_doc(doc.doctype, doc.name)
+	if doc.trace != result["name"]:
+		_link_trace(doc, frappe.get_doc("Trace", result["name"]))
+	return _result(doc, piece=result["name"], impositions=result["impositions"], formes=len(result["formes"]))
 
 
 @frappe.whitelist()
@@ -336,16 +371,16 @@ def get_trace_references(name):
 	require_bureau()
 	doc = frappe.get_doc(_resolve(name), name)
 	doc.check_permission("read")
-	rows = frappe.get_list("Trace", filters={"client": doc.client, "article": ["!=", doc.article]}, fields=["name", "article", "dimensions", "points_colle"], order_by="creation desc", limit_page_length=200)
+	rows = frappe.get_list("Trace", filters={**current_filters(None), "client": doc.client, "article": ["!=", doc.article]}, fields=["name", "article", "dimensions", "points_colle"], order_by="creation desc", limit_page_length=200)
 	labels = dict(frappe.get_all("Item", filters={"name": ["in", [row.article for row in rows]]}, fields=["name", "item_name"], as_list=True))
-	return [{**row, "designation": labels.get(row.article) or row.article, "impositions": frappe.db.count("Imposition", {"trace": row.name})} for row in rows]
+	return [{**row, "designation": labels.get(row.article) or row.article, "impositions": frappe.db.count("Imposition", live_impositions_filters(row.name))} for row in rows]
 
 
 @frappe.whitelist(methods=["POST"])
 def duplicate_trace(name, modified, source, dimensions=None, points_colle=None, with_impositions=0, confirm_bat=0):
 	"""Reprend le tracé d'un article voisin du même client, et si demandé ses impositions, dont l'idéale devient celle de l'étude."""
 	doc = _etude_for_work(name, modified)
-	if doc.trace or frappe.db.exists("Trace", {"article": doc.article}):
+	if doc.trace or current_trace(doc.article):
 		frappe.throw(_("Cet article possède déjà un tracé."))
 	reference = frappe.db.get_value("Trace", source, ["article", "dimensions"], as_dict=True)
 	if not reference:
@@ -508,6 +543,8 @@ def set_piece_file(name, modified, piece, file_url):
 	if not target or not frappe.db.exists("File", {"file_url": file_url, "attached_to_doctype": doctype, "attached_to_name": target}):
 		frappe.throw(_("Ce fichier n'est pas joint à cette pièce."))
 	row = frappe.get_doc(doctype, target)
+	if piece == "trace" and row.get(field) != file_url and frappe.db.count("Imposition", live_impositions_filters(target)):
+		frappe.throw(_("Des impositions s'appuient sur ce tracé : créez-en une nouvelle version pour changer son fichier."))
 	row.set(field, file_url)
 	row.save()
 	doc.set(study_field, file_url)

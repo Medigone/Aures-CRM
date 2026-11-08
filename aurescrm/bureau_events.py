@@ -27,6 +27,8 @@ WATCHED = {
 	"Item": None,
 	"BAT": None,
 	"Maquette": None,
+	"Trace": None,
+	"Imposition": None,
 }
 
 

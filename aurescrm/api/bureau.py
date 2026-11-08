@@ -187,6 +187,26 @@ FILTER_LISTS = {
 		"customer_name": "Raison sociale",
 		"_user_tags": "Tag",
 	},
+	"Trace": {
+		"statut": "Statut",
+		"procede": "Procédé",
+		"client": "Client",
+		"article": "Article",
+		"dimensions": "Dimensions",
+		"points_colle": "Points de colle",
+		"_user_tags": "Tag",
+	},
+	"Imposition": {
+		"article": "Article",
+		"client": "Client",
+		"trace": "Tracé",
+		"machine_impression": "Machine d'impression",
+		"origine_calcul": "Origine du calcul",
+		"defaut": "Idéale",
+		"obsolete": "Obsolète",
+		"taux_chutes": "Taux de chutes",
+		"_user_tags": "Tag",
+	},
 }
 # Conditions du Desk par nature de champ (`frappe/ui/filters/filter.js`), la condition par défaut en tête.
 TEXT_CONDITIONS = ["like", "not like", "=", "!=", "in", "not in", "is", ">", "<", ">=", "<="]

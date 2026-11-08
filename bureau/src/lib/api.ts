@@ -10,9 +10,11 @@ import type { BatAnalysis } from './batImport'
 import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, ArticleView, PantoneMatch } from './articles'
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
+import type { ImpositionDetail, ImpositionOptions, ImpositionsResponse, ImpositionView } from './impositions'
+import type { TraceDetail, TraceOptions, TracesResponse, TraceVersionResult, TraceView } from './traces'
 import type { GroupCandidate, GroupResult } from './groupage'
 import type { AtelierCalcul, AtelierData, AtelierFormat, GabaritApercu, PropositionResult, Scenario } from './atelier'
-import type { ClicheOptions, EtudePieces, ImpositionRow, MachineRow, PiecesResult, SaveTraceResult, TraceReference } from './etudePieces'
+import type { BatConfirmation, ClicheOptions, EtudePieces, ImpositionRow, MachineRow, PiecesResult, SaveTraceResult, TraceReference } from './etudePieces'
 import type { ArticleChoice, DemandeDetail, DemandeOptions, DemandesResponse, DemandeValues, DemandeView, TicketDemandeContext } from './demandes'
 import type { Condition } from './filters'
 import { conditionsForServer } from './filters'
@@ -348,6 +350,7 @@ export const getTraceReferences = (name: string) => call<TraceReference[]>(`${PI
 export const getClicheOptions = (name: string) => call<ClicheOptions>(`${PIECES}.get_cliche_options`, { name })
 export const saveTrace = (etude: EtudeVersion, values: { dimensions: string; points_colle: number; confirm_bat: number }) => call<SaveTraceResult>(`${PIECES}.save_trace`, { ...versionOf(etude), ...values }, true)
 export const duplicateTrace = (etude: EtudeVersion, values: { source: string; dimensions: string; points_colle: number; with_impositions: number; confirm_bat: number }) => call<SaveTraceResult>(`${PIECES}.duplicate_trace`, { ...versionOf(etude), ...values }, true)
+export const newTraceVersion = (etude: EtudeVersion, values: { desc_changements: string; dimensions: string; points_colle: number; confirm_bat: number }) => call<SaveTraceResult>(`${PIECES}.new_trace_version`, { ...versionOf(etude), ...values }, true)
 export const chooseImposition = (etude: EtudeVersion, imposition: string) => call<PiecesResult>(`${PIECES}.choose_imposition`, { ...versionOf(etude), imposition }, true)
 export const saveImposition = (etude: EtudeVersion, values: { laize_pal: string; format_laize_palette: string; format_imp: string; nbr_poses: string; taux_chutes: string; imposition?: string }) => call<PiecesResult>(`${PIECES}.save_imposition`, { ...versionOf(etude), ...values }, true)
 export const setEtudeMachine = (etude: EtudeVersion, machine: string) => call<PiecesResult>(`${PIECES}.set_etude_machine`, { ...versionOf(etude), machine }, true)
@@ -360,7 +363,7 @@ export const createCliche = (etude: EtudeVersion, values: { laize: string; nbr_c
 /** Atelier d'imposition : les règles du bureau d'un côté, le moteur tel quel de l'autre. */
 const ATELIER = 'aurescrm.api.bureau_atelier'
 const MOTEUR = 'aurescrm.imposition.api'
-export const getAtelier = (etude?: string, calcul?: string) => call<AtelierData>(`${ATELIER}.get_atelier`, { etude, calcul })
+export const getAtelier = (etude?: string, calcul?: string, trace?: string) => call<AtelierData>(`${ATELIER}.get_atelier`, { etude, calcul, trace })
 export const getAtelierCalcul = (calcul: string) => call<AtelierCalcul>(`${ATELIER}.get_atelier_calcul`, { calcul })
 export const getSupportFormats = (support: string) => call<{ grammage: number; pont_mini: number; prix_tonne?: number; formats: AtelierFormat[] }>(`${ATELIER}.get_support_formats`, { support })
 export const previewGabarit = (values: { modele: string; longueur: number; largeur: number; hauteur: number; support?: string | null }) => call<GabaritApercu>(`${ATELIER}.preview_gabarit`, values)
@@ -422,3 +425,44 @@ export function demandeActivity(name: string): ActivityApi {
 		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
 	}
 }
+
+type ListPaging = { start?: number; pageLength?: number; sort?: string; direction?: string }
+const listParams = (view: string, conditions: Condition[], search: string, paging: ListPaging) => ({
+	view,
+	conditions: conditionsForServer(conditions),
+	search: search.trim() || undefined,
+	start: paging.start,
+	page_length: paging.pageLength,
+	sort: paging.sort,
+	direction: paging.direction,
+})
+function recordActivity(module: string, noun: string, name: string): ActivityApi {
+	return {
+		load: () => call<ActivityFeedData>(`${module}.get_${noun}_activity`, { name }),
+		add: (text, mentions) => call<ActivityFeedData>(`${module}.add_${noun}_comment`, { name, text, mentions }, true),
+		update: (comment, text, mentions) => call<ActivityFeedData>(`${module}.update_${noun}_comment`, { name, comment, text, mentions }, true),
+		remove: (comment) => call<ActivityFeedData>(`${module}.delete_${noun}_comment`, { name, comment }, true),
+		mentionCandidates: () => call<Mention[]>(`${BUREAU}.get_mention_candidates`),
+	}
+}
+
+/** Tracés : liste, fiche et versions. */
+const TRACES = 'aurescrm.api.bureau_traces'
+type TraceVersionRef = Pick<TraceDetail, 'name' | 'modified'>
+export const getTraces = (view: TraceView, conditions: Condition[], search: string, paging: ListPaging = {}) => call<TracesResponse>(`${TRACES}.get_traces`, listParams(view, conditions, search, paging))
+export const getTraceOptions = () => call<TraceOptions>(`${TRACES}.get_trace_options`)
+export const getTrace = (name: string) => call<TraceDetail>(`${TRACES}.get_trace`, { name })
+export const createTraceVersion = (trace: TraceVersionRef, values: { desc_changements: string; dimensions: string; points_colle: number; confirm_bat: number }) =>
+	call<TraceVersionResult | { confirmation: BatConfirmation }>(`${TRACES}.create_trace_version`, { name: trace.name, modified: trace.modified, ...values }, true)
+export const setTraceFile = (trace: TraceVersionRef, file_url: string) => call<TraceDetail>(`${TRACES}.set_trace_file`, { name: trace.name, modified: trace.modified, file_url }, true)
+export const traceActivity = (name: string) => recordActivity(TRACES, 'trace', name)
+
+/** Impositions : liste et fiche, en lecture ; le choix de l'idéale. */
+const IMPOSITIONS = 'aurescrm.api.bureau_impositions'
+type ImpositionRef = Pick<ImpositionDetail, 'name' | 'modified'>
+export const getImpositions = (view: ImpositionView, conditions: Condition[], search: string, paging: ListPaging = {}) => call<ImpositionsResponse>(`${IMPOSITIONS}.get_impositions`, listParams(view, conditions, search, paging))
+export const getImpositionOptions = () => call<ImpositionOptions>(`${IMPOSITIONS}.get_imposition_options`)
+export const getImposition = (name: string) => call<ImpositionDetail>(`${IMPOSITIONS}.get_imposition`, { name })
+export const setImpositionIdeale = (imposition: ImpositionRef) => call<ImpositionDetail>(`${IMPOSITIONS}.set_imposition_ideale`, { name: imposition.name, modified: imposition.modified }, true)
+export const setImpositionAuto = (imposition: ImpositionRef) => call<ImpositionDetail>(`${IMPOSITIONS}.set_imposition_auto`, { name: imposition.name, modified: imposition.modified }, true)
+export const impositionActivity = (name: string) => recordActivity(IMPOSITIONS, 'imposition', name)

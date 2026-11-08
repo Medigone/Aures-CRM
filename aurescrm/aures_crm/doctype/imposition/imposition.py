@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 from aurescrm.aures_crm.doctype.etude_faisabilite.etude_faisabilite import compute_nbr_feuilles
@@ -40,39 +41,35 @@ class Imposition(Document):
 		
 		# Trouver toutes les impositions avec la même combinaison Client/Article/Tracé
 		# et qui ont un taux de chutes défini
-		impositions = frappe.get_all(
-			"Imposition",
-			filters={
-				"client": self.client,
-				"article": self.article,
-				"trace": self.trace,
-				"taux_chutes": ["is", "set"],
-				# Une feuille groupée dépend des autres articles : elle ne devient jamais l'idéale.
-				**({"groupage": ["is", "not set"]} if self.meta.has_field("groupage") else {}),
-			},
-			fields=["name", "taux_chutes", "creation"]
-		)
-		
-		if not impositions:
-			return
-		
-		# Trouver le taux de chutes minimum
-		taux_min = min(imp.taux_chutes for imp in impositions)
-		
-		# Filtrer pour ne garder que celles avec le taux minimum
-		impositions_avec_taux_min = [imp for imp in impositions if imp.taux_chutes == taux_min]
-		
-		# Parmi celles avec le taux min, trier par date de création (décroissant = plus récent d'abord)
-		# La date creation est au format: "YYYY-MM-DD HH:MM:SS.ffffff"
-		# On peut trier directement par string car le format ISO est triable
-		impositions_sorted = sorted(
-			impositions_avec_taux_min,
-			key=lambda x: x.creation,
-			reverse=True  # True = ordre décroissant (plus récent d'abord)
-		)
-		
-		# L'imposition idéale est la première (taux min + plus récente)
-		imposition_ideale_name = impositions_sorted[0].name
+		combination = {"client": self.client, "article": self.article, "trace": self.trace}
+		# Une imposition obsolète vient d'une version remplacée du tracé : elle n'est jamais l'idéale.
+		live = {"obsolete": 0} if self.meta.has_field("obsolete") else {}
+		# Un choix fait à la main passe avant le calcul.
+		manual = frappe.get_all("Imposition", filters={**combination, **live, "ideale_manuelle": 1}, pluck="name", order_by="modified desc", limit=1) if self.meta.has_field("ideale_manuelle") else []
+		if manual:
+			imposition_ideale_name = manual[0]
+		else:
+			impositions = frappe.get_all(
+				"Imposition",
+				filters={
+					**combination,
+					**live,
+					"taux_chutes": ["is", "set"],
+					# Une feuille groupée dépend des autres articles : elle ne devient jamais l'idéale.
+					**({"groupage": ["is", "not set"]} if self.meta.has_field("groupage") else {}),
+				},
+				fields=["name", "taux_chutes", "creation"]
+			)
+			if not impositions:
+				return
+			# Le moins de chutes, puis la plus récente à égalité.
+			taux_min = min(imp.taux_chutes for imp in impositions)
+			impositions_sorted = sorted(
+				[imp for imp in impositions if imp.taux_chutes == taux_min],
+				key=lambda x: x.creation,
+				reverse=True,
+			)
+			imposition_ideale_name = impositions_sorted[0].name
 		
 		# Récupérer toutes les impositions de cette combinaison (même celles sans taux)
 		all_impositions = frappe.get_all(
@@ -305,3 +302,27 @@ def recalculate_all_impositions_ideales():
 				doc.recalculate_imposition_ideale()
 	
 	frappe.db.commit()
+
+
+def _combination(doc):
+	return {"client": doc.client, "article": doc.article, "trace": doc.trace}
+
+
+def choose_ideale(doc):
+	"""Fixe l'idéale à la main : le calcul automatique ne la remplace plus, jusqu'au retour au calcul."""
+	if doc.get("obsolete"):
+		frappe.throw(_("Cette imposition vient d'une version remplacée du tracé : refaites-la à l'atelier."))
+	if doc.get("groupage"):
+		frappe.throw(_("Une feuille groupée dépend des autres articles : elle ne peut pas être l'idéale."))
+	for name in frappe.get_all("Imposition", filters={**_combination(doc), "ideale_manuelle": 1, "name": ["!=", doc.name]}, pluck="name"):
+		frappe.db.set_value("Imposition", name, "ideale_manuelle", 0)
+	doc.db_set("ideale_manuelle", 1)
+	doc.recalculate_imposition_ideale()
+
+
+def automatic_ideale(doc):
+	"""Rend la main au calcul : le moins de chutes, puis la plus récente."""
+	for name in frappe.get_all("Imposition", filters={**_combination(doc), "ideale_manuelle": 1}, pluck="name"):
+		frappe.db.set_value("Imposition", name, "ideale_manuelle", 0)
+	doc.reload()
+	doc.recalculate_imposition_ideale()

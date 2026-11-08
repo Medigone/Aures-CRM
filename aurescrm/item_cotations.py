@@ -9,6 +9,8 @@ import frappe
 from frappe import _
 from frappe.utils import cint, get_fullname, now_datetime
 
+from aurescrm.aures_crm.doctype.trace.trace import current_trace
+
 # Segments : entiers ou décimales (56, 56.3, 56,3). Séparateur entre cotes : x (après normalisation du ×).
 _NUM = r"\d+(?:[.,]\d+)?"
 _COTATIONS_ONE = re.compile(rf"^({_NUM})$")
@@ -123,7 +125,7 @@ def _has_origin_fields():
 
 def _note_change_from_trace(item, previous):
 	"""Garde la trace du changement : le fil de l'article, et qui a remplacé des cotations venues d'un BAT."""
-	trace = frappe.db.get_value("Trace", {"article": item.name}, "name")
+	trace = current_trace(item.name)
 	# Dans le fil, une ligne d'information nomme elle-même son auteur.
 	who = get_fullname(frappe.session.user)
 	if previous:
@@ -193,7 +195,7 @@ def cotations_origin(item):
 	}
 	if current == _normalized_for_trace_item_compare(item.get("custom_cotations_bat")):
 		return origin
-	trace = frappe.db.get_value("Trace", {"article": item.get("name")}, ["name", "dimensions"], as_dict=True)
+	trace = current_trace(item.get("name"), ["name", "dimensions"], as_dict=True)
 	by_trace = item.get("custom_cotations_trace_par") and trace and _normalized_for_trace_item_compare(trace.dimensions) == current
 	if not by_trace:
 		origin["etat"] = "fiche"

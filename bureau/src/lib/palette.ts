@@ -5,11 +5,13 @@ import { CLIENT_VIEWS } from './clients'
 import { canCreate, canRead } from './droits'
 import { DEMANDE_VIEWS } from './demandes'
 import { ETUDE_DOCTYPES, ETUDE_VIEWS } from './etudes'
+import { DEFAULT_IMPOSITION_VIEW, IMPOSITION_VIEWS } from './impositions'
+import { DEFAULT_TRACE_VIEW, TRACE_VIEWS } from './traces'
 import { TICKET_VIEWS } from './useQueue'
 
 export type CreateKind = 'ticket' | 'article' | 'client'
 export type PaletteSection = 'create' | 'lists' | 'elsewhere'
-export type ListKind = 'accueil' | 'tickets' | 'clients' | 'articles' | 'demandes' | 'etudes'
+export type ListKind = 'accueil' | 'tickets' | 'clients' | 'articles' | 'demandes' | 'etudes' | 'traces' | 'impositions'
 
 export type PaletteAction = { type: 'create'; kind: CreateKind } | { type: 'route'; to: RouteLocationRaw } | { type: 'href'; href: string }
 
@@ -62,6 +64,8 @@ export const PALETTE_COMMANDS: PaletteCommand[] = [
 	...viewCommands('demandes', 'Demandes', 'Demandes', DEMANDE_VIEWS, 'all', 'demande faisabilité liste', 'Demande Faisabilite'),
 	...viewCommands('etudes', 'Études', 'Etudes', ETUDE_VIEWS, 'all', 'étude faisabilité liste', ETUDE_DOCTYPES),
 	{ id: 'list-atelier', section: 'lists', label: "Atelier d'imposition", keywords: 'test rapide faisabilité calcul poses chutes', doctype: 'Calcul Imposition', icon: 'etudes', action: { type: 'route', to: { name: 'Atelier' } } },
+	...viewCommands('traces', 'Tracés', 'Traces', TRACE_VIEWS, DEFAULT_TRACE_VIEW, 'tracé trace découpe dieline version liste', 'Trace'),
+	...viewCommands('impositions', 'Impositions', 'Impositions', IMPOSITION_VIEWS, DEFAULT_IMPOSITION_VIEW, 'imposition poses chutes feuille idéale liste', 'Imposition'),
 	...viewCommands('clients', 'Clients', 'Clients', CLIENT_VIEWS, 'all', 'client liste', 'Customer'),
 	...viewCommands('articles', 'Articles', 'Articles', ARTICLE_VIEWS, 'all', 'article produit liste', 'Item'),
 	{ id: 'desk-commandes', section: 'elsewhere', label: 'Commandes', keywords: 'bon commande desk', doctype: 'Sales Order', icon: 'commandes', action: { type: 'href', href: '/app/sales-order' } },

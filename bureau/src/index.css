@@ -318,6 +318,44 @@
 	.demande-detail .bureau-side {
 		flex-basis: 248px;
 	}
+	/* Tracé : l'aperçu de son image, et ses versions de la plus récente à la plus ancienne. */
+	.trace-preview {
+		display: block;
+		max-width: 100%;
+		max-height: 420px;
+		margin: 0 auto;
+		object-fit: contain;
+		border: 1px solid var(--outline-gray-1);
+		@apply rounded-control bg-surface-gray-1;
+	}
+	.trace-versions {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.trace-versions > li {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+		padding-left: 0.625rem;
+		border-left: 2px solid var(--outline-gray-1);
+	}
+	.trace-versions > li[data-current='true'] {
+		border-left-color: var(--ink-gray-9, currentColor);
+	}
+	/* Feuille de l'imposition : le dessin du moteur, à sa taille. */
+	.imposition-sheet {
+		display: flex;
+		justify-content: center;
+		@apply rounded-control bg-surface-gray-1 p-3;
+	}
+	.imposition-sheet > * {
+		width: 100%;
+		max-width: 640px;
+	}
 	/* Aperçu de la demande : un seul bloc, trois colonnes de même hauteur. La dernière porte des numéros et des statuts longs. */
 	.demande-resume {
 		container-type: inline-size;

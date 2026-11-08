@@ -6,7 +6,9 @@ import DemandesPage from './pages/DemandesPage.vue'
 import AtelierPage from './pages/AtelierPage.vue'
 import EtudesPage from './pages/EtudesPage.vue'
 import HomePage from './pages/HomePage.vue'
+import ImpositionsPage from './pages/ImpositionsPage.vue'
 import LoginPage from './pages/LoginPage.vue'
+import TracesPage from './pages/TracesPage.vue'
 
 export const routes = [
 	// Seule page servie sans session : hors de la coquille.
@@ -27,6 +29,10 @@ export const routes = [
 	{ path: '/etudes/:id/atelier', name: 'EtudeAtelier', component: AtelierPage, props: true, meta: { doctype: 'Calcul Imposition' } },
 	{ path: '/atelier', name: 'Atelier', component: AtelierPage, meta: { doctype: 'Calcul Imposition' } },
 	{ path: '/atelier/:calcul', name: 'AtelierTest', component: AtelierPage, props: true, meta: { doctype: 'Calcul Imposition' } },
+	{ path: '/traces', name: 'Traces', component: TracesPage, meta: { doctype: 'Trace' } },
+	{ path: '/traces/:id', name: 'Trace', component: TracesPage, props: true, meta: { doctype: 'Trace' } },
+	{ path: '/impositions', name: 'Impositions', component: ImpositionsPage, meta: { doctype: 'Imposition' } },
+	{ path: '/impositions/:id', name: 'Imposition', component: ImpositionsPage, props: true, meta: { doctype: 'Imposition' } },
 	{ path: '/clients', name: 'Clients', component: ClientsPage, meta: { doctype: 'Customer' } },
 	{ path: '/clients/:id', name: 'Client', component: ClientsPage, props: true, meta: { doctype: 'Customer' } },
 	{ path: '/articles', name: 'Articles', component: ArticlesPage, meta: { doctype: 'Item' } },

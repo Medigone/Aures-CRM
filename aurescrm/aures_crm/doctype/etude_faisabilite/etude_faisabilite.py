@@ -7,6 +7,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt, get_url
 
+from aurescrm.aures_crm.doctype.trace.trace import current_trace
+
 
 def compute_nbr_feuilles(quantite, nbr_poses):
 	"""Nombre de feuilles nécessaires : quantité / poses par feuille (arrondi supérieur, 2 décimales)."""
@@ -62,7 +64,7 @@ class EtudeFaisabilite(Document):
 		self.nbr_feuilles = compute_nbr_feuilles(self.quantite, nbr_poses)
 
 	def auto_link_existing_trace(self):
-		existing_trace = frappe.db.exists("Trace", {"article": self.article})
+		existing_trace = current_trace(self.article)
 		if existing_trace:
 			self.trace = existing_trace
 
@@ -120,7 +122,7 @@ def refresh_attached_files(docname):
 def get_existing_trace_for_article(article):
 	if not article:
 		return None
-	existing_trace = frappe.db.exists("Trace", {"article": article})
+	existing_trace = current_trace(article)
 	return existing_trace
 
 

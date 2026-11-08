@@ -7,10 +7,41 @@ import re
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint
+from frappe.utils import cint, cstr, today
+
+EN_SERVICE = "En service"
+OBSOLETE = "Obsolète"
+# Études encore ouvertes : elles suivent la nouvelle version du tracé.
+ETUDES_OUVERTES = ("Nouveau", "En étude")
+
+
+def has_versions():
+	"""Les champs de version n'existent qu'une fois la migration passée."""
+	return frappe.get_meta("Trace").has_field("statut")
+
+
+def current_filters(article):
+	"""Filtre du tracé en service d'un article : une seule version l'est à la fois."""
+	filters = {"article": article}
+	if has_versions():
+		filters["statut"] = EN_SERVICE
+	return filters
+
+
+def current_trace(article, fields="name", as_dict=False):
+	if not article:
+		return None
+	return frappe.db.get_value("Trace", current_filters(article), fields, as_dict=as_dict, order_by="creation desc")
 
 
 class Trace(Document):
+	def before_insert(self):
+		if has_versions():
+			self.ver = cint(self.ver) or 1
+			self.statut = self.statut or EN_SERVICE
+			if self.statut == EN_SERVICE and not self.date_activation:
+				self.date_activation = today()
+
 	def validate(self):
 		self.validate_unique_article()
 	
@@ -19,17 +50,15 @@ class Trace(Document):
 		self.update_etude_faisabilite_points_colle()
 		
 	def validate_unique_article(self):
-		if self.article:
-			existing_trace = frappe.db.exists("Trace", {
-				"article": self.article,
-				"name": ["!=", self.name]
-			})
-			
-			if existing_trace:
-				frappe.throw(
-					msg=f"Cet article possède déjà un trace.",
-					title="Article déjà tracé",
-				)
+		"""Un article n'a qu'un tracé en service ; ses anciennes versions restent, obsolètes."""
+		if not self.article or (has_versions() and self.statut == OBSOLETE):
+			return
+		existing_trace = frappe.db.exists("Trace", {**current_filters(self.article), "name": ["!=", self.name]})
+		if existing_trace:
+			frappe.throw(
+				msg=_("Cet article a déjà un tracé en service : {0}. Créez-en une nouvelle version.").format(existing_trace),
+				title=_("Article déjà tracé"),
+			)
 	
 	def update_etude_faisabilite_points_colle(self):
 		"""Met à jour les points de colle dans toutes les Etudes Faisabilite liées à ce Trace"""
@@ -136,12 +165,7 @@ def get_trace_for_article(article):
 	if not article:
 		return None
 
-	row = frappe.db.get_value(
-		"Trace",
-		{"article": article},
-		["name", "dimensions", "points_colle", "fichier_trace"],
-		as_dict=True,
-	)
+	row = current_trace(article, ["name", "dimensions", "points_colle", "fichier_trace"], as_dict=True)
 	if not row:
 		return None
 
@@ -150,7 +174,7 @@ def get_trace_for_article(article):
 		fichier_trace_name = os.path.basename(row["fichier_trace"].rstrip("/"))
 
 	row["fichier_trace_name"] = fichier_trace_name
-	row["impositions_count"] = frappe.db.count("Imposition", {"trace": row["name"]})
+	row["impositions_count"] = frappe.db.count("Imposition", live_impositions_filters(row["name"]))
 	return row
 
 
@@ -175,7 +199,7 @@ def _duplicate_impositions_for_trace(src_trace_name, new_trace_name, client, art
 	"""
 	src_impositions = frappe.get_all(
 		"Imposition",
-		filters={"trace": src_trace_name},
+		filters=live_impositions_filters(src_trace_name),
 		fields=["name"],
 		order_by="creation asc",
 	)
@@ -244,7 +268,7 @@ def duplicate_trace_from_reference(
 	if article_reference == article:
 		frappe.throw(_("L'article de référence doit être différent de l'article courant."))
 
-	if frappe.db.exists("Trace", {"article": article}):
+	if frappe.db.exists("Trace", current_filters(article)):
 		frappe.throw(
 			_("Cet article possède déjà un tracé."),
 			title=_("Article déjà tracé"),
@@ -332,3 +356,90 @@ def sync_points_colle_to_etude(trace_name, etude_faisabilite_name):
 			"success": False,
 			"error": str(e)
 		}
+
+
+def live_impositions_filters(trace):
+	"""Impositions encore valables d'un tracé : celles d'une version remplacée sont à refaire."""
+	filters = {"trace": trace}
+	if frappe.get_meta("Imposition").has_field("obsolete"):
+		filters["obsolete"] = 0
+	return filters
+
+
+def create_version(source, desc_changements, dimensions=None, points_colle=None):
+	"""Met en service une nouvelle version du tracé, tout de suite, comme une maquette activée.
+
+	L'ancienne devient obsolète, ses impositions aussi (à refaire, jamais idéales), sa forme de
+	découpe est signalée à refaire, et les études encore ouvertes passent sur la nouvelle version.
+	Le fichier est recopié : il reste à le remplacer si le dessin a changé.
+	"""
+	if not has_versions():
+		frappe.throw(_("Les versions de tracé attendent la migration du site."))
+	if source.statut != EN_SERVICE:
+		frappe.throw(_("Seule la version en service d'un tracé reçoit une nouvelle version : {0} est obsolète.").format(source.name))
+	desc = cstr(desc_changements).strip()
+	if not desc:
+		frappe.throw(_("Décrivez ce qui change dans cette version."))
+	dimensions = cstr(dimensions).strip() or source.dimensions
+	points = source.points_colle if points_colle in (None, "") else cint(points_colle)
+	ver = cint(frappe.db.sql("select max(ver) from `tabTrace` where article=%s", source.article)[0][0]) + 1
+
+	# L'ancienne sort de service d'abord : la règle d'un seul tracé en service est vérifiée à l'insertion.
+	frappe.db.set_value("Trace", source.name, "statut", OBSOLETE)
+	new = frappe.new_doc("Trace")
+	new.update({
+		"client": source.client,
+		"article": source.article,
+		"procede": source.procede,
+		"dimensions": dimensions,
+		"points_colle": points,
+		"ver": ver,
+		"statut": EN_SERVICE,
+		"date_activation": today(),
+		"version_origine": source.name,
+		"desc_changements": desc,
+	})
+	new.insert()
+	if source.fichier_trace:
+		url = _copy_and_rename_trace_file(source.name, source.fichier_trace, new.name, source.article)
+		if url:
+			new.db_set("fichier_trace", url)
+	frappe.db.set_value("Trace", source.name, "remplacee_par", new.name)
+
+	impositions = frappe.get_all("Imposition", filters=live_impositions_filters(source.name), pluck="name")
+	if impositions and frappe.get_meta("Imposition").has_field("obsolete"):
+		values = {"obsolete": 1, "defaut": 0}
+		if frappe.get_meta("Imposition").has_field("ideale_manuelle"):
+			values["ideale_manuelle"] = 0
+		for name in impositions:
+			frappe.db.set_value("Imposition", name, values)
+	formes = []
+	if frappe.get_meta("Forme Decoupe").has_field("a_refaire"):
+		formes = frappe.get_all("Forme Decoupe", filters={"trace": source.name, "a_refaire": 0}, pluck="name")
+		for name in formes:
+			frappe.db.set_value("Forme Decoupe", name, "a_refaire", 1)
+
+	etudes = _move_open_studies(source, new)
+	if source.procede != "Flexo" and dimensions != source.dimensions:
+		from aurescrm import item_cotations
+
+		item_cotations.apply_cotations_from_user_string(source.article, dimensions, ignore_permissions=True)
+
+	frappe.get_doc("Trace", source.name).add_comment("Info", _("Remplacé par la version {0} : {1}").format(ver, new.name))
+	return {"name": new.name, "ver": ver, "impositions": len(impositions), "formes": formes, "etudes": etudes}
+
+
+def _move_open_studies(source, new):
+	"""Les études pas encore conclues passent sur la nouvelle version ; leur imposition est à refaire."""
+	moved = []
+	for doctype in ("Etude Faisabilite", "Etude Faisabilite Flexo"):
+		rows = frappe.get_all(doctype, filters={"trace": source.name, "status": ["in", ETUDES_OUVERTES]}, pluck="name")
+		for name in rows:
+			values = {"trace": new.name, "fichier_trace": new.fichier_trace}
+			if doctype == "Etude Faisabilite":
+				values.update({"imposition": None, "fichier_imp": None, "taux_chutes": 0, "nbr_feuilles": 0, "points_colle": cint(new.points_colle)})
+			frappe.db.set_value(doctype, name, values)
+			text = _("Tracé passé à la version {0} ({1}) : l'imposition est à refaire.") if doctype == "Etude Faisabilite" else _("Tracé passé à la version {0} ({1}).")
+			frappe.get_doc(doctype, name).add_comment("Info", text.format(new.ver, new.name))
+			moved.append(name)
+	return moved

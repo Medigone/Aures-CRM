@@ -30,6 +30,8 @@ export const STATUS_TONES: Record<string, string> = {
 	'En étude': 'tone-orange',
 	Réalisable: 'tone-green',
 	'Non Réalisable': 'tone-red',
+	// Tracés : la version en service et les anciennes
+	'En service': 'tone-green',
 	'A Réaliser': 'tone-blue',
 	Réalisé: 'tone-green',
 	Archivé: 'tone-gray',

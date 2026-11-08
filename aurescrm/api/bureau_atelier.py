@@ -171,8 +171,8 @@ def _prix_support(support):
 
 
 @frappe.whitelist()
-def get_atelier(etude=None, calcul=None):
-	"""Ce que l'atelier affiche. Avec une étude, son dernier calcul ; sans, un test rapide vierge ou repris."""
+def get_atelier(etude=None, calcul=None, trace=None):
+	"""Ce que l'atelier affiche. Avec une étude, son dernier calcul ; sans, un test rapide vierge, repris, ou chargé d'un tracé."""
 	_guard()
 	doc = None
 	if calcul:
@@ -185,6 +185,11 @@ def get_atelier(etude=None, calcul=None):
 	result = _calcul_payload(calcul) if calcul else None
 	if doc:
 		context = get_contexte(article=doc.article, trace=doc.trace, etude=doc.name, calcul=calcul)
+		proposes = context["formats_proposes"]
+	elif trace and not calcul:
+		# Test rapide ouvert depuis un tracé : son fichier et le support de son article sont déjà là.
+		frappe.get_doc("Trace", trace).check_permission("read")
+		context = get_contexte(trace=trace)
 		proposes = context["formats_proposes"]
 	else:
 		context = get_contexte(calcul=calcul)
