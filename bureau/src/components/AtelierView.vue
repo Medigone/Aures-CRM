@@ -15,7 +15,7 @@ import AtelierPaliers from './AtelierPaliers.vue'
 import AtelierReferences from './AtelierReferences.vue'
 import AtelierReglages from './AtelierReglages.vue'
 import RecordHeader from './RecordHeader.vue'
-import { allQuantities, commonCutLabel, costLabel, materialCost, rankForQuantity, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type AtelierReference, type Scenario, type ScenarioSort } from '@/lib/atelier'
+import { allQuantities, commonCutLabel, isGabarit, costLabel, materialCost, rankForQuantity, fileLabel, formatDay, gridLabel, isPdf, mm, motifLabel, percentLabel, pitchLabel, replacementText, scenarioAlerts, setPendingNotice, sheetLabel, sheetsFor, sheetsLabel, tabLabel, tonnageFor, tonnageLabel, type AtelierReference, type Scenario, type ScenarioSort } from '@/lib/atelier'
 import { formatQuantity } from '@/lib/etudes'
 import { useAtelier } from '@/lib/useAtelier'
 
@@ -40,6 +40,8 @@ function pickTier(value: number) {
 	palier.value = value === quantite.value ? null : value
 }
 const hasTrace = computed(() => Boolean(fichier.value))
+// Un gabarit standard compare des formats ; l'imposition, elle, se crée à partir du vrai tracé.
+const gabarit = computed(() => isGabarit(fichier.value))
 // Sans tracé lisible ni dépôt, l'écran n'a rien à montrer d'autre que le dépôt.
 const blank = computed(() => !etude.value && !calcul.value)
 const status = computed(() => {
@@ -71,7 +73,7 @@ function sortMark(key: ScenarioSort) {
 }
 async function onUploaded(url: string) {
 	dialog.value = null
-	if (await state.useFile(url)) notice.value = isPdf(url) ? `Tracé lu : ${fileLabel(url)}.` : ''
+	if (await state.useFile(url)) notice.value = isGabarit(url) ? 'Gabarit lu. Cochez des formats et calculez.' : isPdf(url) ? `Tracé lu : ${fileLabel(url)}.` : ''
 }
 function onAddFormat(laize: string, depl: string, bobine: boolean, done: (error: string) => void) {
 	done(state.addFormat(laize, depl, bobine))
@@ -120,7 +122,7 @@ async function copyLink() {
 				</template>
 				<template #actions>
 					<button v-if="canWork && !blank" type="button" :class="fresh ? 'btn-secondary' : 'btn-primary'" :disabled="!canRun" @click="state.run()">Calculer</button>
-					<button v-if="canCreate" type="button" :class="fresh ? 'btn-primary' : 'btn-secondary'" :disabled="!retainedRow || stale || busy" :title="retainedRow ? undefined : 'Retenez une ligne du tableau'" @click="dialog = 'creer'">Créer l'imposition</button>
+					<button v-if="canCreate" type="button" :class="fresh ? 'btn-primary' : 'btn-secondary'" :disabled="!retainedRow || stale || busy || gabarit" :title="gabarit ? 'Déposez le vrai tracé : un gabarit standard ne crée pas d\'imposition' : retainedRow ? undefined : 'Retenez une ligne du tableau'" @click="dialog = 'creer'">Créer l'imposition</button>
 					<MoreMenu>
 						<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 						<a class="app-menu-item" role="menuitem" href="/app/atelier-imposition" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
@@ -129,6 +131,7 @@ async function copyLink() {
 			</RecordHeader>
 
 			<p v-if="error" role="alert" class="flex-none rounded-control tone-red px-3.5 py-2.5">{{ error }}</p>
+			<p v-if="gabarit" class="flex-none rounded-control tone-amber px-3.5 py-2.5">Gabarit standard tiré des cotes : bon pour comparer des formats et chiffrer. Déposez le vrai tracé avant de créer l'imposition.</p>
 			<p v-if="readOnlyNote" class="flex-none rounded-control tone-blue px-3.5 py-2.5">{{ readOnlyNote }}</p>
 
 			<!-- Test rapide : on commence par un tracé. -->
@@ -137,7 +140,7 @@ async function copyLink() {
 					<div class="ref-card-head"><h3>Tester un produit</h3></div>
 					<template v-if="canWork">
 						<p class="m-0">Déposez son tracé, indiquez une quantité et des formats : l'atelier donne les poses, les chutes et les feuilles, sans passer par une demande ni une étude.</p>
-						<AtelierDepot note="Le test reste dans vos derniers tests. Il ne touche à aucun article ni aucune étude." @uploaded="onUploaded" />
+						<AtelierDepot note="Le test reste dans vos derniers tests. Il ne touche à aucun article ni aucune étude." :support="support" @uploaded="onUploaded" />
 					</template>
 					<p v-else class="m-0 text-ink-gray-6">Votre rôle lit les calculs sans pouvoir en lancer.</p>
 				</section>
@@ -291,8 +294,8 @@ async function copyLink() {
 				</div>
 			</div>
 
-			<FormDialog v-if="dialog === 'depot'" title="Déposer un PDF de tracé" :dirty="false" hint="" @close="dialog = null">
-				<AtelierDepot :note="etude ? `Ce PDF sert à ce calcul seulement. Le fichier du tracé ${etude.trace ?? ''} ne change pas.` : 'Il remplace le PDF de ce test.'" @uploaded="onUploaded" />
+			<FormDialog v-if="dialog === 'depot'" title="Tracé de ce calcul" :dirty="false" hint="" @close="dialog = null">
+				<AtelierDepot :cotations="etude?.cotations" :support="support" :note="etude ? `Ce PDF sert à ce calcul seulement. Le fichier du tracé ${etude.trace ?? ''} ne change pas.` : 'Il remplace le PDF de ce test.'" @uploaded="onUploaded" />
 			</FormDialog>
 			<AtelierExport v-if="dialog === 'export' && calcul" :calcul="calcul.name" :sheets="sheets" :current="current" @close="dialog = null" />
 			<FormDialog v-if="dialog === 'creer' && retainedRow && etude" title="Créer cette imposition ?" :dirty="false" hint="" :busy="busy" @close="dialog = null" @submit="create">

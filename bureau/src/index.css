@@ -3953,6 +3953,70 @@
 		flex-direction: column;
 		gap: 0.625rem;
 	}
+	.atelier-depot-tabs {
+		display: flex;
+		gap: 0.375rem;
+	}
+	.atelier-gabarit {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+	}
+	.atelier-gabarit-models {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+		gap: 0.375rem;
+	}
+	.atelier-gabarit-model {
+		display: flex;
+		flex-direction: column;
+		gap: 0.0625rem;
+		padding: 0.4375rem 0.625rem;
+		cursor: pointer;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: var(--radius-field);
+	}
+	.atelier-gabarit-model[data-on='true'] {
+		border-color: var(--ink-gray-8);
+		box-shadow: inset 0 0 0 1px var(--ink-gray-8);
+	}
+	.atelier-gabarit-model:focus-within {
+		outline: 2px solid var(--outline-gray-3);
+		outline-offset: 1px;
+	}
+	.atelier-gabarit-model b {
+		font-weight: 600;
+		@apply text-base text-ink-gray-9;
+	}
+	.atelier-gabarit-model small {
+		@apply text-sm text-ink-gray-6;
+	}
+	.atelier-gabarit-cotes {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.5rem;
+	}
+	.atelier-gabarit-preview {
+		margin: 0;
+	}
+	.atelier-gabarit-preview svg {
+		display: block;
+		width: 100%;
+		max-height: 18rem;
+		border: 1px solid var(--outline-gray-1);
+		border-radius: 0.25rem;
+		background: var(--surface-white);
+	}
+	.atelier-gabarit-preview figcaption {
+		margin-top: 0.1875rem;
+		@apply text-sm text-ink-gray-6;
+	}
+	.etude-sheet-cut-line {
+		fill: none;
+		stroke: var(--ink-gray-8);
+		stroke-width: 1;
+		vector-effect: non-scaling-stroke;
+	}
 	.atelier-tests {
 		display: flex;
 		flex-direction: column;

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, parseQuantities, presseAlert, referenceFormat, tierResults, allQuantities, materialCost, referenceReason, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type AtelierReference, type Scenario } from './atelier'
+import { commonCutLabel, downloadFile, fileLabel, gridLabel, isPdf, manualFormat, mm, motifLabel, motifsSummary, pitchLabel, poseTransform, posesOf, parseQuantities, presseAlert, cotesOf, isGabarit, gabaritPaths, referenceFormat, tierResults, allQuantities, materialCost, referenceReason, replacementText, rollOf, sameSheet, scenarioAlerts, setPendingNotice, sheetsFor, sortScenarios, takePendingNotice, tonnageFor, type AtelierReference, type Scenario } from './atelier'
 
 const scenario = (values: Partial<Scenario> = {}) => ({ libelle: 'A', origine: 'Stock', laize: 1020, depl: 700, nb_poses: 4, n_col: 2, n_rang: 2, rotation: 0, taux_chutes: 35, pas_laize: 381.96, pas_depl: 337.05, trait_commun_laize: 1, trait_commun_depl: 0, reste_laize: 240.04, reste_depl: 1.9, surface_par_pose: 1785, nb_feuilles: 25000, tonnage: 5.176, ...values }) as Scenario
 
@@ -155,5 +155,20 @@ describe('paliers de quantité', () => {
 		expect(beaucoup.coutPour1000).toBeCloseTo(3060, 0)
 		expect(beaucoup.ecartSuivant).toBeGreaterThan(0)
 		expect(materialCost(grand, 14000, 300, 0)).toBeNull()
+	})
+})
+
+describe('gabarit à partir des cotes', () => {
+	it('reprend les cotes de l\'article', () => {
+		expect(cotesOf('120x40x160')).toEqual(['120', '40', '160'])
+		expect(cotesOf('56,3×280')).toEqual(['56.3', '280', ''])
+		expect(cotesOf(null)).toEqual(['', '', ''])
+	})
+	it('reconnaît un gabarit et le dessine Y retourné', () => {
+		expect(isGabarit('/private/files/gabarit-A20-120x40x160.pdf')).toBe(true)
+		expect(isGabarit('/private/files/trace.pdf')).toBe(false)
+		const paths = gabaritPaths({ coupe: [[[0, 0], [10, 0]]], rainage: [[[0, 5], [10, 5]]], developpe_l: 10, developpe_d: 5, epaisseur: 0.4 }, 0)
+		expect(paths.coupe).toBe('M0.00 5.00L10.00 5.00')
+		expect(paths.rainage).toBe('M0.00 0.00L10.00 0.00')
 	})
 })

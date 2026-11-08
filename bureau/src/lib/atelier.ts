@@ -83,6 +83,8 @@ export interface AtelierEtude {
 	trace_fichier: string | null
 	trace_lisible: boolean
 	imposition: string | null
+	/** Cotes de l'article, « L x l x H », pour préremplir un gabarit. */
+	cotations?: string | null
 	presse: AtelierPresse | null
 	ecriture: boolean
 }
@@ -362,4 +364,38 @@ export function tierResults<T extends Scenario>(rows: T[], quantities: number[],
 		})
 	}
 	return results
+}
+
+/** Gabarits standard, générés à partir des cotes. */
+export const GABARITS = [
+	{ value: 'A20', label: 'ECMA A20', hint: 'Rabats rentrants du même côté' },
+	{ value: 'A20.20', label: 'ECMA A20.20', hint: 'Rabats rentrants opposés' },
+	{ value: 'FOND_AUTO', label: 'Fond automatique', hint: 'Fond à crochets, rabat rentrant en haut' },
+] as const
+export type GabaritModele = (typeof GABARITS)[number]['value']
+export interface GabaritApercu {
+	coupe: [[number, number], [number, number]][]
+	rainage: [[number, number], [number, number]][]
+	developpe_l: number
+	developpe_d: number
+	epaisseur: number
+}
+/** Un tracé généré à partir des cotes : il compare des formats, il ne sert pas à fabriquer. */
+export const isGabarit = (url?: string | null) => fileLabel(url).startsWith('gabarit-')
+/** « 120x40x160 » → les trois cotes ; moins de trois : ce qu'on a, le reste vide. */
+export function cotesOf(cotations?: string | null): [string, string, string] {
+	const parts = (cotations ?? '').toLowerCase().replace(/×/g, 'x').split('x').map((part) => part.trim().replace(',', '.')).filter((part) => Number(part) > 0)
+	return [parts[0] ?? '', parts[1] ?? '', parts[2] ?? '']
+}
+/** Le gabarit en chemins SVG, Y retourné : l'origine du dessin en haut à gauche. */
+export function gabaritPaths(apercu: GabaritApercu, marge = 4) {
+	const all = [...apercu.coupe, ...apercu.rainage].flat()
+	const xs = all.map(([x]) => x)
+	const ys = all.map(([, y]) => y)
+	const x0 = Math.min(...xs) - marge
+	const y1 = Math.max(...ys) + marge
+	const width = Math.max(...xs) + marge - x0
+	const height = y1 - (Math.min(...ys) - marge)
+	const path = (segments: GabaritApercu['coupe']) => segments.map(([[ax, ay], [bx, by]]) => `M${(ax - x0).toFixed(2)} ${(y1 - ay).toFixed(2)}L${(bx - x0).toFixed(2)} ${(y1 - by).toFixed(2)}`).join('')
+	return { width, height, coupe: path(apercu.coupe), rainage: path(apercu.rainage) }
 }

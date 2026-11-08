@@ -92,6 +92,8 @@ def _etude_block(doc):
 		"trace_fichier": fichier,
 		"trace_lisible": est_pdf(fichier),
 		"imposition": doc.imposition,
+		# Pour préremplir un gabarit : les cotes de l'article, L × l × H.
+		"cotations": frappe.db.get_value("Item", doc.article, "custom_cotations_article") if doc.article else None,
 		"presse": presse,
 		"ecriture": doc.status == IN_STUDY and bool(doc.has_permission("write")),
 	}
@@ -266,8 +268,58 @@ def create_atelier_imposition(etude, calcul, scenario_idx):
 		frappe.throw(_("Seule une étude en cours reçoit une imposition."))
 	if frappe.db.get_value(CALCUL, calcul, "etude_faisabilite") != etude:
 		frappe.throw(_("Ce calcul n'appartient pas à cette étude."))
+	if est_gabarit(frappe.db.get_value(CALCUL, calcul, "fichier_trace")):
+		frappe.throw(_("Ce calcul part d'un gabarit standard : déposez le vrai tracé avant de créer l'imposition."))
 	remplacee = doc.imposition or None
 	created = creer_imposition(calcul=calcul, scenario_idx=scenario_idx)
 	# La création écrit sur l'étude sans la sauvegarder : la sauvegarde recalcule feuilles, passages et charge.
 	frappe.get_doc(ETUDE, etude).save()
 	return {"imposition": created["imposition"], "remplacee": remplacee, "avertissement": created.get("avertissement_ideale"), "taux_chutes": flt(frappe.db.get_value("Imposition", created["imposition"], "taux_chutes"))}
+
+
+GABARIT_PREFIXE = "gabarit-"
+
+
+def est_gabarit(fichier):
+	"""Un tracé généré à partir des cotes : bon pour comparer des formats, pas pour fabriquer."""
+	return (fichier or "").split("?")[0].rsplit("/", 1)[-1].startswith(GABARIT_PREFIXE)
+
+
+def _gabarit(modele, longueur, largeur, hauteur, support=None):
+	from aurescrm.imposition.gabarits import EPAISSEUR_DEFAUT, encombrement, generer_gabarit
+
+	epaisseur = flt(frappe.db.get_value("Support Technique", support, "epaisseur")) if support else 0
+	try:
+		coupe, rainage = generer_gabarit(modele, flt(longueur), flt(largeur), flt(hauteur), epaisseur=epaisseur or EPAISSEUR_DEFAUT)
+	except ValueError as error:
+		frappe.throw(str(error))
+	largeur_dev, hauteur_dev = encombrement(coupe)
+	return coupe, rainage, {"developpe_l": round(largeur_dev, 1), "developpe_d": round(hauteur_dev, 1), "epaisseur": epaisseur or EPAISSEUR_DEFAUT}
+
+
+@frappe.whitelist()
+def preview_gabarit(modele, longueur, largeur, hauteur, support=None):
+	"""Le gabarit à dessiner avant de le calculer : segments de coupe et de rainage, en mm, Y vers le haut."""
+	_guard()
+	coupe, rainage, infos = _gabarit(modele, longueur, largeur, hauteur, support)
+	return {"coupe": coupe, "rainage": rainage, **infos}
+
+
+@frappe.whitelist(methods=["POST"])
+def create_gabarit(modele, longueur, largeur, hauteur, support=None):
+	"""Écrit le gabarit en PDF (noir coupe, rouge rainage) et renvoie son adresse : l'atelier le lit comme un tracé déposé."""
+	_guard()
+	import os
+	import tempfile
+
+	from aurescrm.imposition.gabarits import MODELES, ecrire_pdf
+
+	coupe, rainage, _infos = _gabarit(modele, longueur, largeur, hauteur, support)
+	cotes = "x".join(f"{flt(value):g}" for value in (longueur, largeur, hauteur))
+	titre = f"Gabarit standard {MODELES[modele]} {cotes.replace('x', ' x ')} mm - a remplacer par le trace avant fabrication"
+	with tempfile.TemporaryDirectory() as dossier:
+		chemin = ecrire_pdf(os.path.join(dossier, "gabarit.pdf"), coupe, rainage, titre=titre)
+		with open(chemin, "rb") as source:
+			contenu = source.read()
+	fichier = frappe.get_doc({"doctype": "File", "file_name": f"{GABARIT_PREFIXE}{modele}-{cotes}.pdf", "is_private": 1, "content": contenu}).insert()
+	return {"file_url": fichier.file_url}
