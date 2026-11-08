@@ -292,7 +292,8 @@ def create_group_imposition(etude, calcul, membres, laize, depl, lisiere=None, p
 				"pont": params.pont,
 				"trait_commun_laize": cint(d.trait_commun_laize),
 				"trait_commun_depl": cint(d.trait_commun_depl),
-				"origine_calcul": "Groupage",
+				# La clé de groupage, et non l'origine (Manuel ou Moteur v1), dit qu'elle est groupée.
+				"origine_calcul": "Moteur v1",
 				"scenario_retenu": f"Groupage {g.laize:g} × {g.depl:g}",
 				"calcul_imposition": calcul_doc.name,
 				"groupage": cle,
