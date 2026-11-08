@@ -21,6 +21,7 @@ import unittest
 
 from shapely.geometry import Polygon
 
+from aurescrm.imposition.cotations import MARGE
 from aurescrm.imposition.generateur_cf2 import generer_cff2
 from aurescrm.imposition.generateur_pdf import generer_pdf, generer_pdf_pages
 from aurescrm.imposition.geometrie import contact_droit, pas_minimal, pas_retenus
@@ -203,8 +204,12 @@ class TestEtuiPhysiophormine(unittest.TestCase):
 			import pymupdf
 
 			page = pymupdf.open(sortie)[0]
-			self.assertAlmostEqual(page.rect.width / (72 / 25.4), 1020.0, delta=0.1)
-			self.assertAlmostEqual(page.rect.height / (72 / 25.4), 600.0, delta=0.1)
+			# La feuille à 1:1, plus la marge des cotes de chaque côté.
+			self.assertAlmostEqual(page.rect.width / (72 / 25.4), 1020.0 + 2 * MARGE, delta=0.1)
+			self.assertAlmostEqual(page.rect.height / (72 / 25.4), 600.0 + 2 * MARGE, delta=0.1)
+			texte = page.get_text()
+			for cote in ("Laize 1020", "Déplacement 600", "Lisière", "Pince", "Arrière", "Pose"):
+				self.assertIn(cote, texte)
 
 	def test_generation_pdf_multipages(self):
 		d1 = evaluer_format(self.poly, self.params, 1020.0, 600.0)
@@ -222,10 +227,10 @@ class TestEtuiPhysiophormine(unittest.TestCase):
 
 			doc = pymupdf.open(sortie)
 			self.assertEqual(len(doc), 2)
-			self.assertAlmostEqual(doc[0].rect.width / (72 / 25.4), 1020.0, delta=0.1)
-			self.assertAlmostEqual(doc[0].rect.height / (72 / 25.4), 600.0, delta=0.1)
-			self.assertAlmostEqual(doc[1].rect.width / (72 / 25.4), 1020.0, delta=0.1)
-			self.assertAlmostEqual(doc[1].rect.height / (72 / 25.4), 700.0, delta=0.1)
+			self.assertAlmostEqual(doc[0].rect.width / (72 / 25.4), 1020.0 + 2 * MARGE, delta=0.1)
+			self.assertAlmostEqual(doc[0].rect.height / (72 / 25.4), 600.0 + 2 * MARGE, delta=0.1)
+			self.assertAlmostEqual(doc[1].rect.width / (72 / 25.4), 1020.0 + 2 * MARGE, delta=0.1)
+			self.assertAlmostEqual(doc[1].rect.height / (72 / 25.4), 700.0 + 2 * MARGE, delta=0.1)
 
 	def test_generation_cff2(self):
 		d = evaluer_format(self.poly, self.params, 1020.0, 600.0)

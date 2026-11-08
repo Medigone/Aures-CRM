@@ -166,18 +166,19 @@ def generer_pdf_groupe(chemin, geometries, g: Groupage, p, titre=""):
 	"""Une page à l'échelle 1:1, comme l'imposition d'un seul article : noir coupe, rouge rainage."""
 	import pymupdf
 
-	from aurescrm.imposition.generateur_pdf import C_FEUILLE
-	from aurescrm.imposition.lecture_trace import C_COUPE, C_RAINAGE, PT
+	from aurescrm.imposition import cotations
+	from aurescrm.imposition.generateur_pdf import ecrire_page, premiere_pose
 
 	coupe, rainage = segments_groupe(geometries, g, p)
+	cotes = cotations.cotes_feuille(g.laize, g.depl, p)
+	# Le développé de la première pose de chaque bloc, sous la feuille et à gauche, chacun à son niveau.
+	for numero, b in enumerate(g.blocs):
+		x, y, l, d = premiere_pose(geometries[b.article][0], geometries[b.article][2], b.disposition)
+		decale = cotations.NIVEAU_1 + numero * 3.5
+		cotes.append(cotations.Cote("h", p.lisiere + b.x + x, p.lisiere + b.x + x + l, -decale, f"Pose {numero + 1} : {cotations.mm_texte(l)}"))
+		cotes.append(cotations.Cote("v", p.pince + b.y + y, p.pince + b.y + y + d, -decale, f"Pose {numero + 1} : {cotations.mm_texte(d)}"))
 	doc = pymupdf.open()
-	page = doc.new_page(width=g.laize * PT, height=g.depl * PT)
-	to_pt = lambda x, y: pymupdf.Point(x * PT, (g.depl - y) * PT)  # noqa: E731
-	page.draw_rect(pymupdf.Rect(0, 0, g.laize * PT, g.depl * PT), color=C_FEUILLE, width=0.5)
-	for segs, couleur, largeur in ((coupe, C_COUPE, 0.36), (rainage, C_RAINAGE, 0.54)):
-		for (ax, ay), (bx, by) in segs:
-			page.draw_line(to_pt(ax, ay), to_pt(bx, by), color=couleur, width=largeur)
-	page.insert_text(pymupdf.Point(8 * PT, 10 * PT), f"{titre} | {g.laize:g} x {g.depl:g} mm | {g.poses} poses | pince {p.pince} | pont {p.pont}", fontsize=7, color=(0.4, 0.4, 0.4))
+	ecrire_page(doc, coupe, rainage, g.laize, g.depl, cotes, f"{titre} | {g.laize:g} x {g.depl:g} mm | {g.poses} poses | pince {p.pince} | pont {p.pont}")
 	doc.save(chemin)
 	doc.close()
 	return chemin

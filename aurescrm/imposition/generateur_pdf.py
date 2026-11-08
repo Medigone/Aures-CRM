@@ -4,6 +4,7 @@
 """Génération du PDF d'imposition à l'échelle 1:1.
 
 Export CAD carton : voir `generateur_cf2` (CFF2 pour ArtiosCAD).
+Cotes en bleu autour de la feuille : voir `cotations`.
 Hors périmètre : croix de repérage, gammes de contrôle, marques de coupe, DXF.
 """
 
@@ -11,6 +12,7 @@ import pymupdf
 from shapely.affinity import rotate
 from shapely.geometry import LineString
 
+from aurescrm.imposition import cotations
 from aurescrm.imposition.lecture_trace import C_COUPE, C_RAINAGE, PT
 from aurescrm.imposition.motifs import RANGS
 from aurescrm.imposition.optimiseur import LIBELLES_MOTIF, positions
@@ -85,22 +87,36 @@ def _mention_motif(d):
 	return f" | {LIBELLES_MOTIF[d.motif]} en {'rangs' if d.axe == RANGS else 'colonnes'}, décalage {d.decalage_laize} x {d.decalage_depl}"
 
 
-def _ajouter_page(doc, coupe, rain, disposition, parametres, titre=""):
+def _ajouter_page(doc, coupe, rain, disposition, parametres, titre="", pose=None):
+	"""Une page : la feuille à 1:1 au milieu, ses cotes en bleu tout autour. `pose` : (x, y, l, d) de la première pose."""
 	d, p = disposition, parametres
-	page = doc.new_page(width=d.laize * PT, height=d.depl * PT)
-	hauteur = d.depl
-	to_pt = lambda x, y: pymupdf.Point(x * PT, (hauteur - y) * PT)  # noqa: E731
-	page.draw_rect(pymupdf.Rect(0, 0, d.laize * PT, d.depl * PT), color=C_FEUILLE, width=0.5)
+	cotes = cotations.cotes_feuille(d.laize, d.depl, p)
+	if pose:
+		x0, y0, pose_l, pose_d = pose
+		cotes += cotations.cotes_poses(d, p, pose_l, pose_d, x0, y0)
+	ecrire_page(doc, coupe, rain, d.laize, d.depl, cotes, f"{titre} | {d.laize} x {d.depl} mm | {d.poses} poses ({d.n_col}x{d.n_rang}) | pas {d.pas_laize} x {d.pas_depl} | pince {p.pince} | pont {p.pont}{_mention_motif(d)}")
+
+
+def ecrire_page(doc, coupe, rain, laize, depl, cotes, legende):
+	"""La page cotée : la feuille, ses segments, les cotes et la légende dans la marge du haut."""
+	m = cotations.MARGE
+	page = doc.new_page(width=(laize + 2 * m) * PT, height=(depl + 2 * m) * PT)
+	to_pt = lambda x, y: pymupdf.Point((x + m) * PT, (depl + m - y) * PT)  # noqa: E731
+	page.draw_rect(pymupdf.Rect(m * PT, m * PT, (laize + m) * PT, (depl + m) * PT), color=C_FEUILLE, width=0.5)
 	for segs, couleur, largeur in ((coupe, C_COUPE, 0.36), (rain, C_RAINAGE, 0.54)):
 		for (ax, ay), (bx, by) in segs:
 			page.draw_line(to_pt(ax, ay), to_pt(bx, by), color=couleur, width=largeur)
-	page.insert_text(
-		pymupdf.Point(8 * PT, 10 * PT),
-		f"{titre} | {d.laize} x {d.depl} mm | {d.poses} poses ({d.n_col}x{d.n_rang}) | "
-		f"pas {d.pas_laize} x {d.pas_depl} | pince {p.pince} | pont {p.pont}{_mention_motif(d)}",
-		fontsize=7,
-		color=(0.4, 0.4, 0.4),
-	)
+	cotations.dessiner(page, to_pt, cotes, PT)
+	page.insert_text(pymupdf.Point(4 * PT, 5 * PT), legende, fontsize=7, color=(0.4, 0.4, 0.4))
+	return page
+
+
+def premiere_pose(segments_coupe, poly, disposition):
+	"""(x, y, largeur, hauteur) de la première pose, pour la coter."""
+	x, y, rotation = positions(disposition)[0]
+	_coupe, tourne = _poses_normalisees([], poly, rotation)
+	x0, y0, x1, y1 = tourne.bounds
+	return x, y, x1 - x0, y1 - y0
 
 
 def generer_pdf_pages(chemin_sortie, segments_coupe, segments_rainage, poly, pages, parametres):
@@ -112,7 +128,7 @@ def generer_pdf_pages(chemin_sortie, segments_coupe, segments_rainage, poly, pag
 		coupe, rain = segments_imposes(
 			segments_coupe, segments_rainage, poly, disposition, parametres
 		)
-		_ajouter_page(doc, coupe, rain, disposition, parametres, titre or "")
+		_ajouter_page(doc, coupe, rain, disposition, parametres, titre or "", pose=premiere_pose(segments_coupe, poly, disposition))
 	doc.save(chemin_sortie)
 	return chemin_sortie
 
