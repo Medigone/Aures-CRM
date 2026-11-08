@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { formatQuantity } from '@/lib/etudes'
-import { dimensionsLabel, FIBRE_FEUILLE_OPTIONS, FIBRE_TRACE_OPTIONS, fibreRotation, fibreSummary, fileLabel, formatFibre, mm, MOTIF_OPTIONS, motifsSummary, parseQuantities, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
+import { dimensionsLabel, FIBRE_FEUILLE_OPTIONS, refenteSummary, FIBRE_TRACE_OPTIONS, fibreRotation, fibreSummary, fileLabel, formatFibre, mm, MOTIF_OPTIONS, motifsSummary, parseQuantities, type AtelierCalcul, type AtelierData, type AtelierFormat, type AtelierReglages } from '@/lib/atelier'
 
 /** Colonne de gauche : le tracé, la quantité, les formats à comparer et les réglages du moteur. */
 const props = defineProps<{ data: AtelierData; calcul: AtelierCalcul | null; reglages: AtelierReglages; formats: AtelierFormat[]; support: string | null; fichier: string | null; readable: boolean; canWork: boolean; grammage: number }>()
@@ -57,6 +57,11 @@ function setGrammage(event: Event) {
 function setPrix(event: Event) {
 	const value = Number((event.target as HTMLInputElement).value)
 	props.reglages.prix_tonne = Number.isFinite(value) && value > 0 ? value : 0
+}
+// La refente ne sert qu'à proposer un format : la changer ne demande pas de relancer le calcul.
+const refente = (key: 'refente_rive' | 'refente_bandes_max' | 'refente_laize_min', event: Event) => {
+	const value = Number((event.target as HTMLInputElement).value)
+	props.reglages[key] = Number.isFinite(value) && value > 0 ? (key === 'refente_bandes_max' ? Math.floor(value) : value) : 0
 }
 const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Event) => {
 	const value = Number((event.target as HTMLInputElement).value)
@@ -159,6 +164,15 @@ const number = (key: 'pont' | 'lisiere' | 'pince' | 'marge_arriere', event: Even
 				<label class="form-field"><span class="field-label">Pince (mm)</span><input class="field-input tabular-nums" type="number" min="0" step="0.1" :value="reglages.pince" :disabled="!canWork" @change="number('pince', $event)" /></label>
 				<label class="form-field"><span class="field-label">Marge arrière (mm)</span><input class="field-input tabular-nums" type="number" min="0" step="0.1" :value="reglages.marge_arriere" :disabled="!canWork" @change="number('marge_arriere', $event)" /></label>
 				<label class="atelier-check atelier-check-inline"><input type="checkbox" :checked="Boolean(reglages.trait_commun)" :disabled="!canWork" @change="reglages.trait_commun = Number(($event.target as HTMLInputElement).checked); emit('changed')" />Trait commun</label>
+			</div>
+		</details>
+		<details class="atelier-rail-section">
+			<summary>Refente : {{ refenteSummary(reglages) }}</summary>
+			<div class="atelier-rail-grid">
+				<p class="atelier-rail-wide m-0 text-sm text-ink-gray-6">Le débobinage coupe une bobine en bandes égales. Ces réglages servent à proposer un format ; sans eux, la refente n'est pas proposée.</p>
+				<label class="form-field"><span class="field-label">Bandes au plus</span><input class="field-input tabular-nums" type="number" min="0" step="1" :value="reglages.refente_bandes_max || ''" placeholder="Aucune" :disabled="!canWork" @change="refente('refente_bandes_max', $event)" /></label>
+				<label class="form-field"><span class="field-label">Rive (mm)</span><input class="field-input tabular-nums" type="number" min="0" step="0.5" :value="reglages.refente_rive || ''" placeholder="0" :disabled="!canWork" @change="refente('refente_rive', $event)" /></label>
+				<label class="form-field atelier-rail-wide"><span class="field-label">Laize de bande mini (mm)</span><input class="field-input tabular-nums" type="number" min="0" step="1" :value="reglages.refente_laize_min || ''" placeholder="Sans minimum" :disabled="!canWork" @change="refente('refente_laize_min', $event)" /><small>La rive est rognée de chaque côté de la bobine, et comptée en chute.</small></label>
 			</div>
 		</details>
 	</aside>

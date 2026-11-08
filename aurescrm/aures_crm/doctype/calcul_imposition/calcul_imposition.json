@@ -30,6 +30,9 @@
   "quantites_paliers",
   "prix_tonne",
   "grammage",
+  "refente_rive",
+  "refente_bandes_max",
+  "refente_laize_min",
   "inclure_sur_mesure",
   "section_formats",
   "formats_etudies",
@@ -215,6 +218,29 @@
    "non_negative": 1
   },
   {
+   "description": "Largeur rogn\u00e9e de chaque c\u00f4t\u00e9 de la bobine avant refente, en mm. Compt\u00e9e en chute.",
+   "fieldname": "refente_rive",
+   "fieldtype": "Float",
+   "label": "Rive de refente (mm)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "description": "Nombre de bandes \u00e9gales au plus pour une bobine refendue. Vide ou moins de 2 : pas de refente propos\u00e9e.",
+   "fieldname": "refente_bandes_max",
+   "fieldtype": "Int",
+   "label": "Bandes de refente au plus",
+   "non_negative": 1
+  },
+  {
+   "description": "Laize la plus \u00e9troite que le d\u00e9bobinage sait sortir, en mm.",
+   "fieldname": "refente_laize_min",
+   "fieldtype": "Float",
+   "label": "Laize de bande mini (mm)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
    "default": "1",
    "fieldname": "inclure_sur_mesure",
    "fieldtype": "Check",
@@ -365,7 +391,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 0,
  "links": [],
- "modified": "2026-11-08 18:30:00.000000",
+ "modified": "2026-11-08 19:30:00.000000",
  "modified_by": "Administrator",
  "module": "Aures CRM",
  "name": "Calcul Imposition",

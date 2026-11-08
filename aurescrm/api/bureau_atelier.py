@@ -137,6 +137,30 @@ def _fibre_precedente(doc):
 	return frappe.db.get_value(CALCUL, {"trace": doc.trace, "fibre_trace": ["in", ["Verticale", "Horizontale"]]}, "fibre_trace", order_by="creation desc")
 
 
+REFENTE = ("refente_rive", "refente_bandes_max", "refente_laize_min")
+
+
+def _refente_du_calcul(calcul):
+	"""Les réglages de refente du calcul ; à défaut, ceux du dernier calcul de l'utilisateur, qui les saisit une fois."""
+	if not frappe.get_meta(CALCUL).has_field("refente_bandes_max"):
+		return {key: 0.0 for key in REFENTE}
+	ligne = frappe.db.get_value(CALCUL, calcul, list(REFENTE), as_dict=True) if calcul else None
+	valeurs = {key: flt((ligne or {}).get(key)) for key in REFENTE}
+	if any(valeurs.values()):
+		return valeurs
+	dernier = frappe.db.get_value(CALCUL, {"owner": frappe.session.user, "refente_bandes_max": [">", 1]}, list(REFENTE), as_dict=True, order_by="modified desc")
+	return {key: flt((dernier or {}).get(key)) for key in REFENTE}
+
+
+def _garder_refente(calcul, values):
+	"""Les réglages de refente vont sur le calcul : ils ne changent pas le moteur, rien à recalculer."""
+	if not calcul or not frappe.get_meta(CALCUL).has_field("refente_bandes_max"):
+		return
+	valeurs = {key: max(flt(values.get(key)), 0) for key in REFENTE if values.get(key) is not None}
+	if valeurs:
+		frappe.db.set_value(CALCUL, calcul, valeurs, update_modified=False)
+
+
 def _prix_support(support):
 	return flt(frappe.db.get_value("Support Technique", support, "prix_tonne")) if support else 0.0
 
@@ -171,6 +195,8 @@ def get_atelier(etude=None, calcul=None):
 		# Saisi sur le calcul, sinon celui du support ; 0 : les paliers se départagent au tonnage.
 		"prix_tonne": (flt((result or {}).get("prix_tonne")) or _prix_support(context.get("support_technique"))) if voit_couts() else 0,
 		**{key: flt(context.get(key)) or default for key, default in DEFAUTS.items()},
+		# Réglages du débobinage : vides tant qu'on ne les a pas saisis, la refente n'est alors pas proposée.
+		**_refente_du_calcul(calcul),
 	}
 	return {
 		"droits": {
@@ -235,10 +261,11 @@ def _cout_presse(etude):
 
 
 @frappe.whitelist()
-def propose_formats(calcul, laize_max, depl_max, pas=10, formats=None, quantite=None, lisiere=None, pince=None, marge_arriere=None):
-	"""Le format idéal pour chaque critère, sous le format maxi donné. Lecture seule : l'utilisateur garde ce qu'il veut."""
+def propose_formats(calcul, laize_max, depl_max, formats=None, quantite=None, lisiere=None, pince=None, marge_arriere=None, refente_rive=None, refente_bandes_max=None, refente_laize_min=None):
+	"""Le format idéal pour chaque critère, parmi les formats standards du support et leur refente, sous le format maxi
+	de la presse. Lecture seule : l'utilisateur garde ce qu'il veut."""
 	_guard()
-	from aurescrm.imposition.service import proposer_formats
+	from aurescrm.imposition.service import Refente, proposer_formats
 
 	doc = frappe.get_doc(CALCUL, calcul)
 	doc.check_permission("read")
@@ -252,8 +279,14 @@ def propose_formats(calcul, laize_max, depl_max, pas=10, formats=None, quantite=
 	stock = [_format_row(row) for row in _parse(formats) or []]
 	# Le coût complet demande les prix : hors équipe devis, il n'est ni calculé ni proposé.
 	presse = _cout_presse(doc.etude_faisabilite) if voit_couts() else None
-	lignes = proposer_formats(variantes, params, flt(doc.surface_utile_mm2), flt(laize_max), flt(depl_max), pas=flt(pas), fibre_trace=doc.get("fibre_trace") or "Libre", stock=stock, presse=presse)
-	return {"lignes": masquer_lignes(lignes), "cout": {"presse": presse["nom"]} if presse and any("cout_complet" in ligne for ligne in lignes) else None}
+	refente = Refente(rive=flt(refente_rive), bandes_max=cint(refente_bandes_max), laize_min=flt(refente_laize_min))
+	lignes = proposer_formats(variantes, params, flt(doc.surface_utile_mm2), flt(laize_max), flt(depl_max), fibre_trace=doc.get("fibre_trace") or "Libre", stock=stock, refente=refente, presse=presse)
+	return {
+		"lignes": masquer_lignes(lignes),
+		"cout": {"presse": presse["nom"]} if presse and any("cout_complet" in ligne for ligne in lignes) else None,
+		"refente": refente.bandes_max >= 2,
+		"formats": len(stock),
+	}
 
 
 def calcul_arguments(values):
@@ -296,8 +329,8 @@ def calcul_arguments(values):
 
 
 @frappe.whitelist(methods=["POST"])
-def save_atelier_tiers(calcul, paliers=None, prix_tonne=None, grammage=None):
-	"""Paliers, prix et grammage gardés aussitôt sur le calcul : ils ne changent pas le moteur, rien à recalculer."""
+def save_atelier_tiers(calcul, paliers=None, prix_tonne=None, grammage=None, refente=None):
+	"""Paliers, prix, grammage et refente gardés aussitôt sur le calcul : ils ne changent pas le moteur."""
 	_guard()
 	from aurescrm.imposition.api import nettoyer_paliers
 
@@ -315,15 +348,19 @@ def save_atelier_tiers(calcul, paliers=None, prix_tonne=None, grammage=None):
 		valeurs["grammage"] = max(flt(grammage), 0)
 	if valeurs:
 		doc.db_set(valeurs, update_modified=False)
-	return {"saved": bool(valeurs)}
+	if refente is not None:
+		_garder_refente(doc.name, _parse(refente) or {})
+	return {"saved": bool(valeurs) or refente is not None}
 
 
 @frappe.whitelist(methods=["POST"])
 def prepare_atelier(values):
 	"""Lit le tracé déposé : développé et simulation, sans attendre un calcul."""
 	_guard()
-	args, _values = calcul_arguments(values)
-	return _calcul_payload(preparer_trace(**args)["name"])
+	args, raw = calcul_arguments(values)
+	name = preparer_trace(**args)["name"]
+	_garder_refente(name, raw)
+	return _calcul_payload(name)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -336,6 +373,7 @@ def run_atelier(values):
 		frappe.throw(_("Cochez au moins un format à comparer."))
 	check_manual_rolls(formats)
 	started = lancer_calcul(formats=formats, inclure_sur_mesure=0, **args)
+	_garder_refente(started["calcul"], raw)
 	return _calcul_payload(started["calcul"])
 
 

@@ -46,6 +46,8 @@ export interface Scenario {
 	poses?: Pose[]
 	/** Essai pas encore gardé : il reste sur cet écran. */
 	cle?: string
+	/** Feuille tirée d'une bobine refendue : la laize achetée par feuille, rives comprises. Elle compte la matière. */
+	laize_achat?: number
 }
 export type Pose = [number, number, number]
 export interface SilhouetteVue {
@@ -105,6 +107,10 @@ export interface AtelierReglages {
 	lisiere: number
 	pince: number
 	marge_arriere: number
+	/** Débobinage : rive rognée de chaque côté, bandes au plus (moins de 2 : pas de refente), laize de bande mini. */
+	refente_rive?: number
+	refente_bandes_max?: number
+	refente_laize_min?: number
 }
 export interface AtelierHistorique {
 	name: string
@@ -187,8 +193,11 @@ export { dimensionsLabel, formatDay, percentLabel }
 export function sheetsFor(row: Pick<Scenario, 'nb_poses'>, quantite: number) {
 	return row.nb_poses > 0 && quantite > 0 ? Math.ceil(quantite / row.nb_poses) : 0
 }
-export function tonnageFor(row: Pick<Scenario, 'nb_poses' | 'laize' | 'depl'>, quantite: number, grammage: number) {
-	return (sheetsFor(row, quantite) * row.laize * row.depl * grammage) / 1e12
+type SheetSize = Pick<Scenario, 'nb_poses' | 'laize' | 'depl'> & { laize_achat?: number }
+/** La laize qui compte la matière : celle achetée, quand la feuille sort d'une bobine refendue. */
+const boughtLaize = (row: SheetSize) => row.laize_achat || row.laize
+export function tonnageFor(row: SheetSize, quantite: number, grammage: number) {
+	return (sheetsFor(row, quantite) * boughtLaize(row) * row.depl * grammage) / 1e12
 }
 export const sheetsLabel = (value: number) => (value ? formatQuantity(value) : '—')
 export const tonnageLabel = (value: number) => (value ? `${String(Math.round(value * 100) / 100).replace('.', ',')} t` : '—')
@@ -327,8 +336,8 @@ export const quantitiesText = (values: number[]) => values.map((value) => format
 /** La quantité principale et les paliers, une seule fois chacun, dans l'ordre. */
 export const allQuantities = (quantite: number, paliers: number[]) => [...new Set([quantite, ...paliers].filter((value) => value > 0))].sort((a, b) => a - b)
 
-export const areaFor = (row: Pick<Scenario, 'nb_poses' | 'laize' | 'depl'>, quantite: number) => (sheetsFor(row, quantite) * row.laize * row.depl) / 1e6
-export const materialCost = (row: Pick<Scenario, 'nb_poses' | 'laize' | 'depl'>, quantite: number, grammage: number, prixTonne: number) => (prixTonne > 0 && grammage > 0 ? tonnageFor(row, quantite, grammage) * prixTonne : null)
+export const areaFor = (row: SheetSize, quantite: number) => (sheetsFor(row, quantite) * boughtLaize(row) * row.depl) / 1e6
+export const materialCost = (row: SheetSize, quantite: number, grammage: number, prixTonne: number) => (prixTonne > 0 && grammage > 0 ? tonnageFor(row, quantite, grammage) * prixTonne : null)
 export const costLabel = (value: number | null) => (value == null ? '—' : `${formatQuantity(Math.round(value))} DA`)
 /** Le coût d'un exemplaire : deux décimales, trois sous le dinar, pour qu'un prix de quelques centimes reste lisible. */
 export function unitCostLabel(value: number | null) {
@@ -429,17 +438,17 @@ export function fibreRotation(fibreTrace: string | undefined, fibre: string) {
 export const fibreSummary = (fibreTrace?: string) => (fibreTrace === 'Verticale' || fibreTrace === 'Horizontale' ? `fibre ${fibreTrace.toLowerCase()} sur le tracé` : 'fibre libre')
 
 /** Format idéal : c'est l'utilisateur qui choisit le critère, le moteur donne le meilleur pour chacun. */
-export type CritereFormat = 'matiere' | 'feuilles' | 'stock' | 'cout'
+export type CritereFormat = 'matiere' | 'feuilles' | 'sans_refente' | 'cout'
 export const CRITERES_FORMAT: { value: CritereFormat; label: string; hint: string }[] = [
-	{ value: 'matiere', label: 'Moins de matière', hint: 'le moins de carton pour la quantité' },
+	{ value: 'matiere', label: 'Moins de matière', hint: 'le moins de carton acheté pour la quantité' },
 	{ value: 'feuilles', label: 'Moins de feuilles', hint: 'le moins de passages en presse et en découpe' },
-	{ value: 'stock', label: 'Format en stock', hint: 'le meilleur des formats du support, sans commande spéciale' },
+	{ value: 'sans_refente', label: 'Sans refente', hint: 'une palette ou une bobine entière, sans passage au débobinage' },
 	{ value: 'cout', label: 'Coût complet', hint: 'matière et passages presse' },
 ]
 export interface Proposition extends Scenario {
 	/** Les critères que cette feuille gagne. */
 	criteres: CritereFormat[]
-	/** La fibre dans laquelle commander la feuille sur mesure ; vide quand le tracé n'en impose pas. */
+	/** La fibre de la feuille telle qu'elle entre en presse ; vide si inconnue. */
 	fibre_feuille?: string
 	/** Matière et passages presse, en DA : l'équipe devis seule, et quand la presse a son coût. */
 	cout_complet?: number
@@ -448,31 +457,36 @@ export interface PropositionResult {
 	lignes: Proposition[]
 	/** Présent quand le coût complet a pu se calculer : la presse dont vient le coût des passages. */
 	cout: { presse: string } | null
+	/** La refente a été cherchée : ses réglages sont saisis. */
+	refente: boolean
+	/** Formats standards du support envoyés. */
+	formats: number
 }
-export const PAS_FOURNISSEUR = [1, 5, 10] as const
-/** Le format maxi proposé d'office : la presse de l'étude, sinon le plus grand format du support, sinon 1020 × 720. */
-export function defaultMaxFormat(presse: AtelierPresse | null | undefined, formats: AtelierFormat[]) {
-	if (presse) return { laize: presse.laize, depl: presse.depl }
-	const largest = formats.filter((row) => !row.bobine && row.laize > 0 && row.depl > 0).sort((a, b) => b.laize * b.depl - a.laize * a.depl)[0]
-	return largest ? { laize: largest.laize, depl: largest.depl } : { laize: 1020, depl: 720 }
-}
-/** La feuille gagnante pour un critère, puis les autres critères, chacun avec son gagnant, sans doublon de critère. */
+/** Le format maxi proposé d'office : celui de la presse de l'étude. Sans presse, il est à saisir. */
+export const defaultMaxFormat = (presse: AtelierPresse | null | undefined) => (presse ? { laize: presse.laize, depl: presse.depl } : null)
+/** La feuille gagnante pour un critère, puis les autres critères, chacun avec son gagnant. */
 export function byCritere(lignes: Proposition[], critere: CritereFormat) {
 	const available = CRITERES_FORMAT.filter((option) => lignes.some((row) => row.criteres.includes(option.value)))
 	const order = [...available.filter((option) => option.value === critere), ...available.filter((option) => option.value !== critere)]
 	return order.map((option) => ({ ...option, row: lignes.find((row) => row.criteres.includes(option.value))! }))
 }
-/** Ce que gagne ou perd la feuille choisie face au meilleur format en stock, en clair. Vide si c'est elle. */
-export function stockComparison(chosen: Proposition, stock: Proposition | undefined, quantite: number, grammage: number) {
-	if (!stock || stock === chosen) return ''
+/** Ce que gagne ou perd la feuille choisie face à la meilleure sans refente, en clair. Vide si c'est elle. */
+export function plainComparison(chosen: Proposition, plain: Proposition | undefined, quantite: number, grammage: number) {
+	if (!plain || plain === chosen) return ''
 	const parts: string[] = []
-	const chutes = Math.round((stock.taux_chutes - chosen.taux_chutes) * 10) / 10
+	const chutes = Math.round((plain.taux_chutes - chosen.taux_chutes) * 10) / 10
 	if (chutes) parts.push(`${String(Math.abs(chutes)).replace('.', ',')} points de chutes en ${chutes > 0 ? 'moins' : 'plus'}`)
-	const tonnes = tonnageFor(stock, quantite, grammage) - tonnageFor(chosen, quantite, grammage)
+	const tonnes = tonnageFor(plain, quantite, grammage) - tonnageFor(chosen, quantite, grammage)
 	if (grammage && quantite && Math.abs(tonnes) >= 0.001) parts.push(`${formatQuantity(Math.round(Math.abs(tonnes) * 1000))} kg de carton en ${tonnes > 0 ? 'moins' : 'plus'}`)
-	const feuilles = sheetsFor(stock, quantite) - sheetsFor(chosen, quantite)
+	const feuilles = sheetsFor(plain, quantite) - sheetsFor(chosen, quantite)
 	if (quantite && feuilles) parts.push(`${formatQuantity(Math.abs(feuilles))} feuilles en ${feuilles > 0 ? 'moins' : 'plus'}`)
-	if (!parts.length) return `Autant que le meilleur format en stock, ${sheetLabel(stock)}.`
-	return `Face au meilleur format en stock, ${sheetLabel(stock)} : ${parts.join(', ')}.`
+	if (!parts.length) return `Autant que la meilleure feuille sans refente, ${sheetLabel(plain)}.`
+	return `Face à la meilleure feuille sans refente, ${sheetLabel(plain)} : ${parts.join(', ')}.`
 }
 export const fibreFeuilleLabel = (fibre?: string) => (fibre ? `fibre ${fibre.toLowerCase()}` : '')
+/** « en 2 à 4 bandes, rive 5 mm », ou ce qui manque. */
+export function refenteSummary(reglages: Pick<AtelierReglages, 'refente_rive' | 'refente_bandes_max' | 'refente_laize_min'>) {
+	const bandes = reglages.refente_bandes_max ?? 0
+	if (bandes < 2) return 'non réglée'
+	return `jusqu'à ${bandes} bandes, rive ${mm(reglages.refente_rive ?? 0)} mm${reglages.refente_laize_min ? `, bande de ${mm(reglages.refente_laize_min)} mm au moins` : ''}`
+}

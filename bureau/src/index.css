@@ -4456,8 +4456,8 @@
 		font-weight: 600;
 		@apply text-ink-gray-9;
 	}
-	.atelier-sim-row .form-field.atelier-propose-pas {
-		width: 5.75rem;
+	.atelier-propose td.end {
+		white-space: nowrap;
 	}
 	.atelier-propose tbody tr {
 		cursor: pointer;
