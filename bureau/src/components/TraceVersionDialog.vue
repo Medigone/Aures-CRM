@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import FileUploader from '@shared/components/FileUploader.vue'
 import FormDialog from '@shared/components/FormDialog.vue'
 import type { UploadedFile } from '@shared/api'
 import { createTraceVersion, setTraceFile } from '@/lib/api'
 import { batConfirmationText, dimensionsLabel, sameCotations, type BatConfirmation } from '@/lib/etudePieces'
 import { versionConsequences, versionDoneText, versionLabel, type TraceDetail } from '@/lib/traces'
+import { useTraceAnalysis } from '@/lib/useTraceAnalysis'
+import TracePdfReading from './TracePdfReading.vue'
 
 /** Nouvelle version du tracé, depuis sa fiche : en service tout de suite, comme une maquette activée. */
 const props = defineProps<{ trace: TraceDetail }>()
@@ -30,6 +32,29 @@ let settle: ((value: TraceDetail) => void) | null = null
 let fail: ((error: Error) => void) | null = null
 let created: TraceDetail | null = null
 const hasFile = () => Boolean(uploader.value?.items.length)
+// Le PDF choisi est lu tout de suite : ses cotations remplacent les dimensions, et peuvent être remises.
+const previousDimensions = ref<string | null>(null)
+const appliedFromPdf = ref(false)
+function applyCotations(cotations?: string | null) {
+	if (!cotations) return
+	if (!sameCotations(dimensions.value, cotations)) previousDimensions.value = dimensions.value || null
+	dimensions.value = cotations
+	appliedFromPdf.value = true
+}
+function restoreDimensions() {
+	dimensions.value = previousDimensions.value ?? ''
+	previousDimensions.value = null
+	appliedFromPdf.value = false
+}
+const reading = useTraceAnalysis(uploader, (result) => {
+	appliedFromPdf.value = false
+	previousDimensions.value = null
+	if (result.lisible) applyCotations(result.cotations)
+})
+function onFileChange() {
+	error.value = ''
+	nextTick(reading.onFileChange)
+}
 function onUploaded(file: UploadedFile) {
 	uploadedUrl = file.file_url
 }
@@ -121,7 +146,8 @@ async function submit(confirmBat = 0) {
 			<div class="form-field">
 				<span class="field-label">Fichier du tracé</span>
 				<span class="field-note"><template v-if="trace.fichier">Sans nouveau fichier, celui de la {{ versionLabel(trace.ver) }} est recopié : {{ trace.fichier.name }}.</template><template v-else>La version actuelle n'a pas de fichier.</template> L'atelier ne lit que le PDF.</span>
-				<FileUploader ref="uploader" deferred :multiple="false" doctype="Trace" @change="error = ''" @uploaded="onUploaded" @settled="onSettled" />
+				<FileUploader ref="uploader" deferred :multiple="false" doctype="Trace" @change="onFileChange" @uploaded="onUploaded" @settled="onSettled" />
+				<TracePdfReading :analysis="reading.analysis.value" :analyzing="reading.analyzing.value" :applied="appliedFromPdf" :previous="previousDimensions" @restore="restoreDimensions" @apply="applyCotations(reading.analysis.value?.cotations)" />
 			</div>
 			<p v-if="willChangeArticle" class="rounded-control tone-amber px-3 py-2 text-sm">Les cotations de l'article {{ trace.designation }} seront mises à jour : {{ dimensionsLabel(trace.dimensions || '') }} deviendra {{ dimensionsLabel(dimensions) }}.</p>
 		</template>

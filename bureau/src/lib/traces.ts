@@ -118,6 +118,34 @@ export interface TracePreview {
 	height: number
 }
 
+/** Ce que le PDF d'un tracé dit de lui, lu sans rien enregistrer. */
+export interface TraceAnalysis {
+	lisible: boolean
+	message?: string
+	titre?: string
+	reference?: string | null
+	designation?: string | null
+	cotations?: string | null
+	confirmees?: boolean
+	cotes?: number
+	developpe?: [number, number] | null
+	atelier?: boolean
+	rainage?: boolean
+	autres_couleurs?: number
+	pages?: number
+}
+
+/** Les alertes de la lecture, de la plus grave à la plus légère. */
+export function analysisWarnings(analysis: TraceAnalysis) {
+	if (!analysis.lisible) return [analysis.message || "Ce fichier ne s'est pas lu."]
+	const lines: string[] = []
+	if (!analysis.atelier) lines.push("Aucun trait de coupe noir : l'atelier ne pourra pas calculer d'imposition avec ce fichier.")
+	if (analysis.autres_couleurs) lines.push("Des traits ont une couleur hors convention (ni noir, ni rouge, ni bleu) : vérifiez qu'aucune découpe n'y manque.")
+	if (!analysis.cotations) lines.push('Pas de cotations dans le titre du PDF : saisissez-les.')
+	else if (!analysis.confirmees) lines.push('Les cotations du titre ne se retrouvent pas toutes dans les cotes du dessin : vérifiez-les.')
+	return lines
+}
+
 export interface TraceVersionResult {
 	name: string
 	ver: number

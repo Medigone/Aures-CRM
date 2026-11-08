@@ -13,8 +13,9 @@ import os
 import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt
+from frappe.utils.file_manager import get_max_file_size
 
-from aurescrm import item_cotations
+from aurescrm import item_cotations, trace_import
 from aurescrm.api import activity
 from aurescrm.api.bureau import BELL_FIELD, _parse, condition_filters, doctype_filter_fields, has_child_filter, page_bounds, require_bureau, row_bell, row_tags
 from aurescrm.api.bureau_articles import _customers
@@ -383,6 +384,25 @@ def set_trace_file(name, modified, file_url):
 		for etude in frappe.get_all(doctype, filters={"trace": doc.name, "status": ["in", ("Nouveau", "En étude")]}, pluck="name"):
 			frappe.db.set_value(doctype, etude, "fichier_trace", file_url)
 	return get_trace(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def analyze_trace_pdf():
+	"""Lit un PDF de tracé choisi dans une fenêtre, sans rien enregistrer : cotations du titre recoupées avec les cotes, développé, traits."""
+	require_bureau()
+	if not (frappe.has_permission(TRACE, "create") or frappe.has_permission(TRACE, "write")):
+		raise frappe.PermissionError
+	upload = frappe.request.files.get("file") if frappe.request else None
+	if not upload:
+		frappe.throw(_("Aucun fichier reçu."))
+	limit = get_max_file_size()
+	data = upload.stream.read(limit + 1)
+	if len(data) > limit:
+		frappe.throw(_("Ce fichier est trop lourd."))
+	result = trace_import.analyze(data, upload.filename or "")
+	if result.get("developpe"):
+		result["developpe"] = list(result["developpe"])
+	return result
 
 
 def _readable_trace(name):

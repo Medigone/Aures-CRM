@@ -11,7 +11,7 @@ import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, Ar
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
 import type { ImpositionDetail, ImpositionOptions, ImpositionsResponse, ImpositionView } from './impositions'
-import type { TraceDetail, TraceOptions, TracePreview, TracesResponse, TraceVersionResult, TraceView } from './traces'
+import type { TraceAnalysis, TraceDetail, TraceOptions, TracePreview, TracesResponse, TraceVersionResult, TraceView } from './traces'
 import type { GroupCandidate, GroupResult } from './groupage'
 import type { AtelierCalcul, AtelierData, AtelierFormat, GabaritApercu, PropositionResult, Scenario } from './atelier'
 import type { BatConfirmation, ClicheOptions, EtudePieces, ImpositionRow, MachineRow, PiecesResult, SaveTraceResult, TraceReference } from './etudePieces'
@@ -452,6 +452,11 @@ type TraceVersionRef = Pick<TraceDetail, 'name' | 'modified'>
 export const getTraces = (view: TraceView, conditions: Condition[], search: string, paging: ListPaging = {}) => call<TracesResponse>(`${TRACES}.get_traces`, listParams(view, conditions, search, paging))
 export const getTraceOptions = () => call<TraceOptions>(`${TRACES}.get_trace_options`)
 export const getTrace = (name: string) => call<TraceDetail>(`${TRACES}.get_trace`, { name })
+export function analyzeTracePdf(file: File) {
+	const form = new FormData()
+	form.append('file', file, file.name)
+	return callForm<TraceAnalysis>(`${TRACES}.analyze_trace_pdf`, form)
+}
 export const getTracePreview = (name: string) => call<TracePreview | null>(`${TRACES}.get_trace_preview`, { name })
 export const createTraceVersion = (trace: TraceVersionRef, values: { desc_changements: string; dimensions: string; points_colle: number; confirm_bat: number; copy_file: number }) =>
 	call<TraceVersionResult | { confirmation: BatConfirmation }>(`${TRACES}.create_trace_version`, { name: trace.name, modified: trace.modified, ...values }, true)

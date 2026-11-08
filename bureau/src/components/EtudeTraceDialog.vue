@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import FileUploader from '@shared/components/FileUploader.vue'
 import FormDialog from '@shared/components/FormDialog.vue'
 import { duplicateTrace, getTraceReferences, newTraceVersion, saveTrace } from '@/lib/api'
@@ -7,6 +7,8 @@ import { batConfirmationText, dimensionsLabel, sameCotations, type BatConfirmati
 import type { EtudeDetail } from '@/lib/etudes'
 import { versionConsequences, versionDoneText, versionLabel } from '@/lib/traces'
 import { usePieceUpload } from '@/lib/usePieceUpload'
+import { useTraceAnalysis } from '@/lib/useTraceAnalysis'
+import TracePdfReading from './TracePdfReading.vue'
 
 /** Créer, dupliquer ou mettre à jour le tracé. En Offset ses dimensions deviennent les cotations de l'article : si elles viennent d'un BAT, cela se confirme. */
 const props = defineProps<{ etude: EtudeDetail; pieces: EtudePieces }>()
@@ -35,6 +37,29 @@ const busy = ref(false)
 const error = ref('')
 const uploader = ref<InstanceType<typeof FileUploader> | null>(null)
 const upload = usePieceUpload(uploader, 'trace', 'Trace')
+// Le PDF choisi est lu tout de suite : ses cotations remplacent les dimensions, et peuvent être remises.
+const previousDimensions = ref<string | null>(null)
+const appliedFromPdf = ref(false)
+function applyCotations(cotations?: string | null) {
+	if (!cotations) return
+	if (!sameCotations(dimensions.value, cotations)) previousDimensions.value = dimensions.value || null
+	dimensions.value = cotations
+	appliedFromPdf.value = true
+}
+function restoreDimensions() {
+	dimensions.value = previousDimensions.value ?? ''
+	previousDimensions.value = null
+	appliedFromPdf.value = false
+}
+const reading = useTraceAnalysis(uploader, (result) => {
+	appliedFromPdf.value = false
+	previousDimensions.value = null
+	if (result.lisible) applyCotations(result.cotations)
+})
+function onFileChange() {
+	error.value = ''
+	nextTick(reading.onFileChange)
+}
 
 const copying = computed(() => mode.value === 'copy' && !editing.value)
 const reference = computed(() => references.value?.find((row) => row.name === source.value))
@@ -168,7 +193,8 @@ function savedMessage(result: PiecesResult) {
 				<span v-if="trace.fichier && versioning" class="field-note">Sans nouveau fichier, celui de la {{ versionLabel(trace.ver ?? 1) }} est recopié : {{ trace.fichier.name }}. L'atelier ne lit que le PDF.</span>
 				<span v-else-if="trace.fichier" class="field-note">Actuel : <a class="ref-link" :href="trace.fichier.url" target="_blank" rel="noopener noreferrer">{{ trace.fichier.name }}</a>. Il reste si vous n'en déposez pas d'autre.</span>
 				<span v-if="fileLocked" class="field-note">{{ trace.impositions }} imposition{{ (trace.impositions ?? 0) > 1 ? 's s\'appuient' : ' s\'appuie' }} sur ce fichier : pour changer le dessin, choisissez Nouvelle version.</span>
-				<FileUploader v-else ref="uploader" deferred :multiple="false" doctype="Trace" :docname="trace.name ?? undefined" @change="error = ''" @uploaded="upload.onUploaded" @settled="upload.onSettled" />
+				<FileUploader v-else ref="uploader" deferred :multiple="false" doctype="Trace" :docname="trace.name ?? undefined" @change="onFileChange" @uploaded="upload.onUploaded" @settled="upload.onSettled" />
+				<TracePdfReading v-if="!fileLocked" :analysis="reading.analysis.value" :analyzing="reading.analyzing.value" :applied="appliedFromPdf" :previous="previousDimensions" @restore="restoreDimensions" @apply="applyCotations(reading.analysis.value?.cotations)" />
 			</div>
 			<p v-if="willChangeArticle" class="rounded-control tone-amber px-3 py-2 text-sm"><template v-if="articleCotations">Les cotations de l'article {{ etude.designation }} seront mises à jour : {{ dimensionsLabel(articleCotations) }} deviendra {{ dimensionsLabel(dimensions) }}.</template><template v-else>L'article {{ etude.designation }} n'a pas de cotations : il recevra {{ dimensionsLabel(dimensions) }}.</template></p>
 		</template>
