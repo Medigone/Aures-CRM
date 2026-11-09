@@ -15,12 +15,13 @@ export function devisPdfUrl(name: string) {
 	return `/api/method/frappe.utils.print_format.download_pdf?${query.toString()}`
 }
 
-export type DevisView = 'all' | 'chiffrer' | 'valider' | 'valides' | 'expirent' | 'commandes' | 'clos'
+export type DevisView = 'all' | 'chiffrer' | 'valider' | 'envoyer' | 'valides' | 'expirent' | 'commandes' | 'clos'
 
 export const DEVIS_VIEWS: { key: DevisView; label: string }[] = [
 	{ key: 'all', label: 'Tous' },
 	{ key: 'chiffrer', label: 'À chiffrer' },
 	{ key: 'valider', label: 'À valider' },
+	{ key: 'envoyer', label: 'À envoyer' },
 	{ key: 'valides', label: 'Validés' },
 	{ key: 'expirent', label: 'Expirent sous 7 jours' },
 	{ key: 'commandes', label: 'Commandés' },
@@ -57,6 +58,7 @@ export interface DevisRow {
 	demande: string | null
 	ticket: string | null
 	type: string
+	envoye_le: string | null
 	cree_par: string | null
 }
 
@@ -83,7 +85,14 @@ export interface DevisLine {
 	chiffree: boolean
 }
 
-export type DevisAction = 'prix' | 'valider' | 'commande' | 'perdu' | 'annuler'
+export type DevisAction = 'prix' | 'valider' | 'envoye' | 'commande' | 'perdu' | 'annuler'
+
+export interface DevisEnvoi {
+	le: string
+	par: string | null
+	par_nom: string | null
+	canal: string | null
+}
 
 export interface DevisSale {
 	name: string
@@ -125,6 +134,9 @@ export interface DevisDetail {
 	blocked: string[]
 	raisons_perte: string[]
 	perte: { raisons: string[]; precisions: string | null } | null
+	/** Envoi au client, quand il a eu lieu. */
+	envoi: DevisEnvoi | null
+	canaux_envoi: string[]
 	comments: CommentSummary
 }
 
@@ -135,7 +147,8 @@ export const percentText = (value?: number | null) => (value === null || value =
 export const chiffrageText = (row: Pick<DevisRow, 'lignes' | 'chiffrees'>) => (row.lignes ? `${row.chiffrees}/${row.lignes}` : '')
 
 /** Ce qu'il reste à faire sur un brouillon, lu dans ses prix ; rien une fois validé. */
-export function devisStage(row: Pick<DevisRow, 'status' | 'lignes' | 'chiffrees'>) {
+export function devisStage(row: Pick<DevisRow, 'status' | 'lignes' | 'chiffrees'> & { envoye_le?: string | null }) {
+	if (row.status === 'Open' || row.status === 'Replied') return row.envoye_le ? { label: 'Envoyé', tone: 'tone-blue' } : { label: 'À envoyer', tone: 'tone-amber' }
 	if (row.status !== 'Draft') return null
 	if (!row.lignes || row.chiffrees < row.lignes) return { label: 'À chiffrer', tone: 'tone-blue' }
 	return { label: 'À valider', tone: 'tone-amber' }
@@ -169,6 +182,7 @@ export const DEVIS_COLUMNS: Column<DevisRow>[] = [
 	{ key: 'livraison', label: 'Livraison', width: 88, minWidth: 72, sortable: true, optional: true, text: (row) => formatDay(row.livraison) },
 	{ key: 'date', label: 'Date du devis', width: 100, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.date) },
 	{ key: 'creation', label: 'Créé le', width: 88, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.creation) },
+	{ key: 'envoye_le', label: 'Envoyé le', width: 92, minWidth: 80, sortable: true, optional: true, text: (row) => formatDay(row.envoye_le) },
 	{ key: 'modified', label: 'Modifié le', width: 92, minWidth: 80, sortable: true, text: (row) => formatDay(row.modified) },
 	{ key: 'cree_par', label: 'Créé par', width: 120, minWidth: 72, sortable: true, optional: true, text: (row) => row.cree_par || '' },
 ]
@@ -183,7 +197,7 @@ export function devisSortText(sort: Sort | null) {
 export const quantityText = (value: number) => formatQuantity(value)
 
 /** Étapes du devis : chiffrage, validation, envoi au client, commande. Perdu, expiré ou annulé ferment la frise. */
-export function devisTimeline(devis: Pick<DevisDetail, 'status' | 'docstatus' | 'lignes' | 'chiffrees' | 'commande' | 'commandes' | 'perte'>) {
+export function devisTimeline(devis: Pick<DevisDetail, 'status' | 'docstatus' | 'lignes' | 'chiffrees' | 'commande' | 'commandes' | 'perte'> & { envoi?: DevisEnvoi | null }) {
 	const lignes = devis.lignes.length
 	const validated = devis.docstatus === 1
 	const ordered = devis.status === 'Ordered' || devis.status === 'Partially Ordered' || devis.commandes.length > 0
@@ -192,7 +206,7 @@ export function devisTimeline(devis: Pick<DevisDetail, 'status' | 'docstatus' | 
 	const steps: Step[] = [
 		{ key: 'chiffrage', label: 'Chiffrage', state: validated || (lignes && devis.chiffrees === lignes) ? 'done' : 'current', detail: lignes ? `${devis.chiffrees} prix sur ${lignes}` : 'Aucune ligne' },
 		{ key: 'validation', label: 'Validation', state: validated ? 'done' : 'todo', detail: validated ? 'Validé' : 'Chargé ou Responsable Devis' },
-		{ key: 'envoi', label: 'Envoi au client', state: ordered || end ? 'done' : validated ? 'current' : 'todo', detail: 'Par le commercial' },
+		{ key: 'envoi', label: 'Envoi au client', state: devis.envoi || ordered || end ? 'done' : validated ? 'current' : 'todo', detail: devis.envoi ? envoiText(devis.envoi) : 'Par le commercial' },
 		{
 			key: 'commande',
 			label: end ?? 'Commande',
@@ -206,15 +220,21 @@ export function devisTimeline(devis: Pick<DevisDetail, 'status' | 'docstatus' | 
 	return { steps, current: current >= 0 ? current : null, focus: current >= 0 ? current : steps.length - 1 }
 }
 
+/** « 10/11 · Ismail T. · WhatsApp » */
+export function envoiText(envoi: DevisEnvoi) {
+	return [formatDay(envoi.le), envoi.par_nom, envoi.canal].filter(Boolean).join(' · ')
+}
+
 /** La consigne de l'étape en cours, en infobulle de la frise. */
-export function devisTip(devis: Pick<DevisDetail, 'status' | 'docstatus' | 'blocked' | 'actions'>) {
+export function devisTip(devis: Pick<DevisDetail, 'status' | 'docstatus' | 'blocked' | 'actions'> & { envoi?: DevisEnvoi | null }) {
 	if (devis.docstatus === 0) return devis.blocked.length ? devis.blocked.join(' ') : 'Tous les prix sont saisis : le devis peut être validé.'
-	if (devis.status === 'Open' || devis.status === 'Replied') return 'Le commercial a été prévenu et remet le devis au client. Créez la commande quand le client accepte.'
+	if ((devis.status === 'Open' || devis.status === 'Replied') && !devis.envoi) return "Le commercial a été prévenu sur son téléphone pour l'envoyer au client. S'il a été remis autrement, marquez-le envoyé."
+	if (devis.status === 'Open' || devis.status === 'Replied') return 'En attente de la réponse du client. Créez la commande quand il accepte.'
 	if (devis.status === 'Partially Ordered') return 'Une partie du devis est commandée : une nouvelle commande reprend les articles restants.'
 	return ''
 }
 
-export const DEVIS_ACTION_LABELS: Record<DevisAction, string> = { prix: 'Enregistrer', valider: 'Valider le devis', commande: 'Créer la commande', perdu: 'Marquer perdu…', annuler: 'Annuler le devis…' }
+export const DEVIS_ACTION_LABELS: Record<DevisAction, string> = { prix: 'Enregistrer', valider: 'Valider le devis', envoye: 'Marquer envoyé…', commande: 'Créer la commande', perdu: 'Marquer perdu…', annuler: 'Annuler le devis…' }
 
 /** Saisie d'un prix : virgule ou point, espaces de milliers acceptés. Vide ou illisible : null. */
 export function parsePrice(text: string) {

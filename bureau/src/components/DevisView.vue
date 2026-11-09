@@ -6,6 +6,7 @@ import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideCalendar from '~icons/lucide/calendar'
 import LucideCalendarClock from '~icons/lucide/calendar-clock'
 import LucideClipboardList from '~icons/lucide/clipboard-list'
+import LucideSend from '~icons/lucide/send'
 import LucideTicket from '~icons/lucide/ticket'
 import LucideTruck from '~icons/lucide/truck'
 import LucideUser from '~icons/lucide/user'
@@ -19,7 +20,7 @@ import RecordHeader from './RecordHeader.vue'
 import StepTimeline from './StepTimeline.vue'
 import TagEditor from './TagEditor.vue'
 import { devisActivity } from '@/lib/api'
-import { DEVIS_DOCTYPE, devisPdfUrl, devisStage, devisTimeline, devisTip, devisTypeLabel, moneyText, parsePrice, quantityText, type DevisLine } from '@/lib/devis'
+import { DEVIS_DOCTYPE, devisPdfUrl, envoiText, devisStage, devisTimeline, devisTip, devisTypeLabel, moneyText, parsePrice, quantityText, type DevisLine } from '@/lib/devis'
 import { deskUrl, formatDay } from '@/lib/display'
 import { canRead } from '@/lib/droits'
 import { useDevis } from '@/lib/useDevis'
@@ -27,7 +28,7 @@ import { useDevis } from '@/lib/useDevis'
 const props = defineProps<{ id: string; tab?: string }>()
 const emit = defineEmits<{ changed: [] }>()
 
-const { devis, error, notFound, actionError, notice, noticeTone, busy, load, refresh, setPrice, setValidity, validate, order, lose, cancel } = useDevis(
+const { devis, error, notFound, actionError, notice, noticeTone, busy, load, refresh, setPrice, setValidity, validate, order, lose, cancel, markSent } = useDevis(
 	() => props.id,
 	() => emit('changed'),
 )
@@ -53,7 +54,7 @@ const canSeeClient = canRead('Customer')
 const has = (action: string) => Boolean(devis.value?.actions.includes(action as never))
 const editable = computed(() => has('prix'))
 const prices = computed(() => Boolean(devis.value?.lignes.some((line) => line.prix !== null)))
-const stage = computed(() => (devis.value ? devisStage({ status: devis.value.status, lignes: devis.value.lignes.length, chiffrees: devis.value.chiffrees }) : null))
+const stage = computed(() => (devis.value ? devisStage({ status: devis.value.status, lignes: devis.value.lignes.length, chiffrees: devis.value.chiffrees, envoye_le: devis.value.envoi?.le }) : null))
 const timeline = computed(() => (devis.value ? devisTimeline(devis.value) : null))
 const tip = computed(() => (devis.value ? devisTip(devis.value) : ''))
 
@@ -128,6 +129,7 @@ function onTags(tags: string[]) {
 				</template>
 				<template #actions>
 					<button v-if="has('valider')" type="button" class="btn-primary" :disabled="busy || devis.blocked.length > 0" :title="devis.blocked.join(' ') || undefined" @click="actions?.run('valider')">Valider le devis</button>
+					<button v-if="has('envoye')" type="button" class="btn-secondary" :disabled="busy" @click="actions?.run('envoye')">Marquer envoyé</button>
 					<button v-if="has('commande')" type="button" class="btn-primary" :disabled="busy" @click="actions?.run('commande')">Créer la commande</button>
 					<a v-if="devis.can_print" class="btn-secondary" :href="devisPdfUrl(devis.name)" target="_blank" rel="noopener noreferrer">Voir le PDF</a>
 					<MoreMenu>
@@ -163,6 +165,7 @@ function onTags(tags: string[]) {
 								<dd v-else class="tabular-nums">{{ formatDay(devis.valable) || '—' }}</dd>
 							</div>
 							<div><dt><LucideTruck aria-hidden="true" />Livraison souhaitée</dt><dd class="tabular-nums" :class="!devis.livraison && 'record-fact-none'">{{ formatDay(devis.livraison) || '—' }}</dd></div>
+							<div v-if="devis.docstatus === 1"><dt><LucideSend aria-hidden="true" />Envoi au client</dt><dd :class="!devis.envoi && 'record-fact-none'">{{ devis.envoi ? envoiText(devis.envoi) : 'Pas encore envoyé' }}</dd></div>
 							<div><dt><LucideWallet aria-hidden="true" />Total TTC</dt><dd class="tabular-nums">{{ moneyText(devis.total_ttc) }} DA</dd></div>
 						</dl>
 					</aside>
@@ -243,7 +246,7 @@ function onTags(tags: string[]) {
 					</div>
 				</div>
 			</div>
-			<DevisActions ref="actions" :devis="devis" :busy="busy" :validate="validate" :order="order" :lose="lose" :cancel="cancel" @ordered="commandeCreee = $event" />
+			<DevisActions ref="actions" :devis="devis" :busy="busy" :validate="validate" :order="order" :lose="lose" :cancel="cancel" :mark-sent="markSent" @ordered="commandeCreee = $event" />
 		</template>
 		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />
 		<AppToast :message="commandeCreee ? `Commande ${commandeCreee} créée en brouillon.` : ''" :duration="0" @close="commandeCreee = ''">

@@ -1,5 +1,5 @@
 /** Chargement d'un devis et ses écritures, communs à l'aperçu et à la fiche. */
-import { cancelDevis, createDevisCommande, getDevis, markDevisLost, updateDevis, validateDevis } from './api'
+import { cancelDevis, createDevisCommande, getDevis, markDevisLost, markDevisSent, updateDevis, validateDevis } from './api'
 import type { DevisDetail } from './devis'
 import { useRecord } from './useRecord'
 
@@ -31,5 +31,6 @@ export function useDevis(id: () => string, changed: () => void = () => {}) {
 		},
 		lose: (values: { raison: string; concurrent: string; precisions: string }) => run((devis) => markDevisLost(devis, values), 'Devis marqué perdu.'),
 		cancel: () => run(cancelDevis, 'Devis annulé.'),
+		markSent: (values: { canal: string; le: string }) => run((devis) => markDevisSent(devis, values), 'Devis marqué envoyé.'),
 	}
 }

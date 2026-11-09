@@ -335,6 +335,10 @@ scheduler_events = {
     "cron": {
         "0 2 * * *": [
             "aurescrm.aures_crm.doctype.reclamations_clients.reclamations_clients.update_reclamations_status"
+        ],
+        # Relance du commercial : devis validé la veille et toujours pas envoyé au client.
+        "0 8 * * *": [
+            "aurescrm.devis_envoi.relancer"
         ]
     },
     "daily": [

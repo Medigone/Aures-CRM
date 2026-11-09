@@ -11,29 +11,37 @@ const props = defineProps<{
 	order: () => Promise<string>
 	lose: (values: { raison: string; concurrent: string; precisions: string }) => Promise<boolean>
 	cancel: () => Promise<boolean>
+	markSent: (values: { canal: string; le: string }) => Promise<boolean>
 }>()
 const emit = defineEmits<{ ordered: [commande: string] }>()
 
-type Dialog = 'valider' | 'commande' | 'perdu' | 'annuler'
+type Dialog = 'valider' | 'envoye' | 'commande' | 'perdu' | 'annuler'
 const open = ref<Dialog | null>(null)
 const raison = ref('')
 const concurrent = ref('')
 const precisions = ref('')
+const canal = ref('')
+const le = ref('')
+const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)
 const reste = computed(() => props.devis.lignes.length)
 
 function run(action: Dialog) {
 	raison.value = ''
 	concurrent.value = ''
 	precisions.value = ''
+	canal.value = props.devis.canaux_envoi[0] ?? ''
+	le.value = today()
 	open.value = action
 }
 async function confirm() {
 	const action = open.value
 	if (!action) return
 	if (action === 'perdu' && !raison.value) return
+	if (action === 'envoye' && (!canal.value || !le.value)) return
 	open.value = null
 	if (action === 'valider') await props.validate()
 	else if (action === 'annuler') await props.cancel()
+	else if (action === 'envoye') await props.markSent({ canal: canal.value, le: le.value })
 	else if (action === 'perdu') await props.lose({ raison: raison.value, concurrent: concurrent.value.trim(), precisions: precisions.value.trim() })
 	else {
 		const commande = await props.order()
@@ -51,6 +59,18 @@ defineExpose({ run })
 			<div><dt>Lignes</dt><dd class="tabular-nums">{{ reste }}</dd></div>
 		</dl>
 		<template #actions><button type="button" class="btn-primary" :disabled="busy" @click="confirm">Valider le devis</button></template>
+	</FormDialog>
+
+	<FormDialog v-else-if="open === 'envoye'" :title="`Marquer ${devis.name} envoyé ?`" :dirty="false" hint="" @close="open = null" @submit="confirm">
+		<p class="m-0">Pour un devis remis autrement que par l'application commerciale : en main propre, par un mail du bureau. Le commercial n'a plus d'envoi en attente.</p>
+		<label class="form-field">
+			<span class="field-label">Moyen</span>
+			<select v-model="canal" class="field-input">
+				<option v-for="item in devis.canaux_envoi" :key="item" :value="item">{{ item }}</option>
+			</select>
+		</label>
+		<label class="form-field"><span class="field-label">Date d'envoi</span><input v-model="le" class="field-input" type="date" :max="today()" /></label>
+		<template #actions><button type="button" class="btn-primary" :disabled="busy || !canal || !le" @click="confirm">Marquer envoyé</button></template>
 	</FormDialog>
 
 	<FormDialog v-else-if="open === 'commande'" :title="`Créer la commande de ${devis.name} ?`" :dirty="false" hint="" @close="open = null" @submit="confirm">

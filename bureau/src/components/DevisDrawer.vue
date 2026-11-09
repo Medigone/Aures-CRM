@@ -10,7 +10,7 @@ import CommentText from '@shared/components/CommentText.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import TagEditor from './TagEditor.vue'
-import { commandeText, DEVIS_DOCTYPE, devisPdfUrl, devisStage, devisTypeLabel, moneyText, quantityText } from '@/lib/devis'
+import { commandeText, DEVIS_DOCTYPE, devisPdfUrl, envoiText, devisStage, devisTypeLabel, moneyText, quantityText } from '@/lib/devis'
 import { deskUrl, formatDay } from '@/lib/display'
 import { canRead } from '@/lib/droits'
 import { useDevis } from '@/lib/useDevis'
@@ -32,7 +32,7 @@ useDrawerControls(root, { close: () => emit('close'), prev: () => emit('prev'), 
 const canSeeDemande = canRead('Demande Faisabilite')
 const canSeeTicket = canRead('Ticket Commercial')
 const canSeeClient = canRead('Customer')
-const stage = computed(() => (devis.value ? devisStage({ status: devis.value.status, lignes: devis.value.lignes.length, chiffrees: devis.value.chiffrees }) : null))
+const stage = computed(() => (devis.value ? devisStage({ status: devis.value.status, lignes: devis.value.lignes.length, chiffrees: devis.value.chiffrees, envoye_le: devis.value.envoi?.le }) : null))
 const prices = computed(() => Boolean(devis.value?.lignes.some((line) => line.prix !== null)))
 const order = computed(() => (devis.value ? commandeText(devis.value) : ''))
 function onTags(tags: string[]) {
@@ -105,6 +105,7 @@ function onTags(tags: string[]) {
 					<div><dt>Date du devis</dt><dd class="tabular-nums">{{ formatDay(devis.date) || '—' }}</dd></div>
 					<div><dt>Valable jusqu'au</dt><dd class="tabular-nums">{{ formatDay(devis.valable) || '—' }}</dd></div>
 					<div><dt>Livraison souhaitée</dt><dd class="tabular-nums">{{ formatDay(devis.livraison) || '—' }}</dd></div>
+					<div><dt>Envoi au client</dt><dd :class="!devis.envoi && 'text-ink-gray-6'">{{ devis.envoi ? envoiText(devis.envoi) : devis.docstatus === 1 ? 'Pas encore' : '—' }}</dd></div>
 					<div><dt>Commande</dt><dd>{{ order || '—' }}</dd></div>
 				</dl>
 

@@ -197,6 +197,9 @@ export type Devis = {
 	demande_faisabilite: string | null
 	lignes: LigneVente[]
 	modified: string
+	/** Envoi au client : absents tant que les champs ne sont pas migrés. */
+	envoye_le?: string | null
+	canal_envoi?: string | null
 }
 
 export type Fabrication = {

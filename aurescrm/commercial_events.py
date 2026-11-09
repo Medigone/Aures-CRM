@@ -159,7 +159,7 @@ def quotation_push(doc, before, users):
 	if not _submitted(doc, before):
 		return
 	montant = fmt_money(doc.grand_total, currency=doc.currency)
-	notify(users, "devis", "Devis validé", f"{doc.customer_name or doc.party_name} · {montant}", f"/devis/{doc.name}", f"devis:{doc.name}")
+	notify(users, "devis", "Devis validé à envoyer", f"{doc.customer_name or doc.party_name} · {montant}", f"/devis/{doc.name}", f"devis:{doc.name}")
 
 
 def sales_order_push(doc, before, users):

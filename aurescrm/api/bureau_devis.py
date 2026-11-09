@@ -16,6 +16,7 @@ from frappe.utils import add_days, cint, cstr, flt, get_fullname, getdate, now_d
 
 from aurescrm.api import activity
 from aurescrm.api.bureau import BELL_FIELD, _parse, condition_filters, doctype_filter_fields, has_child_filter, page_bounds, require_bureau, row_bell, row_tags
+from aurescrm import devis_envoi
 from aurescrm.api.bureau_articles import _customers
 
 DEVIS = "Quotation"
@@ -35,8 +36,8 @@ OUVERTS = ("Open", "Replied")
 COMMANDES = ("Ordered", "Partially Ordered")
 CLOS = ("Lost", "Expired", "Cancelled")
 EXPIRE_SOUS = 7
-VIEWS = ("all", "chiffrer", "valider", "valides", "expirent", "commandes", "clos")
-SORT_KEYS = {"name", "client_label", "articles", "lignes", "chiffrage", "total", "total_ttc", "status", "commande", "date", "valable", "livraison", "urgence", "commercial", "demande", "ticket", "type", "creation", "modified", "cree_par"}
+VIEWS = ("all", "chiffrer", "valider", "envoyer", "valides", "expirent", "commandes", "clos")
+SORT_KEYS = {"envoye_le", "name", "client_label", "articles", "lignes", "chiffrage", "total", "total_ttc", "status", "commande", "date", "valable", "livraison", "urgence", "commercial", "demande", "ticket", "type", "creation", "modified", "cree_par"}
 NUMERIC_SORT = {"lignes", "chiffrage", "total", "total_ttc", "commande"}
 
 
@@ -63,6 +64,8 @@ def in_view(view, row, current_day=None):
 		return status == "Draft" and row["chiffrees"] < row["lignes"]
 	if view == "valider":
 		return status == "Draft" and row["lignes"] > 0 and row["chiffrees"] == row["lignes"]
+	if view == "envoyer":
+		return status in OUVERTS and not row.get("envoye_le")
 	if view == "valides":
 		return status in OUVERTS + ("Partially Ordered",)
 	if view == "expirent":
@@ -125,6 +128,7 @@ def _list_row(devis, customers, lines, tickets, owners):
 		"demande": demande or None,
 		"ticket": ticket or None,
 		"type": _type(devis),
+		"envoye_le": str(devis.get(devis_envoi.CHAMP_LE)) if devis.get(devis_envoi.CHAMP_LE) else None,
 		"cree_par": owners.get(devis.owner) or devis.owner,
 		# Recherche seulement : retirée avant l'envoi.
 		"_search": " ".join(
@@ -157,7 +161,8 @@ def get_devis_list(view="all", conditions=None, search=None, start=0, page_lengt
 	if view not in VIEWS:
 		frappe.throw(_("Vue inconnue."))
 	filters = condition_filters(_parse(conditions), DEVIS)
-	found = frappe.get_list(DEVIS, filters=filters, distinct=has_child_filter(filters, DEVIS), fields=FIELDS, limit_page_length=0)
+	fields = FIELDS + ([devis_envoi.CHAMP_LE] if devis_envoi.champs_prets() else [])
+	found = frappe.get_list(DEVIS, filters=filters, distinct=has_child_filter(filters, DEVIS), fields=fields, limit_page_length=0)
 	customers = _customers(_client(row) for row in found)
 	lines = _lines_by_devis([row.name for row in found])
 	tickets = _tickets(row.get(DEMANDE_FIELD) for row in found)
@@ -244,6 +249,8 @@ def actions(doc):
 			found.append("commande")
 		if doc.status in OUVERTS + ("Expired",) and doc.has_permission("write"):
 			found.append("perdu")
+		if devis_envoi.peut_envoyer(doc) and not doc.get(devis_envoi.CHAMP_LE):
+			found.append("envoye")
 		if doc.status not in COMMANDES and doc.status != "Cancelled" and doc.has_permission("cancel"):
 			found.append("annuler")
 	return found
@@ -299,6 +306,8 @@ def get_devis(name):
 		"blocked": blocked(doc) if "valider" in allowed else [],
 		"raisons_perte": frappe.get_all("Quotation Lost Reason", pluck="name", order_by="name asc") if "perdu" in allowed else [],
 		"perte": _lost(doc),
+		"envoi": devis_envoi.etat(doc),
+		"canaux_envoi": [canal for canal in devis_envoi.CANAUX if canal != "Autre application"] if "envoye" in allowed else [],
 		"comments": activity.comment_summary(DEVIS, doc.name),
 	}
 
@@ -408,6 +417,14 @@ def mark_lost(name, modified, raison, concurrent=None, precisions=None):
 	detail = "\n".join(text for text in (cstr(precisions).strip(), cstr(concurrent).strip() and _("Concurrent retenu : {0}").format(cstr(concurrent).strip())) if text)
 	with _signed(DEVIS, doc.name):
 		doc.declare_enquiry_lost([{"lost_reason": raison}], [], detail or None)
+	return get_devis(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def mark_sent(name, modified, canal, le=None):
+	"""Devis remis au client autrement que par la PWA : en main propre, par un mail du bureau."""
+	doc = _for_work(name, modified, "envoye")
+	devis_envoi.enregistrer(doc, canal, le=le)
 	return get_devis(name)
 
 

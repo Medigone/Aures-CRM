@@ -63,12 +63,16 @@ def _lines(child_doctype, parents):
 
 
 def page_devis(user, start, length):
+	from aurescrm.devis_envoi import champs_prets
+
 	since = add_days(today(), -SALES_HISTORY_DAYS)
+	# Suivi de l'envoi au client : les champs n'existent qu'après la migration.
+	envoi = ", q.custom_envoye_le as envoye_le, q.custom_canal_envoi as canal_envoi" if champs_prets() else ""
 	rows = frappe.db.sql(
 		f"""
 		select q.name, q.party_name as client, q.customer_name, q.transaction_date as date, q.valid_till,
 			q.status, q.docstatus, q.custom_statut_commande as statut_commande, q.grand_total, q.currency,
-			q.`custom_demande_faisabilité` as demande_faisabilite, q.modified
+			q.`custom_demande_faisabilité` as demande_faisabilite, q.modified{envoi}
 		from `tabQuotation` q
 		where q.quotation_to = 'Customer' and q.docstatus < 2 and q.transaction_date >= %(since)s
 			and {customer_scope("q.party_name", user)}

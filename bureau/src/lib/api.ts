@@ -486,5 +486,6 @@ export const updateDevis = (devis: DevisRef, values: { prix?: Record<string, num
 export const validateDevis = (devis: DevisRef) => call<DevisDetail>(`${DEVIS}.validate_devis`, { name: devis.name, modified: devis.modified }, true)
 export const createDevisCommande = (devis: DevisRef) => call<{ commande: string; devis: DevisDetail }>(`${DEVIS}.create_commande`, { name: devis.name, modified: devis.modified }, true)
 export const markDevisLost = (devis: DevisRef, values: { raison: string; concurrent: string; precisions: string }) => call<DevisDetail>(`${DEVIS}.mark_lost`, { name: devis.name, modified: devis.modified, ...values }, true)
+export const markDevisSent = (devis: DevisRef, values: { canal: string; le: string }) => call<DevisDetail>(`${DEVIS}.mark_sent`, { name: devis.name, modified: devis.modified, ...values }, true)
 export const cancelDevis = (devis: DevisRef) => call<DevisDetail>(`${DEVIS}.cancel_devis`, { name: devis.name, modified: devis.modified }, true)
 export const devisActivity = (name: string) => recordActivity(DEVIS, 'devis', name)

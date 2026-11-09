@@ -16,21 +16,21 @@ const row = {
 	name: 'SAL-QTN-2026-00024', modified: '2026-11-09 10:00:00', creation: '2026-11-08 15:40:00', tags: [], cloche: false, status: 'Draft',
 	client: 'CLI-1', client_label: 'IFRI', articles: 'ÉTUI BISCUIT 250 G', articles_count: 4, lignes: 4, chiffrees: 3, chiffrage: 0.75,
 	total: 2186400, total_ttc: 2601816, statut_commande: 'Non commandé', commande: 0, date: '2026-11-08', valable: '2026-12-09', livraison: '2027-01-15',
-	urgence: 'U1', commercial: 'Ismail', demande: 'DF-26-11-0172', ticket: 'TC-26-11-0318', type: 'Premier Tirage', cree_par: 'Nadia',
+	urgence: 'U1', commercial: 'Ismail', demande: 'DF-26-11-0172', ticket: 'TC-26-11-0318', type: 'Premier Tirage', envoye_le: null, cree_par: 'Nadia',
 }  // prettier-ignore
 const ordered = { ...row, name: 'SAL-QTN-2026-00021', status: 'Ordered', chiffrees: 4, chiffrage: 1, statut_commande: 'Entièrement commandé', commande: 100 }
 const list = { devis: [row, ordered], counts: { all: 2, chiffrer: 1, valider: 0, valides: 0, expirent: 0, commandes: 1, clos: 0 }, total: 2, start: 0, page_length: 20, names: [row.name, ordered.name] }
 const line = (name: string, prix: number | null) => ({ name, article: `CLI-1-${name}`, designation: `Article ${name}`, quantite: 50000, unite: 'Unité', prix, montant: prix ? prix * 50000 : 0, chiffree: Boolean(prix) })
 const detail = {
 	...row, can_write: true, can_print: true, docstatus: 0, cree_par: 'Nadia', chiffrees: 1, taxes: 0, commandes: [], comments: { count: 0, last: null },
-	lignes: [line('001', 8.7), line('002', 0)], actions: ['prix', 'valider'], blocked: ['1 ligne(s) sans prix.'], raisons_perte: [], perte: null,
+	lignes: [line('001', 8.7), line('002', 0)], actions: ['prix', 'valider'], blocked: ['1 ligne(s) sans prix.'], raisons_perte: [], perte: null, envoi: null, canaux_envoi: [],
 }  // prettier-ignore
-const open_ = { ...detail, status: 'Open', docstatus: 1, chiffrees: 2, lignes: [line('001', 8.7), line('002', 12)], actions: ['commande', 'perdu', 'annuler'], blocked: [], raisons_perte: ['Prix', 'Délai'] }
+const open_ = { ...detail, status: 'Open', docstatus: 1, chiffrees: 2, lignes: [line('001', 8.7), line('002', 12)], actions: ['envoye', 'commande', 'perdu', 'annuler'], blocked: [], raisons_perte: ['Prix', 'Délai'], canaux_envoi: ['Email', 'WhatsApp', 'Remis en main propre', 'Autre'] }
 let current: object = detail
 
 const fetchMock = vi.fn((input: RequestInfo | URL, _init?: RequestInit) => {
 	const url = String(input)
-	const body = url.includes('get_devis_list') ? list : url.includes('get_devis_options') ? { doctype: 'Quotation', filter_fields: [] } : url.includes('get_devis_activity') ? { items: [], comment_count: 0 } : url.includes('update_devis') || url.includes('mark_lost') ? current : url.includes('create_commande') ? { commande: 'SAL-ORD-1', devis: current } : url.includes('get_devis') ? current : url.includes('get_queue') ? { tickets: [], counts: { todo: 0 }, total: 0, start: 0, page_length: 1, names: [] } : null
+	const body = url.includes('get_devis_list') ? list : url.includes('get_devis_options') ? { doctype: 'Quotation', filter_fields: [] } : url.includes('get_devis_activity') ? { items: [], comment_count: 0 } : url.includes('update_devis') || url.includes('mark_lost') || url.includes('mark_sent') ? current : url.includes('create_commande') ? { commande: 'SAL-ORD-1', devis: current } : url.includes('get_devis') ? current : url.includes('get_queue') ? { tickets: [], counts: { todo: 0 }, total: 0, start: 0, page_length: 1, names: [] } : null
 	return Promise.resolve(new Response(JSON.stringify({ message: body }), { status: 200 }))
 })
 const sent = (method: string) => {
@@ -132,6 +132,24 @@ describe('page Devis', () => {
 		await flushPromises()
 		expect(wrapper.find('.record-actions .btn-primary').text()).toBe('Créer la commande')
 		expect(wrapper.find('input.devis-price').exists()).toBe(false)
+		expect(wrapper.text()).toContain('Pas encore envoyé')
+		wrapper.unmount()
+	})
+
+	it('marque envoyé un devis remis en main propre', async () => {
+		current = open_
+		const { wrapper } = await open(`/devis/${row.name}`)
+		await flushPromises()
+		const button = wrapper.findAll('.record-actions button').find((item) => item.text() === 'Marquer envoyé')
+		await button!.trigger('click')
+		await flushPromises()
+		const dialog = document.body.querySelector('[role="dialog"]') as HTMLElement
+		const select = dialog.querySelector('select') as HTMLSelectElement
+		select.value = 'Remis en main propre'
+		select.dispatchEvent(new Event('change'))
+		;(Array.from(dialog.querySelectorAll('button')).find((item) => item.textContent?.trim() === 'Marquer envoyé') as HTMLButtonElement).click()
+		await flushPromises()
+		expect(sent('mark_sent')).toMatchObject({ name: row.name, canal: 'Remis en main propre' })
 		wrapper.unmount()
 	})
 })
@@ -141,7 +159,9 @@ describe('règles des devis', () => {
 		expect(devisStage({ status: 'Draft', lignes: 2, chiffrees: 1 })?.label).toBe('À chiffrer')
 		expect(devisStage({ status: 'Draft', lignes: 0, chiffrees: 0 })?.label).toBe('À chiffrer')
 		expect(devisStage({ status: 'Draft', lignes: 2, chiffrees: 2 })?.label).toBe('À valider')
-		expect(devisStage({ status: 'Open', lignes: 2, chiffrees: 2 })).toBeNull()
+		expect(devisStage({ status: 'Open', lignes: 2, chiffrees: 2 })?.label).toBe('À envoyer')
+		expect(devisStage({ status: 'Open', lignes: 2, chiffrees: 2, envoye_le: '2026-11-10' })?.label).toBe('Envoyé')
+		expect(devisStage({ status: 'Ordered', lignes: 2, chiffrees: 2 })).toBeNull()
 	})
 
 	it('lit un prix tapé à la française', () => {
@@ -157,6 +177,8 @@ describe('règles des devis', () => {
 		expect(devisTimeline(base).current).toBe(0)
 		expect(devisTimeline({ ...base, chiffrees: 2 }).current).toBe(1)
 		expect(devisTimeline({ ...base, chiffrees: 2, status: 'Open', docstatus: 1 }).current).toBe(2)
+		const sentOne = devisTimeline({ ...base, chiffrees: 2, status: 'Open', docstatus: 1, envoi: { le: '2026-11-10 09:12:00', par: 'u', par_nom: 'Ismail T.', canal: 'WhatsApp' } })
+		expect(sentOne.steps[2]).toMatchObject({ state: 'done', detail: '10/11/2026 · Ismail T. · WhatsApp' })
 		const lost = devisTimeline({ ...base, chiffrees: 2, status: 'Lost', docstatus: 1, perte: { raisons: ['Prix'], precisions: null } })
 		expect(lost.steps[3]).toMatchObject({ label: 'Perdu', state: 'blocked', detail: 'Prix' })
 	})

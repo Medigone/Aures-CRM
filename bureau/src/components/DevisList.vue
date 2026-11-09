@@ -100,6 +100,7 @@ onMounted(async () => {
 				<span v-else-if="column.key === 'demande'" class="tabular-nums">{{ row.demande || '—' }}</span>
 				<span v-else-if="column.key === 'type'">{{ devisTypeLabel(row.type) }}</span>
 				<span v-else-if="column.key === 'ticket'" class="tabular-nums">{{ row.ticket || '—' }}</span>
+				<span v-else-if="column.key === 'envoye_le'" class="tabular-nums">{{ formatDay(row.envoye_le) || '—' }}</span>
 				<span v-else-if="column.key === 'livraison'" class="tabular-nums">{{ formatDay(row.livraison) || '—' }}</span>
 				<span v-else-if="column.key === 'commercial'" class="truncate" :title="row.commercial || undefined">{{ row.commercial || '—' }}</span>
 				<TagCell v-else-if="column.key === 'tags'" :tags="row.tags" :max="1" />
