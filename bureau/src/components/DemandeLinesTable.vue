@@ -49,7 +49,10 @@ const sales = (): DemandeSale[] => (props.kind === 'devis' ? props.demande.devis
 			<thead><tr><th>{{ kind === 'devis' ? 'Devis' : 'Commande' }}</th><th>Date</th><th>Statut</th><th class="end">Total (DA)</th></tr></thead>
 			<tbody>
 				<tr v-for="sale in sales()" :key="sale.name">
-					<td><a class="ref-link tabular-nums" :href="deskUrl(kind === 'devis' ? 'Quotation' : 'Sales Order', sale.name)" target="_blank" rel="noopener noreferrer">{{ sale.name }}</a></td>
+					<td>
+						<RouterLink v-if="kind === 'devis'" class="ref-link tabular-nums" :to="{ name: 'Devis', query: { apercu: sale.name } }">{{ sale.name }}</RouterLink>
+						<a v-else class="ref-link tabular-nums" :href="deskUrl('Sales Order', sale.name)" target="_blank" rel="noopener noreferrer">{{ sale.name }}</a>
+					</td>
 					<td class="tabular-nums">{{ formatDay(sale.date) || '—' }}</td>
 					<td><StatusPill :status="sale.status" /></td>
 					<td class="end tabular-nums">{{ saleTotal(sale) }}</td>

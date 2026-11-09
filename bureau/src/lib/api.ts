@@ -11,6 +11,7 @@ import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, Ar
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
 import type { ImpositionDetail, ImpositionOptions, ImpositionsResponse, ImpositionView } from './impositions'
+import type { DevisDetail, DevisOptions, DevisResponse, DevisView } from './devis'
 import type { TraceAnalysis, TraceDetail, TraceOptions, TracePreview, TracesResponse, TraceVersionResult, TraceView } from './traces'
 import type { GroupCandidate, GroupResult } from './groupage'
 import type { AtelierCalcul, AtelierData, AtelierFormat, GabaritApercu, PropositionResult, Scenario } from './atelier'
@@ -472,3 +473,9 @@ export const getImposition = (name: string) => call<ImpositionDetail>(`${IMPOSIT
 export const setImpositionIdeale = (imposition: ImpositionRef) => call<ImpositionDetail>(`${IMPOSITIONS}.set_imposition_ideale`, { name: imposition.name, modified: imposition.modified }, true)
 export const setImpositionAuto = (imposition: ImpositionRef) => call<ImpositionDetail>(`${IMPOSITIONS}.set_imposition_auto`, { name: imposition.name, modified: imposition.modified }, true)
 export const impositionActivity = (name: string) => recordActivity(IMPOSITIONS, 'imposition', name)
+
+/** Devis : liste et aperçu, en lecture. Le chiffrage et la validation restent sur le Desk. */
+const DEVIS = 'aurescrm.api.bureau_devis'
+export const getDevisList = (view: DevisView, conditions: Condition[], search: string, paging: ListPaging = {}) => call<DevisResponse>(`${DEVIS}.get_devis_list`, listParams(view, conditions, search, paging))
+export const getDevisOptions = () => call<DevisOptions>(`${DEVIS}.get_devis_options`)
+export const getDevis = (name: string) => call<DevisDetail>(`${DEVIS}.get_devis`, { name })

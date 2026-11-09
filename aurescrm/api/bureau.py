@@ -178,6 +178,17 @@ FILTER_LISTS = {
 		"n_bon_commande": "Bon de commande",
 		"_user_tags": "Tag",
 	},
+	"Quotation": {
+		"status": "Statut",
+		"custom_id_client": "Client",
+		"custom_niveau_urgence": "Urgence",
+		"custom_commercial": "Commercial",
+		"custom_statut_commande": "Commande",
+		"transaction_date": "Date du devis",
+		"valid_till": "Valable jusqu'au",
+		"custom_demande_faisabilité": "Demande",
+		"_user_tags": "Tag",
+	},
 	"Customer": {
 		"custom_status": "Statut",
 		"custom_wilaya": "Wilaya",

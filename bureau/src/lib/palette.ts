@@ -4,6 +4,7 @@ import { ARTICLE_VIEWS } from './articles'
 import { CLIENT_VIEWS } from './clients'
 import { canCreate, canRead } from './droits'
 import { DEMANDE_VIEWS } from './demandes'
+import { DEVIS_VIEWS } from './devis'
 import { ETUDE_DOCTYPES, ETUDE_VIEWS } from './etudes'
 import { DEFAULT_IMPOSITION_VIEW, IMPOSITION_VIEWS } from './impositions'
 import { DEFAULT_TRACE_VIEW, TRACE_VIEWS } from './traces'
@@ -11,7 +12,7 @@ import { TICKET_VIEWS } from './useQueue'
 
 export type CreateKind = 'ticket' | 'article' | 'client'
 export type PaletteSection = 'create' | 'lists' | 'elsewhere'
-export type ListKind = 'accueil' | 'tickets' | 'clients' | 'articles' | 'demandes' | 'etudes' | 'traces' | 'impositions'
+export type ListKind = 'accueil' | 'tickets' | 'clients' | 'articles' | 'demandes' | 'devis' | 'etudes' | 'traces' | 'impositions'
 
 export type PaletteAction = { type: 'create'; kind: CreateKind } | { type: 'route'; to: RouteLocationRaw } | { type: 'href'; href: string }
 
@@ -25,7 +26,7 @@ export interface PaletteCommand {
 	keywords?: string
 	/** Document dont le droit décide si la commande est proposée. */
 	doctype?: string | string[]
-	icon: CreateKind | ListKind | 'commandes' | 'devis' | 'creances'
+	icon: CreateKind | ListKind | 'commandes' | 'creances'
 	action: PaletteAction
 }
 
@@ -62,6 +63,7 @@ export const PALETTE_COMMANDS: PaletteCommand[] = [
 	{ id: 'list-accueil', section: 'lists', label: 'Accueil', keywords: 'tableau de bord dashboard', icon: 'accueil', action: { type: 'route', to: { name: 'Home' } } },
 	...viewCommands('tickets', 'Tickets', 'Tickets', TICKET_VIEWS, 'todo', 'ticket liste', 'Ticket Commercial'),
 	...viewCommands('demandes', 'Demandes', 'Demandes', DEMANDE_VIEWS, 'all', 'demande faisabilité liste', 'Demande Faisabilite'),
+	...viewCommands('devis', 'Devis', 'Devis', DEVIS_VIEWS, 'all', 'devis quotation chiffrage prix liste', 'Quotation'),
 	...viewCommands('etudes', 'Études', 'Etudes', ETUDE_VIEWS, 'all', 'étude faisabilité liste', ETUDE_DOCTYPES),
 	{ id: 'list-atelier', section: 'lists', label: "Atelier d'imposition", keywords: 'test rapide faisabilité calcul poses chutes', doctype: 'Calcul Imposition', icon: 'etudes', action: { type: 'route', to: { name: 'Atelier' } } },
 	...viewCommands('traces', 'Tracés', 'Traces', TRACE_VIEWS, DEFAULT_TRACE_VIEW, 'tracé trace découpe dieline version liste', 'Trace'),
@@ -69,7 +71,6 @@ export const PALETTE_COMMANDS: PaletteCommand[] = [
 	...viewCommands('clients', 'Clients', 'Clients', CLIENT_VIEWS, 'all', 'client liste', 'Customer'),
 	...viewCommands('articles', 'Articles', 'Articles', ARTICLE_VIEWS, 'all', 'article produit liste', 'Item'),
 	{ id: 'desk-commandes', section: 'elsewhere', label: 'Commandes', keywords: 'bon commande desk', doctype: 'Sales Order', icon: 'commandes', action: { type: 'href', href: '/app/sales-order' } },
-	{ id: 'desk-devis', section: 'elsewhere', label: 'Devis', keywords: 'desk', doctype: 'Quotation', icon: 'devis', action: { type: 'href', href: '/app/quotation' } },
 	{ id: 'desk-creances', section: 'elsewhere', label: 'Créances', keywords: 'suivi desk', doctype: 'Suivi Creance', icon: 'creances', action: { type: 'href', href: '/app/suivi-creance' } },
 ]
 
