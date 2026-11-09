@@ -170,3 +170,17 @@ class TestCycleCommande(FrappeTestCase):
 		detail = bureau_commandes.cancel_commande(self.name, detail["modified"], "Erreur de saisie")
 		self.assertEqual(detail["docstatus"], 2)
 		self.assertTrue(frappe.db.exists("Comment", {"reference_doctype": "Sales Order", "reference_name": self.name, "content": ["like", "%Erreur de saisie%"]}))
+
+	def test_le_scan_se_range_dans_la_commande(self):
+		if not bureau_commandes.scan_pret():
+			self.skipTest("Champ du scan pas encore migré.")
+		url = frappe.db.get_value("File", {"is_folder": 0, "is_private": 0, "file_url": ["like", "/files/%.pdf"]}, "file_url")
+		if not url:
+			self.skipTest("Aucun PDF public sur ce site.")
+		detail = bureau_commandes.get_commande(self.name)
+		with self.assertRaises(frappe.ValidationError):
+			bureau_commandes.set_bon_scan(self.name, detail["modified"], url)
+		frappe.get_doc({"doctype": "File", "file_url": url, "attached_to_doctype": "Sales Order", "attached_to_name": self.name}).insert(ignore_permissions=True)
+		detail = bureau_commandes.set_bon_scan(self.name, detail["modified"], url)
+		self.assertEqual(detail["scan"]["url"], url)
+		self.assertTrue(frappe.db.exists("File", {"file_url": url, "attached_to_name": self.name, "attached_to_field": bureau_commandes.SCAN_FIELD}))
