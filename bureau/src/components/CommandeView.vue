@@ -25,7 +25,7 @@ import RecordHeader from './RecordHeader.vue'
 import StepTimeline from './StepTimeline.vue'
 import TagEditor from './TagEditor.vue'
 import { commandeActivity } from '@/lib/api'
-import { COMMANDE_DOCTYPE, commandeTimeline, commandeTip, isLate, moneyText, percentText, quantityText } from '@/lib/commandes'
+import { COMMANDE_DOCTYPE, commandeTimeline, commandeTip, fabricationShares, isLate, moneyText, percentText, quantityText } from '@/lib/commandes'
 import { deskUrl, formatDay } from '@/lib/display'
 import { canRead } from '@/lib/droits'
 import { useCommande } from '@/lib/useCommande'
@@ -236,6 +236,80 @@ function onTags(tags: string[]) {
 								<div class="devis-totals-grand"><dt>Total TTC</dt><dd>{{ moneyText(commande.total_ttc) }} DA</dd></div>
 							</dl>
 							<p v-else class="m-0 text-sm text-ink-gray-6">Les montants ne sont pas visibles pour votre rôle.</p>
+						</section>
+
+						<section v-if="commande.docstatus === 1" class="card ref-card" aria-label="Fabrication">
+							<div class="ref-card-head">
+								<h3>Fabrication</h3>
+								<span v-if="commande.dossier" class="flex items-center gap-1.5">
+									<StatusPill :status="commande.dossier.status" />
+									<a class="ref-link tabular-nums" :href="deskUrl('Dossier Fabrication', commande.dossier.name)" target="_blank" rel="noopener noreferrer">{{ commande.dossier.name }}</a>
+								</span>
+							</div>
+							<p v-if="!commande.dossier" class="m-0 text-sm text-ink-gray-6">Aucun dossier de fabrication pour cette commande.</p>
+							<template v-if="commande.dossier || commande.fabrication.some((row) => row.etudes.length)">
+								<div class="ref-scroll">
+									<table class="ref-table">
+										<thead>
+											<tr><th>Article</th><th>Avancement</th><th>Études techniques</th><th class="end">Programmé</th></tr>
+										</thead>
+										<tbody>
+											<tr v-for="row in commande.fabrication" :key="row.article">
+												<td class="min-w-40 !whitespace-normal">
+													<span class="block">{{ row.designation }}</span>
+													<span v-if="row.machine && !row.etudes.length" class="block text-xs text-ink-gray-6">{{ row.machine }}</span>
+												</td>
+												<td class="min-w-36">
+													<span class="commande-progress" :title="`${quantityText(row.produite)} produits, ${quantityText(row.programmee)} programmés sur ${quantityText(row.commandee)}`">
+														<span class="commande-progress-bar" aria-hidden="true">
+															<span class="is-made" :style="{ width: `${fabricationShares(row).produit}%` }"></span>
+															<span class="is-planned" :style="{ width: `${fabricationShares(row).programme}%` }"></span>
+														</span>
+														<span class="text-xs text-ink-gray-6">{{ row.produite ? `${quantityText(row.produite)} produits` : row.statut || 'À programmer' }}</span>
+													</span>
+												</td>
+												<td class="!whitespace-normal">
+													<span v-if="!row.etudes.length" class="text-ink-gray-6">Pas encore créée</span>
+													<span v-for="etude in row.etudes" :key="etude.name" class="flex flex-wrap items-center gap-1.5">
+														<a class="ref-link tabular-nums" :href="deskUrl('Etude Technique', etude.name)" target="_blank" rel="noopener noreferrer">{{ etude.name }}</a>
+														<StatusPill :status="etude.status" />
+														<span v-if="etude.machine || etude.date" class="text-xs text-ink-gray-6 tabular-nums">{{ [etude.machine, formatDay(etude.date)].filter(Boolean).join(' · ') }}</span>
+													</span>
+												</td>
+												<td class="end tabular-nums">{{ quantityText(row.programmee) }} / {{ quantityText(row.commandee) }}</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<p class="commande-legend m-0"><span class="is-made">Produit</span><span class="is-planned">Programmé</span><span>Reste à programmer</span></p>
+							</template>
+						</section>
+
+						<section v-if="commande.docstatus === 1" class="card ref-card" aria-label="Livraisons et factures">
+							<div class="ref-card-head">
+								<h3>Livraisons et factures</h3>
+								<span class="text-sm tabular-nums text-ink-gray-6">Livré {{ percentText(commande.livre) }} · facturé {{ percentText(commande.facture) }}</span>
+							</div>
+							<p v-if="!commande.documents.length" class="m-0 text-sm text-ink-gray-6">Aucun bon de livraison ni facture pour l'instant. Ils se font sur le Desk.</p>
+							<div v-else class="ref-scroll">
+								<table class="ref-table">
+									<thead>
+										<tr><th>Document</th><th>Date</th><th>Statut</th><th v-if="amounts" class="end">Total TTC (DA)</th></tr>
+									</thead>
+									<tbody>
+										<tr v-for="item in commande.documents" :key="item.name">
+											<td>
+												{{ item.type === 'livraison' ? 'Bon de livraison' : 'Facture' }}
+												<a v-if="item.lisible" class="ref-link tabular-nums" :href="deskUrl(item.doctype, item.name)" target="_blank" rel="noopener noreferrer">{{ item.name }}</a>
+												<span v-else class="tabular-nums">{{ item.name }}</span>
+											</td>
+											<td class="tabular-nums">{{ formatDay(item.date) || '—' }}</td>
+											<td><StatusPill :status="item.status" /></td>
+											<td v-if="amounts" class="end tabular-nums">{{ moneyText(item.total) }}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
 						</section>
 
 						<aside class="record-activity" aria-label="Commentaires et activité de la commande">

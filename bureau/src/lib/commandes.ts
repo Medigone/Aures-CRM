@@ -78,6 +78,45 @@ export interface CommandeLine {
 	montant: number | null
 }
 
+export interface CommandeEtude {
+	name: string
+	status: string
+	machine: string | null
+	quantite: number
+	date: string | null
+}
+
+/** Avancement d'un article dans le dossier de fabrication. */
+export interface CommandeFabrication {
+	article: string
+	designation: string
+	commandee: number
+	programmee: number
+	produite: number
+	statut: string | null
+	machine: string | null
+	etudes: CommandeEtude[]
+}
+
+export interface CommandeDocument {
+	type: 'livraison' | 'facture'
+	doctype: string
+	name: string
+	status: string
+	date: string | null
+	total: number | null
+	/** La personne peut l'ouvrir sur le Desk. */
+	lisible: boolean
+}
+
+/** Parts produite et programmée d'un article, en pourcentage de la quantité commandée. */
+export function fabricationShares(row: Pick<CommandeFabrication, 'commandee' | 'programmee' | 'produite'>) {
+	if (!row.commandee) return { produit: 0, programme: 0 }
+	const produit = Math.min(100, (row.produite / row.commandee) * 100)
+	const programme = Math.max(0, Math.min(100, (row.programmee / row.commandee) * 100) - produit)
+	return { produit, programme }
+}
+
 export type CommandeAction = 'bon' | 'scan' | 'valider' | 'supprimer' | 'annuler'
 
 export interface CommandeDetail {
@@ -102,6 +141,8 @@ export interface CommandeDetail {
 	ticket: string | null
 	dossier: { name: string; status: string } | null
 	etudes: { total: number; en_cours: number; terminees: number }
+	fabrication: CommandeFabrication[]
+	documents: CommandeDocument[]
 	scan: { url: string; name: string } | null
 	cree_par: string | null
 	lignes: CommandeLine[]
@@ -145,10 +186,10 @@ export const COMMANDE_COLUMNS: Column<CommandeRow>[] = [
 	{ key: 'livraison', label: 'Livraison', width: 96, minWidth: 88, sortable: true, text: (row) => formatDay(row.livraison) },
 	{ key: 'fabrication', label: 'Fabrication', width: 124, minWidth: 96, sortable: true, text: (row) => row.fabrication || '' },
 	{ key: 'livre', label: 'Livré', width: 88, minWidth: 80, sortable: true, text: (row) => percentText(row.livre) },
+	{ key: 'facture', label: 'Facturé', width: 88, minWidth: 80, sortable: true, text: (row) => percentText(row.facture) },
 	{ key: 'total_ttc', label: 'Total TTC', width: 112, minWidth: 88, sortable: true, end: true, text: (row) => moneyText(row.total_ttc) },
 	{ key: 'urgence', label: 'Urg.', width: 52, minWidth: 52, sortable: true, text: (row) => row.urgence },
 	{ key: 'tags', label: 'Tags', width: 90, minWidth: 72, sortable: false, text: tagsText },
-	{ key: 'facture', label: 'Facturé', width: 96, minWidth: 80, sortable: true, optional: true, text: (row) => percentText(row.facture) },
 	{ key: 'total', label: 'Total HT', width: 120, minWidth: 88, sortable: true, end: true, optional: true, text: (row) => moneyText(row.total) },
 	{ key: 'devis', label: 'Devis', width: 150, minWidth: 96, sortable: true, optional: true, text: (row) => row.devis || '' },
 	{ key: 'demande', label: 'Demande', width: 116, minWidth: 88, sortable: true, optional: true, text: (row) => row.demande || '' },
@@ -180,15 +221,16 @@ export function commandeTimeline(commande: TimelineInput) {
 	const cancelled = commande.docstatus === 2 || commande.status === 'Cancelled'
 	const bon = Boolean(commande.bon_commande && commande.date_bon)
 	const dossier = commande.dossier?.status ?? ''
-	const planned = ['Planification validée', 'Clôturé'].includes(dossier)
 	const etudes = commande.etudes
 	const made = etudes.total > 0 && etudes.terminees >= etudes.total
 	const delivered = commande.livre >= 100
+	// Une fabrication terminée ou une livraison faite vaut programmation, même sans dossier.
+	const planned = ['Planification validée', 'Clôturé'].includes(dossier) || made || delivered
 	const billed = commande.facture >= 100
 	const steps: Step[] = [
 		{ key: 'bon', label: 'Bon de commande', state: bon ? 'done' : 'current', detail: bon ? `N° ${commande.bon_commande} du ${formatDay(commande.date_bon)}` : 'N° et date à saisir' },
 		{ key: 'validation', label: cancelled ? 'Annulée' : 'Validation', state: cancelled ? 'blocked' : validated ? 'done' : bon ? 'current' : 'todo', detail: cancelled ? 'Commande annulée' : validated ? 'Validée' : "Par l'Administrateur Ventes" },
-		{ key: 'programmation', label: 'Programmation', state: !validated ? 'todo' : planned ? 'done' : 'current', detail: validated ? dossier || 'Dossier de fabrication à créer' : 'Dossier créé à la validation' },
+		{ key: 'programmation', label: 'Programmation', state: !validated ? 'todo' : planned ? 'done' : 'current', detail: validated ? dossier || (planned ? 'Sans dossier de fabrication' : 'Dossier de fabrication à créer') : 'Dossier créé à la validation' },
 		{ key: 'fabrication', label: 'Fabrication', state: !validated ? 'todo' : made || delivered ? 'done' : planned ? 'current' : 'todo', detail: etudes.total ? `${etudes.terminees} étude${etudes.terminees > 1 ? 's' : ''} terminée${etudes.terminees > 1 ? 's' : ''} sur ${etudes.total}` : 'Une étude technique par article' },
 		{ key: 'livraison', label: 'Livraison', state: !validated ? 'todo' : delivered ? 'done' : made ? 'current' : 'todo', detail: delivered ? 'Livrée' : commande.livre ? `${percentText(commande.livre)} livré` : commande.livraison ? `Prévue le ${formatDay(commande.livraison)}` : 'Date à venir' },
 		{ key: 'facturation', label: 'Facturation', state: !validated ? 'todo' : billed ? 'done' : delivered ? 'current' : 'todo', detail: billed ? 'Facturée' : commande.facture ? `${percentText(commande.facture)} facturé` : 'Après livraison' },

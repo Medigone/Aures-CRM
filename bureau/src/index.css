@@ -420,6 +420,43 @@
 		border-color: var(--tone-blue-line);
 		background: var(--tone-blue-soft);
 	}
+	.commande-progress {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+	.commande-progress-bar {
+		display: flex;
+		height: 0.375rem;
+		overflow: hidden;
+		border-radius: 999px;
+		@apply bg-surface-gray-3;
+	}
+	.commande-progress-bar > .is-made,
+	.commande-legend > .is-made::before {
+		background: var(--tone-green-ink);
+	}
+	.commande-progress-bar > .is-planned,
+	.commande-legend > .is-planned::before {
+		background: var(--tone-blue-line);
+	}
+	.commande-legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 1rem;
+		color: var(--ink-gray-6);
+		font-size: var(--text-xs);
+	}
+	.commande-legend > span::before {
+		content: '';
+		display: inline-block;
+		width: 0.625rem;
+		height: 0.375rem;
+		margin-right: 0.375rem;
+		border-radius: 2px;
+		vertical-align: middle;
+		@apply bg-surface-gray-3;
+	}
 	.devis-date {
 		max-width: 11rem;
 	}

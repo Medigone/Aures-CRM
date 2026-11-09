@@ -73,6 +73,17 @@ class TestListeCommandes(FrappeTestCase):
 		self.assertTrue(detail["lignes"])
 		self.assertIsNotNone(detail["total_ttc"])
 
+	def test_suivi_fabrication_et_documents(self):
+		frappe.set_user("Administrator")
+		name = frappe.db.get_value("Delivery Note Item", {"against_sales_order": ["is", "set"], "docstatus": ["<", 2]}, "against_sales_order")
+		if not name or frappe.db.get_value("Sales Order", name, "docstatus") != 1:
+			self.skipTest("Aucune commande validée avec un bon de livraison.")
+		detail = bureau_commandes.get_commande(name)
+		self.assertTrue(any(item["type"] == "livraison" for item in detail["documents"]))
+		self.assertEqual({row["article"] for row in detail["fabrication"]}, {line["article"] for line in detail["lignes"]})
+		for row in detail["fabrication"]:
+			self.assertGreater(row["commandee"], 0)
+
 	def test_montants_caches_sans_niveau_1(self):
 		user = "test.charge-devis@aures.test"
 		if not frappe.db.exists("User", user):

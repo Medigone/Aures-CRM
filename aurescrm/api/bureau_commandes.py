@@ -286,6 +286,86 @@ def _etudes(name):
 	}
 
 
+def fabrication(doc):
+	"""Avancement de chaque article : quantités du dossier de fabrication et études techniques, en lecture seule."""
+	dossier = frappe.db.get_value(DOSSIER, {"sales_order": doc.name}, "name", order_by="creation desc")
+	lignes = {}
+	if dossier:
+		for row in frappe.get_all(
+			"Dossier Fabrication Ligne",
+			filters={"parent": dossier, "parenttype": DOSSIER},
+			fields=["article", "quantite_commandee", "quantite_programmee", "quantite_produite", "statut_article", "machine"],
+		):
+			lignes.setdefault(row.article, row)
+	etudes = {}
+	for row in frappe.get_all(
+		ETUDE,
+		filters={"commande": doc.name, "docstatus": ["<", 2]},
+		fields=["name", "article", "status", "machine", "quantite", "date_planification_production"],
+		order_by="date_planification_production asc, creation asc",
+	):
+		etudes.setdefault(row.article, []).append(
+			{"name": row.name, "status": row.status, "machine": row.machine or None, "quantite": flt(row.quantite), "date": _day(row.date_planification_production)}
+		)
+	rows = []
+	seen = set()
+	for item in doc.items:
+		if item.item_code in seen:
+			continue
+		seen.add(item.item_code)
+		ligne = lignes.get(item.item_code) or {}
+		article_etudes = etudes.get(item.item_code) or []
+		machine = ligne.get("machine") or next((etude["machine"] for etude in article_etudes if etude["machine"]), None)
+		rows.append(
+			{
+				"article": item.item_code,
+				"designation": item.item_name or item.item_code,
+				"commandee": flt(ligne.get("quantite_commandee")) or flt(item.qty),
+				"programmee": flt(ligne.get("quantite_programmee")),
+				"produite": flt(ligne.get("quantite_produite")),
+				"statut": ligne.get("statut_article") or None,
+				"machine": machine,
+				"etudes": article_etudes,
+			}
+		)
+	return rows
+
+
+def _readable_doctype(doctype):
+	return bool(frappe.has_permission(doctype, "read"))
+
+
+def documents(doc, amounts):
+	"""Bons de livraison et factures de la commande, brouillons compris, annulés exclus."""
+	found = []
+	for doctype, child, link, kind in (
+		("Delivery Note", "Delivery Note Item", "against_sales_order", "livraison"),
+		("Sales Invoice", "Sales Invoice Item", "sales_order", "facture"),
+	):
+		parents = list(set(frappe.get_all(child, filters={link: doc.name, "parenttype": doctype}, pluck="parent")))
+		if not parents:
+			continue
+		readable = _readable_doctype(doctype)
+		for row in frappe.get_all(
+			doctype,
+			filters={"name": ["in", parents], "docstatus": ["<", 2]},
+			fields=["name", "docstatus", "status", "posting_date", "grand_total"],
+			order_by="posting_date asc, creation asc",
+		):
+			found.append(
+				{
+					"type": kind,
+					"doctype": doctype,
+					"name": row.name,
+					"status": "Draft" if row.docstatus == 0 else row.status,
+					"date": _day(row.posting_date),
+					"total": flt(row.grand_total) if amounts else None,
+					"lisible": readable,
+				}
+			)
+	return found
+
+
 def _scan(doc):
 	url = doc.get(SCAN_FIELD) if scan_pret() else None
 	if not url:
@@ -327,6 +407,8 @@ def get_commande(name):
 		"ticket": ticket or None,
 		"dossier": dossier,
 		"etudes": _etudes(doc.name) if doc.docstatus == 1 else {"total": 0, "en_cours": 0, "terminees": 0},
+		"fabrication": fabrication(doc) if doc.docstatus == 1 else [],
+		"documents": documents(doc, amounts) if doc.docstatus == 1 else [],
 		"cree_par": get_fullname(doc.owner),
 		"lignes": [_line(item, amounts) for item in doc.items],
 		"livre": flt(doc.per_delivered),
