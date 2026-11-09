@@ -396,6 +396,92 @@
 		width: 100%;
 		max-width: 640px;
 	}
+	/* Aperçu d'un tracé ou d'une imposition sur la fiche article : un cadre de même taille, quel que soit le contenu. */
+	.piece-frame {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		aspect-ratio: 4 / 3;
+		max-width: 100%;
+		overflow: hidden;
+		border: 1px solid var(--outline-gray-1);
+		@apply rounded-control bg-surface-gray-1;
+	}
+	.piece-frame > *,
+	.piece-frame .trace-preview-box,
+	.piece-frame .trace-preview-box > a {
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+	}
+	.piece-frame-link {
+		display: block;
+		cursor: zoom-in;
+	}
+	.piece-frame img,
+	.piece-frame .trace-preview-box .trace-preview {
+		display: block;
+		width: 100%;
+		height: 100%;
+		max-height: none;
+		object-fit: contain;
+		border: 0;
+		border-radius: 0;
+		background: #fff;
+	}
+	.piece-frame .trace-preview-box {
+		gap: 0;
+	}
+	.piece-frame .trace-preview-box > p.text-xs {
+		display: none;
+	}
+	.piece-frame .trace-preview-state,
+	.piece-frame-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.625rem;
+		margin: 0;
+		padding: 1rem;
+		border: 0;
+		text-align: center;
+		@apply text-sm text-ink-gray-6;
+	}
+	.piece-frame .etude-sheet {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		margin: 0;
+		padding: 0.75rem;
+	}
+	.piece-frame .etude-sheet svg {
+		min-height: 0;
+		max-height: 100%;
+	}
+	.piece-frame[data-thumb] {
+		width: 100%;
+		max-width: 150px;
+		margin-top: 0.25rem;
+		background: #fff;
+	}
+	.piece-frame[data-thumb] .etude-sheet {
+		padding: 0.25rem;
+	}
+	.piece-frame[data-thumb] .etude-sheet figcaption,
+	.piece-frame[data-thumb] .trace-preview-state {
+		display: none;
+	}
+	.piece-head {
+		justify-content: flex-start;
+	}
+	.piece-head > h3 {
+		margin-right: auto;
+	}
+	.piece-caption {
+		margin: 0;
+		@apply text-xs text-ink-gray-6 tabular-nums;
+	}
 	/* Aperçu de la demande : un seul bloc, trois colonnes de même hauteur. La dernière porte des numéros et des statuts longs. */
 	.demande-resume {
 		container-type: inline-size;

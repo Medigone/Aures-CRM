@@ -9,7 +9,7 @@ from frappe.tests.utils import FrappeTestCase
 
 import fitz
 
-from aurescrm.api import bureau_impositions, bureau_traces
+from aurescrm.api import bureau_articles, bureau_impositions, bureau_traces
 from aurescrm.aures_crm.doctype.imposition.imposition import automatic_ideale, choose_ideale
 from aurescrm.aures_crm.doctype.trace.trace import EN_SERVICE, OBSOLETE, create_version, current_trace
 
@@ -121,6 +121,19 @@ class TestTraceVersions(FrappeTestCase):
 		self.assertIn(row.name, bureau_impositions.get_impositions("obsoletes", search=self.item)["names"])
 		self.assertNotIn(row.name, bureau_impositions.get_impositions("valables", search=self.item)["names"])
 		self.assertFalse(bureau_impositions.get_imposition(row.name)["can_choose"])
+
+
+	def test_la_fiche_article_ne_montre_que_la_version_en_service(self):
+		old = self._imposition(self.v1.name, 10)
+		result = create_version(frappe.get_doc("Trace", self.v1.name), "Reprise")
+		live = self._imposition(result["name"], 15)
+		prepresse = bureau_articles._prepresse(self.item)
+		self.assertEqual([row["name"] for row in prepresse["traces"]], [result["name"]])
+		self.assertEqual(prepresse["traces"][0]["ver"], 2)
+		self.assertEqual([row["name"] for row in prepresse["impositions"]], [live.name])
+		self.assertNotIn(old.name, [row["name"] for row in prepresse["impositions"]])
+		# Saisie à la main : pas de dessin, la carte montre le fichier joint.
+		self.assertIsNone(prepresse["impositions"][0]["dessin"])
 
 
 class TestTracePreview(FrappeTestCase):

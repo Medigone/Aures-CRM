@@ -18,6 +18,8 @@ import ActivityFeed from '@shared/components/ActivityFeed.vue'
 import ListState from '@shared/components/ListState.vue'
 import MoreMenu from '@shared/components/MoreMenu.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
+import PiecePreview from './PiecePreview.vue'
+import { dimensionsText } from '@/lib/traces'
 import AppToast from './AppToast.vue'
 import ArticleDialog from './ArticleDialog.vue'
 import ArticleColors from './ArticleColors.vue'
@@ -111,12 +113,12 @@ const chain = computed(() => {
 	const bat = current.bats.find((row) => row.status !== 'Obsolète') ?? current.bats[0]
 	const chutes = imposition?.taux_chutes ? ` · chutes ${String(imposition.taux_chutes).replace('.', ',')} %` : ''
 	return [
-		{ label: 'Tracé', doctype: 'Trace', name: trace?.name, sub: trace?.dimensions ? `${trace.dimensions} mm` : '', status: '' },
-		{ label: 'Maquette', doctype: 'Maquette', name: maquette?.name, sub: '', status: maquette?.status ?? '' },
+		{ label: 'Tracé', doctype: 'Trace', name: trace?.name, sub: trace?.dimensions ? `${dimensionsText(trace.dimensions)} mm` : '', status: '', route: 'Trace', preview: trace ? { kind: 'trace' as const, file: trace.fichier_trace, dessin: null } : null },
+		{ label: 'Maquette', doctype: 'Maquette', name: maquette?.name, sub: '', status: maquette?.status ?? '', route: '', preview: null },
 		flexo.value
-			? { label: 'Cliché', doctype: 'Cliche', name: cliche?.name, sub: '', status: cliche?.status ?? '' }
-			: { label: 'Imposition', doctype: 'Imposition', name: imposition?.name, sub: imposition?.nbr_poses ? `${posesLabel(imposition.nbr_poses)}${chutes}` : '', status: '' },
-		{ label: 'BAT', doctype: 'BAT', name: bat?.name, sub: '', status: bat?.status ?? '' },
+			? { label: 'Cliché', doctype: 'Cliche', name: cliche?.name, sub: '', status: cliche?.status ?? '', route: '', preview: null }
+			: { label: 'Imposition', doctype: 'Imposition', name: imposition?.name, sub: imposition?.nbr_poses ? `${posesLabel(imposition.nbr_poses)}${chutes}` : '', status: '', route: 'Imposition', preview: imposition ? { kind: 'imposition' as const, file: imposition.fichier_imp, dessin: imposition.dessin ?? null } : null },
+		{ label: 'BAT', doctype: 'BAT', name: bat?.name, sub: '', status: bat?.status ?? '', route: '', preview: null },
 	]
 })
 
@@ -337,9 +339,11 @@ const decisionsBar = ref<HTMLElement | null>(null)
 									<div v-for="item in chain" :key="item.label">
 										<span class="side-label">{{ item.label }}</span>
 										<template v-if="item.name">
-											<a class="ref-link inline-link tabular-nums" :href="deskUrl(item.doctype, item.name)" target="_blank" rel="noopener noreferrer">{{ item.name }}</a>
+											<RouterLink v-if="item.route" class="ref-link inline-link tabular-nums" :to="{ name: item.route, params: { id: item.name } }">{{ item.name }}</RouterLink>
+											<a v-else class="ref-link inline-link tabular-nums" :href="deskUrl(item.doctype, item.name)" target="_blank" rel="noopener noreferrer">{{ item.name }}</a>
 											<span v-if="item.sub" class="text-sm text-ink-gray-7">{{ item.sub }}</span>
 											<StatusPill v-if="item.status" :status="item.status" />
+											<PiecePreview v-if="item.preview" thumb :kind="item.preview.kind" :name="item.name" :file="item.preview.file" :dessin="item.preview.dessin" />
 										</template>
 										<span v-else class="text-ink-gray-6">Aucun</span>
 									</div>

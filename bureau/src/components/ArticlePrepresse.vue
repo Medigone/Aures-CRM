@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideCheck from '~icons/lucide/check'
 import LucideChevronDown from '~icons/lucide/chevron-down'
 import LucideChevronRight from '~icons/lucide/chevron-right'
 import LucideChevronUp from '~icons/lucide/chevron-up'
 import StatusPill from '@shared/components/StatusPill.vue'
-import { fileExtension, fileName, fileUrl } from '@shared/text'
+import { fileExtension, fileUrl } from '@shared/text'
 import MaquetteDialog from './MaquetteDialog.vue'
 import NewVersionDialog from './NewVersionDialog.vue'
+import PiecePreview from './PiecePreview.vue'
 import { createArticleBat } from '@/lib/api'
 import { isImageFile, posesLabel, prepresseState, type ArticleDetail } from '@/lib/articles'
 import { deskUrl, formatDay } from '@/lib/display'
+import { origineLabel } from '@/lib/impositions'
+import { dimensionsText, versionLabel } from '@/lib/traces'
 
 /** Où en est l'article et quoi faire ensuite. L'historique reste replié. */
 /** `actionsBar` : la barre d'actions de la fiche, où va l'action de la prochaine étape. */
@@ -27,6 +31,9 @@ const showEtudes = ref(false)
 const viewing = ref<string | null>(null)
 const creating = ref(false)
 
+function impositionOrigin(row: { origine_calcul?: string | null }) {
+	return origineLabel(row.origine_calcul || 'Manuel')
+}
 function chutes(value: number | null) {
 	return value ? `${String(value).replace('.', ',')} %` : ''
 }
@@ -153,12 +160,23 @@ function onCreated(article: ArticleDetail, name: string, failed: boolean) {
 
 		<div class="client-cards">
 			<section id="prepresse-trace" class="card ref-card" aria-label="Tracé">
-				<div class="ref-card-head"><h3>Tracé</h3><a v-if="state.trace" class="ref-link" :href="deskUrl('Trace', state.trace.name)" target="_blank" rel="noopener noreferrer">{{ state.trace.name }}</a></div>
-				<dl v-if="state.trace" class="kv">
-					<div><dt>Dimensions</dt><dd class="tabular-nums">{{ state.trace.dimensions ? `${state.trace.dimensions} mm` : '—' }}</dd></div>
-					<div><dt>Fichier</dt><dd><a v-if="state.trace.fichier_trace" class="ref-link" :href="fileUrl(state.trace.fichier_trace) || undefined" target="_blank" rel="noopener noreferrer" :title="fileName(state.trace.fichier_trace)">Ouvrir</a><span v-else class="text-ink-gray-6">Aucun</span></dd></div>
-				</dl>
-				<p v-else class="text-ink-gray-6">Aucun tracé pour cet article.</p>
+				<div class="ref-card-head piece-head">
+					<h3>Tracé</h3>
+					<template v-if="state.trace">
+						<span v-if="state.trace.ver" class="list-tag tone-gray tabular-nums">{{ versionLabel(state.trace.ver) }}</span>
+						<StatusPill v-if="state.trace.statut" :status="state.trace.statut" />
+						<RouterLink class="ref-link" :to="{ name: 'Trace', params: { id: state.trace.name } }">{{ state.trace.name }}</RouterLink>
+					</template>
+				</div>
+				<template v-if="state.trace">
+					<PiecePreview kind="trace" :name="state.trace.name" :file="state.trace.fichier_trace" />
+					<dl class="kv">
+						<div><dt>Dimensions</dt><dd class="tabular-nums">{{ state.trace.dimensions ? `${dimensionsText(state.trace.dimensions)} mm` : '—' }}</dd></div>
+						<div v-if="state.trace.procede !== 'Flexo'"><dt>Points de colle</dt><dd class="tabular-nums">{{ state.trace.points_colle ?? '—' }}</dd></div>
+						<div v-if="!state.flexo"><dt>Impositions valables</dt><dd class="tabular-nums">{{ article.prepresse.impositions.length || 'Aucune' }}</dd></div>
+					</dl>
+				</template>
+				<p v-else class="text-ink-gray-6">Aucun tracé pour cet article. Il se crée depuis l'étude.</p>
 			</section>
 
 			<section v-if="state.flexo" id="prepresse-outil" class="card ref-card" aria-label="Cliché">
@@ -170,11 +188,22 @@ function onCreated(article: ArticleDetail, name: string, failed: boolean) {
 				<p v-else class="text-ink-gray-6">Aucun cliché pour cet article.</p>
 			</section>
 			<section v-else id="prepresse-outil" class="card ref-card" aria-label="Imposition">
-				<div class="ref-card-head"><h3>{{ state.otherImpositions.length ? 'Imposition par défaut' : 'Imposition' }}</h3><a v-if="state.imposition" class="ref-link" :href="deskUrl('Imposition', state.imposition.name)" target="_blank" rel="noopener noreferrer">{{ state.imposition.name }}</a></div>
-				<dl v-if="state.imposition" class="kv">
-					<div><dt>Poses et chutes</dt><dd class="tabular-nums">{{ [state.imposition.nbr_poses && posesLabel(state.imposition.nbr_poses), chutes(state.imposition.taux_chutes)].filter(Boolean).join(' · ') || '—' }}</dd></div>
-					<div><dt>Machine</dt><dd :class="!state.imposition.machine_impression && 'font-normal text-ink-gray-6'">{{ state.imposition.machine_impression || 'Non renseignée' }}</dd></div>
-				</dl>
+				<div class="ref-card-head piece-head">
+					<h3>{{ state.otherImpositions.length ? 'Imposition idéale' : 'Imposition' }}</h3>
+					<template v-if="state.imposition">
+						<span class="list-tag tone-gray">{{ impositionOrigin(state.imposition) }}</span>
+						<RouterLink class="ref-link" :to="{ name: 'Imposition', params: { id: state.imposition.name } }">{{ state.imposition.name }}</RouterLink>
+					</template>
+				</div>
+				<template v-if="state.imposition">
+					<PiecePreview kind="imposition" :name="state.imposition.name" :file="state.imposition.fichier_imp" :dessin="state.imposition.dessin" />
+					<p v-if="!state.imposition.dessin && state.imposition.fichier_imp && isImageFile(state.imposition.fichier_imp)" class="piece-caption">Pas de dessin de la feuille : le fichier joint fait foi.</p>
+					<dl class="kv">
+						<div><dt>Poses et chutes</dt><dd class="tabular-nums">{{ [state.imposition.nbr_poses && posesLabel(state.imposition.nbr_poses), chutes(state.imposition.taux_chutes)].filter(Boolean).join(' · ') || '—' }}</dd></div>
+						<div><dt>Machine</dt><dd :class="!state.imposition.machine_impression && 'font-normal text-ink-gray-6'">{{ state.imposition.machine_impression || 'Non renseignée' }}</dd></div>
+						<div v-if="state.otherImpositions.length"><dt>Idéale</dt><dd>{{ state.imposition.ideale_manuelle ? 'Choisie à la main' : 'Par le calcul' }}</dd></div>
+					</dl>
+				</template>
 				<p v-else class="text-ink-gray-6">Aucune imposition pour cet article.</p>
 				<template v-if="state.otherImpositions.length">
 					<button type="button" class="pp-toggle" :aria-expanded="showImpositions" @click="showImpositions = !showImpositions">
@@ -182,8 +211,8 @@ function onCreated(article: ArticleDetail, name: string, failed: boolean) {
 						<LucideChevronUp v-if="showImpositions" class="h-3.5 w-3.5" aria-hidden="true" /><LucideChevronDown v-else class="h-3.5 w-3.5" aria-hidden="true" />
 					</button>
 					<div v-if="showImpositions" class="ref-scroll"><table class="ref-table">
-						<thead><tr><th>Numéro</th><th class="end">Poses</th><th class="end">Chutes</th></tr></thead>
-						<tbody><tr v-for="row in state.otherImpositions" :key="row.name"><td><a class="ref-link" :href="deskUrl('Imposition', row.name)" target="_blank" rel="noopener noreferrer">{{ row.name }}</a></td><td class="end tabular-nums">{{ row.nbr_poses || '—' }}</td><td class="end tabular-nums">{{ chutes(row.taux_chutes) || '—' }}</td></tr></tbody>
+						<thead><tr><th>Numéro</th><th class="end">Poses</th><th class="end">Chutes</th><th>Origine</th></tr></thead>
+						<tbody><tr v-for="row in state.otherImpositions" :key="row.name"><td><RouterLink class="ref-link" :to="{ name: 'Imposition', params: { id: row.name } }">{{ row.name }}</RouterLink></td><td class="end tabular-nums">{{ row.nbr_poses || '—' }}</td><td class="end tabular-nums">{{ chutes(row.taux_chutes) || '—' }}</td><td>{{ impositionOrigin(row) }}</td></tr></tbody>
 					</table></div>
 				</template>
 			</section>

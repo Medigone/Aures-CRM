@@ -257,6 +257,45 @@ describe('page Articles', () => {
 		wrapper.unmount()
 	})
 
+	it('les cartes Tracé et Imposition montrent leur aperçu et mènent à leur fiche du bureau', async () => {
+		const dessin = { laize: 1020, developpement: 600, n_col: 2, n_rang: 1, pas_laize: 250, pas_depl: 170, lisiere: 10, pince: 10, coupe: 'M0 0 L10 0 L10 10 Z', rainage: null, poses: [], pose_l: 10, pose_d: 10, motif: null }
+		const prepresse = {
+			...detail.prepresse,
+			traces: [{ name: 'TR-1', dimensions: '72x46.5x107', fichier_trace: '/files/trace.png', points_colle: 3, procede: 'Offset', ver: 2, statut: 'En service' }],
+			impositions: [
+				{ name: 'IMP-1', machine_impression: 'Offset 5', nbr_poses: 8, taux_chutes: 12, defaut: 1, fichier_imp: null, origine_calcul: 'Moteur v1', ideale_manuelle: 1, dessin },
+				{ name: 'IMP-2', machine_impression: null, nbr_poses: 4, taux_chutes: 20, defaut: 0, fichier_imp: '/files/imp.pdf', origine_calcul: 'Manuel' },
+			],
+		}
+		current['bureau_articles.get_article'] = { ...detail, prepresse }
+		const { wrapper, router } = await open('/articles/CLI-1-003?onglet=prepresse')
+		const trace = wrapper.find('#prepresse-trace')
+		expect(trace.find('.piece-frame img').attributes('src')).toBe('/files/trace.png')
+		expect(trace.text()).toContain('V2')
+		expect(trace.text()).toContain('72 × 46,5 × 107 mm')
+		expect(trace.text()).toContain('Impositions valables2')
+		const imposition = wrapper.find('#prepresse-outil')
+		expect(imposition.find('h3').text()).toBe('Imposition idéale')
+		expect(imposition.find('.piece-frame svg').exists()).toBe(true)
+		expect(imposition.text()).toContain('Choisie à la main')
+		await imposition.find('.pp-toggle').trigger('click')
+		expect(imposition.find('.ref-table').text()).toContain('À la main')
+		await trace.find('.piece-head .ref-link').trigger('click')
+		await flushPromises()
+		expect(router.currentRoute.value.fullPath).toBe('/traces/TR-1')
+		wrapper.unmount()
+	})
+
+	it('une imposition sans dessin ni image renvoie au fichier joint', async () => {
+		const prepresse = { ...detail.prepresse, impositions: [{ name: 'IMP-1', machine_impression: null, nbr_poses: 8, taux_chutes: 12, defaut: 1, fichier_imp: '/files/imp.pdf', origine_calcul: 'Manuel', dessin: null }] }
+		current['bureau_articles.get_article'] = { ...detail, prepresse }
+		const { wrapper } = await open('/articles/CLI-1-003?onglet=prepresse')
+		const frame = wrapper.find('#prepresse-outil .piece-frame')
+		expect(frame.text()).toContain('Le fichier joint fait foi.')
+		expect(frame.find('a').attributes('href')).toBe('/files/imp.pdf')
+		wrapper.unmount()
+	})
+
 	it('la visionneuse annonce la conséquence de l’activation, puis l’envoie', async () => {
 		const older = { name: 'MAQ-V2', status: 'Obsolète', ver: 2, resume_couleurs: null, date_creation: '2026-05-02', desc_changements: 'Pantone', fichier_maquette: null }
 		const prepresse = { ...detail.prepresse, maquettes: [detail.prepresse.maquettes[0], older] }

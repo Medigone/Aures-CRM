@@ -19,7 +19,7 @@ from aurescrm.api.bureau import BELL_FIELD, TICKET, _parse, condition_filters, d
 from aurescrm.api.bureau_clients import COMMERCIAL_FIELD, CUSTOMER, RELATED_LIMIT, _note, _readable, bind_file, ticket_rows
 from aurescrm.api.commercial_mobile import article_fiche, article_schema
 from aurescrm.aures_crm.doctype.etude_technique.etude_technique import create_new_bat_from_etude
-from aurescrm.aures_crm.doctype.trace.trace import current_trace
+from aurescrm.aures_crm.doctype.trace.trace import current_filters, current_trace, has_versions
 from aurescrm.api.commercial_mutations import ARTICLE_ITEM_GROUP, ARTICLE_UOM, Refused, _article_default, _article_value
 from aurescrm.utils import create_sous_article
 
@@ -307,6 +307,34 @@ def _list_or_empty(doctype, filters, fields, order_by="modified desc"):
 	return frappe.get_list(doctype, filters=filters, fields=fields, order_by=order_by, limit_page_length=RELATED_LIMIT)
 
 
+def _current_traces(name):
+	"""Le tracé en service seul : les versions remplacées se consultent depuis sa fiche."""
+	fields = ["name", "dimensions", "fichier_trace", "points_colle", "procede"]
+	if has_versions():
+		fields += ["ver", "statut"]
+	return _list_or_empty("Trace", current_filters(name), fields, "creation desc")
+
+
+def _live_impositions(name):
+	"""Les impositions valables, l'idéale en tête avec de quoi dessiner sa feuille. Les obsolètes sont écartées."""
+	meta = frappe.get_meta("Imposition")
+	filters = {"article": name}
+	fields = ["name", "machine_impression", "nbr_poses", "taux_chutes", "defaut", "fichier_imp", "origine_calcul", "n_col", "n_rang", "trace"]
+	if meta.has_field("obsolete"):
+		filters["obsolete"] = 0
+	if meta.has_field("ideale_manuelle"):
+		fields.append("ideale_manuelle")
+	rows = _list_or_empty("Imposition", filters, fields, "defaut desc, creation desc")
+	if rows:
+		from aurescrm.api.bureau_etudes_pieces import sheet_drawing
+		from aurescrm.api.bureau_traces import sheet_label
+
+		doc = frappe.get_doc("Imposition", rows[0].name)
+		rows[0]["dessin"] = sheet_drawing(doc.as_dict())
+		rows[0]["format"] = sheet_label(doc)
+	return rows
+
+
 def _prepresse(name):
 	maquettes = _list_or_empty(
 		"Maquette",
@@ -320,13 +348,8 @@ def _prepresse(name):
 	return {
 		"maquettes": maquettes,
 		"bats": _list_or_empty("BAT", {"article": name}, ["name", "status", "date", "maquette", "valide_par_nom", "fichier_valide", "image"], "creation desc"),
-		"traces": _list_or_empty("Trace", {"article": name}, ["name", "dimensions", "fichier_trace"], "creation desc"),
-		"impositions": _list_or_empty(
-			"Imposition",
-			{"article": name},
-			["name", "machine_impression", "nbr_poses", "taux_chutes", "defaut", "fichier_imp"],
-			"defaut desc, creation desc",
-		),
+		"traces": _current_traces(name),
+		"impositions": _live_impositions(name),
 		"cliches": _list_or_empty("Cliche", {"article": name, "docstatus": ["<", 2]}, ["name", "status", "date", "version", "version_active", "nbr_couleurs"], "version_active desc, creation desc"),
 		"plans_flexo": _list_or_empty("Plan Flexo", {"article": name}, ["name", "date", "dimensions", "laize", "fichier"], "creation desc"),
 		"etudes_techniques": _list_or_empty(

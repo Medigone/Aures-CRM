@@ -1,5 +1,5 @@
 /** Règles de la page Articles : types, vues, colonnes, filtres, fiche technique et validation de la fenêtre. */
-import type { CotationsOrigin } from './etudePieces'
+import type { CotationsOrigin, SheetDrawing } from './etudePieces'
 import { fieldVisible, isEmptyValue, type FicheDoc, type FicheField, type FicheSchema } from '@shared/fiche'
 import type { CommentSummary, Option } from '@/types'
 import type { ClientTicket } from './clients'
@@ -68,8 +68,8 @@ export interface ArticleVente {
 export interface ArticlePrepresse {
 	maquettes: { name: string; status: string; ver: number | null; resume_couleurs: string | null; date_creation: string | null; date_activation?: string | null; desc_changements: string | null; fichier_maquette: string | null; nom_reference_par?: string | null }[]
 	bats: { name: string; status: string; date: string | null; maquette: string | null; valide_par_nom: string | null; fichier_valide: string | null; image: string | null }[]
-	traces: { name: string; dimensions: string | null; fichier_trace: string | null }[]
-	impositions: { name: string; machine_impression: string | null; nbr_poses: number | null; taux_chutes: number | null; defaut: number; fichier_imp: string | null }[]
+	traces: { name: string; dimensions: string | null; fichier_trace: string | null; points_colle?: number | null; procede?: string | null; ver?: number; statut?: string }[]
+	impositions: { name: string; machine_impression: string | null; nbr_poses: number | null; taux_chutes: number | null; defaut: number; fichier_imp: string | null; origine_calcul?: string | null; ideale_manuelle?: number; dessin?: SheetDrawing | null; format?: string | null }[]
 	cliches: { name: string; status: string; date: string | null; version: number | null; version_active: number; nbr_couleurs: string | null }[]
 	plans_flexo: { name: string; date: string | null; dimensions: string | null; laize: string | null; fichier: string | null }[]
 	etudes_techniques: { name: string; status: string; date: string | null; nom_utilisateur: string | null; machine: string | null; nb_passages: number | null; maquette?: string | null; bat?: string | null }[]
