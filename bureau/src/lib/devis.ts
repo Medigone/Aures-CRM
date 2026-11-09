@@ -7,6 +7,13 @@ import { tagsText, type Column, type Sort } from './list'
 import type { ListResponse } from './useServerList'
 
 export const DEVIS_DOCTYPE = 'Quotation'
+export const DEVIS_PRINT_FORMAT = 'Devis Aures'
+
+/** Le PDF remis au client, tel que le moteur d'impression le produit. */
+export function devisPdfUrl(name: string) {
+	const query = new URLSearchParams({ doctype: DEVIS_DOCTYPE, name, format: DEVIS_PRINT_FORMAT, no_letterhead: '1' })
+	return `/api/method/frappe.utils.print_format.download_pdf?${query.toString()}`
+}
 
 export type DevisView = 'all' | 'chiffrer' | 'valider' | 'valides' | 'expirent' | 'commandes' | 'clos'
 
@@ -91,6 +98,7 @@ export interface DevisDetail {
 	creation: string
 	tags: string[]
 	can_write: boolean
+	can_print: boolean
 	status: string
 	docstatus: number
 	type: string

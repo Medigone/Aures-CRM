@@ -22,7 +22,7 @@ const ordered = { ...row, name: 'SAL-QTN-2026-00021', status: 'Ordered', chiffre
 const list = { devis: [row, ordered], counts: { all: 2, chiffrer: 1, valider: 0, valides: 0, expirent: 0, commandes: 1, clos: 0 }, total: 2, start: 0, page_length: 20, names: [row.name, ordered.name] }
 const line = (name: string, prix: number | null) => ({ name, article: `CLI-1-${name}`, designation: `Article ${name}`, quantite: 50000, unite: 'Unité', prix, montant: prix ? prix * 50000 : 0, chiffree: Boolean(prix) })
 const detail = {
-	...row, can_write: true, docstatus: 0, cree_par: 'Nadia', chiffrees: 1, taxes: 0, commandes: [], comments: { count: 0, last: null },
+	...row, can_write: true, can_print: true, docstatus: 0, cree_par: 'Nadia', chiffrees: 1, taxes: 0, commandes: [], comments: { count: 0, last: null },
 	lignes: [line('001', 8.7), line('002', 0)], actions: ['prix', 'valider'], blocked: ['1 ligne(s) sans prix.'], raisons_perte: [], perte: null,
 }  // prettier-ignore
 const open_ = { ...detail, status: 'Open', docstatus: 1, chiffrees: 2, lignes: [line('001', 8.7), line('002', 12)], actions: ['commande', 'perdu', 'annuler'], blocked: [], raisons_perte: ['Prix', 'Délai'] }

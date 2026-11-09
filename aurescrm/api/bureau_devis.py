@@ -273,6 +273,7 @@ def get_devis(name):
 		"creation": str(doc.creation),
 		"tags": row_tags(doc),
 		"can_write": bool(doc.has_permission("write")),
+		"can_print": bool(doc.has_permission("print")),
 		"status": doc.status,
 		"docstatus": cint(doc.docstatus),
 		"type": _type(doc),

@@ -1,0 +1,137 @@
+{#- Devis Aures : le devis remis au client, en A4 portrait. Même PDF pour le bureau, la PWA et l'email.
+    En-tête : copie de l'image du papier à en-tête « Aures », sous un nom sans accent que le moteur PDF sait charger. Identifiants de la société : `registration_details` de la société,
+    une ligne par identifiant. Le sous-titre d'une ligne vient de la fiche technique de l'article. -#}
+{%- set company = frappe.db.get_value("Company", doc.company, ["company_name", "registration_details", "phone_no", "email", "website"], as_dict=1) or {} -%}
+{%- set client_id = doc.custom_id_client or doc.party_name -%}
+{%- set client = frappe.db.get_value("Customer", client_id, ["customer_name", "custom_nº_rc", "custom_nº_nif", "custom_nº_nis", "custom_wilaya"], as_dict=1) or {} -%}
+{%- set ticket = frappe.db.get_value("Demande Faisabilite", doc.get("custom_demande_faisabilité"), "ticket_commercial") if doc.get("custom_demande_faisabilité") else None -%}
+{%- macro day(value) -%}{{ frappe.utils.formatdate(value, "dd/MM/yyyy") if value else "" }}{%- endmacro -%}
+{%- macro money(value) -%}{{ frappe.utils.fmt_money(value or 0, precision=2) }}{%- endmacro -%}
+
+<style>
+	.devis-aures { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 9.5pt; line-height: 1.4; color: #1a1a1a; }
+	.devis-aures * { box-sizing: border-box; }
+	.da-head img { width: 100%; height: auto; display: block; }
+	.da-ids { border-top: 2px solid #1a1a1a; border-bottom: 1px solid #d4d4d4; padding: 4px 0; margin-top: 4px; font-size: 7.5pt; color: #555; }
+	.da-ids span { display: inline-block; white-space: nowrap; margin-right: 18px; }
+	.da-title { display: table; width: 100%; margin: 14px 0 10px; }
+	.da-title > div { display: table-cell; vertical-align: bottom; }
+	.da-title h1 { margin: 0; font-size: 20pt; letter-spacing: 3px; font-weight: 700; }
+	.da-title .ref { text-align: right; }
+	.da-title .ref b { font-size: 11pt; }
+	.da-meta { display: table; width: 100%; border-spacing: 0; margin-bottom: 12px; }
+	.da-meta > div { display: table-cell; width: 50%; vertical-align: top; border: 1px solid #d4d4d4; padding: 7px 9px; }
+	.da-meta > div + div { border-left: 0; }
+	.da-cap { display: block; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 1px; color: #666; font-weight: 700; margin-bottom: 2px; }
+	.da-meta .name { font-size: 11pt; font-weight: 700; }
+	.da-meta .line { display: block; }
+	.da-meta .muted { color: #666; }
+	table.da-lines { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+	table.da-lines th { background: #f2f2f2; color: #333; font-size: 7.5pt; text-transform: uppercase; letter-spacing: .5px; text-align: left; padding: 5px 6px; border-bottom: 1px solid #bdbdbd; }
+	table.da-lines td { padding: 6px; border-bottom: 1px solid #e6e6e6; vertical-align: top; }
+	table.da-lines .r { text-align: right; white-space: nowrap; }
+	table.da-lines .ref { white-space: nowrap; color: #444; font-size: 8.5pt; }
+	table.da-lines .sub { display: block; color: #666; font-size: 8pt; }
+	.da-totals { width: 46%; margin-left: 54%; border-collapse: collapse; }
+	.da-totals td { padding: 2px 6px; text-align: right; }
+	.da-totals td:first-child { color: #555; }
+	.da-totals .grand td { font-weight: 700; color: #1a1a1a; border-top: 1.5px solid #1a1a1a; padding-top: 4px; font-size: 10.5pt; }
+	.da-words { margin: 10px 0 14px; font-style: italic; }
+	.da-bottom { display: table; width: 100%; page-break-inside: avoid; }
+	.da-bottom > div { display: table-cell; width: 50%; vertical-align: top; }
+	.da-bottom ul { margin: 2px 0 0; padding-left: 14px; }
+	.da-sign { border: 1px dashed #bdbdbd; height: 80px; margin-left: 16px; padding: 6px 9px; color: #777; }
+	.da-terms { margin-top: 2px; }
+	.da-foot { margin-top: 16px; border-top: 1px solid #d4d4d4; padding-top: 4px; font-size: 7.5pt; color: #777; text-align: center; }
+</style>
+
+<div class="devis-aures">
+	<div class="da-head">
+		<img src="/assets/aurescrm/images/devis-entete.png" alt="Aures Emballages">
+		<div class="da-ids">
+			{% for line in (company.registration_details or "").split("\n") if line.strip() %}<span>{{ line.strip() }}</span>{% endfor %}
+			{% if company.phone_no %}<span>Tél. {{ company.phone_no }}</span>{% endif %}
+			{% if company.email %}<span>{{ company.email }}</span>{% endif %}
+		</div>
+	</div>
+
+	<div class="da-title">
+		<div><h1>DEVIS</h1></div>
+		<div class="ref"><b>N° {{ doc.name }}</b><br>Le {{ day(doc.transaction_date) }}</div>
+	</div>
+
+	<div class="da-meta">
+		<div>
+			<span class="da-cap">Client</span>
+			<span class="line name">{{ doc.customer_name or client.customer_name or client_id }}</span>
+			{% if doc.address_display %}<span class="line">{{ doc.address_display | striptags }}</span>{% elif client.custom_wilaya %}<span class="line">{{ client.custom_wilaya }}</span>{% endif %}
+			{% set ids = [] %}
+			{% if client["custom_nº_rc"] %}{% set _ = ids.append("RC " ~ client["custom_nº_rc"]) %}{% endif %}
+			{% if client["custom_nº_nif"] %}{% set _ = ids.append("NIF " ~ client["custom_nº_nif"]) %}{% endif %}
+			{% if client["custom_nº_nis"] %}{% set _ = ids.append("NIS " ~ client["custom_nº_nis"]) %}{% endif %}
+			{% if ids %}<span class="line muted">{{ ids | join(" · ") }}</span>{% endif %}
+			{% if doc.contact_display %}<span class="line">À l'attention de {{ doc.contact_display }}</span>{% endif %}
+		</div>
+		<div>
+			<span class="da-cap">Références</span>
+			{% if doc.get("custom_demande_faisabilité") %}<span class="line">Demande : {{ doc.get("custom_demande_faisabilité") }}</span>{% endif %}
+			{% if ticket %}<span class="line">Ticket : {{ ticket }}</span>{% endif %}
+			{% if doc.custom_commercial %}<span class="line">Votre interlocuteur : {{ doc.custom_commercial }}</span>{% endif %}
+			{% if doc.valid_till %}<span class="line">Valable jusqu'au : <b>{{ day(doc.valid_till) }}</b></span>{% endif %}
+			{% if doc.get("custom_date_de_livraison") %}<span class="line">Livraison souhaitée : {{ day(doc.get("custom_date_de_livraison")) }}</span>{% endif %}
+		</div>
+	</div>
+
+	<table class="da-lines">
+		<thead>
+			<tr><th style="width:14%">Réf.</th><th>Désignation</th><th class="r" style="width:12%">Quantité</th><th class="r" style="width:13%">P.U. HT</th><th class="r" style="width:17%">Montant HT</th></tr>
+		</thead>
+		<tbody>
+			{% for row in doc.items %}
+			{%- set it = frappe.db.get_value("Item", row.item_code, ["custom_code_client", "custom_support", "custom_grammage", "custom_impression", "custom_nbr_couleurs", "custom_pelliculage", "custom_cotations_article"], as_dict=1) or {} -%}
+			{%- set parts = [] -%}
+			{%- set support = ((it.custom_support or "") ~ (" " ~ it.custom_grammage ~ " g" if it.custom_grammage else "")).strip() -%}
+			{%- if support %}{% set _ = parts.append(support) %}{% endif -%}
+			{%- set colors = (it.custom_impression or "") ~ (" (" ~ it.custom_nbr_couleurs ~ ")" if it.custom_nbr_couleurs and it.custom_nbr_couleurs != it.custom_impression else "") -%}
+			{%- if colors.strip() %}{% set _ = parts.append(colors.strip()) %}{% endif -%}
+			{%- if it.custom_pelliculage and it.custom_pelliculage != "Sans" %}{% set _ = parts.append("pelliculage " ~ it.custom_pelliculage | lower) %}{% endif -%}
+			{%- if it.custom_cotations_article %}{% set _ = parts.append(it.custom_cotations_article | replace("x", " × ") ~ " mm") %}{% endif -%}
+			<tr>
+				<td class="ref">{{ it.custom_code_client or row.item_code }}</td>
+				<td>{{ row.item_name }}{% if parts %}<span class="sub">{{ parts | join(" · ") }}</span>{% endif %}</td>
+				<td class="r">{{ frappe.utils.fmt_money(row.qty, precision=0) }}{% if row.uom and row.uom not in ("Unité", "Nos", "Unit") %} {{ row.uom }}{% endif %}</td>
+				<td class="r">{{ money(row.rate) }}</td>
+				<td class="r">{{ money(row.amount) }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<table class="da-totals">
+		<tr><td>Total HT</td><td>{{ money(doc.net_total) }}</td></tr>
+		{% for tax in doc.taxes if tax.tax_amount %}<tr><td>{{ tax.description }}</td><td>{{ money(tax.tax_amount) }}</td></tr>{% endfor %}
+		{% if doc.discount_amount %}<tr><td>Remise</td><td>- {{ money(doc.discount_amount) }}</td></tr>{% endif %}
+		<tr class="grand"><td>Total TTC ({{ doc.currency }})</td><td>{{ money(doc.grand_total) }}</td></tr>
+	</table>
+
+	<p class="da-words">Arrêté le présent devis à la somme de : {{ frappe.utils.money_in_words(doc.grand_total, doc.currency) | lower }}</p>
+
+	<div class="da-bottom">
+		<div>
+			<span class="da-cap">Conditions</span>
+			{% if doc.terms %}
+				<div class="da-terms">{{ doc.terms }}</div>
+			{% else %}
+				<ul>
+					{% if doc.valid_till %}<li>Offre valable jusqu'au {{ day(doc.valid_till) }}.</li>{% endif %}
+					<li>Prix unitaires hors taxes, en dinars algériens.</li>
+					{% if doc.get("custom_date_de_livraison") %}<li>Livraison souhaitée le {{ day(doc.get("custom_date_de_livraison")) }}, à confirmer à la commande.</li>{% endif %}
+					<li>Toute commande vaut acceptation du présent devis.</li>
+				</ul>
+			{% endif %}
+		</div>
+		<div><div class="da-sign">Bon pour accord : cachet et signature du client</div></div>
+	</div>
+
+	<div class="da-foot">{{ company.company_name or doc.company }}{% if company.website %} · {{ company.website }}{% endif %} · Devis {{ doc.name }}</div>
+</div>

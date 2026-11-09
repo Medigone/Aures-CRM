@@ -10,7 +10,7 @@ import CommentText from '@shared/components/CommentText.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import TagEditor from './TagEditor.vue'
-import { commandeText, DEVIS_DOCTYPE, devisStage, devisTypeLabel, moneyText, quantityText } from '@/lib/devis'
+import { commandeText, DEVIS_DOCTYPE, devisPdfUrl, devisStage, devisTypeLabel, moneyText, quantityText } from '@/lib/devis'
 import { deskUrl, formatDay } from '@/lib/display'
 import { canRead } from '@/lib/droits'
 import { useDevis } from '@/lib/useDevis'
@@ -73,6 +73,10 @@ function onTags(tags: string[]) {
 					</div>
 					<p class="mt-0.5 text-sm text-ink-gray-7">{{ [devis.client_label, devisTypeLabel(devis.type), `${devis.lignes.length} ${devis.lignes.length > 1 ? 'articles' : 'article'}`].join(' · ') }}</p>
 					<TagEditor class="mt-1.5" :doctype="DEVIS_DOCTYPE" :name="devis.name" :modified="devis.modified" :tags="devis.tags" :can-edit="devis.can_write" @changed="onTags" />
+				</div>
+
+				<div v-if="devis.can_print" class="record-actions record-actions-start">
+					<a class="btn-secondary" :href="devisPdfUrl(devis.name)" target="_blank" rel="noopener noreferrer">Voir le PDF</a>
 				</div>
 
 				<dl class="bureau-drawer-facts">

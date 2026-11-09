@@ -47,3 +47,4 @@ aurescrm.patches.migrate_calcul_imposition_depuis_etude
 aurescrm.patches.check_demande_on_ticket_checklist
 aurescrm.patches.sync_ticket_pieces
 aurescrm.patches.trace_versions_initiales
+aurescrm.patches.devis_aures_format_par_defaut

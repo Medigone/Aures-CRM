@@ -1382,7 +1382,7 @@
   "name": "2k36aba8ej",
   "parent": "Quotation",
   "permlevel": 0,
-  "print": 0,
+  "print": 1,
   "read": 1,
   "report": 1,
   "role": "Administrateur Ventes",

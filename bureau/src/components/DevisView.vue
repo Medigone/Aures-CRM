@@ -19,7 +19,7 @@ import RecordHeader from './RecordHeader.vue'
 import StepTimeline from './StepTimeline.vue'
 import TagEditor from './TagEditor.vue'
 import { devisActivity } from '@/lib/api'
-import { DEVIS_DOCTYPE, devisStage, devisTimeline, devisTip, devisTypeLabel, moneyText, parsePrice, quantityText, type DevisLine } from '@/lib/devis'
+import { DEVIS_DOCTYPE, devisPdfUrl, devisStage, devisTimeline, devisTip, devisTypeLabel, moneyText, parsePrice, quantityText, type DevisLine } from '@/lib/devis'
 import { deskUrl, formatDay } from '@/lib/display'
 import { canRead } from '@/lib/droits'
 import { useDevis } from '@/lib/useDevis'
@@ -129,13 +129,13 @@ function onTags(tags: string[]) {
 				<template #actions>
 					<button v-if="has('valider')" type="button" class="btn-primary" :disabled="busy || devis.blocked.length > 0" :title="devis.blocked.join(' ') || undefined" @click="actions?.run('valider')">Valider le devis</button>
 					<button v-if="has('commande')" type="button" class="btn-primary" :disabled="busy" @click="actions?.run('commande')">Créer la commande</button>
+					<a v-if="devis.can_print" class="btn-secondary" :href="devisPdfUrl(devis.name)" target="_blank" rel="noopener noreferrer">Voir le PDF</a>
 					<MoreMenu>
 						<template v-if="has('perdu') || has('annuler')">
 							<button v-if="has('perdu')" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="actions?.run('perdu')">Marquer perdu…</button>
 							<button v-if="has('annuler')" type="button" class="app-menu-item" role="menuitem" :disabled="busy" @click="actions?.run('annuler')">Annuler le devis…</button>
 							<div class="app-menu-sep"></div>
 						</template>
-						<a class="app-menu-item" role="menuitem" :href="`/printview?doctype=${DEVIS_DOCTYPE}&name=${encodeURIComponent(devis.name)}`" target="_blank" rel="noopener noreferrer">Aperçu du PDF</a>
 						<button type="button" class="app-menu-item" role="menuitem" @click="copyLink">Copier le lien</button>
 						<a class="app-menu-item" role="menuitem" :href="deskUrl(DEVIS_DOCTYPE, devis.name)" target="_blank" rel="noopener noreferrer"><LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />Ouvrir sur le Desk</a>
 					</MoreMenu>

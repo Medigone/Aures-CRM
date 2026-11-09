@@ -136,3 +136,20 @@ class TestCycleDevis(FrappeTestCase):
 	def test_une_version_perimee_est_refusee(self):
 		with self.assertRaises(frappe.TimestampMismatchError):
 			bureau_devis.update_devis(self.name, "2000-01-01 00:00:00", prix=json.dumps(self._prices()))
+
+
+class TestFormatDevisAures(FrappeTestCase):
+	def test_le_format_rend_le_devis(self):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("Print Format", "Devis Aures"):
+			self.skipTest("Format pas encore installé : lancer la migration.")
+		name = frappe.db.get_value("Quotation", {"docstatus": 1}, "name", order_by="creation desc")
+		if not name:
+			self.skipTest("Aucun devis validé sur ce site.")
+		doc = frappe.get_doc("Quotation", name)
+		html = frappe.get_print("Quotation", name, "Devis Aures", no_letterhead=1)
+		self.assertIn(name, html)
+		self.assertIn("devis-entete.png", html)
+		self.assertIn("Arrêté le présent devis", html)
+		for row in doc.items:
+			self.assertIn(row.item_name, html)
