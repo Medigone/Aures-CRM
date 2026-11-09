@@ -85,3 +85,88 @@ class TestListeCommandes(FrappeTestCase):
 			self.assertTrue(all(row["total_ttc"] is None for row in result["commandes"]))
 		finally:
 			frappe.set_user("Administrator")
+
+
+class TestDatesDeLaDemande(FrappeTestCase):
+	def test_chaque_ligne_prend_la_date_de_son_article(self):
+		from aurescrm.quotation import _apply_demande_delivery_dates
+
+		frappe.set_user("Administrator")
+		row = frappe.db.sql(
+			"""select parent, article, date_livraison from `tabArticles Demande Faisabilite`
+			where parenttype = 'Demande Faisabilite' and date_livraison is not null and article is not null limit 1""",
+			as_dict=True,
+		)
+		if not row:
+			self.skipTest("Aucune demande avec une date de livraison par article.")
+		row = row[0]
+		so = frappe.new_doc("Sales Order")
+		so.set("custom_demande_de_faisabilité", row.parent)
+		so.append("items", {"item_code": row.article, "qty": 1})
+		so.append("items", {"item_code": "__absent__", "qty": 1})
+		_apply_demande_delivery_dates(so)
+		self.assertEqual(str(so.items[0].delivery_date), str(row.date_livraison))
+		self.assertFalse(so.items[1].get("delivery_date"))
+		self.assertEqual(str(so.delivery_date), str(row.date_livraison))
+
+
+class TestCycleCommande(FrappeTestCase):
+	"""Sur un brouillon du site, dans une transaction annulée à la fin. Aucune notification ne part."""
+
+	def setUp(self):
+		from unittest.mock import patch
+
+		frappe.set_user("Administrator")
+		self.name = frappe.db.get_value("Sales Order", {"docstatus": 0}, "name", order_by="creation desc")
+		if not self.name:
+			self.skipTest("Aucune commande en brouillon sur ce site.")
+		self.push = patch("aurescrm.push.service.enqueue_push")
+		self.push.start()
+
+	def tearDown(self):
+		self.push.stop()
+		frappe.set_user("Administrator")
+
+	def test_le_bon_de_commande_bloque_la_validation(self):
+		doc = frappe.get_doc("Sales Order", self.name)
+		doc.custom_bon_de_commande_client = None
+		doc.custom_date_bon_de_commande = None
+		reasons = bureau_commandes.blocked(doc)
+		self.assertTrue(any("n° du bon" in reason for reason in reasons))
+		self.assertTrue(any("date du bon" in reason for reason in reasons))
+
+	def test_une_date_de_bon_future_est_refusee(self):
+		detail = bureau_commandes.get_commande(self.name)
+		with self.assertRaises(frappe.ValidationError):
+			bureau_commandes.update_commande(self.name, detail["modified"], date_bon="2999-01-01")
+
+	def test_le_back_office_saisit_mais_ne_valide_pas(self):
+		user = "test.back-office@aures.test"
+		if not frappe.db.exists("User", user):
+			self.skipTest("Compte d'essai du back office absent.")
+		if "Administrateur Ventes" in frappe.get_roles(user):
+			self.skipTest("Ce compte est Administrateur Ventes.")
+		frappe.set_user(user)
+		if not frappe.has_permission("Sales Order", "read"):
+			self.skipTest("Ce compte ne lit pas les commandes.")
+		detail = bureau_commandes.get_commande(self.name)
+		self.assertNotIn("valider", detail["actions"])
+		with self.assertRaises(frappe.PermissionError):
+			bureau_commandes.validate_commande(self.name, detail["modified"])
+
+	def test_valider_puis_annuler(self):
+		detail = bureau_commandes.get_commande(self.name)
+		detail = bureau_commandes.update_commande(self.name, detail["modified"], bon_commande="BC-TEST", date_bon=frappe.utils.today())
+		self.assertEqual(detail["bon_commande"], "BC-TEST")
+		if detail["blocked"]:
+			self.skipTest("Brouillon incomplet : " + " ".join(detail["blocked"]))
+		detail = bureau_commandes.validate_commande(self.name, detail["modified"])
+		self.assertEqual(detail["docstatus"], 1)
+		self.assertIn("annuler", detail["actions"])
+		with self.assertRaises(frappe.ValidationError):
+			bureau_commandes.cancel_commande(self.name, detail["modified"], "  ")
+		if detail["annulation_bloquee"]:
+			return
+		detail = bureau_commandes.cancel_commande(self.name, detail["modified"], "Erreur de saisie")
+		self.assertEqual(detail["docstatus"], 2)
+		self.assertTrue(frappe.db.exists("Comment", {"reference_doctype": "Sales Order", "reference_name": self.name, "content": ["like", "%Erreur de saisie%"]}))

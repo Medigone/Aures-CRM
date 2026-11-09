@@ -67,6 +67,33 @@ def _get_ticket_commercial_from_quotation(source_name):
         "Demande Faisabilite", demande_faisabilite, "ticket_commercial"
     )
 
+def _apply_demande_delivery_dates(so):
+    """
+    Chaque ligne prend la date de livraison de son article dans la demande de faisabilité ;
+    l'entête prend la plus proche. Sans demande, ou pour un article absent, la date du devis reste.
+    """
+    demande = so.get("custom_demande_de_faisabilité")
+    if not demande:
+        return
+    dates = {}
+    for row in frappe.get_all(
+        "Articles Demande Faisabilite",
+        filters={"parent": demande, "parenttype": "Demande Faisabilite", "parentfield": "liste_articles"},
+        fields=["article", "date_livraison"],
+        order_by="idx asc",
+    ):
+        if row.article and row.date_livraison and row.article not in dates:
+            dates[row.article] = getdate(row.date_livraison)
+    found = []
+    for item in so.get("items") or []:
+        date = dates.get(item.item_code)
+        if date:
+            item.delivery_date = date
+            found.append(date)
+    if found:
+        so.delivery_date = min(found)
+
+
 def _ensure_sales_order_delivery_dates(so):
     """
     ERPNext impose: date(s) de livraison >= date de commande (transaction_date).
@@ -154,6 +181,7 @@ def create_smart_sales_order_with_remaining_items(source_name, command_analysis)
                 "delivery_date": so.delivery_date or so.transaction_date or nowdate(),
             })
     
+    _apply_demande_delivery_dates(so)
     _ensure_sales_order_delivery_dates(so)
 
     # Sauvegarder la commande en brouillon
@@ -236,6 +264,7 @@ def create_complete_sales_order(source_name):
     # Set the custom field linking back to the source Quotation using the correct field name
     so.custom_devis = source_name # Use the actual field name 'custom_devis'
 
+    _apply_demande_delivery_dates(so)
     _ensure_sales_order_delivery_dates(so)
 
     # 3) Save the Sales Order to the database (remains in Draft status)

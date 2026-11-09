@@ -140,7 +140,7 @@ describe('page Devis', () => {
 		current = { ...open_, status: 'Ordered', commandes: [{ name: 'SAL-ORD-2026-00015', status: 'To Deliver and Bill', date: '2026-07-07', total: 119000 }] }
 		const { wrapper } = await open(`/devis/${row.name}`)
 		await flushPromises()
-		const links = wrapper.findAll('a[href="/bureau/commandes?apercu=SAL-ORD-2026-00015"]')
+		const links = wrapper.findAll('a[href="/bureau/commandes/SAL-ORD-2026-00015"]')
 		expect(links.length).toBe(2)
 		expect(wrapper.find('.record-facts').text()).toContain('Commande')
 		wrapper.unmount()

@@ -1,5 +1,5 @@
 /** Règles de la page Commandes : types, vues et colonnes. Une commande naît d'un devis validé ; ici on la retrouve. */
-import type { CommentSummary } from '@/types'
+import type { CommentSummary, Step } from '@/types'
 import { formatQuantity, formatRate } from './articles'
 import { formatDay } from './display'
 import type { FilterField } from './filters'
@@ -8,8 +8,8 @@ import type { ListResponse } from './useServerList'
 
 export const COMMANDE_DOCTYPE = 'Sales Order'
 
-/** Où ouvrir une commande sur le bureau : son aperçu dans la liste, en attendant sa fiche. */
-export const commandeLink = (name: string) => ({ name: 'Commandes', query: { apercu: name } })
+/** Où ouvrir une commande sur le bureau : sa fiche. */
+export const commandeLink = (name: string) => ({ name: 'CommandeFiche', params: { id: name } })
 
 export type CommandeView = 'all' | 'valider' | 'livrer' | 'retard' | 'facturer' | 'terminees' | 'annulees'
 
@@ -78,6 +78,8 @@ export interface CommandeLine {
 	montant: number | null
 }
 
+export type CommandeAction = 'bon' | 'scan' | 'valider' | 'supprimer' | 'annuler'
+
 export interface CommandeDetail {
 	name: string
 	modified: string
@@ -99,6 +101,8 @@ export interface CommandeDetail {
 	demande: string | null
 	ticket: string | null
 	dossier: { name: string; status: string } | null
+	etudes: { total: number; en_cours: number; terminees: number }
+	scan: { url: string; name: string } | null
 	cree_par: string | null
 	lignes: CommandeLine[]
 	livre: number
@@ -106,6 +110,11 @@ export interface CommandeDetail {
 	total: number | null
 	taxes: number | null
 	total_ttc: number | null
+	actions: CommandeAction[]
+	/** Ce qui empêche de valider, quand la personne le peut. */
+	blocked: string[]
+	/** Pourquoi la commande ne s'annule plus, quand la personne pourrait l'annuler. */
+	annulation_bloquee: string | null
 	comments: CommentSummary
 }
 
@@ -161,4 +170,40 @@ export const DEFAULT_COMMANDE_COLUMNS = COMMANDE_COLUMNS.filter((column) => !col
 export function commandeSortText(sort: Sort | null) {
 	const column = sort && COMMANDE_COLUMNS.find((item) => item.key === sort.key)
 	return column ? `Tri : ${column.label.toLowerCase()}` : 'Tri : les plus récentes'
+}
+
+type TimelineInput = Pick<CommandeDetail, 'status' | 'docstatus' | 'bon_commande' | 'date_bon' | 'dossier' | 'etudes' | 'livre' | 'facture' | 'livraison'>
+
+/** Étapes de la commande : bon de commande, validation, programmation, fabrication, livraison, facturation. */
+export function commandeTimeline(commande: TimelineInput) {
+	const validated = commande.docstatus === 1
+	const cancelled = commande.docstatus === 2 || commande.status === 'Cancelled'
+	const bon = Boolean(commande.bon_commande && commande.date_bon)
+	const dossier = commande.dossier?.status ?? ''
+	const planned = ['Planification validée', 'Clôturé'].includes(dossier)
+	const etudes = commande.etudes
+	const made = etudes.total > 0 && etudes.terminees >= etudes.total
+	const delivered = commande.livre >= 100
+	const billed = commande.facture >= 100
+	const steps: Step[] = [
+		{ key: 'bon', label: 'Bon de commande', state: bon ? 'done' : 'current', detail: bon ? `N° ${commande.bon_commande} du ${formatDay(commande.date_bon)}` : 'N° et date à saisir' },
+		{ key: 'validation', label: cancelled ? 'Annulée' : 'Validation', state: cancelled ? 'blocked' : validated ? 'done' : bon ? 'current' : 'todo', detail: cancelled ? 'Commande annulée' : validated ? 'Validée' : "Par l'Administrateur Ventes" },
+		{ key: 'programmation', label: 'Programmation', state: !validated ? 'todo' : planned ? 'done' : 'current', detail: validated ? dossier || 'Dossier de fabrication à créer' : 'Dossier créé à la validation' },
+		{ key: 'fabrication', label: 'Fabrication', state: !validated ? 'todo' : made || delivered ? 'done' : planned ? 'current' : 'todo', detail: etudes.total ? `${etudes.terminees} étude${etudes.terminees > 1 ? 's' : ''} terminée${etudes.terminees > 1 ? 's' : ''} sur ${etudes.total}` : 'Une étude technique par article' },
+		{ key: 'livraison', label: 'Livraison', state: !validated ? 'todo' : delivered ? 'done' : made ? 'current' : 'todo', detail: delivered ? 'Livrée' : commande.livre ? `${percentText(commande.livre)} livré` : commande.livraison ? `Prévue le ${formatDay(commande.livraison)}` : 'Date à venir' },
+		{ key: 'facturation', label: 'Facturation', state: !validated ? 'todo' : billed ? 'done' : delivered ? 'current' : 'todo', detail: billed ? 'Facturée' : commande.facture ? `${percentText(commande.facture)} facturé` : 'Après livraison' },
+	]
+	if (cancelled) for (const step of steps.slice(2)) step.state = 'todo'
+	const current = steps.findIndex((step) => step.state === 'current')
+	return { steps, current: current >= 0 ? current : null, focus: current >= 0 ? current : cancelled ? 1 : steps.length - 1 }
+}
+
+/** La consigne de l'étape en cours, en infobulle de la frise. */
+export function commandeTip(commande: Pick<CommandeDetail, 'docstatus' | 'blocked' | 'actions' | 'dossier'>) {
+	if (commande.docstatus === 0) {
+		if (commande.blocked.length) return commande.blocked.join(' ')
+		return commande.actions.includes('valider') ? 'Tout est prêt : la commande peut être validée.' : "L'Administrateur Ventes valide la commande."
+	}
+	if (commande.docstatus === 1 && commande.dossier && !['Planification validée', 'Clôturé'].includes(commande.dossier.status)) return `Le dossier ${commande.dossier.name} attend sa programmation.`
+	return ''
 }

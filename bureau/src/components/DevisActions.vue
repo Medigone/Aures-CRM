@@ -74,7 +74,7 @@ defineExpose({ run })
 	</FormDialog>
 
 	<FormDialog v-else-if="open === 'commande'" :title="`Créer la commande de ${devis.name} ?`" :dirty="false" hint="" @close="open = null" @submit="confirm">
-		<p class="m-0">{{ devis.status === 'Partially Ordered' ? 'La commande reprend les articles qui restent à commander.' : 'La commande reprend tout le devis.' }} Elle est créée en brouillon et s'ouvre sur le Desk pour être complétée.</p>
+		<p class="m-0">{{ devis.status === 'Partially Ordered' ? 'La commande reprend les articles qui restent à commander.' : 'La commande reprend tout le devis.' }} Elle est créée en brouillon et s'ouvre sur sa fiche, où l'on saisit le bon de commande du client.</p>
 		<template #actions><button type="button" class="btn-primary" :disabled="busy" @click="confirm">Créer la commande</button></template>
 	</FormDialog>
 

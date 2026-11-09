@@ -491,9 +491,15 @@ export const markDevisSent = (devis: DevisRef, values: { canal: string; le: stri
 export const cancelDevis = (devis: DevisRef) => call<DevisDetail>(`${DEVIS}.cancel_devis`, { name: devis.name, modified: devis.modified }, true)
 export const devisActivity = (name: string) => recordActivity(DEVIS, 'devis', name)
 
-/** Commandes : liste et aperçu. La validation reste sur le Desk pour l'instant. */
+/** Commandes : liste, aperçu, fiche, bon de commande, validation et annulation. */
 const COMMANDES = 'aurescrm.api.bureau_commandes'
 export const getCommandesList = (view: CommandeView, conditions: Condition[], search: string, paging: ListPaging = {}) => call<CommandesResponse>(`${COMMANDES}.get_commandes_list`, listParams(view, conditions, search, paging))
 export const getCommandesOptions = () => call<CommandeOptions>(`${COMMANDES}.get_commandes_options`)
 export const getCommande = (name: string) => call<CommandeDetail>(`${COMMANDES}.get_commande`, { name })
+type CommandeRef = Pick<CommandeDetail, 'name' | 'modified'>
+export const updateCommande = (commande: CommandeRef, values: { bon_commande?: string; date_bon?: string }) => call<CommandeDetail>(`${COMMANDES}.update_commande`, { name: commande.name, modified: commande.modified, ...values }, true)
+export const setCommandeScan = (commande: CommandeRef, fileUrl: string) => call<CommandeDetail>(`${COMMANDES}.set_bon_scan`, { name: commande.name, modified: commande.modified, file_url: fileUrl }, true)
+export const validateCommande = (commande: CommandeRef) => call<CommandeDetail>(`${COMMANDES}.validate_commande`, { name: commande.name, modified: commande.modified }, true)
+export const cancelCommande = (commande: CommandeRef, motif: string) => call<CommandeDetail>(`${COMMANDES}.cancel_commande`, { name: commande.name, modified: commande.modified, motif }, true)
+export const deleteCommande = (commande: CommandeRef) => call<{ devis: string | null }>(`${COMMANDES}.delete_commande`, { name: commande.name, modified: commande.modified }, true)
 export const commandeActivity = (name: string) => recordActivity(COMMANDES, 'commande', name)

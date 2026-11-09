@@ -17,9 +17,9 @@ import { canRead } from '@/lib/droits'
 import { useDrawerControls } from '@/lib/useDrawerControls'
 import { useRecord } from '@/lib/useRecord'
 
-/** Aperçu d'une commande. Sa fiche viendra avec le lot suivant : en attendant, elle s'ouvre sur le Desk. */
+/** Aperçu d'une commande : le bon de commande et la validation se font sur la fiche. */
 const props = defineProps<{ id: string; position: string; noPrev: boolean; noNext: boolean }>()
-const emit = defineEmits<{ prev: []; next: []; close: []; changed: [] }>()
+const emit = defineEmits<{ prev: []; next: []; close: []; open: [tab?: string]; changed: [] }>()
 
 const { record: commande, error, notFound, notice, noticeTone, load, refresh } = useRecord<CommandeDetail>(
 	() => props.id,
@@ -50,10 +50,10 @@ function onTags(tags: string[]) {
 			<button type="button" class="icon-btn" aria-label="Commande suivante" :disabled="noNext" @click="emit('next')"><LucideChevronDown class="h-4 w-4" aria-hidden="true" /></button>
 			<span class="text-xs text-ink-gray-6">{{ position }}</span>
 			<span class="flex-auto"></span>
-			<a class="btn-primary" :href="deskUrl(COMMANDE_DOCTYPE, id)" target="_blank" rel="noopener noreferrer">
-				Ouvrir sur le Desk
+			<button type="button" class="btn-primary" @click="emit('open')">
+				Ouvrir la fiche
 				<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />
-			</a>
+			</button>
 			<button type="button" class="icon-btn" aria-label="Fermer l'aperçu" @click="emit('close')"><LucideX class="h-4 w-4" aria-hidden="true" /></button>
 		</div>
 
@@ -167,6 +167,7 @@ function onTags(tags: string[]) {
 						<CommentText class="line-clamp-3" :parts="commande.comments.last.parts" />
 					</template>
 					<p v-else class="text-ink-gray-6">Aucun commentaire.</p>
+					<button type="button" class="text-sm text-link" @click="emit('open', 'activite')">{{ commande.comments.count > 1 ? `Voir les ${commande.comments.count} commentaires` : commande.comments.last ? 'Voir le fil' : 'Écrire le premier' }}</button>
 				</section>
 			</template>
 		</div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import LucideArrowUpRight from '~icons/lucide/arrow-up-right'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideCalendar from '~icons/lucide/calendar'
@@ -92,6 +92,12 @@ async function saveValidity(event: Event) {
 }
 
 const commandeCreee = ref('')
+const router = useRouter()
+// La commande créée s'ouvre sur sa fiche pour saisir le bon de commande ; sans droit de la lire, un message suffit.
+function onOrdered(name: string) {
+	if (canSeeCommande) router.push(commandeLink(name))
+	else commandeCreee.value = name
+}
 async function copyLink() {
 	try {
 		await navigator.clipboard.writeText(window.location.href)
@@ -258,11 +264,9 @@ function onTags(tags: string[]) {
 					</div>
 				</div>
 			</div>
-			<DevisActions ref="actions" :devis="devis" :busy="busy" :validate="validate" :order="order" :lose="lose" :cancel="cancel" :mark-sent="markSent" @ordered="commandeCreee = $event" />
+			<DevisActions ref="actions" :devis="devis" :busy="busy" :validate="validate" :order="order" :lose="lose" :cancel="cancel" :mark-sent="markSent" @ordered="onOrdered" />
 		</template>
 		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />
-		<AppToast :message="commandeCreee ? `Commande ${commandeCreee} créée en brouillon.` : ''" :duration="0" @close="commandeCreee = ''">
-			<RouterLink class="app-toast-action" :to="commandeLink(commandeCreee)" @click="commandeCreee = ''">Voir la commande</RouterLink>
-		</AppToast>
+		<AppToast :message="commandeCreee ? `Commande ${commandeCreee} créée en brouillon.` : ''" @close="commandeCreee = ''" />
 	</main>
 </template>

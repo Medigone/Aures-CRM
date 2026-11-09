@@ -415,7 +415,8 @@
 		text-align: right;
 		font-variant-numeric: tabular-nums;
 	}
-	.devis-price.is-missing:not(:focus) {
+	.devis-price.is-missing:not(:focus),
+	.devis-date.is-missing:not(:focus) {
 		border-color: var(--tone-blue-line);
 		background: var(--tone-blue-soft);
 	}
