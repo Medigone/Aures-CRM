@@ -305,8 +305,8 @@ describe('poste de bureau', () => {
 		const current = wrapper.find('.app-nav-item[aria-current="page"]')
 		expect(current.text()).toContain('Tickets')
 		expect(current.text()).toContain('2')
-		const commandes = wrapper.find('a.app-nav-item[href="/app/sales-order"]')
-		expect(commandes.attributes('target')).toBe('_blank')
+		const creances = wrapper.find('a.app-nav-item[href="/app/suivi-creance"]')
+		expect(creances.attributes('target')).toBe('_blank')
 	})
 
 	it('replie le menu et garde ce choix sur cet appareil', async () => {

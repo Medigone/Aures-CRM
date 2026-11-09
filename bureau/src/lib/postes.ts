@@ -60,7 +60,7 @@ const NAV: Record<string, PosteNavGroup[]> = {
 				{ id: 'devis', label: 'Devis', icon: LucideFileText, to: { name: 'Devis' }, doctype: 'Quotation' },
 				// L'équipe devis y fait ses tests rapides, coûts compris ; l'entrée suit le droit de lecture du calcul.
 				{ id: 'atelier', label: 'Atelier', icon: LucideLayoutTemplate, to: { name: 'Atelier' }, doctype: 'Calcul Imposition' },
-				{ id: 'commandes', label: 'Commandes', icon: LucideShoppingCart, href: '/app/sales-order', doctype: 'Sales Order' },
+				{ id: 'commandes', label: 'Commandes', icon: LucideShoppingCart, to: { name: 'Commandes' }, doctype: 'Sales Order' },
 				{ id: 'creances', label: 'Créances', icon: LucideWallet, href: '/app/suivi-creance', doctype: 'Suivi Creance' },
 			],
 		},

@@ -11,7 +11,8 @@ import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import TagEditor from './TagEditor.vue'
 import { commandeText, DEVIS_DOCTYPE, devisPdfUrl, envoiText, devisStage, devisTypeLabel, moneyText, quantityText } from '@/lib/devis'
-import { deskUrl, formatDay } from '@/lib/display'
+import { commandeLink } from '@/lib/commandes'
+import { formatDay } from '@/lib/display'
 import { canRead } from '@/lib/droits'
 import { useDevis } from '@/lib/useDevis'
 import { useDrawerControls } from '@/lib/useDrawerControls'
@@ -32,6 +33,7 @@ useDrawerControls(root, { close: () => emit('close'), prev: () => emit('prev'), 
 const canSeeDemande = canRead('Demande Faisabilite')
 const canSeeTicket = canRead('Ticket Commercial')
 const canSeeClient = canRead('Customer')
+const canSeeCommande = canRead('Sales Order')
 const stage = computed(() => (devis.value ? devisStage({ status: devis.value.status, lignes: devis.value.lignes.length, chiffrees: devis.value.chiffrees, envoye_le: devis.value.envoi?.le }) : null))
 const prices = computed(() => Boolean(devis.value?.lignes.some((line) => line.prix !== null)))
 const order = computed(() => (devis.value ? commandeText(devis.value) : ''))
@@ -106,7 +108,14 @@ function onTags(tags: string[]) {
 					<div><dt>Valable jusqu'au</dt><dd class="tabular-nums">{{ formatDay(devis.valable) || '—' }}</dd></div>
 					<div><dt>Livraison souhaitée</dt><dd class="tabular-nums">{{ formatDay(devis.livraison) || '—' }}</dd></div>
 					<div><dt>Envoi au client</dt><dd :class="!devis.envoi && 'text-ink-gray-6'">{{ devis.envoi ? envoiText(devis.envoi) : devis.docstatus === 1 ? 'Pas encore' : '—' }}</dd></div>
-					<div><dt>Commande</dt><dd>{{ order || '—' }}</dd></div>
+					<div>
+						<dt>Commande</dt>
+						<dd class="truncate tabular-nums">
+							<RouterLink v-if="devis.commandes.length && canSeeCommande" class="ref-link" :to="commandeLink(devis.commandes[0].name)">{{ devis.commandes[0].name }}</RouterLink>
+							<template v-else>{{ devis.commandes[0]?.name || order || '—' }}</template>
+							<span v-if="devis.commandes.length > 1" class="text-ink-gray-6"> +{{ devis.commandes.length - 1 }}</span>
+						</dd>
+					</div>
 				</dl>
 
 				<section class="card flex flex-col gap-1">
@@ -150,7 +159,7 @@ function onTags(tags: string[]) {
 							<thead><tr><th>Commande</th><th>Statut</th><th class="end">Total (DA)</th></tr></thead>
 							<tbody>
 								<tr v-for="sale in devis.commandes" :key="sale.name">
-									<td><a class="ref-link tabular-nums" :href="deskUrl('Sales Order', sale.name)" target="_blank" rel="noopener noreferrer">{{ sale.name }}</a></td>
+									<td><RouterLink v-if="canSeeCommande" class="ref-link tabular-nums" :to="commandeLink(sale.name)">{{ sale.name }}</RouterLink><span v-else class="tabular-nums">{{ sale.name }}</span></td>
 									<td><StatusPill :status="sale.status" /></td>
 									<td class="end tabular-nums">{{ sale.total === null ? '—' : moneyText(sale.total) }}</td>
 								</tr>

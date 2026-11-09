@@ -15,7 +15,7 @@ import LucideShoppingCart from '~icons/lucide/shopping-cart'
 import LucideTicket from '~icons/lucide/ticket'
 import LucideWallet from '~icons/lucide/wallet'
 import TicketStatus from './TicketStatus.vue'
-import { getArticles, getClients, getDevisList, getEtudes, getImpositions, getQueue, getDemandes, getTraces } from '@/lib/api'
+import { getArticles, getClients, getCommandesList, getDevisList, getEtudes, getImpositions, getQueue, getDemandes, getTraces } from '@/lib/api'
 import { ETUDE_DOCTYPES } from '@/lib/etudes'
 import { canRead } from '@/lib/droits'
 import { allowedCommands, type CreateKind, filterCommands, moveCursor, PALETTE_COMMANDS, type PaletteCommand, SECTION_TITLES } from '@/lib/palette'
@@ -97,7 +97,7 @@ async function search() {
 	const request = ++lastRequest
 	const text = query.value
 	const paging = { pageLength: MAX_RESULTS }
-	const [tickets, demandes, devis, etudes, traces, impositions, clients, articles] = await Promise.allSettled([
+	const [tickets, demandes, devis, commandes, etudes, traces, impositions, clients, articles] = await Promise.allSettled([
 		// Un document que le rôle ne lit pas n'est pas cherché : il n'affiche ni résultat ni erreur.
 		canRead('Ticket Commercial')
 			? Promise.all([getQueue('todo', [], text, paging), getQueue('closed', [], text, paging)]).then(([active, closed]) => {
@@ -107,6 +107,7 @@ async function search() {
 			: [],
 		canRead('Demande Faisabilite') ? getDemandes('all', [], text, paging).then((response) => response.demandes) : [],
 		canRead('Quotation') ? getDevisList('all', [], text, paging).then((response) => response.devis) : [],
+		canRead('Sales Order') ? getCommandesList('all', [], text, paging).then((response) => response.commandes) : [],
 		canRead(ETUDE_DOCTYPES) ? getEtudes('all', [], text, paging).then((response) => response.etudes) : [],
 		canRead('Trace') ? getTraces('service', [], text, paging).then((response) => response.traces) : [],
 		canRead('Imposition') ? getImpositions('valables', [], text, paging).then((response) => response.impositions) : [],
@@ -118,6 +119,7 @@ async function search() {
 		settled('tickets', 'Tickets', tickets, (ticket) => ({ id: ticket.name, label: ticket.client, detail: ticket.name, status: ticket.status, icon: 'tickets', to: { name: 'Ticket', params: { id: ticket.name } } })),
 		settled('demandes', 'Demandes', demandes, (demande) => ({ id: demande.name, label: demande.client_label, detail: demande.name, status: demande.status, icon: 'demandes', to: { name: 'Demande', params: { id: demande.name } } })),
 		settled('devis', 'Devis', devis, (row) => ({ id: row.name, label: row.client_label, detail: row.name, status: row.status, icon: 'devis', to: { name: 'DevisFiche', params: { id: row.name } } })),
+		settled('commandes', 'Commandes', commandes, (row) => ({ id: row.name, label: row.client_label, detail: row.bon_commande ? `${row.name} · BC ${row.bon_commande}` : row.name, status: row.status, icon: 'commandes', to: { name: 'Commandes', query: { apercu: row.name } } })),
 		settled('etudes', 'Études', etudes, (etude) => ({ id: etude.name, label: etude.designation, detail: etude.name, status: etude.status, icon: 'etudes', to: { name: 'Etude', params: { id: etude.name } } })),
 		settled('traces', 'Tracés', traces, (trace) => ({ id: trace.name, label: trace.designation, detail: trace.name, icon: 'traces', to: { name: 'Trace', params: { id: trace.name } } })),
 		settled('impositions', 'Impositions', impositions, (imposition) => ({ id: imposition.name, label: imposition.designation, detail: imposition.name, icon: 'impositions', to: { name: 'Imposition', params: { id: imposition.name } } })),

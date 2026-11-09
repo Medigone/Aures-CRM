@@ -11,6 +11,7 @@ import type { ArticleDetail, ArticleOptions, ArticlesResponse, ArticleValues, Ar
 import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, ClientView, CommuneChoice } from './clients'
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
 import type { ImpositionDetail, ImpositionOptions, ImpositionsResponse, ImpositionView } from './impositions'
+import type { CommandeDetail, CommandeOptions, CommandesResponse, CommandeView } from './commandes'
 import type { DevisDetail, DevisOptions, DevisResponse, DevisView } from './devis'
 
 import type { TraceAnalysis, TraceDetail, TraceOptions, TracePreview, TracesResponse, TraceVersionResult, TraceView } from './traces'
@@ -489,3 +490,10 @@ export const markDevisLost = (devis: DevisRef, values: { raison: string; concurr
 export const markDevisSent = (devis: DevisRef, values: { canal: string; le: string }) => call<DevisDetail>(`${DEVIS}.mark_sent`, { name: devis.name, modified: devis.modified, ...values }, true)
 export const cancelDevis = (devis: DevisRef) => call<DevisDetail>(`${DEVIS}.cancel_devis`, { name: devis.name, modified: devis.modified }, true)
 export const devisActivity = (name: string) => recordActivity(DEVIS, 'devis', name)
+
+/** Commandes : liste et aperçu. La validation reste sur le Desk pour l'instant. */
+const COMMANDES = 'aurescrm.api.bureau_commandes'
+export const getCommandesList = (view: CommandeView, conditions: Condition[], search: string, paging: ListPaging = {}) => call<CommandesResponse>(`${COMMANDES}.get_commandes_list`, listParams(view, conditions, search, paging))
+export const getCommandesOptions = () => call<CommandeOptions>(`${COMMANDES}.get_commandes_options`)
+export const getCommande = (name: string) => call<CommandeDetail>(`${COMMANDES}.get_commande`, { name })
+export const commandeActivity = (name: string) => recordActivity(COMMANDES, 'commande', name)

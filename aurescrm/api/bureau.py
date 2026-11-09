@@ -189,6 +189,18 @@ FILTER_LISTS = {
 		"custom_demande_faisabilité": "Demande",
 		"_user_tags": "Tag",
 	},
+	"Sales Order": {
+		"status": "Statut",
+		"customer": "Client",
+		"custom_niveau_urgence": "Urgence",
+		"custom_commercial": "Commercial",
+		"custom_bon_de_commande_client": "Bon de commande",
+		"transaction_date": "Date de commande",
+		"delivery_date": "Livraison",
+		"custom_devis": "Devis",
+		"custom_demande_de_faisabilité": "Demande",
+		"_user_tags": "Tag",
+	},
 	"Customer": {
 		"custom_status": "Statut",
 		"custom_wilaya": "Wilaya",

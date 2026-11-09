@@ -7,6 +7,7 @@ import LucideCalendar from '~icons/lucide/calendar'
 import LucideCalendarClock from '~icons/lucide/calendar-clock'
 import LucideClipboardList from '~icons/lucide/clipboard-list'
 import LucideSend from '~icons/lucide/send'
+import LucideShoppingCart from '~icons/lucide/shopping-cart'
 import LucideTicket from '~icons/lucide/ticket'
 import LucideTruck from '~icons/lucide/truck'
 import LucideUser from '~icons/lucide/user'
@@ -20,6 +21,7 @@ import RecordHeader from './RecordHeader.vue'
 import StepTimeline from './StepTimeline.vue'
 import TagEditor from './TagEditor.vue'
 import { devisActivity } from '@/lib/api'
+import { commandeLink } from '@/lib/commandes'
 import { DEVIS_DOCTYPE, devisPdfUrl, envoiText, devisStage, devisTimeline, devisTip, devisTypeLabel, moneyText, parsePrice, quantityText, type DevisLine } from '@/lib/devis'
 import { deskUrl, formatDay } from '@/lib/display'
 import { canRead } from '@/lib/droits'
@@ -51,6 +53,7 @@ watch(feed, async (current) => {
 const canSeeDemande = canRead('Demande Faisabilite')
 const canSeeTicket = canRead('Ticket Commercial')
 const canSeeClient = canRead('Customer')
+const canSeeCommande = canRead('Sales Order')
 const has = (action: string) => Boolean(devis.value?.actions.includes(action as never))
 const editable = computed(() => has('prix'))
 const prices = computed(() => Boolean(devis.value?.lignes.some((line) => line.prix !== null)))
@@ -166,6 +169,15 @@ function onTags(tags: string[]) {
 							</div>
 							<div><dt><LucideTruck aria-hidden="true" />Livraison souhaitée</dt><dd class="tabular-nums" :class="!devis.livraison && 'record-fact-none'">{{ formatDay(devis.livraison) || '—' }}</dd></div>
 							<div v-if="devis.docstatus === 1"><dt><LucideSend aria-hidden="true" />Envoi au client</dt><dd :class="!devis.envoi && 'record-fact-none'">{{ devis.envoi ? envoiText(devis.envoi) : 'Pas encore envoyé' }}</dd></div>
+							<div v-if="devis.commandes.length">
+								<dt><LucideShoppingCart aria-hidden="true" />{{ devis.commandes.length > 1 ? 'Commandes' : 'Commande' }}</dt>
+								<dd class="flex flex-col">
+									<template v-for="sale in devis.commandes" :key="sale.name">
+										<RouterLink v-if="canSeeCommande" class="ref-link tabular-nums" :to="commandeLink(sale.name)">{{ sale.name }}</RouterLink>
+										<span v-else class="tabular-nums">{{ sale.name }}</span>
+									</template>
+								</dd>
+							</div>
 							<div><dt><LucideWallet aria-hidden="true" />Total TTC</dt><dd class="tabular-nums">{{ moneyText(devis.total_ttc) }} DA</dd></div>
 						</dl>
 					</aside>
@@ -226,7 +238,7 @@ function onTags(tags: string[]) {
 									<thead><tr><th>Commande</th><th>Date</th><th>Statut</th><th class="end">Total (DA)</th></tr></thead>
 									<tbody>
 										<tr v-for="sale in devis.commandes" :key="sale.name">
-											<td><a class="ref-link tabular-nums" :href="deskUrl('Sales Order', sale.name)" target="_blank" rel="noopener noreferrer">{{ sale.name }}</a></td>
+											<td><RouterLink v-if="canSeeCommande" class="ref-link tabular-nums" :to="commandeLink(sale.name)">{{ sale.name }}</RouterLink><span v-else class="tabular-nums">{{ sale.name }}</span></td>
 											<td class="tabular-nums">{{ formatDay(sale.date) || '—' }}</td>
 											<td><StatusPill :status="sale.status" /></td>
 											<td class="end tabular-nums">{{ sale.total === null ? '—' : moneyText(sale.total) }}</td>
@@ -250,7 +262,7 @@ function onTags(tags: string[]) {
 		</template>
 		<AppToast :message="notice" :tone="noticeTone" @close="notice = ''" />
 		<AppToast :message="commandeCreee ? `Commande ${commandeCreee} créée en brouillon.` : ''" :duration="0" @close="commandeCreee = ''">
-			<a class="app-toast-action" :href="deskUrl('Sales Order', commandeCreee)" target="_blank" rel="noopener noreferrer" @click="commandeCreee = ''">Ouvrir sur le Desk</a>
+			<RouterLink class="app-toast-action" :to="commandeLink(commandeCreee)" @click="commandeCreee = ''">Voir la commande</RouterLink>
 		</AppToast>
 	</main>
 </template>
