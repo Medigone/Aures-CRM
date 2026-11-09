@@ -26,6 +26,7 @@ export const routes = [
 	{ path: '/demandes', name: 'Demandes', component: DemandesPage, meta: { doctype: 'Demande Faisabilite' } },
 	{ path: '/demandes/:id', name: 'Demande', component: DemandesPage, props: true, meta: { doctype: 'Demande Faisabilite' } },
 	{ path: '/devis', name: 'Devis', component: DevisPage, meta: { doctype: 'Quotation' } },
+	{ path: '/devis/:id', name: 'DevisFiche', component: DevisPage, props: true, meta: { doctype: 'Quotation' } },
 	{ path: '/etudes', name: 'Etudes', component: EtudesPage, meta: { doctype: ['Etude Faisabilite', 'Etude Faisabilite Flexo'] } },
 	{ path: '/etudes/:id', name: 'Etude', component: EtudesPage, props: true, meta: { doctype: ['Etude Faisabilite', 'Etude Faisabilite Flexo'] } },
 	{ path: '/etudes/:id/atelier', name: 'EtudeAtelier', component: AtelierPage, props: true, meta: { doctype: 'Calcul Imposition' } },

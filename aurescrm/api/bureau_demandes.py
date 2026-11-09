@@ -560,7 +560,7 @@ def close_demande(name, modified):
 
 @frappe.whitelist(methods=["POST"])
 def create_devis(name, modified):
-	"""Crée le devis et ses calculs. Réservé aux rôles Devis : Chargé Devis ne fait que lire la demande, sans l'écrire."""
+	"""Crée le devis, sans calcul. Réservé aux rôles Devis : Chargé Devis ne fait que lire la demande, sans l'écrire."""
 	require_bureau()
 	doc = frappe.get_doc(DEMANDE, name)
 	doc.check_permission("read")
@@ -568,7 +568,8 @@ def create_devis(name, modified):
 	if not _user_can_create_devis_from_demande():
 		frappe.throw(_("Seuls les rôles Chargé Devis et Responsable Devis peuvent créer un devis depuis une demande."), frappe.PermissionError)
 	_check_status(doc, DEVIS_ALLOWED)
-	result = create_quotation_with_calculs(doc.name)
+	# Prix en saisie libre sur le bureau : pas de Calcul Devis vide à côté.
+	result = create_quotation_with_calculs(doc.name, with_calculs=False)
 	return {"quotation": result["quotation_name"], "demande": get_demande(doc.name)}
 
 

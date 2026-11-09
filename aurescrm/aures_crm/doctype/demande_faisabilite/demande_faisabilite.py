@@ -1063,10 +1063,11 @@ def check_bon_commande_exists(n_bon_commande, client=None, current_name=None):
 
 
 @frappe.whitelist()
-def create_quotation_with_calculs(docname):
+def create_quotation_with_calculs(docname, with_calculs=True):
     """
     Crée un Quotation côté serveur depuis une Demande Faisabilite,
     puis génère automatiquement les Calcul Devis pour chaque ligne article.
+    Sans `with_calculs` (poste de bureau, prix en saisie libre), aucun Calcul Devis n'est créé.
     Articles composés : une ligne de devis par ligne parent éligible dans la demande.
     """
     try:
@@ -1151,8 +1152,10 @@ def create_quotation_with_calculs(docname):
             if needs_save:
                 quotation.save(ignore_permissions=True)
 
-            from aurescrm.aures_crm.doctype.calcul_devis.calcul_devis import generate_calcul_devis_for_quotation
-            calcul_result = generate_calcul_devis_for_quotation(quotation.name)
+            calcul_result = {"created": 0}
+            if cint(with_calculs):
+                from aurescrm.aures_crm.doctype.calcul_devis.calcul_devis import generate_calcul_devis_for_quotation
+                calcul_result = generate_calcul_devis_for_quotation(quotation.name)
 
             if demande.status in ["Finalisée", "Partiellement Finalisée"]:
                 demande.status = "Devis Établis"

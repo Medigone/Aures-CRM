@@ -1,5 +1,5 @@
 /** Règles de la page Devis : types, vues et colonnes. Un devis naît d'une demande ; ici on le retrouve et on le consulte. */
-import type { CommentSummary } from '@/types'
+import type { CommentSummary, Step } from '@/types'
 import { formatQuantity, formatRate } from './articles'
 import { formatDay } from './display'
 import type { FilterField } from './filters'
@@ -74,9 +74,9 @@ export interface DevisLine {
 	prix: number | null
 	montant: number | null
 	chiffree: boolean
-	/** Équipe devis seulement. */
-	calcul?: { name: string; cout_unitaire: number | null; prix_propose: number | null; prix_final: number | null; marge: number | null } | null
 }
+
+export type DevisAction = 'prix' | 'valider' | 'commande' | 'perdu' | 'annuler'
 
 export interface DevisSale {
 	name: string
@@ -91,7 +91,6 @@ export interface DevisDetail {
 	creation: string
 	tags: string[]
 	can_write: boolean
-	couts: boolean
 	status: string
 	docstatus: number
 	type: string
@@ -113,6 +112,11 @@ export interface DevisDetail {
 	statut_commande: string | null
 	commande: number
 	commandes: DevisSale[]
+	actions: DevisAction[]
+	/** Ce qui empêche de valider, quand la personne le peut. */
+	blocked: string[]
+	raisons_perte: string[]
+	perte: { raisons: string[]; precisions: string | null } | null
 	comments: CommentSummary
 }
 
@@ -169,3 +173,45 @@ export function devisSortText(sort: Sort | null) {
 }
 
 export const quantityText = (value: number) => formatQuantity(value)
+
+/** Étapes du devis : chiffrage, validation, envoi au client, commande. Perdu, expiré ou annulé ferment la frise. */
+export function devisTimeline(devis: Pick<DevisDetail, 'status' | 'docstatus' | 'lignes' | 'chiffrees' | 'commande' | 'commandes' | 'perte'>) {
+	const lignes = devis.lignes.length
+	const validated = devis.docstatus === 1
+	const ordered = devis.status === 'Ordered' || devis.status === 'Partially Ordered' || devis.commandes.length > 0
+	const closed: Record<string, string> = { Lost: 'Perdu', Expired: 'Expiré', Cancelled: 'Annulé' }
+	const end = closed[devis.status]
+	const steps: Step[] = [
+		{ key: 'chiffrage', label: 'Chiffrage', state: validated || (lignes && devis.chiffrees === lignes) ? 'done' : 'current', detail: lignes ? `${devis.chiffrees} prix sur ${lignes}` : 'Aucune ligne' },
+		{ key: 'validation', label: 'Validation', state: validated ? 'done' : 'todo', detail: validated ? 'Validé' : 'Chargé ou Responsable Devis' },
+		{ key: 'envoi', label: 'Envoi au client', state: ordered || end ? 'done' : validated ? 'current' : 'todo', detail: 'Par le commercial' },
+		{
+			key: 'commande',
+			label: end ?? 'Commande',
+			state: end ? 'blocked' : devis.status === 'Ordered' ? 'done' : ordered ? 'current' : 'todo',
+			detail: end === 'Perdu' ? devis.perte?.raisons.join(', ') || '' : ordered ? `${devis.commandes.length} commande${devis.commandes.length > 1 ? 's' : ''}${devis.commande ? ` · ${Math.round(devis.commande)} %` : ''}` : 'Partielle ou entière',
+		},
+	]
+	// Un brouillon chiffré attend sa validation.
+	if (!validated && lignes && devis.chiffrees === lignes) steps[1].state = 'current'
+	const current = steps.findIndex((step) => step.state === 'current')
+	return { steps, current: current >= 0 ? current : null, focus: current >= 0 ? current : steps.length - 1 }
+}
+
+/** La consigne de l'étape en cours, en infobulle de la frise. */
+export function devisTip(devis: Pick<DevisDetail, 'status' | 'docstatus' | 'blocked' | 'actions'>) {
+	if (devis.docstatus === 0) return devis.blocked.length ? devis.blocked.join(' ') : 'Tous les prix sont saisis : le devis peut être validé.'
+	if (devis.status === 'Open' || devis.status === 'Replied') return 'Le commercial a été prévenu et remet le devis au client. Créez la commande quand le client accepte.'
+	if (devis.status === 'Partially Ordered') return 'Une partie du devis est commandée : une nouvelle commande reprend les articles restants.'
+	return ''
+}
+
+export const DEVIS_ACTION_LABELS: Record<DevisAction, string> = { prix: 'Enregistrer', valider: 'Valider le devis', commande: 'Créer la commande', perdu: 'Marquer perdu…', annuler: 'Annuler le devis…' }
+
+/** Saisie d'un prix : virgule ou point, espaces de milliers acceptés. Vide ou illisible : null. */
+export function parsePrice(text: string) {
+	const cleaned = text.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.')
+	if (!cleaned) return null
+	const value = Number(cleaned)
+	return Number.isFinite(value) && value >= 0 ? value : null
+}

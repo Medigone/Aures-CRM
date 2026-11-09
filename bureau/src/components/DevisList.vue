@@ -112,6 +112,7 @@ onMounted(async () => {
 		</template>
 
 		<template #rowMenu="{ row }">
+			<button type="button" class="app-menu-item" role="menuitem" @click="emit('open', row.name)">Ouvrir la fiche</button>
 			<a class="app-menu-item" role="menuitem" :href="deskUrl(DEVIS_DOCTYPE, row.name)" target="_blank" rel="noopener noreferrer">Ouvrir sur le Desk</a>
 			<RouterLink v-if="row.demande && canSeeDemande" class="app-menu-item" role="menuitem" :to="{ name: 'Demande', params: { id: row.demande } }">Voir la demande</RouterLink>
 			<RouterLink v-if="row.ticket" class="app-menu-item" role="menuitem" :to="{ name: 'Ticket', params: { id: row.ticket } }">Voir le ticket</RouterLink>

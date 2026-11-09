@@ -1,26 +1,25 @@
 # Copyright (c) 2026, Medigo and contributors
 # For license information, please see license.txt
-"""Devis du poste de bureau (/bureau/devis) : liste et aperçu, en lecture.
+"""Devis du poste de bureau (/bureau/devis) : liste, aperçu, fiche et cycle.
 
-Un devis se crée depuis une demande de faisabilité (`bureau_demandes.create_devis`). Le chiffrage, la validation et
-la commande restent sur le Desk tant que le cycle du devis n'est pas repris ici.
+Un devis se crée depuis une demande de faisabilité (`bureau_demandes.create_devis`). Ici on saisit ses prix (saisie
+libre, sans Calcul Devis), on le valide, on crée sa commande ou on le déclare perdu. Le Desk reste possible en parallèle.
 
-Les prix des lignes sont au niveau de permission 1 du Devis : ils ne sortent qu'à qui le lit. Les coûts des calculs
-suivent `imposition/droits.py` : l'équipe devis seule.
+Les prix des lignes sont au niveau de permission 1 du Devis : ils ne sortent qu'à qui le lit.
 """
+
+from contextlib import contextmanager
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, cint, cstr, flt, get_fullname, getdate, today
+from frappe.utils import add_days, cint, cstr, flt, get_fullname, getdate, now_datetime, today
 
 from aurescrm.api import activity
 from aurescrm.api.bureau import BELL_FIELD, _parse, condition_filters, doctype_filter_fields, has_child_filter, page_bounds, require_bureau, row_bell, row_tags
 from aurescrm.api.bureau_articles import _customers
-from aurescrm.imposition.droits import voit_couts
 
 DEVIS = "Quotation"
 LIGNES = "Quotation Item"
-CALCUL = "Calcul Devis"
 DEMANDE = "Demande Faisabilite"
 COMMANDE = "Sales Order"
 DEMANDE_FIELD = "custom_demande_faisabilité"
@@ -194,19 +193,9 @@ def _reads_prices():
 	return 1 in frappe.get_meta(DEVIS).get_permlevel_access("read")
 
 
-def _calculs(doc):
-	"""Le calcul de chaque ligne, pour l'équipe devis seule : coût unitaire, prix proposé et prix final."""
-	if not voit_couts():
-		return {}
-	rows = frappe.get_all(CALCUL, filters={"devis": doc.name, "docstatus": ["!=", 2]}, fields=["name", "quotation_item_row", "article", "quantite", "cout_unitaire", "prix_unitaire_propose", "prix_propose_final"], order_by="creation asc")
-	return {row.quotation_item_row or f"{row.article}|{flt(row.quantite)}": row for row in rows}
-
-
-def _line(item, calculs, prices):
-	calcul = calculs.get(item.name) or calculs.get(f"{item.item_code}|{flt(item.qty)}")
-	cost = flt(calcul.cout_unitaire) if calcul else 0
+def _line(item, prices):
 	rate = flt(item.rate)
-	line = {
+	return {
 		"name": item.name,
 		"article": item.item_code,
 		"designation": item.item_name or item.item_code,
@@ -216,16 +205,6 @@ def _line(item, calculs, prices):
 		"montant": flt(item.amount) if prices else None,
 		"chiffree": rate > 0,
 	}
-	if calculs:
-		line["calcul"] = {
-			"name": calcul.name,
-			"cout_unitaire": cost or None,
-			"prix_propose": flt(calcul.prix_unitaire_propose) or None,
-			"prix_final": flt(calcul.prix_propose_final) or None,
-			# Marge sur coût du prix du devis : sans coût, elle ne se calcule pas.
-			"marge": round((rate / cost - 1) * 100, 1) if cost and rate else None,
-		} if calcul else None
-	return line
 
 
 def _commandes(doc):
@@ -234,6 +213,46 @@ def _commandes(doc):
 	readable = bool(frappe.has_permission(COMMANDE, "read"))
 	rows = frappe.get_all(COMMANDE, filters={"custom_devis": doc.name, "docstatus": ["!=", 2]}, fields=["name", "status", "docstatus", "transaction_date", "grand_total"], order_by="transaction_date desc, creation desc")
 	return [{"name": row.name, "status": "Draft" if row.docstatus == 0 else row.status, "date": _day(row.transaction_date), "total": flt(row.grand_total) if readable else None} for row in rows]
+
+
+def blocked(doc):
+	"""Ce qui empêche de valider : une ligne sans prix, une validité manquante ou passée."""
+	reasons = []
+	if not doc.items:
+		reasons.append(_("Le devis n'a aucune ligne."))
+	missing = sum(1 for item in doc.items if flt(item.rate) <= 0)
+	if missing:
+		reasons.append(_("{0} ligne(s) sans prix.").format(missing))
+	if not doc.valid_till:
+		reasons.append(_("La date de validité manque."))
+	elif getdate(doc.valid_till) < getdate(today()):
+		reasons.append(_("La date de validité est passée."))
+	return reasons
+
+
+def actions(doc):
+	"""Ce que cette personne peut faire sur ce devis, maintenant. Le serveur reste seul juge à l'exécution."""
+	found = []
+	if doc.docstatus == 0:
+		if doc.has_permission("write"):
+			found.append("prix")
+		if doc.has_permission("submit"):
+			found.append("valider")
+	elif doc.docstatus == 1:
+		ordered = doc.get("custom_statut_commande") == "Entièrement commandé" or doc.status == "Ordered"
+		if doc.status in OUVERTS + ("Partially Ordered",) and not ordered and frappe.has_permission(COMMANDE, "create"):
+			found.append("commande")
+		if doc.status in OUVERTS + ("Expired",) and doc.has_permission("write"):
+			found.append("perdu")
+		if doc.status not in COMMANDES and doc.status != "Cancelled" and doc.has_permission("cancel"):
+			found.append("annuler")
+	return found
+
+
+def _lost(doc):
+	if doc.status != "Lost":
+		return None
+	return {"raisons": [row.lost_reason for row in doc.get("lost_reasons") or []], "precisions": doc.get("order_lost_reason") or None}
 
 
 @frappe.whitelist()
@@ -246,15 +265,14 @@ def get_devis(name):
 	demande = doc.get(DEMANDE_FIELD)
 	ticket = frappe.db.get_value(DEMANDE, demande, "ticket_commercial") if demande else None
 	prices = _reads_prices()
-	calculs = _calculs(doc)
-	lines = [_line(item, calculs, prices) for item in doc.items]
+	lines = [_line(item, prices) for item in doc.items]
+	allowed = actions(doc)
 	return {
 		"name": doc.name,
 		"modified": str(doc.modified),
 		"creation": str(doc.creation),
 		"tags": row_tags(doc),
 		"can_write": bool(doc.has_permission("write")),
-		"couts": bool(calculs) or voit_couts(),
 		"status": doc.status,
 		"docstatus": cint(doc.docstatus),
 		"type": _type(doc),
@@ -276,5 +294,152 @@ def get_devis(name):
 		"statut_commande": doc.get("custom_statut_commande") or None,
 		"commande": flt(doc.get("custom_pourcentage_commande")),
 		"commandes": _commandes(doc),
+		"actions": allowed,
+		"blocked": blocked(doc) if "valider" in allowed else [],
+		"raisons_perte": frappe.get_all("Quotation Lost Reason", pluck="name", order_by="name asc") if "perdu" in allowed else [],
+		"perte": _lost(doc),
 		"comments": activity.comment_summary(DEVIS, doc.name),
 	}
+
+
+@contextmanager
+def _signed(doctype, name):
+	"""Écrit en tant qu'Administrator, puis rend l'écriture à son auteur.
+
+	ERPNext vérifie le droit de lire le compte client (`get_party_account`) à chaque enregistrement d'un devis ou d'une
+	commande, ce que l'équipe devis et le back office n'ont pas. Un droit sur Account remplacerait tous ses droits
+	standard : les droits de la personne sont donc contrôlés avant, et seule l'écriture passe par l'administrateur.
+	"""
+	user = frappe.session.user
+	start = now_datetime()
+	frappe.set_user("Administrator")
+	try:
+		yield user
+	finally:
+		frappe.set_user(user)
+	if user == "Administrator":
+		return
+	frappe.db.set_value(doctype, name, "modified_by", user, update_modified=False)
+	for version in frappe.get_all("Version", filters={"ref_doctype": doctype, "docname": name, "owner": "Administrator", "creation": [">=", start]}, pluck="name"):
+		frappe.db.set_value("Version", version, {"owner": user, "modified_by": user}, update_modified=False)
+
+
+def _for_work(name, modified, action):
+	"""Le devis à modifier : l'action doit être permise, et l'écran à jour."""
+	require_bureau()
+	doc = frappe.get_doc(DEVIS, name)
+	doc.check_permission("read")
+	if modified and cstr(modified) != str(doc.modified):
+		frappe.throw(_("Ce devis vient d'être modifié par ailleurs. Il a été rechargé : vérifiez-le, puis recommencez."), frappe.TimestampMismatchError)
+	if action not in actions(doc):
+		frappe.throw(_("Cette action n'est pas possible sur ce devis."), frappe.PermissionError)
+	return doc
+
+
+@frappe.whitelist(methods=["POST"])
+def update_devis(name, modified, prix=None, valable=None):
+	"""Prix des lignes et validité d'un brouillon. `prix` : {ligne: prix unitaire HT}."""
+	doc = _for_work(name, modified, "prix")
+	prix = _parse(prix) or {}
+	if prix and 1 not in frappe.get_meta(DEVIS).get_permlevel_access("write"):
+		frappe.throw(_("Votre rôle ne peut pas modifier les prix des devis."), frappe.PermissionError)
+	if not isinstance(prix, dict):
+		frappe.throw(_("Prix illisibles."))
+	rows = {row.name: row for row in doc.items}
+	for row_name, value in prix.items():
+		row = rows.get(row_name)
+		if not row:
+			frappe.throw(_("Cette ligne n'est plus dans le devis : rechargez-le."))
+		rate = flt(value)
+		if rate < 0:
+			frappe.throw(_("Un prix ne peut pas être négatif."))
+		row.rate = rate
+	if valable is not None:
+		if not valable:
+			frappe.throw(_("La date de validité est obligatoire."))
+		if getdate(valable) < getdate(doc.transaction_date):
+			frappe.throw(_("La validité ne peut pas précéder la date du devis."))
+		doc.valid_till = getdate(valable)
+	with _signed(DEVIS, doc.name):
+		doc.save(ignore_permissions=True)
+	return get_devis(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def validate_devis(name, modified):
+	"""Soumet le devis : il ne se modifie plus. Le commercial est prévenu par les hooks du devis."""
+	doc = _for_work(name, modified, "valider")
+	reasons = blocked(doc)
+	if reasons:
+		frappe.throw(" ".join(reasons))
+	with _signed(DEVIS, doc.name):
+		doc.flags.ignore_permissions = True
+		doc.submit()
+	return get_devis(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def create_commande(name, modified):
+	"""Commande en brouillon, des articles restant à commander. Les règles (créance du ticket) sont celles du Desk."""
+	from aurescrm.aures_crm.doctype.ticket_commercial.ticket_commercial import assert_can_create_sales_order_from_ticket
+	from aurescrm.quotation import _get_ticket_commercial_from_quotation, make_sales_order_draft
+
+	doc = _for_work(name, modified, "commande")
+	# La règle de créance se lit avec les droits de la personne, avant l'écriture.
+	assert_can_create_sales_order_from_ticket(_get_ticket_commercial_from_quotation(doc.name), doc.name)
+	user = frappe.session.user
+	frappe.set_user("Administrator")
+	try:
+		commande = make_sales_order_draft(doc.name)
+	finally:
+		frappe.set_user(user)
+	frappe.db.set_value(COMMANDE, commande, {"owner": user, "modified_by": user}, update_modified=False)
+	return {"commande": commande, "devis": get_devis(name)}
+
+
+@frappe.whitelist(methods=["POST"])
+def mark_lost(name, modified, raison, concurrent=None, precisions=None):
+	"""Perdu, avec sa raison. Le concurrent est noté dans les précisions : la liste des concurrents du Desk n'est pas tenue."""
+	doc = _for_work(name, modified, "perdu")
+	raison = cstr(raison).strip()
+	if not raison or not frappe.db.exists("Quotation Lost Reason", raison):
+		frappe.throw(_("Choisissez une raison de perte."))
+	detail = "\n".join(text for text in (cstr(precisions).strip(), cstr(concurrent).strip() and _("Concurrent retenu : {0}").format(cstr(concurrent).strip())) if text)
+	with _signed(DEVIS, doc.name):
+		doc.declare_enquiry_lost([{"lost_reason": raison}], [], detail or None)
+	return get_devis(name)
+
+
+@frappe.whitelist(methods=["POST"])
+def cancel_devis(name, modified):
+	doc = _for_work(name, modified, "annuler")
+	with _signed(DEVIS, doc.name):
+		doc.flags.ignore_permissions = True
+		doc.cancel()
+	return get_devis(name)
+
+
+def _readable(name):
+	require_bureau()
+	frappe.get_doc(DEVIS, name).check_permission("read")
+	return name
+
+
+@frappe.whitelist()
+def get_devis_activity(name):
+	return activity.get_feed(DEVIS, _readable(name))
+
+
+@frappe.whitelist(methods=["POST"])
+def add_devis_comment(name, text, mentions=None):
+	return activity.add_comment(DEVIS, _readable(name), text, mentions)
+
+
+@frappe.whitelist(methods=["POST"])
+def update_devis_comment(name, comment, text, mentions=None):
+	return activity.update_comment(DEVIS, _readable(name), comment, text, mentions)
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_devis_comment(name, comment):
+	return activity.delete_comment(DEVIS, _readable(name), comment)

@@ -410,8 +410,17 @@
 	.devis-progress-bar > span.is-full {
 		background: var(--tone-green-ink);
 	}
-	.devis-cost {
-		color: var(--tone-violet-ink);
+	.devis-price {
+		width: 7.5rem;
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+	.devis-price.is-missing:not(:focus) {
+		border-color: var(--tone-blue-line);
+		background: var(--tone-blue-soft);
+	}
+	.devis-date {
+		max-width: 11rem;
 	}
 	.devis-totals {
 		display: grid;

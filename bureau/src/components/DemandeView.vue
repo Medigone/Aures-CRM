@@ -159,7 +159,7 @@ function onTags(tags: string[]) {
 								<div class="ref-card">
 									<div class="ref-card-head"><h3>Devis et commandes</h3><button type="button" class="ref-link" @click="emit('tab', 'etudes')">Tout voir</button></div>
 									<dl>
-										<div v-if="demande.devis[0]"><dt><RouterLink class="ref-link inline-link" :title="demande.devis[0].name" :to="{ name: 'Devis', query: { apercu: demande.devis[0].name } }">{{ demande.devis[0].name }}</RouterLink></dt><dd><StatusPill :status="demande.devis[0].status" /></dd></div>
+										<div v-if="demande.devis[0]"><dt><RouterLink class="ref-link inline-link" :title="demande.devis[0].name" :to="{ name: 'DevisFiche', params: { id: demande.devis[0].name } }">{{ demande.devis[0].name }}</RouterLink></dt><dd><StatusPill :status="demande.devis[0].status" /></dd></div>
 										<div v-else><dt>Devis</dt><dd class="demande-resume-none">Aucun</dd></div>
 										<div><dt>Montant du devis</dt><dd :class="{ 'demande-resume-none': overview.devisAmount === '—' }">{{ overview.devisAmount }}</dd></div>
 										<div v-if="demande.commandes[0]"><dt><a class="ref-link inline-link" :title="demande.commandes[0].name" :href="deskUrl('Sales Order', demande.commandes[0].name)" target="_blank" rel="noopener noreferrer">{{ demande.commandes[0].name }}</a></dt><dd><StatusPill :status="demande.commandes[0].status" /></dd></div>

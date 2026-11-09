@@ -273,7 +273,7 @@ export function demandeNext(demande: DemandeDetail): DemandeNext | null {
 			return {
 				eyebrow: has('devis') ? 'Prochaine étape' : 'En attente du service devis',
 				title: 'Créer le devis',
-				text: has('devis') ? `Le devis reprend ${scope} et génère les calculs. Il s'ouvre ensuite sur le Desk pour le chiffrage.` : 'Le devis se crée par les rôles Chargé Devis et Responsable Devis.',
+				text: has('devis') ? `Le devis reprend ${scope}, sans prix : ils se saisissent ensuite sur sa fiche.` : 'Le devis se crée par les rôles Chargé Devis et Responsable Devis.',
 				...(has('devis') ? { action: 'devis' as const, actionLabel: 'Créer le devis' } : {}),
 			}
 		}

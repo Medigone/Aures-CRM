@@ -10,15 +10,15 @@ import CommentText from '@shared/components/CommentText.vue'
 import StatusPill from '@shared/components/StatusPill.vue'
 import AppToast from './AppToast.vue'
 import TagEditor from './TagEditor.vue'
-import { commandeText, DEVIS_DOCTYPE, devisStage, devisTypeLabel, moneyText, percentText, quantityText, type DevisLine } from '@/lib/devis'
+import { commandeText, DEVIS_DOCTYPE, devisStage, devisTypeLabel, moneyText, quantityText } from '@/lib/devis'
 import { deskUrl, formatDay } from '@/lib/display'
 import { canRead } from '@/lib/droits'
 import { useDevis } from '@/lib/useDevis'
 import { useDrawerControls } from '@/lib/useDrawerControls'
 
-/** Aperçu d'un devis : le chiffrage, la validation et la commande restent sur le Desk pour l'instant. */
+/** Aperçu d'un devis : le chiffrage et les décisions se font sur la fiche. */
 const props = defineProps<{ id: string; position: string; noPrev: boolean; noNext: boolean }>()
-const emit = defineEmits<{ prev: []; next: []; close: []; changed: [] }>()
+const emit = defineEmits<{ prev: []; next: []; close: []; open: [tab?: string]; changed: [] }>()
 
 const { devis, error, notFound, notice, noticeTone, load, refresh } = useDevis(
 	() => props.id,
@@ -35,13 +35,6 @@ const canSeeClient = canRead('Customer')
 const stage = computed(() => (devis.value ? devisStage({ status: devis.value.status, lignes: devis.value.lignes.length, chiffrees: devis.value.chiffrees }) : null))
 const prices = computed(() => Boolean(devis.value?.lignes.some((line) => line.prix !== null)))
 const order = computed(() => (devis.value ? commandeText(devis.value) : ''))
-/** Coût et marge d'une ligne en une phrase courte, sous l'article. */
-function costLine(line: DevisLine) {
-	if (!line.calcul) return 'Pas de calcul'
-	const cost = moneyText(line.calcul.cout_unitaire)
-	const marge = percentText(line.calcul.marge)
-	return [cost ? `Coût ${cost}` : 'Coût non calculé', marge && `marge ${marge}`].filter(Boolean).join(' · ')
-}
 function onTags(tags: string[]) {
 	if (devis.value) devis.value.tags = tags
 	emit('changed')
@@ -55,10 +48,10 @@ function onTags(tags: string[]) {
 			<button type="button" class="icon-btn" aria-label="Devis suivant" :disabled="noNext" @click="emit('next')"><LucideChevronDown class="h-4 w-4" aria-hidden="true" /></button>
 			<span class="text-xs text-ink-gray-6">{{ position }}</span>
 			<span class="flex-auto"></span>
-			<a class="btn-primary" :href="deskUrl(DEVIS_DOCTYPE, id)" target="_blank" rel="noopener noreferrer">
-				Ouvrir sur le Desk
+			<button type="button" class="btn-primary" @click="emit('open')">
+				Ouvrir la fiche
 				<LucideArrowUpRight class="h-3.5 w-3.5" aria-hidden="true" />
-			</a>
+			</button>
 			<button type="button" class="icon-btn" aria-label="Fermer l'aperçu" @click="emit('close')"><LucideX class="h-4 w-4" aria-hidden="true" /></button>
 		</div>
 
@@ -130,7 +123,6 @@ function onTags(tags: string[]) {
 								<tr v-for="line in devis.lignes" :key="line.name">
 									<td class="!whitespace-normal">
 										<RouterLink class="ref-link" :to="{ name: 'Article', params: { id: line.article } }">{{ line.designation }}</RouterLink>
-										<span v-if="devis.couts" class="devis-cost block text-xs tabular-nums" title="Coût unitaire du calcul et marge sur coût du prix du devis : équipe devis seulement">{{ costLine(line) }}</span>
 									</td>
 									<td class="end tabular-nums">{{ quantityText(line.quantite) }}</td>
 									<td v-if="prices" class="end tabular-nums" :class="!line.chiffree && 'text-ink-gray-6'">{{ line.chiffree ? moneyText(line.prix) : 'À chiffrer' }}</td>
@@ -172,7 +164,7 @@ function onTags(tags: string[]) {
 						<CommentText class="line-clamp-3" :parts="devis.comments.last.parts" />
 					</template>
 					<p v-else class="text-ink-gray-6">Aucun commentaire.</p>
-					<a class="text-sm text-link" :href="deskUrl(DEVIS_DOCTYPE, devis.name)" target="_blank" rel="noopener noreferrer">{{ devis.comments.count > 1 ? `Voir les ${devis.comments.count} commentaires sur le Desk` : 'Voir le fil sur le Desk' }}</a>
+					<button type="button" class="text-sm text-link" @click="emit('open', 'activite')">{{ devis.comments.count > 1 ? `Voir les ${devis.comments.count} commentaires` : devis.comments.last ? 'Voir le fil' : 'Écrire le premier' }}</button>
 				</section>
 			</template>
 		</div>

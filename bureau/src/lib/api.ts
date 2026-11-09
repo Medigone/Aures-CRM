@@ -12,6 +12,7 @@ import type { ClientDetail, ClientOptions, ClientsResponse, ClientValues, Client
 import type { EtudeDetail, EtudeOptions, EtudesResponse, EtudeView } from './etudes'
 import type { ImpositionDetail, ImpositionOptions, ImpositionsResponse, ImpositionView } from './impositions'
 import type { DevisDetail, DevisOptions, DevisResponse, DevisView } from './devis'
+
 import type { TraceAnalysis, TraceDetail, TraceOptions, TracePreview, TracesResponse, TraceVersionResult, TraceView } from './traces'
 import type { GroupCandidate, GroupResult } from './groupage'
 import type { AtelierCalcul, AtelierData, AtelierFormat, GabaritApercu, PropositionResult, Scenario } from './atelier'
@@ -479,3 +480,11 @@ const DEVIS = 'aurescrm.api.bureau_devis'
 export const getDevisList = (view: DevisView, conditions: Condition[], search: string, paging: ListPaging = {}) => call<DevisResponse>(`${DEVIS}.get_devis_list`, listParams(view, conditions, search, paging))
 export const getDevisOptions = () => call<DevisOptions>(`${DEVIS}.get_devis_options`)
 export const getDevis = (name: string) => call<DevisDetail>(`${DEVIS}.get_devis`, { name })
+type DevisRef = Pick<DevisDetail, 'name' | 'modified'>
+export const updateDevis = (devis: DevisRef, values: { prix?: Record<string, number>; valable?: string }) =>
+	call<DevisDetail>(`${DEVIS}.update_devis`, { name: devis.name, modified: devis.modified, ...(values.prix ? { prix: JSON.stringify(values.prix) } : {}), ...(values.valable !== undefined ? { valable: values.valable } : {}) }, true)
+export const validateDevis = (devis: DevisRef) => call<DevisDetail>(`${DEVIS}.validate_devis`, { name: devis.name, modified: devis.modified }, true)
+export const createDevisCommande = (devis: DevisRef) => call<{ commande: string; devis: DevisDetail }>(`${DEVIS}.create_commande`, { name: devis.name, modified: devis.modified }, true)
+export const markDevisLost = (devis: DevisRef, values: { raison: string; concurrent: string; precisions: string }) => call<DevisDetail>(`${DEVIS}.mark_lost`, { name: devis.name, modified: devis.modified, ...values }, true)
+export const cancelDevis = (devis: DevisRef) => call<DevisDetail>(`${DEVIS}.cancel_devis`, { name: devis.name, modified: devis.modified }, true)
+export const devisActivity = (name: string) => recordActivity(DEVIS, 'devis', name)

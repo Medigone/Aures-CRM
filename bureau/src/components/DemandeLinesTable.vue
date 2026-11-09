@@ -50,7 +50,7 @@ const sales = (): DemandeSale[] => (props.kind === 'devis' ? props.demande.devis
 			<tbody>
 				<tr v-for="sale in sales()" :key="sale.name">
 					<td>
-						<RouterLink v-if="kind === 'devis'" class="ref-link tabular-nums" :to="{ name: 'Devis', query: { apercu: sale.name } }">{{ sale.name }}</RouterLink>
+						<RouterLink v-if="kind === 'devis'" class="ref-link tabular-nums" :to="{ name: 'DevisFiche', params: { id: sale.name } }">{{ sale.name }}</RouterLink>
 						<a v-else class="ref-link tabular-nums" :href="deskUrl('Sales Order', sale.name)" target="_blank" rel="noopener noreferrer">{{ sale.name }}</a>
 					</td>
 					<td class="tabular-nums">{{ formatDay(sale.date) || '—' }}</td>

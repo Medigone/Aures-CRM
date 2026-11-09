@@ -1,10 +1,11 @@
 # Copyright (c) 2026, Medigo and contributors
 # For license information, please see license.txt
-"""Tests de la liste des devis du poste de bureau.
+"""Tests de la liste et du cycle des devis du poste de bureau.
 
 Exécuter avec : bench --site [site] run-tests --module aurescrm.tests.test_bureau_devis
 """
 
+import json
 from unittest.mock import patch
 
 import frappe
@@ -57,18 +58,81 @@ class TestListeDevis(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			bureau_devis.get_devis_list(view="inconnue")
 
-	def test_les_couts_restent_a_l_equipe_devis(self):
-		frappe.set_user("Administrator")
-		name = frappe.db.get_value("Quotation", {"docstatus": ["!=", 2]})
-		if not name:
-			self.skipTest("Aucun devis sur ce site.")
-		with patch.object(bureau_devis, "voit_couts", return_value=False):
-			detail = bureau_devis.get_devis(name)
-		self.assertFalse(detail["couts"])
-		for line in detail["lignes"]:
-			self.assertNotIn("calcul", line)
-
 	def test_filtres_declares(self):
 		frappe.set_user("Administrator")
 		fields = {entry["field"] for entry in bureau_devis.get_devis_options()["filter_fields"]}
 		self.assertTrue({"status", "custom_id_client", "_user_tags"} <= fields)
+
+
+class TestCycleDevis(FrappeTestCase):
+	"""Sur un brouillon du site, dans une transaction annulée à la fin. Aucune notification ne part."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.name = frappe.db.get_value("Quotation", {"docstatus": 0}, "name", order_by="creation desc")
+		if not self.name:
+			self.skipTest("Aucun brouillon de devis sur ce site.")
+		self.push = patch("aurescrm.push.service.enqueue_push")
+		self.push.start()
+
+	def tearDown(self):
+		self.push.stop()
+		frappe.set_user("Administrator")
+
+	def _prices(self, value=12.5):
+		doc = frappe.get_doc("Quotation", self.name)
+		return {row.name: value for row in doc.items}
+
+	def test_ce_qui_bloque_la_validation(self):
+		doc = frappe.get_doc("Quotation", self.name)
+		for row in doc.items:
+			row.rate = 0
+		doc.valid_till = None
+		reasons = bureau_devis.blocked(doc)
+		self.assertTrue(any("sans prix" in reason for reason in reasons))
+		self.assertTrue(any("validité" in reason for reason in reasons))
+
+	def test_le_prix_garde_son_auteur(self):
+		user = "test.charge-devis@aures.test"
+		if not frappe.db.exists("User", user):
+			self.skipTest("Compte d'essai de l'équipe devis absent.")
+		frappe.set_user(user)
+		start = frappe.utils.now_datetime()
+		detail = bureau_devis.get_devis(self.name)
+		self.assertIn("prix", detail["actions"])
+		result = bureau_devis.update_devis(self.name, detail["modified"], prix=json.dumps(self._prices(7.25)), valable="2099-01-01")
+		self.assertTrue(all(line["prix"] == 7.25 for line in result["lignes"]))
+		self.assertEqual(result["valable"], "2099-01-01")
+		self.assertEqual(frappe.db.get_value("Quotation", self.name, "modified_by"), user)
+		# L'historique ne doit rien laisser au nom de l'administrateur.
+		self.assertFalse(frappe.get_all("Version", filters={"ref_doctype": "Quotation", "docname": self.name, "owner": "Administrator", "creation": [">=", start]}))
+
+	def test_le_back_office_ne_change_pas_les_prix(self):
+		user = "test.back-office@aures.test"
+		if not frappe.db.exists("User", user):
+			self.skipTest("Compte d'essai du back office absent.")
+		frappe.set_user(user)
+		detail = bureau_devis.get_devis(self.name)
+		self.assertNotIn("prix", detail["actions"])
+		with self.assertRaises(frappe.PermissionError):
+			bureau_devis.update_devis(self.name, detail["modified"], prix=json.dumps(self._prices()))
+
+	def test_valider_puis_perdre(self):
+		detail = bureau_devis.get_devis(self.name)
+		detail = bureau_devis.update_devis(self.name, detail["modified"], prix=json.dumps(self._prices()), valable="2099-01-01")
+		self.assertEqual(detail["blocked"], [])
+		detail = bureau_devis.validate_devis(self.name, detail["modified"])
+		self.assertEqual(detail["docstatus"], 1)
+		self.assertIn("perdu", detail["actions"])
+		reason = frappe.db.get_value("Quotation Lost Reason", {}, "name")
+		if not reason:
+			return
+		with self.assertRaises(frappe.ValidationError):
+			bureau_devis.mark_lost(self.name, detail["modified"], "")
+		detail = bureau_devis.mark_lost(self.name, detail["modified"], reason, concurrent="Cartonnerie Est")
+		self.assertEqual(detail["status"], "Lost")
+		self.assertIn("Cartonnerie Est", detail["perte"]["precisions"])
+
+	def test_une_version_perimee_est_refusee(self):
+		with self.assertRaises(frappe.TimestampMismatchError):
+			bureau_devis.update_devis(self.name, "2000-01-01 00:00:00", prix=json.dumps(self._prices()))

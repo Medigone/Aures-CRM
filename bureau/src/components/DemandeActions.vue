@@ -103,7 +103,7 @@ function onSaved(saved: DemandeDetail) {
 	</FormDialog>
 
 	<FormDialog v-else-if="open === 'devis'" :title="`Créer le devis de ${demande.name} ?`" :dirty="false" hint="" @close="open = null" @submit="devis">
-		<p class="m-0">Le devis reprend les articles réalisables et génère leurs calculs. Il s'ouvre ensuite sur le Desk pour le chiffrage.</p>
+		<p class="m-0">Le devis reprend les articles réalisables, sans prix : ils se saisissent ensuite sur sa fiche.</p>
 		<dl class="side-kv mt-2">
 			<div v-for="etude in devisLines" :key="etude.name"><dt>{{ etude.designation }}</dt><dd class="tabular-nums">{{ formatDraftQuantity(String(etude.quantite)) }}</dd></div>
 		</dl>
@@ -123,6 +123,6 @@ function onSaved(saved: DemandeDetail) {
 	<DemandeDialog v-else-if="open === 'edit'" :demande="demande" @close="open = null" @saved="onSaved" />
 
 	<AppToast :message="devisCree ? `Devis ${devisCree} créé.` : ''" :duration="0" @close="devisCree = ''">
-		<a class="app-toast-action" :href="deskUrl('Quotation', devisCree)" target="_blank" rel="noopener noreferrer" @click="devisCree = ''">Ouvrir sur le Desk</a>
+		<RouterLink class="app-toast-action" :to="{ name: 'DevisFiche', params: { id: devisCree } }" @click="devisCree = ''">Ouvrir le devis</RouterLink>
 	</AppToast>
 </template>
